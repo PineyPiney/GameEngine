@@ -125,6 +125,18 @@ dependencies {
     implementation("org.bytedeco:ffmpeg-platform-gpl:5.0-$javacv")
 }
 
+publishing{
+    publications{
+        register<MavenPublication>("gpr"){
+            group = "com.github.pineypiney"
+            artifactId = "game_engine"
+            version = "-SNAPSHOT"
+
+            from(components["java"])
+        }
+    }
+}
+
 /*
 publishing{
     repositories{
