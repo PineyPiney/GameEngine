@@ -1,0 +1,40 @@
+// VERTEX SHADER INFORMATION
+#version 460 core
+
+const int MAX_BONES = 25;
+const int MAX_WEIGHTS = 4;
+
+layout (location = 0) in vec3 aPos;
+layout (location = 2) in vec2 aTexCoord;
+layout (location = 3) in ivec4 boneIndices;
+layout (location = 4) in vec4 boneWeights;
+
+uniform mat4 boneTransforms[MAX_BONES];
+uniform vec4 boneColours[MAX_BONES];
+
+uniform mat4 model;
+uniform mat4 vp;
+
+out vec2 texCoords;
+out vec4 boneTint;
+
+void main(){
+
+	vec4 pos = vec4(0.0);
+	vec4 colour = vec4(0.0);
+
+	for(int i = 0; i < MAX_WEIGHTS; i++){
+
+		// BoneTransforms
+		mat4 transform = boneTransforms[boneIndices[i]];
+		vec4 posePos = transform * vec4(aPos, 1.0);
+		pos += posePos * boneWeights[i];
+
+		// Bone Tint
+		colour += boneColours[boneIndices[i]] * boneWeights[i];
+	}
+
+	gl_Position = vp * model * pos;
+	texCoords = aTexCoord;
+	boneTint = colour;
+}
