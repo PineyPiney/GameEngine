@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
+    `maven-publish`
 }
 
 apply {
@@ -33,6 +34,11 @@ dependencies {
 
     // https://kotlinlang.org/docs/releases.html#release-details
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+
+
+    // GLM
+    implementation("$kx.glm:glm:375708cf1c0942b0df9d624acddb1c9993f6d92d")
+
 
     // LWJGL
     implementation("org.lwjgl:lwjgl:$lwjglVersion")
@@ -106,11 +112,6 @@ dependencies {
     runtimeOnly("org.lwjgl:lwjgl-xxhash::$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-yoga::$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-zstd::$lwjglNatives")
-
-
-    // GLM
-    implementation("$kx.glm:glm:375708cf1c0942b0df9d624acddb1c9993f6d92d")
-
 
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")
 
