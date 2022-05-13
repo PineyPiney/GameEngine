@@ -9,8 +9,6 @@ import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL46C.GL_FALSE
-import org.lwjgl.opengl.GL46C.GL_TRUE
 import org.lwjgl.stb.STBImage
 
 
@@ -49,14 +47,14 @@ class Window(title: String, var width: Int, var height: Int, vSync: Boolean) {
 
         glfwDefaultWindowHints() // optional, the current window hints are already the default
 
-        glfwWindowHint(GLFW_VISIBLE, GL_FALSE) // the window will stay hidden after creation
+        glfwWindowHint(GLFW_VISIBLE, 0) // the window will stay hidden after creation
 
-        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE) // the window will be resizable
+        glfwWindowHint(GLFW_RESIZABLE, 1) // the window will be resizable
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6)
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1)
 
         // Create the window
         windowHandle = glfwCreateWindow(width, height, title, 0, 0)
