@@ -9,10 +9,6 @@ plugins {
     `maven-publish`
 }
 
-apply {
-    plugin("maven-publish")
-}
-
 group = "com.pineypiney.game_engine"
 version = "1.0-SNAPSHOT"
 
@@ -136,27 +132,6 @@ publishing{
         }
     }
 }
-
-/*
-publishing{
-    repositories{
-        maven{
-            name="GitHubPackages"
-            url = uri("https://maven.pkg.github.com/PineyPiney/GameEngine")
-            credentials{
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("PineyPiney")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
-            }
-        }
-    }
-    publications{
-        register<MavenPublication>("gpr"){
-            from(components["java"])
-        }
-    }
-}
-
- */
 
 // Package Resources into ZIP file
 tasks.register<Zip>("packageResources"){
