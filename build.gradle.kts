@@ -8,10 +8,14 @@ plugins {
 
 }
 
-group = "com.pineypiney"
+apply {
+    plugin("maven")
+}
+
+group = "com.pineypiney.game_engine"
 version = "indev"
 
-val lwjglVersion = "3.2.3"
+val lwjglVersion = "3.3.1"
 val lwjglNatives = "natives-windows"
 
 val javacv = "1.5.7"
@@ -119,6 +123,27 @@ dependencies {
     implementation("org.bytedeco:opencv-platform-gpu:4.5.5-$javacv")
     implementation("org.bytedeco:ffmpeg-platform-gpl:5.0-$javacv")
 }
+
+/*
+publishing{
+    repositories{
+        maven{
+            name="GitHubPackages"
+            url = uri("https://maven.pkg.github.com/PineyPiney/GameEngine")
+            credentials{
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("PineyPiney")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+            }
+        }
+    }
+    publications{
+        register<MavenPublication>("gpr"){
+            from(components["java"])
+        }
+    }
+}
+
+ */
 
 // Package Resources into ZIP file
 tasks.register<Zip>("packageResources"){
