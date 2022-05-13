@@ -128,9 +128,9 @@ dependencies {
 publishing{
     publications{
         register<MavenPublication>("gpr"){
-            group = "com.github.pineypiney"
-            artifactId = "game_engine"
-            version = "-SNAPSHOT"
+            group = "com.github.PineyPiney"
+            artifactId = "GameEngine"
+            version = version
 
             from(components["java"])
         }
