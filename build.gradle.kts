@@ -14,7 +14,7 @@ apply {
 }
 
 group = "com.pineypiney.game_engine"
-version = "indev"
+version = "1.0-SNAPSHOT"
 
 val lwjglVersion = "3.3.1"
 val lwjglNatives = "natives-windows"
