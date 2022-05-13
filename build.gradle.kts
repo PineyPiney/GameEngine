@@ -9,7 +9,7 @@ plugins {
 }
 
 apply {
-    plugin("maven")
+    plugin("maven-publish")
 }
 
 group = "com.pineypiney.game_engine"
