@@ -10,6 +10,7 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.round
 import com.pineypiney.game_engine.util.normal
 import glm_.f
 import glm_.vec2.Vec2
@@ -78,6 +79,13 @@ fun main() {
                     super.delete()
                     text?.delete()
                 }
+            }
+
+            override fun onCursorMove(window: Window, cursorPos: Vec2, cursorDelta: Vec2) {
+                super.onCursorMove(window, cursorPos, cursorDelta)
+                text = Text(camera.screenToWorld(cursorPos).array.joinToString{
+                    it.round(2).toString()
+                })
             }
             override fun addObjects() {
 

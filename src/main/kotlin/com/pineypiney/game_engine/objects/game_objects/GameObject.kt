@@ -59,13 +59,13 @@ abstract class GameObject : IScreenObject, Renderable, Storable, Copyable<GameOb
         return scale.x
     }
 
-    fun translate(move: Vec2){
-        transform.translate(move)
-    }
-
     fun setPosition(pos: Vec3){
         position = Vec2(pos)
         depth = pos.z.i
+    }
+
+    fun translate(move: Vec2){
+        transform.translate(move)
     }
 
     fun rotate(angle: Float){
