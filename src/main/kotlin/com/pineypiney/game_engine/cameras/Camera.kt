@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.cameras
 
-import com.pineypiney.game_engine.util.extension_functions.*
+import com.pineypiney.game_engine.util.extension_functions.coerceIn
+import com.pineypiney.game_engine.util.extension_functions.round
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -8,7 +9,7 @@ import glm_.vec3.Vec3
 import kotlin.math.cos
 import kotlin.math.sin
 
-open class Camera(pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), yaw: Double = -90.0, pitch: Double = 0.0, fov: Float = 4f) {
+open class Camera(pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), yaw: Double = -90.0, pitch: Double = 0.0, fov: Float = 45f) {
 
     var cameraPos = Vec3(); protected set
     var cameraUp = up
@@ -22,7 +23,7 @@ open class Camera(pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), yaw: Doub
     var cameraYaw = yaw; var cameraPitch = pitch
     var lastX = 0.0; var lastY = 0.0
     var movementSpeed = 0.0; var mouseSensitivity = 0.0
-    var FOV = 0f; protected set
+    var FOV = fov; protected set
 
     var range = Vec2(0.1, 1000)
 
@@ -31,7 +32,6 @@ open class Camera(pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), yaw: Doub
         cameraFront = Vec3(0.0f, 0.0f, -1.0f)
         movementSpeed = 10.0
         mouseSensitivity = 1.0
-        FOV = fov
         lastX = 250.0
         lastY = 250.0
 

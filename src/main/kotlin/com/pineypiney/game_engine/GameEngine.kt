@@ -2,7 +2,6 @@
 package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.resources.ResourceLoader
-import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.text.FontLoader
 import glm_.f
 import org.lwjgl.glfw.GLFW.glfwTerminate
@@ -15,7 +14,7 @@ abstract class GameEngine(val window: Window) : Runnable {
     abstract var activeScreen: IGameLogic
 
     private val timer = Timer()
-    val input = Inputs(window)
+    val input; get() = window.input
 
     private var nextUpdateTime: Double = Timer.getCurrentTime()
     private var FPSCounter: Int = 0
@@ -42,6 +41,7 @@ abstract class GameEngine(val window: Window) : Runnable {
         this.activeScreen.init()
 
         window.setResizeCallback { window -> this.activeScreen.updateAspectRatio(window) }
+        setInputCallbacks()
     }
 
     protected open fun gameLoop(){
@@ -93,6 +93,18 @@ abstract class GameEngine(val window: Window) : Runnable {
             }
             catch (_: InterruptedException) {
             }
+        }
+    }
+
+    open fun setInputCallbacks(){
+        input.mouseMoveCallback = { win, screenPos, cursorOffset ->
+            activeScreen.onCursorMove(win, screenPos, cursorOffset)
+        }
+        input.mouseScrollCallback = { win, scrollOffset ->
+            activeScreen.onScroll(win, scrollOffset)
+        }
+        input.keyPressCallback = { bind, action ->
+            activeScreen.onInput(bind, action)
         }
     }
 

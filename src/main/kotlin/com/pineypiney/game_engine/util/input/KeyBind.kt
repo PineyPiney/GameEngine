@@ -1,9 +1,6 @@
 package com.pineypiney.game_engine.util.input
 
-import com.pineypiney.game_engine.util.ResourceKey
-import glm_.and
-import glm_.hashCode
-import glm_.s
+import glm_.*
 import org.lwjgl.glfw.GLFW.*
 
 class KeyBind(val key: Short, val controlType: Inputs.ControlType = Inputs.ControlType.KEYBOARD, val mods: Byte = 0) {
@@ -11,6 +8,9 @@ class KeyBind(val key: Short, val controlType: Inputs.ControlType = Inputs.Contr
     constructor(key: Number, controlType: Inputs.ControlType = Inputs.ControlType.KEYBOARD, mods: Byte = 0) : this(key.s, controlType, mods)
 
     var state: Int = 0
+
+    val c; get() = key.c
+    val i; get() = key.i
 
     val shift get() = (this.mods and GLFW_MOD_SHIFT) > 0
     val control get() = (this.mods and GLFW_MOD_CONTROL) > 0
@@ -22,7 +22,6 @@ class KeyBind(val key: Short, val controlType: Inputs.ControlType = Inputs.Contr
     infix fun mainIs(key: Number): Boolean = this.key == key.s
 
 
-    fun matches(key: ResourceKey, input: Inputs) = matches(input.getKeyBinding(key))
     infix fun matches(key: KeyBind) = matches(key.key, key.controlType, key.mods)
 
     fun matches(key: Short, controlType: Inputs.ControlType, mods: Byte): Boolean{

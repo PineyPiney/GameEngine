@@ -1,20 +1,20 @@
 package com.pineypiney.game_engine
 
-import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.init
-import com.pineypiney.game_engine.util.input.Inputs
-import com.pineypiney.game_engine.util.input.KeyBind
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.ScreenObjectCollection
 import com.pineypiney.game_engine.objects.Storable
+import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.util.extension_functions.init
+import com.pineypiney.game_engine.util.input.Inputs
+import com.pineypiney.game_engine.util.input.KeyBind
 import glm_.vec2.Vec2
+import org.lwjgl.glfw.GLFW
 
 abstract class GameLogic(final override val gameEngine: GameEngine) : IGameLogic {
 
     override var gameObjects: ScreenObjectCollection = ScreenObjectCollection()
 
-    override val input get() = gameEngine.input
+    override val input get() = gameEngine.window.input
 
     override fun init() {
         camera.init()
@@ -49,14 +49,18 @@ abstract class GameLogic(final override val gameEngine: GameEngine) : IGameLogic
     }
 
     open fun setFullscreen(state: Boolean){
-        Window.INSTANCE.fullScreen = state
+        gameEngine.window.fullScreen = state
     }
 
     override fun onInput(key: KeyBind, action: Int) {
 
-        if(key.matches(ResourceKey("key/fullscreen"), this.input) && action == 1){
-            setFullscreen(!Window.INSTANCE.fullScreen)
+        if(key.c == 'F' && action == 1){
+            setFullscreen(!gameEngine.window.fullScreen)
         }
+        if(key.i == GLFW.GLFW_KEY_ESCAPE && action == 1){
+            window.setShouldClose()
+        }
+
 
         for(item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java).sortedByDescending { it.importance }){
             val stop = conditionalInput(item, key, action)
