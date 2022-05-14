@@ -4,8 +4,8 @@ import com.pineypiney.game_engine.IGameLogic
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.util.I
-import com.pineypiney.game_engine.visual.Deleteable
-import com.pineypiney.game_engine.visual.ScreenObjectCollection
+import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.ScreenObjectCollection
 import glm_.func.rad
 import glm_.glm
 import glm_.mat4x4.Mat4

@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.renderers
 
 import com.pineypiney.game_engine.Window
-import com.pineypiney.game_engine.visual.ScreenObjectCollection
-import com.pineypiney.game_engine.visual.util.shapes.IndicesShape
+import com.pineypiney.game_engine.objects.ScreenObjectCollection
+import com.pineypiney.game_engine.objects.util.shapes.IndicesShape
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL46C.*
 import java.nio.ByteBuffer

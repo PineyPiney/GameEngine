@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources.shaders
 
-import com.pineypiney.game_engine.visual.Deleteable
+import com.pineypiney.game_engine.objects.Deleteable
 import glm_.f
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2

@@ -9,9 +9,9 @@ import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.normal
-import com.pineypiney.game_engine.visual.util.collision.CollisionBox
-import com.pineypiney.game_engine.visual.util.collision.SoftCollisionBox
-import com.pineypiney.game_engine.visual.util.shapes.ArrayShape
+import com.pineypiney.game_engine.objects.util.collision.CollisionBox
+import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
+import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import glm_.i
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2

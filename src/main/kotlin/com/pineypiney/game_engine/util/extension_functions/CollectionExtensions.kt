@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.util.extension_functions
 
-import com.pineypiney.game_engine.visual.Deleteable
-import com.pineypiney.game_engine.visual.IScreenObject
+import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.IScreenObject
 
 fun <E: Deleteable> Collection<E?>?.delete(){
     this?.forEach {

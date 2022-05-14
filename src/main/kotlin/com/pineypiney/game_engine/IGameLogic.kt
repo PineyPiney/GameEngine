@@ -4,8 +4,8 @@ import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.renderers.GameRenderer
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.input.KeyBind
-import com.pineypiney.game_engine.visual.ScreenObjectCollection
-import com.pineypiney.game_engine.visual.Storable
+import com.pineypiney.game_engine.objects.ScreenObjectCollection
+import com.pineypiney.game_engine.objects.Storable
 import glm_.vec2.Vec2
 
 interface IGameLogic {

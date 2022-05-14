@@ -1,15 +1,15 @@
 package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.cameras.Camera
+import com.pineypiney.game_engine.objects.ScreenObjectCollection
+import com.pineypiney.game_engine.objects.Text
+import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import com.pineypiney.game_engine.renderers.BufferedGameRenderer
 import com.pineypiney.game_engine.renderers.GameRenderer
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.visual.ScreenObjectCollection
-import com.pineypiney.game_engine.visual.Text
-import com.pineypiney.game_engine.visual.util.shapes.ArrayShape
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -39,7 +39,7 @@ fun main() {
         }
 
         override var activeScreen: IGameLogic = object : GameLogic(this){
-                        override var camera: Camera = Camera()
+            override var camera: Camera = Camera()
             override var renderer: GameRenderer = object : BufferedGameRenderer(){
                 override fun render(window: Window, camera: Camera, game: IGameLogic, tickDelta: Double) {
                     clearFrameBuffer()
@@ -72,6 +72,9 @@ fun main() {
                     super.delete()
                     text?.delete()
                 }
+            }
+            override fun addObjects() {
+
             }
         }
     }

@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.*
-import com.pineypiney.game_engine.visual.util.collision.SoftCollisionBox
+import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
 import glm_.f
 import glm_.i
 import glm_.mat4x4.Mat4

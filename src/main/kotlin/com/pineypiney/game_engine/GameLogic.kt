@@ -5,9 +5,9 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.input.KeyBind
-import com.pineypiney.game_engine.visual.Interactable
-import com.pineypiney.game_engine.visual.ScreenObjectCollection
-import com.pineypiney.game_engine.visual.Storable
+import com.pineypiney.game_engine.objects.Interactable
+import com.pineypiney.game_engine.objects.ScreenObjectCollection
+import com.pineypiney.game_engine.objects.Storable
 import glm_.vec2.Vec2
 
 abstract class GameLogic(final override val gameEngine: GameEngine) : IGameLogic {
@@ -24,7 +24,7 @@ abstract class GameLogic(final override val gameEngine: GameEngine) : IGameLogic
     }
 
     // This addObjects function allows adding items and calling init() on them all here in gameLogic, see init()
-    open fun addObjects(){}
+    abstract fun addObjects()
 
     override fun open() {
         // Force update everything

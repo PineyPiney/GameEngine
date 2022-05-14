@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.extension_functions.expand
-import com.pineypiney.game_engine.visual.Deleteable
+import com.pineypiney.game_engine.objects.Deleteable
 import glm_.BYTES
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -137,7 +137,8 @@ class Mesh(var id: String, var vertices: Array<MeshVertex>,
         TODO("Not yet implemented")
     }
 
-    data class MeshVertex(val position: ModelLoader.VertexPosition, val normal: Vec3 = Vec3(), val texCoord: Vec2 = Vec2(), val weights: Array<Controller.BoneWeight> = arrayOf()): Copyable<MeshVertex>, Deleteable{
+    data class MeshVertex(val position: ModelLoader.VertexPosition, val normal: Vec3 = Vec3(), val texCoord: Vec2 = Vec2(), val weights: Array<Controller.BoneWeight> = arrayOf()): Copyable<MeshVertex>,
+        Deleteable {
 
         override fun copy(): MeshVertex{
             return MeshVertex(position.copy(), normal.copy(), texCoord.copy(), weights.copy())
