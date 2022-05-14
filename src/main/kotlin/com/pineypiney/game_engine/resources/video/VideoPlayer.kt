@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.visual.Drawable
 import com.pineypiney.game_engine.visual.IScreenObject
 import com.pineypiney.game_engine.visual.menu_items.MenuItem
-import com.pineypiney.game_engine.visual.util.shapes.Shape
+import com.pineypiney.game_engine.visual.util.shapes.ArrayShape
 import glm_.glm
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -43,7 +43,7 @@ class VideoPlayer(val video: Video, override var origin: Vec2 = Vec2(-1, -1), ov
     }
 
     companion object{
-        val shape = Shape.cornerSquareShape
+        val shape = ArrayShape.cornerSquareShape
         val shader = MenuItem.menuShader
     }
 }

@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine
 
-import com.pineypiney.game_engine.renderers.GameRenderer
 import com.pineypiney.game_engine.cameras.Camera
+import com.pineypiney.game_engine.renderers.GameRenderer
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.input.KeyBind
 import com.pineypiney.game_engine.visual.ScreenObjectCollection
@@ -33,8 +33,6 @@ interface IGameLogic {
     fun update(interval: Float, input: Inputs)
 
     fun updateAspectRatio(window: Window)
-
-    fun regenerateFrameBuffers()
 
     fun add(o: Storable?)
 

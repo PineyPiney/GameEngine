@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.resources.ResourceLoader
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.text.FontLoader
 import glm_.f
+import org.lwjgl.glfw.GLFW.glfwTerminate
 
 abstract class GameEngine(val window: Window) : Runnable {
 
@@ -13,12 +14,12 @@ abstract class GameEngine(val window: Window) : Runnable {
 
     abstract var activeScreen: IGameLogic
 
-    val timer = Timer()
+    private val timer = Timer()
     val input = Inputs(window)
 
-    var nextUpdateTime: Double = Timer.getCurrentTime()
-    var FPSCounter: Int = 0
-    var FPS: Float = 0f
+    private var nextUpdateTime: Double = Timer.getCurrentTime()
+    private var FPSCounter: Int = 0
+    private var FPS: Float = 0f
 
     override fun run() {
         init()
@@ -26,7 +27,7 @@ abstract class GameEngine(val window: Window) : Runnable {
         cleanUp()
     }
 
-    private fun init(){
+    protected open fun init(){
         println("Initialising GameEngine")
 
         // Load the resources for the game
@@ -38,9 +39,12 @@ abstract class GameEngine(val window: Window) : Runnable {
         FontLoader.INSTANCE.loadFontWithTexture("PixelFont.png", 32, 64, 2)
 
         timer.init()
+        this.activeScreen.init()
+
+        window.setResizeCallback { window -> this.activeScreen.updateAspectRatio(window) }
     }
 
-    private fun gameLoop(){
+    protected open fun gameLoop(){
 
         var frameTime: Double
         var accumulator = 0.0
@@ -98,12 +102,12 @@ abstract class GameEngine(val window: Window) : Runnable {
 
     private fun render(tickDelta: Double) {
         activeScreen.render(window, tickDelta)
-
         window.update()
     }
 
-    private fun cleanUp() {
+    protected open fun cleanUp() {
         ResourceLoader.INSTANCE.cleanUp()
         activeScreen.cleanUp()
+        glfwTerminate()
     }
 }

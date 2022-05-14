@@ -1,12 +1,12 @@
 package com.pineypiney.game_engine.visual.util.collision
 
-import com.pineypiney.game_engine.visual.game_objects.GameObject
-import com.pineypiney.game_engine.visual.util.shapes.Shape
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.absMinOf
+import com.pineypiney.game_engine.visual.game_objects.GameObject
+import com.pineypiney.game_engine.visual.util.shapes.ArrayShape
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -33,7 +33,7 @@ abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size:
 
     fun render(vp: Mat4){
 
-        Shape.cornerSquareShape.bind()
+        ArrayShape.cornerSquareShape.bind()
         val finalModel = (parent?.transform?.model ?: I) * this.relModel
 
         val colliderShader = CollisionBox.colliderShader

@@ -90,6 +90,7 @@ abstract class GameLogic(final override val gameEngine: GameEngine) : IGameLogic
     override fun add(o: Storable?){
         this.gameObjects.addObject(o)
     }
+
     override fun remove(o: Storable?){
         this.gameObjects.removeObject(o)
     }

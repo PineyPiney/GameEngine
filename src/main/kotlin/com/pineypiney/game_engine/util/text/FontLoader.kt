@@ -78,7 +78,7 @@ class FontLoader private constructor() {
     }
 
     companion object{
-        val INSTANCE = FontLoader(); get() = field
+        val INSTANCE = FontLoader()
 
         fun getFont(key: ResourceKey): Font = INSTANCE.getFont(key)
     }

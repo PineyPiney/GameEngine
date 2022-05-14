@@ -1,39 +1,57 @@
 package com.pineypiney.game_engine.visual.util.shapes
 
-import com.pineypiney.game_engine.util.sin60
 import org.lwjgl.opengl.GL46C.*
 
-class IndicesShape(vertices: FloatArray, numVertices: Int, val indices: IntArray) : Shape(vertices, numVertices) {
+open class IndicesShape(vertices: FloatArray, parts: IntArray, indices: IntArray): Shape() {
 
     private val EBO = glGenBuffers()
+    override val size: Int = indices.size
 
     init{
+        val VBO = glGenBuffers()
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+        glBindVertexArray(this.VAO)
 
-        val bytes = 4 //Float.BYTES
+        glBindBuffer(GL_ARRAY_BUFFER, VBO)
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
-        // How to read vertex array for indices
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * bytes, 0)
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 8 * bytes, (3L * bytes))
-        glVertexAttribPointer(2, 2, GL_FLOAT, false, 8 * bytes, (6L * bytes))
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.EBO)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
+        // How to read non-indices array
+        setAttribs(parts)
+
+        glBindVertexArray(0)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+        glDeleteBuffers(VBO)
     }
 
-    companion object {
+    override fun bind() {
+        super.bind()
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.EBO)
+    }
 
-        val triangleVertices = floatArrayOf(
-            0.0,	sin60,		0.0,	1.0,	0.0,	0.0,	0.5,	1.0,	// Top Corner
-            -0.5,	0.0,	0.0,	1.0,	1.0,	0.0,	0.0,	0.5,	// Left Corner
-            0.5,	-0.0,	0.0,	0.0,	1.0,	0.0,	1.0,	0.5,	// Right Corner
-            0.0,	-sin60,		0.0,	0.0,	0.0,	1.0,	0.5,	0.0	    // Bottom Corner
-        )
-        val triangleIndices = intArrayOf(
-            0, 1, 2,
-            3, 2, 1
+    override fun draw(mode: Int) {
+        glDrawElements(mode, size, GL_UNSIGNED_INT, 0)
+    }
+
+    override fun delete() {
+        super.delete()
+        glDeleteBuffers(this.EBO)
+    }
+
+    companion object{
+
+        val screenQuadVertices = floatArrayOf(
+            // positions    // texture co-ords
+            -1.0, -1.0,     0.0, 0.0,
+            1.0, -1.0,      1.0, 0.0,
+            1.0,  1.0,      1.0, 1.0,
+            -1.0,  1.0,     0.0, 1.0,
         )
 
-        val triangleIndicesShape = IndicesShape(triangleVertices, 4, triangleIndices)
+        val screenQuadShape = IndicesShape(screenQuadVertices, intArrayOf(2, 2), intArrayOf(0, 1, 2, 2, 3, 0))
     }
 }

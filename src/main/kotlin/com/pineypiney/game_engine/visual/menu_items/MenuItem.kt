@@ -6,6 +6,8 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.visual.*
+import com.pineypiney.game_engine.visual.util.shapes.ArrayShape
+import com.pineypiney.game_engine.visual.util.shapes.IndicesShape
 import com.pineypiney.game_engine.visual.util.shapes.Shape
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -19,7 +21,7 @@ abstract class MenuItem : IScreenObject, Drawable, Storable, Deleteable {
     override var origin: Vec2 = Vec2()
     override val size: Vec2 = Vec2()
 
-    open val shape: Shape = Shape.cornerSquareShape
+    open val shape: Shape = ArrayShape.cornerSquareShape
     open val shader: Shader = menuShader
 
     open fun setUniforms(){
@@ -88,7 +90,7 @@ abstract class MenuItem : IScreenObject, Drawable, Storable, Deleteable {
 
     companion object{
         val menuShader: Shader = ShaderLoader.getShader(ResourceKey("vertex\\menu"), ResourceKey("fragment\\opaque_texture"))
-        val menuShape: Shape = Shape.screenQuadShape
+        val menuShape: Shape = IndicesShape.screenQuadShape
 
         fun between(point: Float, left: Float, size: Float) : Boolean{
             return left < point && point < left + size

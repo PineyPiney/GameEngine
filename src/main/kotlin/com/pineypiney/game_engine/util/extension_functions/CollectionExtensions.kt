@@ -7,7 +7,12 @@ fun <E: Deleteable> Collection<E?>?.delete(){
     this?.forEach {
         it?.delete()
     }
+}
 
+fun <E: Deleteable> Map<*, E?>.delete(){
+    forEach {
+        it.value?.delete()
+    }
 }
 
 fun <E, T> MutableMap<E, T>.getOrSet(key: E, create: (key: E) -> T): T{
@@ -32,12 +37,6 @@ fun <K, V: MutableCollection<E>, E> MutableMap<K, V>.combineLists(other: Mutable
         else newMap[key] = value
     }
     return newMap
-}
-
-fun <E: Deleteable> Map<*, E?>.delete(){
-    forEach {
-        it.value?.delete()
-    }
 }
 
 fun <E: IScreenObject> Collection<E?>?.init(){

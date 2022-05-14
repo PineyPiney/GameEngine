@@ -19,47 +19,48 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
     // Functions to set uniforms within shaders
 
     fun setBool(name: String, value: Boolean) {
-        val varLocation = glGetUniformLocation(ID, name)
+        val varLocation = getVar(name)
         glUniform1i(varLocation, if (value) 1 else 0)
     }
 
     fun setInt(name: String, value: Int) {
-        val varLocation = glGetUniformLocation(ID, name)
+        val varLocation = getVar(name)
         glUniform1i(varLocation, value)
     }
 
+    fun setUInt(name: String, value: Int) {
+        val varLocation = getVar(name)
+        glUniform1ui(varLocation, value)
+    }
+
     fun setFloat(name: String, value: Float) {
-        val varLocation = glGetUniformLocation(ID, name)
+        val varLocation = getVar(name)
         glUniform1f(varLocation, value)
     }
 
     fun setDouble(name: String, value: Double) {
-        val varLocation = glGetUniformLocation(ID, name)
+        val varLocation = getVar(name)
         glUniform1d(varLocation, value)
     }
 
     fun setFloats(name: String, values: FloatArray) {
-        val varLocation = glGetUniformLocation(ID, name)
+        val varLocation = getVar(name)
         glUniform1fv(varLocation, values)
     }
 
     fun setVec2s(name: String, values: Array<Vec2>) {
-        val varLocation = glGetUniformLocation(ID, name)
-        val floats = FloatArray(values.size * 2)
-        for (i in values.indices) {
-            floats[i * 2] = values[i].x
-            floats[i * 2 + 1] = values[i].y
-        }
+        val varLocation = getVar(name)
+        val floats = values.flatMap { listOf(it.x, it.y) }.toFloatArray()
         glUniform2fv(varLocation, floats)
     }
 
     fun setVec2(name: String, v: Vec2) {
-        val varLocation = glGetUniformLocation(ID, name)
+        val varLocation = getVar(name)
         glUniform2f(varLocation, v.x, v.y)
     }
 
     fun setVec2(name: String, x: Number, y: Number) {
-        val varLocation = glGetUniformLocation(ID, name)
+        val varLocation = getVar(name)
         glUniform2f(varLocation, x.f, y.f)
     }
 
@@ -68,7 +69,7 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
     }
 
     fun setVec3(name: String, r: Number, g: Number, b: Number) {
-        val varLocation = glGetUniformLocation(ID, name)
+        val varLocation = getVar(name)
         glUniform3f(varLocation, r.f, g.f, b.f)
     }
 
@@ -77,12 +78,12 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
     }
 
     fun setVec4(name: String, r: Number, g: Number, b: Number, a: Number) {
-        val varLocation = glGetUniformLocation(ID, name)
+        val varLocation = getVar(name)
         glUniform4f(varLocation, r.f, g.f, b.f, a.f)
     }
 
     fun setMat4(name: String, value: Mat4) {
-        val varLocation = glGetUniformLocation(ID, name)
+        val varLocation = getVar(name)
         val buffer = FloatBuffer.allocate(16)
         val array = FloatArray(16)
         value to buffer
@@ -91,6 +92,8 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
         }
         glUniformMatrix4fv(varLocation, false, array)
     }
+
+    private fun getVar(name: String) = glGetUniformLocation(ID, name)
 
     override fun delete() {
         glDeleteProgram(ID)

@@ -21,7 +21,7 @@ class Font(fontKey: ResourceKey, val letterWidth: Int = 32, val letterHeight: In
     fun getDimensions(char: Char): Vec4i? = charDimensions[char]
 
     companion object{
-        val defaultFont: Font; get() = FontLoader.getFont(ResourceKey("fonts\\Large Font"))
-        val fontShader = ShaderLoader.getShader(ResourceKey("vertex\\menu"), ResourceKey("fragment\\text"))
+        val defaultFont: Font; get() = FontLoader.getFont(ResourceKey("fonts/Large Font"))
+        val fontShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/text"))
     }
 }

@@ -6,15 +6,15 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.visual.util.collision.CollisionBox
 import com.pineypiney.game_engine.visual.util.collision.SoftCollisionBox
-import com.pineypiney.game_engine.visual.util.shapes.Shape
+import com.pineypiney.game_engine.visual.util.shapes.ArrayShape
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import org.lwjgl.opengl.GL46C.GL_TEXTURE0
 import org.lwjgl.opengl.GL46C.glActiveTexture
 
-open class TexturedGameObject(override val id: ResourceKey, var texture: Texture, val shape: Shape = Shape.centerSquareShape, override val shader: Shader = defaultShader) : GameObject() {
+open class TexturedGameObject(override val id: ResourceKey, var texture: Texture, val shape: ArrayShape = ArrayShape.centerSquareShape, override val shader: Shader = defaultShader) : GameObject() {
 
-    constructor(id: ResourceKey, textureKey: ResourceKey, shape: Shape = Shape.centerSquareShape, shader: Shader = defaultShader):
+    constructor(id: ResourceKey, textureKey: ResourceKey, shape: ArrayShape = ArrayShape.centerSquareShape, shader: Shader = defaultShader):
             this(id, TextureLoader.getTexture(textureKey), shape, shader)
 
     open val collidable = false
@@ -38,7 +38,7 @@ open class TexturedGameObject(override val id: ResourceKey, var texture: Texture
         glActiveTexture(GL_TEXTURE0)
         texture.bind()
 
-        drawArrays(this.shape.numVertices)
+        drawArrays(this.shape.size)
     }
 
     override fun toData(): Array<String> {

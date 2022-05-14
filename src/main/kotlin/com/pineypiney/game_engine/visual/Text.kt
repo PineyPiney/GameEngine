@@ -13,8 +13,6 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import org.lwjgl.opengl.GL46C.GL_TRIANGLES
-import org.lwjgl.opengl.GL46C.glDrawArrays
 import java.awt.Point
 import kotlin.math.max
 import kotlin.math.min
@@ -153,7 +151,7 @@ open class Text(val text: String, var colour: Vec4 = Vec4(1, 1, 1, 1), val textM
             model = model.scale(Vec3(defaultCharWidth * (charWidth/ font.letterWidth), defaultCharHeight, 1))
             shader.setMat4("model", model)
 
-            glDrawArrays(GL_TRIANGLES, 0, 6)
+            quads[i].draw()
             xOffset += (charWidth + font.characterSpacing)
         }
     }

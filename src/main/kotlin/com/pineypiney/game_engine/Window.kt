@@ -9,6 +9,7 @@ import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL
+import org.lwjgl.opengl.GL11C.glViewport
 import org.lwjgl.stb.STBImage
 
 
@@ -38,6 +39,13 @@ class Window(title: String, var width: Int, var height: Int, vSync: Boolean) {
                 glfwRestoreWindow(this.windowHandle)
             }
         }
+
+    val defaultResizeCallback = {_: Long, width: Int, height: Int ->
+        this.width = width
+        this.height = height
+        this.aspectRatio = width.f / height
+        glViewport(0, 0, width, height)
+    }
 
     init{
         GLFWErrorCallback.createPrint(System.err).set()
@@ -124,14 +132,10 @@ class Window(title: String, var width: Int, var height: Int, vSync: Boolean) {
     // gameEngine.activeScreen.updateAspectRatio(this)
     fun setResizeCallback(callback: (Window) -> Unit){
         // Setup resize callback
-        glfwSetFramebufferSizeCallback(windowHandle) { _: Long, width: Int, height: Int ->
-            this.width = width
-            this.height = height
-            this.aspectRatio = width.f/height
-
+        glfwSetFramebufferSizeCallback(windowHandle) { handle: Long, width: Int, height: Int ->
+            defaultResizeCallback(handle, width, height)
             callback(this)
         }
-
     }
 
     fun update(){

@@ -14,6 +14,10 @@ const vec2 offsets[9] = vec2[](
 	vec2( offset, -offset)  // bottom-right
 );
 
+const int EDGE_DETECTION = 1;
+const int GREY_SCALE = 2;
+const int INVERT = 4;
+
 in vec2 texCoords;
 
 uniform sampler2D screenTexture;
@@ -24,7 +28,7 @@ out vec4 FragColour;
 void main(){
 	vec4 c = texture(screenTexture, texCoords);
 
-	if((effects & 1) > 0){
+	if((effects & EDGE_DETECTION) > 0){
 		float kernel[9] = float[](
 			-1, -1, -1,
 			-1,  9, -1,
@@ -40,11 +44,11 @@ void main(){
 
 		c = vec4(col, 1.0);
 	}
-	if((effects & 2) > 0){
+	if((effects & GREY_SCALE) > 0){
 		float average = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
 		c = vec4(average, average, average, 1.0);
 	}
-	if((effects & 4) > 0){
+	if((effects & INVERT) > 0){
 		c = vec4(vec3(1.0 - c), 1.0);
 	}
 

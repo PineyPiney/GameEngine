@@ -11,7 +11,7 @@ import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.normal
 import com.pineypiney.game_engine.visual.util.collision.CollisionBox
 import com.pineypiney.game_engine.visual.util.collision.SoftCollisionBox
-import com.pineypiney.game_engine.visual.util.shapes.Shape
+import com.pineypiney.game_engine.visual.util.shapes.ArrayShape
 import glm_.i
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -58,7 +58,7 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
         if(debug and DEBUG_BONES > 0){
 
             // Render Bones
-            Shape.centerSquareShape.bind()
+            ArrayShape.centerSquareShape.bind()
             val boneShader = Bone.boneShader
 
             boneShader.use()
