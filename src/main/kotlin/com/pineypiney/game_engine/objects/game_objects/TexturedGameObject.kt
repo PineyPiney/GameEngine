@@ -21,13 +21,13 @@ open class TexturedGameObject(override val id: ResourceKey, var texture: Texture
         super.init()
     }
 
-    override fun render(vp: Mat4, tickDelta: Double) {
+    override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
 
         this.shape.bind()
         shader.use()
 
         shader.setMat4("model", transform.model)
-        shader.setMat4("vp", vp)
+        shader.setMat4("vp", projection * view)
 
         glActiveTexture(GL_TEXTURE0)
         texture.bind()

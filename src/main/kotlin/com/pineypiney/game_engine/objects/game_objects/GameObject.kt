@@ -51,7 +51,7 @@ abstract class GameObject : IScreenObject, Renderable, Storable, Copyable<GameOb
 
     override fun init() {}
 
-    override fun render(vp: Mat4, tickDelta: Double) {}
+    override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {}
 
     override fun updateAspectRatio(window: Window) {}
 

@@ -1,5 +1,8 @@
 package com.pineypiney.game_engine.resources.models
 
+import com.pineypiney.game_engine.objects.util.collision.CollisionBox
+import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
+import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.resources.models.animations.Animation
 import com.pineypiney.game_engine.resources.models.animations.State
@@ -9,9 +12,6 @@ import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.normal
-import com.pineypiney.game_engine.objects.util.collision.CollisionBox
-import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
-import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import glm_.i
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -31,7 +31,7 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
     var shader: Shader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/translucent_texture"))
     var collisionBox: CollisionBox = SoftCollisionBox(null, Vec2(), Vec2(1))
 
-    fun Draw(model: Mat4, vp: Mat4, debug: Int = 0) {
+    fun Draw(model: Mat4, view: Mat4, projection: Mat4, debug: Int = 0) {
 
         val modelShader = if(debug and DEBUG_MESH > 0) ShaderLoader.getShader(ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights"))
         else this.shader
@@ -47,6 +47,7 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
             modelShader.setVec4("boneColours[${bone.id}]", colour)
         }
 
+        val vp = projection * view
         modelShader.setMat4("vp", vp)
         modelShader.setMat4("model", model)
 

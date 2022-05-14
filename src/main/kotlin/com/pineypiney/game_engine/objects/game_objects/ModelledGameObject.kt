@@ -26,7 +26,7 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
         super.init()
     }
 
-    override fun render(vp: Mat4, tickDelta: Double) {
+    override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
         this.animation?.let { animation ->
             if(this.loopAnimation || animationEndTime > Timer.frameTime){
                 val states = animation.getState(animation.getAnimationTime(animationStartTime), erp)
@@ -34,11 +34,11 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
             }
             else setAnimation(nextAnimation)
         }
-        model.Draw(I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1)), vp, debug)
+        model.Draw(I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1)), view, projection, debug)
     }
 
-    override fun renderInstanced(amount: Int, vp: Mat4, tickDelta: Double) {
-        model.DrawInstanced(amount, I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1)), vp)
+    override fun renderInstanced(amount: Int, view: Mat4, projection: Mat4, tickDelta: Double) {
+        model.DrawInstanced(amount, I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1)), view)
     }
 
     fun initAnimation(animation: Animation, loop: Boolean = true){

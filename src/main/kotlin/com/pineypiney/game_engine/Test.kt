@@ -10,10 +10,12 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.normal
+import glm_.f
 import glm_.vec2.Vec2
-import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.opengl.GL11C.glClearColor
+import kotlin.math.PI
 
 fun main() {
 
@@ -25,6 +27,8 @@ fun main() {
     var backgroundShader: Shader? = null
     var screenShader: Shader? = null
     var text: Text? = null
+
+    var cycle = 0.0f
 
     val engine = object : GameEngine(window) {
         override var TARGET_FPS: Int = 1000
@@ -43,7 +47,7 @@ fun main() {
             override var renderer: GameRenderer = object : BufferedGameRenderer(){
                 override fun render(window: Window, camera: Camera, game: IGameLogic, tickDelta: Double) {
                     clearFrameBuffer()
-                    drawScene(game, tickDelta)
+                    drawScene(window, game, tickDelta)
 
                     // This draws the buffer onto the screen
                     screenShader?.use()
@@ -51,12 +55,14 @@ fun main() {
                     clearFrameBuffer(0)
                     drawBufferTexture()
                 }
-                fun drawScene(game: IGameLogic, tickDelta: Double){
+                fun drawScene(window: Window, game: IGameLogic, tickDelta: Double){
 
-                    game.gameObjects.forEachItem { it.render(vp, tickDelta) }
+                    game.gameObjects.forEachItem { it.render(camera.getViewMatrix(), getPerspective(window, camera), tickDelta) }
+
+                    cycle += Timer.frameDelta.f
 
                     backgroundShader?.use()
-                    backgroundShader?.setMat4("model", I.translate(Vec3(-1, -1, 0)).scale(Vec3(2)))
+                    backgroundShader?.setMat4("model", I.rotate(cycle * 2f * PI.f, normal))
                     backgroundShader?.setMat4("vp", I)
                     ArrayShape.cornerSquareShape.bind()
                     ArrayShape.cornerSquareShape.draw()

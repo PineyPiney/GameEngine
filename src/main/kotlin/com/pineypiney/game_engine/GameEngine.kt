@@ -61,7 +61,6 @@ abstract class GameEngine(val window: Window) : Runnable {
             // and the accumulator reduces by interval amount.
             // Advantage of doing it this way is that if there is lag, then the game will catch up with itself
             while (accumulator >= interval) {
-                timer.tick()
                 update(interval)
                 accumulator -= interval
             }
@@ -109,6 +108,7 @@ abstract class GameEngine(val window: Window) : Runnable {
     }
 
     private fun update(interval: Float) {
+        timer.tick()
         activeScreen.update(interval, input)
     }
 
