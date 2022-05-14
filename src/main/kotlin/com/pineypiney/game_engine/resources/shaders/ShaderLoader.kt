@@ -31,11 +31,11 @@ class ShaderLoader private constructor(): AbstractResourceLoader<Shader>(){
     fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): Shader{
         val vertex: String = shaderMap.getOrElse(vertexKey){
             println("Could not find vertex shader $vertexKey")
-            return Shader.emptyShader
+            return Shader.brokeShader
         }
         val fragment: String = shaderMap.getOrElse(fragmentKey){
             println("Could not find fragment shader $fragmentKey")
-            return Shader.emptyShader
+            return Shader.brokeShader
         }
         val geometry: String? = shaderMap[geometryKey]
 

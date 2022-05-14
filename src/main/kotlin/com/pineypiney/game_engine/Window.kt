@@ -24,7 +24,7 @@ class Window(title: String, var width: Int, var height: Int, vSync: Boolean) {
     var aspectRatio = width.f/height.f
 
     val size: Vec2i; get() = Vec2i(this.width, this.height)
-    val input = Inputs(this)
+    val input: Inputs
 
     var fullScreen = false
         set(value) {
@@ -62,6 +62,9 @@ class Window(title: String, var width: Int, var height: Int, vSync: Boolean) {
             throw RuntimeException("Failed to create the GLFW window")
         }
 
+        // input must be set after the windowHandle has been set so that the callbacks are assigned correctly
+        input = Inputs(this)
+
         // Get the resolution of the primary monitor
         val vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor())
         // Center our window
@@ -83,9 +86,6 @@ class Window(title: String, var width: Int, var height: Int, vSync: Boolean) {
             // Enable v-sync
             glfwSwapInterval(1)
         }
-
-        // Set the window icon
-        setIcon("textures/broke.png")
 
         GL.createCapabilities()
 
@@ -148,10 +148,11 @@ class Window(title: String, var width: Int, var height: Int, vSync: Boolean) {
     }
 
     companion object {
+        var windows = mutableMapOf<Long, Window>()
+
         val INSTANCE: Window = Window("GAME", 960, 540, false)
 
         fun getWindow(handle: Long): Window = windows[handle] ?: INSTANCE
 
-        var windows = mutableMapOf<Long, Window>()
     }
 }

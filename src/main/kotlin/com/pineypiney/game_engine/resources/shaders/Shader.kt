@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.visual.Deleteable
-import glm_.*
+import glm_.f
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -128,6 +128,6 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
                 "\tFragColour = colour;\n" +
                 "}"
 
-        val emptyShader: Shader = ShaderLoader.generateShader("broke", vS, "broke", fS)
+        val brokeShader: Shader = ShaderLoader.generateShader("broke", vS, "broke", fS)
     }
 }

@@ -74,7 +74,7 @@ class FontLoader private constructor() {
 
     fun getFont(key: ResourceKey): Font{
         val f = fonts[key]
-        return f ?: Font.emptyFont
+        return f ?: Font.defaultFont
     }
 
     companion object{

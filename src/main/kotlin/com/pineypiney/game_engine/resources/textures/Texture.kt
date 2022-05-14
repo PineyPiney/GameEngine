@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.resources.ResourceLoader
+import com.pineypiney.game_engine.util.ResourceKey
 import kool.lim
 import org.lwjgl.opengl.GL46C.*
 import org.lwjgl.stb.STBImage.*
@@ -112,8 +113,6 @@ class Texture(val stream: InputStream, val fileName: String = "", val wrapping: 
     }
 
     companion object {
-
-        private val brokeTextureInputStream = ResourceLoader.getStream("textures/broke.png")
-        val brokeTexture = Texture(brokeTextureInputStream, "broke")
+        val brokeTexture: Texture; get() = TextureLoader.getTexture(ResourceKey("broke"))
     }
 }

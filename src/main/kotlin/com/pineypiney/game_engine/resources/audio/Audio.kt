@@ -1,8 +1,6 @@
 package com.pineypiney.game_engine.resources.audio
 
-import com.pineypiney.game_engine.resources.ResourceLoader
-import java.io.BufferedInputStream
-import java.io.InputStream
+import com.pineypiney.game_engine.util.ResourceKey
 import java.util.logging.Logger
 import javax.sound.sampled.*
 import kotlin.math.max
@@ -21,7 +19,7 @@ class Audio(val stream: AudioInputStream): com.pineypiney.game_engine.resources.
             clip.open(stream)
         }
         catch (e: Exception){
-            clip.open(brokeAudioInputStream)
+            clip.open(brokeAudio.stream)
         }
     }
 
@@ -103,10 +101,6 @@ class Audio(val stream: AudioInputStream): com.pineypiney.game_engine.resources.
     }
 
     companion object{
-
-        private val brokeStream: InputStream = ResourceLoader.getStream("audio/broke.wav")
-        private val brokeAudioInputStream: AudioInputStream = AudioSystem.getAudioInputStream(BufferedInputStream(brokeStream))
-        val brokeAudio: Audio = Audio(brokeAudioInputStream)
+        val brokeAudio: Audio; get() = AudioLoader.INSTANCE.getAudio(ResourceKey("broke"))
     }
-
 }
