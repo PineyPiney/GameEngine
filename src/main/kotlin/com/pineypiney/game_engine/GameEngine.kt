@@ -20,6 +20,16 @@ abstract class GameEngine(val window: Window) : Runnable {
     private var FPSCounter: Int = 0
     private var FPS: Float = 0f
 
+    init{
+        // Load the resources for the game
+        ResourceLoader.INSTANCE.loadResources()
+
+        // Create all the fonts
+        FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", 128, 256, 8, null)
+        FontLoader.INSTANCE.loadFontWithTexture("ExportedFont.png", 32, 64, 2)
+        FontLoader.INSTANCE.loadFontWithTexture("PixelFont.png", 32, 64, 2)
+    }
+
     override fun run() {
         init()
         gameLoop()
@@ -29,13 +39,6 @@ abstract class GameEngine(val window: Window) : Runnable {
     protected open fun init(){
         println("Initialising GameEngine")
 
-        // Load the resources for the game
-        ResourceLoader.INSTANCE.loadResources()
-
-        // Create all the fonts
-        FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", 128, 256, 8, null)
-        FontLoader.INSTANCE.loadFontWithTexture("ExportedFont.png", 32, 64, 2)
-        FontLoader.INSTANCE.loadFontWithTexture("PixelFont.png", 32, 64, 2)
 
         timer.init()
         this.activeScreen.init()

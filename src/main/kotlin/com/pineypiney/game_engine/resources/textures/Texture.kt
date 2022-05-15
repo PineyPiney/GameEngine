@@ -9,7 +9,10 @@ import org.lwjgl.stb.STBImage.*
 import java.io.InputStream
 import java.nio.ByteBuffer
 
-class Texture(val stream: InputStream, val fileName: String = "", val wrapping: Int = GL_REPEAT, val flip: Boolean = true) : Resource() {
+class Texture(buffer: ByteBuffer, val fileName: String = "", val wrapping: Int = GL_REPEAT, val flip: Boolean = true) : Resource() {
+
+    constructor(stream: InputStream, fileName: String = "", wrapping: Int = GL_REPEAT, flip: Boolean = true):
+            this(ResourceLoader.ioResourceToByteBuffer(stream, 1024), fileName, wrapping, flip)
 
     var width = 0; private set
     var height = 0; private set
@@ -18,14 +21,14 @@ class Texture(val stream: InputStream, val fileName: String = "", val wrapping: 
     var texturePointer = 0; private set
 
     init{
-        if(stream.available() < 1){
-            println("InputStream for $fileName is empty")
-            this.texturePointer = brokeTexture.texturePointer
+        if(!buffer.hasRemaining()){
+            println("Buffer for $fileName is empty")
+            // this.texturePointer = brokeTexture.texturePointer
         }
         else {
             loadTextureSettings()
             // Load the image from file
-            loadImage(ResourceLoader.ioResourceToByteBuffer(stream, 1024))
+            loadImage(buffer)
         }
     }
 
@@ -78,7 +81,7 @@ class Texture(val stream: InputStream, val fileName: String = "", val wrapping: 
         buffer.clear()
     }
 
-    fun loadIndividualSettings(texture: Texture, wrapping: Int = GL_REPEAT) {
+    private fun loadIndividualSettings(texture: Texture, wrapping: Int = GL_REPEAT) {
         // Bind the texture so that future operations are on this texture
         texture.bind()
         // Set wrapping and filtering options
@@ -110,6 +113,10 @@ class Texture(val stream: InputStream, val fileName: String = "", val wrapping: 
     override fun equals(other: Any?): Boolean {
         if(other is Texture) return this.texturePointer == other.texturePointer
         return false
+    }
+
+    override fun hashCode(): Int {
+        return this.texturePointer.hashCode()
     }
 
     companion object {

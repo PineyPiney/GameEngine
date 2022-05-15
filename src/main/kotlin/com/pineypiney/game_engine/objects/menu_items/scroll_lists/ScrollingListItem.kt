@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.IGameLogic
-import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.menu_items.StaticInteractableMenuItem
+import com.pineypiney.game_engine.util.input.Inputs
 import glm_.vec2.Vec2
 
 abstract class ScrollingListItem(val input: Inputs, final override var origin: Vec2, final override val size: Vec2, val entryHeight: Float, val scrollerWidth: Float) : StaticInteractableMenuItem() {
@@ -90,11 +90,11 @@ abstract class ScrollingListItem(val input: Inputs, final override var origin: V
         scrollBar.update(interval, time)
     }
 
-    override fun checkHover(): Boolean {
-        if(super.checkHover()){
-            scrollBar.hover = scrollBar.checkHover()
+    override fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean {
+        if(super.checkHover(screenPos, worldPos)){
+            scrollBar.hover = scrollBar.checkHover(screenPos, worldPos)
             items.filterIsInstance(Interactable::class.java).forEach {
-                it.hover = it.checkHover()
+                it.hover = it.checkHover(screenPos, worldPos)
             }
             return true
         }

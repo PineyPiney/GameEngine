@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.ScreenObjectCollection
+import glm_.vec2.Vec2
 
 open class InteractableScrollingListEntry<E: ScrollingListItem>(parent: E, number: Int): ScrollingListEntry<E>(parent, number),
     Interactable {
@@ -18,8 +19,8 @@ open class InteractableScrollingListEntry<E: ScrollingListItem>(parent: E, numbe
 
     }
 
-    override fun checkHover(): Boolean {
-        return mouseBetween(this.origin, this.size)
+    override fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean {
+        return between(screenPos, this.origin, this.size)
     }
 
     override fun addTo(objects: ScreenObjectCollection) {}

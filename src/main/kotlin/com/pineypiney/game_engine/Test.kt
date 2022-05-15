@@ -3,6 +3,7 @@ package com.pineypiney.game_engine
 import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.objects.ScreenObjectCollection
 import com.pineypiney.game_engine.objects.Text
+import com.pineypiney.game_engine.objects.menu_items.BasicTextButton
 import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import com.pineypiney.game_engine.renderers.BufferedGameRenderer
 import com.pineypiney.game_engine.renderers.GameRenderer
@@ -41,10 +42,16 @@ fun main() {
             text = Text("Text", colour = Vec4(1))
             backgroundShader = ShaderLoader.getShader(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/rainbow"))
             screenShader = ShaderLoader.getShader(ResourceKey("vertex/frame_buffer"), ResourceKey("fragment/frame_buffer"))
+
         }
 
         override var activeScreen: IGameLogic = object : GameLogic(this){
             override var camera: Camera = Camera()
+
+            var button = BasicTextButton("button", Vec2(0.6, 0.8), Vec2(0.4, 0.2)){
+                println("Pressed!")
+            }
+
             override var renderer: GameRenderer = object : BufferedGameRenderer(){
                 override fun render(window: Window, camera: Camera, game: IGameLogic, tickDelta: Double) {
                     clearFrameBuffer()
@@ -55,6 +62,8 @@ fun main() {
                     screenShader?.setInt("effects", 0)
                     clearFrameBuffer(0)
                     drawBufferTexture()
+
+                    button.drawBottomLeft(Vec2(0.6, 0.8))
                 }
                 fun drawScene(window: Window, game: IGameLogic, tickDelta: Double){
 
@@ -88,7 +97,7 @@ fun main() {
                 })
             }
             override fun addObjects() {
-
+                add(button)
             }
         }
     }

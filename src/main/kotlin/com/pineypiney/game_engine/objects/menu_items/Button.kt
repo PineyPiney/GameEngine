@@ -1,21 +1,15 @@
 package com.pineypiney.game_engine.objects.menu_items
 
 import com.pineypiney.game_engine.IGameLogic
-import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.util.I
-import glm_.glm
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL46C.GL_TRIANGLES
-import org.lwjgl.opengl.GL46C.glDrawArrays
 
 abstract class Button : StaticInteractableMenuItem() {
 
-    var baseTexture: Texture = TextureLoader.blank()
-    var hoverTexture: Texture = TextureLoader.blank()
-    var clickTexture: Texture = TextureLoader.blank()
+    open var baseColour = Vec3(0x00, 0xBF, 0xFF) / 255
+    open var hoverColour = Vec3(0x00, 0x8C, 0xFF) / 255
+    open var clickColour = Vec3(0x02, 0x6F, 0xFF) / 255
 
     var active: Boolean = true
     abstract val action: (button: Button) -> Unit
@@ -28,25 +22,25 @@ abstract class Button : StaticInteractableMenuItem() {
         return ret
     }
 
-    private fun getCurrentTexture() : Texture {
-        return when(true){
-            pressed -> clickTexture
-            hover -> hoverTexture
-            else -> baseTexture
-        }
+    override fun setUniforms() {
+        super.setUniforms()
+        shader.setVec3("colour", getCurrentColour())
     }
 
     override fun draw() {
-        shape.bind()
-
-        getCurrentTexture().bind()
 
         shader.use()
+        setUniforms()
 
-        var model = glm.translate(I, Vec3(origin.x, origin.y, 0))
-        model = model.scale(Vec3(size.x, size.y, 1))
-        shader.setMat4("model", model)
+        shape.bind()
+        shape.draw()
+    }
 
-        glDrawArrays(GL_TRIANGLES, 0, 6)
+    private fun getCurrentColour() : Vec3 {
+        return when{
+            pressed -> clickColour
+            hover -> hoverColour
+            else -> baseColour
+        }
     }
 }

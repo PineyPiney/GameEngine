@@ -1,13 +1,13 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.objects.ScreenObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.util.shapes.Shape
+import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.util.I
 
-class MenuBackground(val texture: Texture, override val shader: Shader = menuShader) : MenuItem(), Storable {
+class MenuBackground(val texture: Texture, override val shader: Shader = menuTextureShader) : MenuItem(), Storable {
 
     override val shape: Shape = menuShape
 
@@ -35,7 +35,7 @@ class MenuBackground(val texture: Texture, override val shader: Shader = menuSha
     }
 
     override fun delete() {
-        if(shader != menuShader) shader.delete()
+        if(shader != menuTextureShader) shader.delete()
     }
 
     override fun toString(): String{

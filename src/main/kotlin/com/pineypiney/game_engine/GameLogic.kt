@@ -35,8 +35,10 @@ abstract class GameLogic(final override val gameEngine: GameEngine) : IGameLogic
     }
 
     override fun onCursorMove(window: Window, cursorPos: Vec2, cursorDelta: Vec2) {
+        val worldPos = camera.screenToWorld(cursorPos)
         for (item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java)){
-            item.onCursorMove(this, cursorPos, cursorDelta)
+            item.hover = item.checkHover(cursorPos, worldPos)
+            if(item.hover) item.onCursorMove(this, cursorPos, cursorDelta)
         }
     }
 
@@ -46,10 +48,6 @@ abstract class GameLogic(final override val gameEngine: GameEngine) : IGameLogic
                 if(item.onScroll(this, scrollDelta) == 1) break
             }
         }
-    }
-
-    open fun setFullscreen(state: Boolean){
-        gameEngine.window.fullScreen = state
     }
 
     override fun onInput(key: KeyBind, action: Int) {
@@ -76,12 +74,13 @@ abstract class GameLogic(final override val gameEngine: GameEngine) : IGameLogic
     private fun conditionalInput(item: Interactable, key: KeyBind, action: Int): Boolean{
         var stop = false
         if(item.shouldUpdate()){
-            stop = item.onInput(this, key, action, this.gameEngine.input.mouse.lastPos) == 1
+            val mousePos = input.mouse.lastPos
+            stop = item.onInput(this, key, action, mousePos) == 1
 
             for(child in item.children.sortedByDescending { it.importance }){
                 if(child.shouldUpdate()){
-                    child.hover = child.checkHover()
-                    if(child.onInput(this, key, action, this.gameEngine.input.mouse.lastPos) == 1) break
+                    child.hover = child.checkHover(mousePos, camera.screenToWorld(mousePos))
+                    if(child.onInput(this, key, action, mousePos) == 1) break
                 }
             }
         }
@@ -90,6 +89,10 @@ abstract class GameLogic(final override val gameEngine: GameEngine) : IGameLogic
 
     open fun onPrimary(window: Window, action: Int, mods: Byte){}
     open fun onSecondary(window: Window, action: Int, mods: Byte){}
+
+    open fun setFullscreen(state: Boolean){
+        gameEngine.window.fullScreen = state
+    }
 
     override fun add(o: Storable?){
         this.gameObjects.addObject(o)

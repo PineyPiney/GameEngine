@@ -30,10 +30,9 @@ interface Interactable: Storable, Updateable {
         this.children.removeAll(children.toSet())
     }
 
-    fun checkHover(): Boolean
+    fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean
 
     fun onCursorMove(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2){
-        hover = checkHover()
         if(shouldUpdate()){
             if(pressed){
                 onDrag(game, cursorPos, cursorDelta)
