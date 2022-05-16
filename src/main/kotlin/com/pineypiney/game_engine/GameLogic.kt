@@ -11,7 +11,7 @@ import com.pineypiney.game_engine.util.input.KeyBind
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
 
-abstract class GameLogic(final override val gameEngine: GameEngine) : IGameLogic {
+abstract class GameLogic : IGameLogic {
 
     override var gameObjects: ScreenObjectCollection = ScreenObjectCollection()
 
