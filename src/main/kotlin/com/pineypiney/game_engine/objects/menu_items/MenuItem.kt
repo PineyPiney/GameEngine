@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.*
 import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import com.pineypiney.game_engine.objects.util.shapes.IndicesShape
@@ -92,20 +91,5 @@ abstract class MenuItem : IScreenObject, Drawable, Storable, Deleteable {
         val menuTextureShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/opaque_texture"))
         val menuColourShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/colour_uniform"))
         val menuShape: Shape = IndicesShape.screenQuadShape
-
-        fun between(point: Float, left: Float, size: Float) : Boolean{
-            return left < point && point < left + size
-        }
-
-        fun between(point: Vec2, origin: Vec2, size: Vec2) : Boolean{
-            return between(point.x, origin.x, size.x) &&
-                    between(point.y, origin.y, size.y)
-        }
-
-        fun mouseBetween(origin: Vec2, size: Vec2) : Boolean{
-            val point = Window.INSTANCE.input.mouse.lastPos
-            return between(point.x, origin.x, size.x) &&
-                    between(point.y, origin.y, size.y)
-        }
     }
 }

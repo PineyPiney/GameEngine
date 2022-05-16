@@ -12,7 +12,7 @@ class FontLoader private constructor() {
 
     private val fonts = mutableMapOf<ResourceKey, Font>()
 
-    fun loadFontWithTexture(fontName: String, letterWidth: Int, letterHeight: Int, charSpacing: Int, shader: Shader? = Font.fontShader){
+    fun loadFontWithTexture(fontName: String, letterWidth: Int, letterHeight: Int, charSpacing: Int, shader: Shader = Font.fontShader){
 
         val stream: InputStream = ResourceLoader.getStream("textures/fonts/$fontName")
 

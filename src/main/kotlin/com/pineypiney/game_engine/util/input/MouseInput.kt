@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.util.input
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.Window
-import com.pineypiney.game_engine.util.extension_functions.isBetween
+import com.pineypiney.game_engine.util.extension_functions.isWithin
 import glm_.b
 import glm_.d
 import glm_.f
@@ -78,6 +78,6 @@ class MouseInput(val input: Inputs, cursor: GLFWCursorPosCallback? = null, scrol
     }
 
     fun isBetween(origin: Vec2, size: Vec2) : Boolean{
-        return lastPos.isBetween(origin, size)
+        return lastPos.isWithin(origin, size)
     }
 }

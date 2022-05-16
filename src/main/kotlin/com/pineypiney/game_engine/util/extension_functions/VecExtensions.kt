@@ -40,9 +40,14 @@ fun Vec2.coerceIn(mag: Vec2): Vec2 = this.coerceIn(-mag, mag)
 
 fun Vec3.coerceIn(low: Vec3, high: Vec3): Vec3 = Vec3(this.x.coerceIn(min(low.x, high.x), max(low.x, high.x)), this.y.coerceIn(min(low.y, high.y), max(low.y, high.y)), this.z.coerceIn(min(low.z, high.z), max(low.z, high.z)))
 
-fun Vec2.isBetween(origin: Vec2, size: Vec2): Boolean{
-    return this.x.isBetween(origin.x, size.x) &&
-            this.y.isBetween(origin.y, size.y)
+fun Vec2.isWithin(origin: Vec2, size: Vec2): Boolean{
+    return this.x.isWithin(origin.x, size.x) &&
+            this.y.isWithin(origin.y, size.y)
+}
+
+fun Vec2.isBetween(bl: Vec2, tr: Vec2): Boolean{
+    return this.x.isBetween(bl.x, tr.x) &&
+            this.y.isBetween(bl.y, tr.y)
 }
 
 

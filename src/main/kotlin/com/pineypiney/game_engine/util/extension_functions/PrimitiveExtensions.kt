@@ -15,8 +15,12 @@ fun Float.round(places: Int): Float{
     return (mult * this).roundToInt()/mult
 }
 
-fun Float.isBetween(left: Float, size: Float): Boolean{
+fun Float.isWithin(left: Float, size: Float): Boolean{
     return left < this && this < left + size
+}
+
+fun Float.isBetween(left: Float, right: Float): Boolean{
+    return left < this && this < right
 }
 
 

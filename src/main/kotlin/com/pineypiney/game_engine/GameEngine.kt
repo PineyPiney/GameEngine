@@ -25,7 +25,7 @@ abstract class GameEngine(val window: Window) : Runnable {
         ResourceLoader.INSTANCE.loadResources()
 
         // Create all the fonts
-        FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", 128, 256, 8, null)
+        FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", 128, 256, 8)
         FontLoader.INSTANCE.loadFontWithTexture("ExportedFont.png", 32, 64, 2)
         FontLoader.INSTANCE.loadFontWithTexture("PixelFont.png", 32, 64, 2)
     }

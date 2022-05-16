@@ -15,7 +15,7 @@ interface Interactable: Storable, Updateable {
 
     // Importance is used to set the order in which items are updated and interacted with
     // For example, in the level selection screen the buttons are clicked before the entries are
-    var importance: Int
+    val importance: Int
 
     fun addChild(vararg child: Interactable){
         this.children.addAll(child)

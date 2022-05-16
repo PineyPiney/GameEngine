@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.util.normal
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-class Transform(position: Vec2, rotation: Float, scale: Vec2): Copyable<Transform> {
+class Transform(position: Vec2 = Vec2(), rotation: Float = 0f, scale: Vec2 = Vec2(1)): Copyable<Transform> {
 
     var model = I
     val c; get() = copy()

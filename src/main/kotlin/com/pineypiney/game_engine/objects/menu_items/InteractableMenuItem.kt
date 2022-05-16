@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.objects.menu_items
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.Visual
+import com.pineypiney.game_engine.util.extension_functions.isWithin
 import glm_.vec2.Vec2
 
 abstract class InteractableMenuItem : MenuItem(), Interactable {
@@ -30,6 +31,6 @@ abstract class InteractableMenuItem : MenuItem(), Interactable {
     }
 
     override fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean {
-        return between(screenPos, this.origin, this.size)
+        return screenPos.isWithin(this.origin, this.size)
     }
 }

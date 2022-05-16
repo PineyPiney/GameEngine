@@ -31,6 +31,8 @@ class KeyBind(val key: Short, val controlType: Inputs.ControlType = Inputs.Contr
     }
 
     fun matchMods(mods: Byte): Boolean {
+        if(mods == 0.toByte()) return true
+
         return (this.shift ||       mods and 1 <= 0) &&
                 (this.control ||    mods and 2 <= 0) &&
                 (this.alt ||        mods and 4 <= 0) &&

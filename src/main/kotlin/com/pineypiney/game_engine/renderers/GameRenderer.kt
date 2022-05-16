@@ -5,15 +5,12 @@ import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.objects.ScreenObjectCollection
-import com.pineypiney.game_engine.util.I
 import glm_.func.rad
 import glm_.glm
 import glm_.mat4x4.Mat4
 import org.lwjgl.opengl.GL46C.*
 
 abstract class GameRenderer: Deleteable {
-
-    var vp: Mat4 = I
 
     open fun init(){
         glDisable(GL_DEPTH_TEST)

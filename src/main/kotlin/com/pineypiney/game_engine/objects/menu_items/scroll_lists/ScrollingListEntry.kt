@@ -1,15 +1,15 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
+import com.pineypiney.game_engine.objects.text.StretchyStaticText
+import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.text.Font
-import com.pineypiney.game_engine.objects.Text
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
-import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import glm_.glm
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -56,7 +56,7 @@ open class ScrollingListEntry<E: ScrollingListItem>(val parent: E, val index: In
         font: Font = Font.defaultFont,
         shader: Shader = entryTextShader, window: Window = Window.INSTANCE
 
-    ): Text(text, colour, bounds.x, bounds.y, font, shader, window) {
+    ): StretchyStaticText(text, bounds, colour, font, shader, window) {
 
         override fun setUniversalUniforms(shader: Shader) {
             super.setUniversalUniforms(shader)
