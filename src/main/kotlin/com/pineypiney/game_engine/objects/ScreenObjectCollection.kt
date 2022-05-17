@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.objects
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.game_objects.GameObject
+import com.pineypiney.game_engine.objects.game_objects.RenderedGameObject
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox
 import com.pineypiney.game_engine.util.extension_functions.delete
@@ -55,6 +56,10 @@ class ScreenObjectCollection {
 
     fun forEachItem(action: (it: GameObject) -> Unit){
         gameItems.forEach { action.invoke(it) }
+    }
+
+    fun forEachRendered(action: (it: RenderedGameObject) -> Unit){
+        gameItems.filterIsInstance<RenderedGameObject>().forEach { action.invoke(it) }
     }
 
     fun forEachCollision(action: (it: CollisionBox) -> Unit){

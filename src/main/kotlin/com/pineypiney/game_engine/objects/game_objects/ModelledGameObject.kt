@@ -10,7 +10,7 @@ import com.pineypiney.game_engine.util.normal
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
-open class ModelledGameObject(final override val id: ResourceKey, val debug: Int = 0): GameObject() {
+open class ModelledGameObject(final override val id: ResourceKey, val debug: Int = 0): RenderedGameObject() {
 
     val model: Model = ModelLoader.getModel(id)
 

@@ -1,6 +1,8 @@
-package com.pineypiney.game_engine
+package com.pineypiney.game_engine.example
 
-import com.pineypiney.game_engine.example.Game
+import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.IGameLogic
+import com.pineypiney.game_engine.Window
 import org.lwjgl.opengl.GL11C.glClearColor
 
 fun main() {

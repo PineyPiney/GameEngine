@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.util.I
 import glm_.glm
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import org.lwjgl.opengl.GL46C
 
 class VideoPlayer(val video: Video, override var origin: Vec2 = Vec2(-1, -1), override val size: Vec2 = Vec2(2, 2)): IScreenObject,
     Drawable {
@@ -21,7 +20,6 @@ class VideoPlayer(val video: Video, override var origin: Vec2 = Vec2(-1, -1), ov
 
     override fun draw() {
 
-        shape.bind()
 
         video.getCurrentTexture().bind()
 
@@ -31,7 +29,8 @@ class VideoPlayer(val video: Video, override var origin: Vec2 = Vec2(-1, -1), ov
         model = model.scale(Vec3(size.x, size.y, 1))
         shader.setMat4("model", model)
 
-        GL46C.glDrawArrays(GL46C.GL_TRIANGLES, 0, 6)
+        shape.bind()
+        shape.draw()
     }
 
     fun play() = video.play()
@@ -44,7 +43,7 @@ class VideoPlayer(val video: Video, override var origin: Vec2 = Vec2(-1, -1), ov
     }
 
     companion object{
-        val shape = ArrayShape.cornerSquareShape
+        val shape = ArrayShape.cornerSquareShape3D
         val shader = MenuItem.menuTextureShader
     }
 }

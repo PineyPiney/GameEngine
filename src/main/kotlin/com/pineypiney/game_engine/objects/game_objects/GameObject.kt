@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.objects.game_objects
 
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.IScreenObject
-import com.pineypiney.game_engine.objects.Renderable
 import com.pineypiney.game_engine.objects.ScreenObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.util.Transform
@@ -12,11 +11,10 @@ import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.i
-import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-abstract class GameObject : IScreenObject, Renderable, Storable, Copyable<GameObject> {
+abstract class GameObject : IScreenObject, Storable, Copyable<GameObject> {
 
     abstract val id: ResourceKey
 
@@ -50,8 +48,6 @@ abstract class GameObject : IScreenObject, Renderable, Storable, Copyable<GameOb
     open var depth: Int = 0
 
     override fun init() {}
-
-    override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {}
 
     override fun updateAspectRatio(window: Window) {}
 

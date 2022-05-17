@@ -11,5 +11,5 @@ void main(){
     vec4 texture = texture(ourTexture, texCoords);
     if(texture.r + texture.g + texture.b < 0.05) discard;
 
-    FragColour = vec4(texture.r * colour.r, texture.g * colour.g, texture.b * colour.b, texture.a * colour.a);
+    FragColour = texture * colour;
 }

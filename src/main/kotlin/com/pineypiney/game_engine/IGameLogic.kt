@@ -28,7 +28,9 @@ interface IGameLogic {
 
     fun onScroll(window: Window, scrollDelta: Vec2)
 
-    fun onInput(key: KeyBind, action: Int)
+    fun onInput(key: KeyBind, action: Int): Int
+
+    fun onType(char: Char)
 
     fun update(interval: Float, input: Inputs)
 

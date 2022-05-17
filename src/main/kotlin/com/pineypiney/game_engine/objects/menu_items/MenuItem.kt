@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items
 
 import com.pineypiney.game_engine.objects.*
-import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import com.pineypiney.game_engine.objects.util.shapes.IndicesShape
 import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.resources.shaders.Shader
@@ -20,11 +19,20 @@ abstract class MenuItem : IScreenObject, Drawable, Storable, Deleteable {
     override var origin: Vec2 = Vec2()
     override val size: Vec2 = Vec2()
 
-    open val shape: Shape = ArrayShape.cornerSquareShape
-    open val shader: Shader = menuTextureShader
+    open val shape: Shape = IndicesShape.cornerSquareShape2D
+    open val shader: Shader = menuColourShader
 
     open fun setUniforms(){
         shader.setMat4("model", I.translate(Vec3(origin)).scale(Vec3(size)))
+    }
+
+    override fun draw() {
+        shader.use()
+
+        setUniforms()
+
+        shape.bind()
+        shape.draw()
     }
 
     fun relative(x: Number, y: Number) = origin + (size * Vec2(x, y))
@@ -90,6 +98,6 @@ abstract class MenuItem : IScreenObject, Drawable, Storable, Deleteable {
     companion object{
         val menuTextureShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/opaque_texture"))
         val menuColourShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/colour_uniform"))
-        val menuShape: Shape = IndicesShape.screenQuadShape
+        val menuShape: Shape = IndicesShape.cornerSquareShape2D
     }
 }

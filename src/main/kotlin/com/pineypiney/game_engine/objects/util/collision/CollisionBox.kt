@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.objects.util.collision
 
 import com.pineypiney.game_engine.objects.game_objects.GameObject
 import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
+import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.I
@@ -12,7 +13,6 @@ import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import org.lwjgl.opengl.GL46C
 import kotlin.math.abs
 
 abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size: Vec2): Copyable<CollisionBox> {
@@ -32,9 +32,10 @@ abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size:
     val width; get() = worldScale.x
     val height; get() = worldScale.y
 
+    open var shape: Shape = ArrayShape.cornerSquareShape3D
+
     fun render(vp: Mat4){
 
-        ArrayShape.cornerSquareShape.bind()
         val finalModel = (parent?.transform?.model ?: I) * this.relModel
 
         val colliderShader = colliderShader
@@ -43,7 +44,8 @@ abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size:
         colliderShader.setMat4("model", finalModel)
         colliderShader.setVec4("colour", Vec4(1))
 
-        GL46C.glDrawArrays(GL46C.GL_TRIANGLES, 0, 6)
+        shape.bind()
+        shape.draw()
     }
 
     infix fun collidesWith(other: CollisionBox): Boolean{

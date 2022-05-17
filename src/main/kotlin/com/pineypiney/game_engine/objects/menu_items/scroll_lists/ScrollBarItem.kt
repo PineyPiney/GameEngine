@@ -1,30 +1,19 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.IGameLogic
-import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.util.I
-import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.objects.menu_items.InteractableMenuItem
-import glm_.glm
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import org.lwjgl.opengl.GL46C.GL_TRIANGLES
-import org.lwjgl.opengl.GL46C.glDrawArrays
+import glm_.vec4.Vec4
 
 class ScrollBarItem(val parent: ScrollingListItem, override var origin: Vec2 = Vec2(), override var size: Vec2 = Vec2()): InteractableMenuItem() {
 
     override var pressed: Boolean = false
 
-    override fun draw() {
+    val colour = Vec3(0x00, 0xBF, 0xFF) / 255
 
-        shader.use()
-        val model = glm.translate(I, Vec3(origin)).scale(Vec3(size))
-        shader.setMat4("model", model)
-
-        shape.bind()
-        TextureLoader.getTexture(ResourceKey("menu_items/buttons/button")).bind()
-
-        glDrawArrays(GL_TRIANGLES, 0, 6)
+    override fun setUniforms() {
+        shader.setVec4("colour", Vec4(colour))
     }
 
     override fun update(interval: Float, time: Double) {

@@ -27,7 +27,6 @@ abstract class TextButton : Button() {
 
     override fun draw() {
         super.draw()
-
         text.drawCentered(textPos)
     }
 

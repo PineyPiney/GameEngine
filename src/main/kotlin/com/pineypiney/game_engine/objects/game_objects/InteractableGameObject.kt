@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.ScreenObjectCollection
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import glm_.vec2.Vec2
 
-abstract class InteractableGameObject: GameObject(), Interactable {
+abstract class InteractableGameObject: RenderedGameObject(), Interactable {
 
     override val children: MutableList<Interactable> = mutableListOf()
     override var forceUpdate: Boolean = false
@@ -20,9 +20,5 @@ abstract class InteractableGameObject: GameObject(), Interactable {
 
     override fun update(interval: Float, time: Double) {
 
-    }
-
-    companion object{
-        const val INTERRUPT = -1
     }
 }

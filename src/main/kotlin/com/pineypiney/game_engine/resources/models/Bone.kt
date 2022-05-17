@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.models
 
+import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.I
@@ -11,8 +12,6 @@ import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import org.lwjgl.opengl.GL46C.GL_TRIANGLES
-import org.lwjgl.opengl.GL46C.glDrawArrays
 
 class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, val parentTransform: Mat4) {
 
@@ -77,7 +76,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
         shader.setMat4("model", model * this.modelSpaceTransform * this.transform * boneMatrix)
         shader.setVec4("colour", Vec4((((this.id + 4) % 6) > 2).i, (((this.id + 2) % 6) > 2).i, (((this.id) % 6) > 2).i, 1))
 
-        glDrawArrays(GL_TRIANGLES, 0, 6)
+        ArrayShape.centerSquareShape3D.draw()
 
         children.forEach { it.render(shader, model) }
     }

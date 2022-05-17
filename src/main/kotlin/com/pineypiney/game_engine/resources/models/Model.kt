@@ -59,7 +59,7 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
         if(debug and DEBUG_BONES > 0){
 
             // Render Bones
-            ArrayShape.centerSquareShape.bind()
+            ArrayShape.centerSquareShape3D.bind()
             val boneShader = Bone.boneShader
 
             boneShader.use()

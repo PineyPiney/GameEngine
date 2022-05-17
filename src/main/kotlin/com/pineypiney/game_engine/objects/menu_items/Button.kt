@@ -27,15 +27,6 @@ abstract class Button : StaticInteractableMenuItem() {
         shader.setVec3("colour", getCurrentColour())
     }
 
-    override fun draw() {
-
-        shader.use()
-        setUniforms()
-
-        shape.bind()
-        shape.draw()
-    }
-
     private fun getCurrentColour() : Vec3 {
         return when{
             pressed -> clickColour

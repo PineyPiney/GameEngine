@@ -3,6 +3,7 @@ package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.resources.ResourceLoader
 import com.pineypiney.game_engine.util.text.FontLoader
+import glm_.c
 import glm_.f
 import org.lwjgl.glfw.GLFW.glfwTerminate
 
@@ -107,6 +108,9 @@ abstract class GameEngine(val window: Window) : Runnable {
         }
         input.keyPressCallback = { bind, action ->
             activeScreen.onInput(bind, action)
+        }
+        input.keyboardCharCallback = { codepoint ->
+            activeScreen.onType(codepoint.c)
         }
     }
 

@@ -9,16 +9,12 @@ import glm_.mat4x4.Mat4
 import org.lwjgl.opengl.GL46C.GL_TEXTURE0
 import org.lwjgl.opengl.GL46C.glActiveTexture
 
-open class TexturedGameObject(override val id: ResourceKey, var texture: Texture, val shape: ArrayShape = ArrayShape.centerSquareShape, override val shader: Shader = defaultShader) : GameObject() {
+open class TexturedGameObject(override val id: ResourceKey, var texture: Texture, val shape: ArrayShape = ArrayShape.centerSquareShape3D, override val shader: Shader = defaultShader) : RenderedGameObject() {
 
-    constructor(id: ResourceKey, textureKey: ResourceKey, shape: ArrayShape = ArrayShape.centerSquareShape, shader: Shader = defaultShader):
+    constructor(id: ResourceKey, textureKey: ResourceKey, shape: ArrayShape = ArrayShape.centerSquareShape3D, shader: Shader = defaultShader):
             this(id, TextureLoader.getTexture(textureKey), shape, shader)
 
     open val collidable = false
-
-    override fun init() {
-        super.init()
-    }
 
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
 
@@ -31,7 +27,7 @@ open class TexturedGameObject(override val id: ResourceKey, var texture: Texture
         glActiveTexture(GL_TEXTURE0)
         texture.bind()
 
-        drawArrays(this.shape.size)
+        this.shape.draw()
     }
 
     override fun copy(): TexturedGameObject {
@@ -40,9 +36,5 @@ open class TexturedGameObject(override val id: ResourceKey, var texture: Texture
 
     override fun delete() {
         objects.forEach { it.gameItems.remove(this) }
-    }
-
-    override fun toString(): String{
-        return "GameItem[Shape: $shape, Shader: ${shader}]"
     }
 }

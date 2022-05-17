@@ -19,7 +19,7 @@ class Renderer: BufferedGameRenderer() {
         projection = getPerspective(window, camera)
 
         clearFrameBuffer()
-        game.gameObjects.forEachItem { it.render(view, projection, tickDelta) }
+        game.gameObjects.forEachRendered { it.render(view, projection, tickDelta) }
 
         // This draws the buffer onto the screen
         screenShader.use()

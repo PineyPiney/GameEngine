@@ -7,12 +7,9 @@ import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.text.Font
-import glm_.glm
 import glm_.vec2.Vec2
-import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
 open class ScrollingListEntry<E: ScrollingListItem>(val parent: E, val index: Int): MenuItem() {
@@ -28,21 +25,14 @@ open class ScrollingListEntry<E: ScrollingListItem>(val parent: E, val index: In
 
     override fun delete() {}
 
-    override fun draw() {
-        shader.use()
-
-        setUniforms(shader)
-
-        shape.bind()
-        TextureLoader.getTexture(ResourceKey("test/Pesto")).bind()
-
-        drawArrays()
+    override fun setUniforms() {
+        super.setUniforms()
+        shader.setVec2("limits", limits)
     }
 
-    protected fun setUniforms(shader: Shader) {
-        val model = glm.translate(I, Vec3(origin)).scale(Vec3(size))
-        shader.setMat4("model", model)
-        shader.setVec2("limits", limits)
+    override fun draw() {
+        TextureLoader.getTexture(ResourceKey("test/Pesto")).bind()
+        super.draw()
     }
 
     companion object{

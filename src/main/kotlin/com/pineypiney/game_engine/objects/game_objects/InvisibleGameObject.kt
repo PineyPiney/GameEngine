@@ -20,8 +20,4 @@ class InvisibleGameObject(position: Vec2 = Vec2(), scale: Vec2 = Vec2(1)) : Game
     override fun delete() {
         objects.forEach { it.gameItems.remove(this) }
     }
-
-    override fun toString(): String{
-        return "GameItem[]"
-    }
 }

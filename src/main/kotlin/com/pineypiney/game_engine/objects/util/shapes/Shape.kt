@@ -36,7 +36,7 @@ abstract class Shape: Deleteable {
 
     companion object{
 
-        fun floatArrayOf(vararg elements: Double) : FloatArray {
+        fun floatArrayOf(vararg elements: Number) : FloatArray {
             return elements.map { it.f }.toFloatArray()
         }
     }

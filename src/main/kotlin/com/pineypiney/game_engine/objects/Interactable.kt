@@ -72,7 +72,15 @@ interface Interactable: Storable, Updateable {
 
     fun onSecondary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int = 0
 
+    fun onType(game: IGameLogic, char: Char): Int{
+        return 0
+    }
+
     override fun shouldUpdate(): Boolean {
         return this.hover || this.pressed || this.forceUpdate || this.children.any { child -> child.shouldUpdate() }
+    }
+
+    companion object{
+        const val INTERRUPT = -1
     }
 }

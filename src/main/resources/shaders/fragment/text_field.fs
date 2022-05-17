@@ -5,7 +5,7 @@ in vec2 texCoords;
 
 uniform mat4 model;
 uniform sampler2D ourTexture;
-uniform vec4 colour;
+uniform vec3 colour;
 uniform vec2 limits;
 // texture_section is the x value of the left of the TextQuad, and the width of the quad
 uniform vec2 texture_section;
@@ -23,5 +23,5 @@ void main(){
 	vec4 texture = texture(ourTexture, texCoords);
 	if(texture.r + texture.g + texture.b < 0.05) discard;
 
-	FragColour = vec4(texture.r * colour.r, texture.g * colour.g, texture.b * colour.b, texture.a * colour.a);
+	FragColour = texture * vec4(colour, 1.0);
 }
