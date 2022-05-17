@@ -54,7 +54,7 @@ class MouseInput(val input: Inputs, cursor: GLFWCursorPosCallback? = null, scrol
             firstMouse = false
             return
         }
-        cursorOffset = Vec2(pos.x - lastPos.x, -(pos.y - lastPos.y))
+        cursorOffset = Vec2(pos.x - lastPos.x, pos.y - lastPos.y)
         lastPos = pos
     }
 

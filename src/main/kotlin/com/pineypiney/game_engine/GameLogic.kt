@@ -38,13 +38,13 @@ abstract class GameLogic : IGameLogic {
         val worldPos = camera.screenToWorld(cursorPos)
         for (item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java)){
             item.hover = item.checkHover(cursorPos, worldPos)
-            if(item.hover) item.onCursorMove(this, cursorPos, cursorDelta)
+            if(item.shouldUpdate()) item.onCursorMove(this, cursorPos, cursorDelta)
         }
     }
 
     override fun onScroll(window: Window, scrollDelta: Vec2) {
         for (item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java)){
-            if(item.hover || item.forceUpdate){
+            if(item.shouldUpdate()){
                 if(item.onScroll(this, scrollDelta) == Interactable.INTERRUPT) break
             }
         }

@@ -33,23 +33,19 @@ interface Interactable: Storable, Updateable {
     fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean
 
     fun onCursorMove(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2){
-        if(shouldUpdate()){
-            if(pressed){
-                onDrag(game, cursorPos, cursorDelta)
-            }
-            for (child in children) {
-                child.onCursorMove(game, cursorPos, cursorDelta)
-            }
+        if(pressed){
+            onDrag(game, cursorPos, cursorDelta)
+        }
+        for (child in children) {
+            if(child.shouldUpdate()) child.onCursorMove(game, cursorPos, cursorDelta)
         }
     }
 
     fun onDrag(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2) {}
 
     fun onScroll(game: IGameLogic, scrollDelta: Vec2): Int{
-        if(shouldUpdate()){
-            for (child in children) {
-                child.onScroll(game, scrollDelta)
-            }
+        for (child in children) {
+            if(child.shouldUpdate()) child.onScroll(game, scrollDelta)
         }
 
         return 0
@@ -72,9 +68,7 @@ interface Interactable: Storable, Updateable {
 
     fun onSecondary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int = 0
 
-    fun onType(game: IGameLogic, char: Char): Int{
-        return 0
-    }
+    fun onType(game: IGameLogic, char: Char): Int = 0
 
     override fun shouldUpdate(): Boolean {
         return this.hover || this.pressed || this.forceUpdate || this.children.any { child -> child.shouldUpdate() }
