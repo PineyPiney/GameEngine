@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
 
-class MenuBackground(val texture: Texture, override val shader: Shader = menuTextureShader) : MenuItem(), Storable {
+class MenuBackground(val texture: Texture, override val shader: Shader = opaqueTextureShader) : MenuItem(), Storable {
 
     override val shape: Shape = IndicesShape.screenQuadShape
 
@@ -29,7 +29,7 @@ class MenuBackground(val texture: Texture, override val shader: Shader = menuTex
     }
 
     override fun delete() {
-        if(shader != menuTextureShader) shader.delete()
+        if(shader != opaqueTextureShader) shader.delete()
     }
 
     override fun toString(): String{

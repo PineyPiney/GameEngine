@@ -3,6 +3,19 @@ package com.pineypiney.game_engine.util.extension_functions
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.objects.IScreenObject
 
+fun <E: IScreenObject> Collection<E?>?.init(){
+    this?.forEach {
+        it?.init()
+    }
+
+}
+
+fun <E: IScreenObject> Map<*, E?>.init(){
+    forEach {
+        it.value?.init()
+    }
+}
+
 fun <E: Deleteable> Collection<E?>?.delete(){
     this?.forEach {
         it?.delete()
@@ -39,19 +52,6 @@ fun <K, V: MutableCollection<E>, E> MutableMap<K, V>.combineLists(other: Mutable
     return newMap
 }
 
-fun <E: IScreenObject> Collection<E?>?.init(){
-    this?.forEach {
-        it?.init()
-    }
-
-}
-
-fun <E: IScreenObject> Map<*, E?>.init(){
-    forEach {
-        it.value?.init()
-    }
-}
-
 fun <K, V> Map<K, V>.getOrNull(key: K): V? = getOrDefault(key, null)
 
 inline fun <reified K> Map<*, *>.withKeys(): Map<K, Any>{
@@ -66,4 +66,8 @@ inline fun <reified K, reified V> Map<*, *>.asType(): Map<K, V>{
         }
     }
     return map.toMap()
+}
+
+inline fun <reified E> Collection<*>.forEachInstance(action: (E) -> Unit){
+    this.filterIsInstance<E>().forEach { action(it) }
 }

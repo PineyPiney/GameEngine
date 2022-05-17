@@ -20,7 +20,7 @@ abstract class MenuItem : IScreenObject, Drawable, Storable, Deleteable {
     override val size: Vec2 = Vec2()
 
     open val shape: Shape = IndicesShape.cornerSquareShape2D
-    open val shader: Shader = menuColourShader
+    open val shader: Shader = opaqueColourShader
 
     open fun setUniforms(){
         shader.setMat4("model", I.translate(Vec3(origin)).scale(Vec3(size)))
@@ -96,8 +96,10 @@ abstract class MenuItem : IScreenObject, Drawable, Storable, Deleteable {
     }
 
     companion object{
-        val menuTextureShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/opaque_texture"))
-        val menuColourShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/colour_uniform"))
+        val opaqueTextureShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/texture_opaque"))
+        val transparentTextureShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/texture"))
+        val opaqueColourShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/colour_opaque"))
+        val translucentColourShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/colour"))
         val menuShape: Shape = IndicesShape.cornerSquareShape2D
     }
 }

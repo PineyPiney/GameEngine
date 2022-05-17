@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.objects.game_objects.RenderedGameObject
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox
 import com.pineypiney.game_engine.util.extension_functions.delete
+import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 
 class ScreenObjectCollection {
 
@@ -58,8 +59,8 @@ class ScreenObjectCollection {
         gameItems.forEach { action.invoke(it) }
     }
 
-    fun forEachRendered(action: (it: RenderedGameObject) -> Unit){
-        gameItems.filterIsInstance<RenderedGameObject>().forEach { action.invoke(it) }
+    fun forEachRendered(action: (RenderedGameObject) -> Unit){
+        gameItems.forEachInstance<RenderedGameObject> { action(it) }
     }
 
     fun forEachCollision(action: (it: CollisionBox) -> Unit){

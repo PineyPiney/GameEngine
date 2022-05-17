@@ -1,12 +1,14 @@
 package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.resources.Resource
+import glm_.f
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL46C.*
 
 class Texture(val fileName: String = "", val texturePointer: Int = 0, val width: Int = 0, val height: Int = 0, val numChannels: Int = 0) : Resource() {
 
     val size = Vec2i(width, height)
+    val aspectRatio = width.f/height
 
     fun bind(){
         glActiveTexture(GL_TEXTURE0)

@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.BasicTextButton
+import com.pineypiney.game_engine.objects.menu_items.slider.BasicSlider
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.StretchyGameText
 import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
@@ -38,11 +39,18 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     private val textField = ActionTextField(Vec2(-1), Vec2(1)){ _, char, _ ->
         println("Typing $char")
     }
+    private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f)
 
     private var text = SizedStaticText("X Part: 0.00 \n Y Part: 0.00")
     private val gameText = StretchyGameText("This is some Game Text", Vec2(17.78, 10), Vec4(0.0, 1.0, 1.0, 1.0))
 
     private var cycle = 0.0f
+
+    override fun addObjects() {
+        add(button)
+        add(textField)
+        add(slider)
+    }
 
     private fun drawScene(tickDelta: Double){
 
@@ -58,6 +66,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         button.drawBottomLeft(Vec2(0.6, 0.8))
         text.drawCentered(Vec2())
         textField.drawTopRight(Vec2())
+        slider.draw()
     }
 
     override fun render(window: Window, tickDelta: Double) {
@@ -90,10 +99,6 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         if(action == 0) pressedKeys.remove(key.key)
         else pressedKeys.add(key.key)
         return action
-    }
-    override fun addObjects() {
-        add(button)
-        add(textField)
     }
 
     override fun updateAspectRatio(window: Window) {

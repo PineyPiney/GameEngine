@@ -1,10 +1,10 @@
 // FRAGMENT SHADER INFORMATION
 #version 460 core
 
-uniform vec4 colour;
+uniform vec3 colour;
 
 out vec4 FragColour;
 
 void main(){
-	FragColour = colour;
+	FragColour = vec4(colour, 1.0);
 }
