@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.ScreenObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.Visual
+import com.pineypiney.game_engine.objects.game_objects.InteractableGameObject
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.input.Inputs
@@ -76,12 +77,12 @@ abstract class GameLogic : IGameLogic {
         var stop = false
         if(item.shouldUpdate()){
             val mousePos = input.mouse.lastPos
-            stop = item.onInput(this, key, action, mousePos) == 1
+            stop = item.onInput(this, key, action, mousePos) == InteractableGameObject.INTERRUPT
 
             for(child in item.children.sortedByDescending { it.importance }){
                 child.hover = child.checkHover(mousePos, camera.screenToWorld(mousePos))
                 if(child.shouldUpdate()){
-                    if(child.onInput(this, key, action, mousePos) == 1) break
+                    if(child.onInput(this, key, action, mousePos) == InteractableGameObject.INTERRUPT) break
                 }
             }
         }

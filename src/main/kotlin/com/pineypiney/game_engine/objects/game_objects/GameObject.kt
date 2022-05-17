@@ -84,8 +84,6 @@ abstract class GameObject : IScreenObject, Renderable, Storable, Copyable<GameOb
         objects.gameItems.remove(this)
     }
 
-    abstract fun toData(): Array<String>
-
     override fun delete() {
         shader.delete()
     }

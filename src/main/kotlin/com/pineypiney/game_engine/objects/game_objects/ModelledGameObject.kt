@@ -77,10 +77,6 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
         }
     }
 
-    override fun toData(): Array<String> {
-        return arrayOf("ModelledItem")
-    }
-
     override fun copy(): GameObject {
         return ModelledGameObject(id, debug)
     }

@@ -13,15 +13,6 @@ class InvisibleGameObject(position: Vec2 = Vec2(), scale: Vec2 = Vec2(1)) : Game
         this.scale = scale
     }
 
-    override fun toData(): Array<String> {
-        var string ="GameItem: \n"
-
-        if(shader != defaultShader) string += "\tShader: $shader\n"
-        if(position != Vec2()) string += "\tPosition: $position\n"
-
-        return arrayOf(string)
-    }
-
     override fun copy(): InvisibleGameObject {
         return InvisibleGameObject(position.copy())
     }

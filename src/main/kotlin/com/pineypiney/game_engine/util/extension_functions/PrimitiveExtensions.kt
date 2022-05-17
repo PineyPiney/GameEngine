@@ -107,5 +107,5 @@ fun absMinOf(a: Float, vararg other: Float): Float{
 // Yes I know Strings aren't primitive types, STFU
 
 fun String.replaceWhiteSpaces(replace: String = ""): String{
-    return replace("\\s+", replace)
+    return replace(Regex("\\s+"), replace)
 }

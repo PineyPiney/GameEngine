@@ -6,7 +6,6 @@ import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.mat4x4.Mat4
-import glm_.vec2.Vec2
 import org.lwjgl.opengl.GL46C.GL_TEXTURE0
 import org.lwjgl.opengl.GL46C.glActiveTexture
 
@@ -33,17 +32,6 @@ open class TexturedGameObject(override val id: ResourceKey, var texture: Texture
         texture.bind()
 
         drawArrays(this.shape.size)
-    }
-
-    override fun toData(): Array<String> {
-        var string ="GameItem: \n" +
-                    "\tShape: $shape\n"
-
-        if(shader != defaultShader) string += "\tShader: $shader\n"
-        if(texture != Texture.brokeTexture) string += "\tTexture: $texture\n"
-        if(position != Vec2()) string += "\tPosition: $position\n"
-
-        return arrayOf(string)
     }
 
     override fun copy(): TexturedGameObject {
