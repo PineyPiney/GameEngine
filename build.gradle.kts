@@ -18,6 +18,8 @@ val lwjglNatives = "natives-windows"
 val javacv = "1.5.7"
 val kx = "com.github.kotlin-graphics"
 
+
+
 repositories {
     mavenCentral()
     maven("https://jitpack.io")

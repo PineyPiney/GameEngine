@@ -33,10 +33,11 @@ interface Interactable: Storable, Updateable {
     fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean
 
     fun onCursorMove(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2){
-        if(pressed){
-            onDrag(game, cursorPos, cursorDelta)
-        }
+        if(pressed) onDrag(game, cursorPos, cursorDelta)
+
+        val worldPos = game.camera.screenToWorld(cursorPos)
         for (child in children) {
+            child.hover = child.checkHover(cursorPos, worldPos)
             if(child.shouldUpdate()) child.onCursorMove(game, cursorPos, cursorDelta)
         }
     }
@@ -44,19 +45,34 @@ interface Interactable: Storable, Updateable {
     fun onDrag(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2) {}
 
     fun onScroll(game: IGameLogic, scrollDelta: Vec2): Int{
-        for (child in children) {
-            if(child.shouldUpdate()) child.onScroll(game, scrollDelta)
+        for (child in children.sortedByDescending { it.importance }) {
+            if(child.shouldUpdate()) {
+                if(child.onScroll(game, scrollDelta) == INTERRUPT) return INTERRUPT
+            }
         }
-
         return 0
     }
 
     fun onInput(game: IGameLogic, input: KeyBind, action: Int, cursorPos: Vec2): Int {
+        for(child in children.sortedByDescending { it.importance }){
+            if(child.shouldUpdate()){
+                if(child.onInput(game, input, action, cursorPos) == INTERRUPT) return INTERRUPT
+            }
+        }
         return when {
             input.matches(game.input.primary) -> onPrimary(game, action, input.mods, cursorPos)
             input.matches(game.input.secondary) -> onSecondary(game, action, input.mods, cursorPos)
             else -> 0
         }
+    }
+
+    fun onType(game: IGameLogic, char: Char): Int{
+        for (child in children.sortedByDescending { it.importance }) {
+            if(child.shouldUpdate()) {
+                if(child.onType(game, char) == INTERRUPT) return INTERRUPT
+            }
+        }
+        return 0
     }
 
     // This is the default action when an item is clicked
@@ -67,8 +83,6 @@ interface Interactable: Storable, Updateable {
     }
 
     fun onSecondary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int = 0
-
-    fun onType(game: IGameLogic, char: Char): Int = 0
 
     override fun shouldUpdate(): Boolean {
         return this.hover || this.pressed || this.forceUpdate || this.children.any { child -> child.shouldUpdate() }

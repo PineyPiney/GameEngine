@@ -42,19 +42,22 @@ abstract class GameLogic : IGameLogic {
         }
     }
 
-    override fun onScroll(window: Window, scrollDelta: Vec2) {
-        for (item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java)){
+    override fun onScroll(window: Window, scrollDelta: Vec2): Int {
+        for (item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java).sortedByDescending { it.importance }){
             if(item.shouldUpdate()){
-                if(item.onScroll(this, scrollDelta) == Interactable.INTERRUPT) break
+                if(item.onScroll(this, scrollDelta) == Interactable.INTERRUPT) return Interactable.INTERRUPT
             }
         }
+        return 0
     }
 
     override fun onInput(key: KeyBind, action: Int): Int {
 
+        val mousePos = input.mouse.lastPos
         for(item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java).sortedByDescending { it.importance }){
-            val stop = conditionalInput(item, key, action)
-            if(stop) return Interactable.INTERRUPT
+            if(item.shouldUpdate()){
+                if(item.onInput(this, key, action, mousePos) == Interactable.INTERRUPT) return Interactable.INTERRUPT
+            }
         }
 
         when {
@@ -64,28 +67,13 @@ abstract class GameLogic : IGameLogic {
         return action
     }
 
-    private fun conditionalInput(item: Interactable, key: KeyBind, action: Int): Boolean{
-        var stop = false
-        if(item.shouldUpdate()){
-            val mousePos = input.mouse.lastPos
-            stop = item.onInput(this, key, action, mousePos) == Interactable.INTERRUPT
-
-            for(child in item.children.sortedByDescending { it.importance }){
-                child.hover = child.checkHover(mousePos, camera.screenToWorld(mousePos))
-                if(child.shouldUpdate()){
-                    if(child.onInput(this, key, action, mousePos) == Interactable.INTERRUPT) break
-                }
+    override fun onType(char: Char): Int {
+        for (item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java).sortedByDescending { it.importance }){
+            if(item.shouldUpdate()){
+                if(item.onType(this, char) == Interactable.INTERRUPT) return Interactable.INTERRUPT
             }
         }
-        return stop
-    }
-
-    override fun onType(char: Char) {
-        for (item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java)){
-            if(item.hover || item.forceUpdate){
-                if(item.onType(this, char) == Interactable.INTERRUPT) break
-            }
-        }
+        return 0
     }
 
     open fun onPrimary(window: Window, action: Int, mods: Byte){}

@@ -39,7 +39,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     private val textField = ActionTextField(Vec2(-1), Vec2(1)){ _, char, _ ->
         println("Typing $char")
     }
-    private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f)
+    private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f)
 
     private var text = SizedStaticText("X Part: 0.00 \n Y Part: 0.00")
     private val gameText = StretchyGameText("This is some Game Text", Vec2(17.78, 10), Vec4(0.0, 1.0, 1.0, 1.0))

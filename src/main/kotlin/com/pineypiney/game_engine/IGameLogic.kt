@@ -26,11 +26,11 @@ interface IGameLogic {
 
     fun onCursorMove(window: Window, cursorPos: Vec2, cursorDelta: Vec2)
 
-    fun onScroll(window: Window, scrollDelta: Vec2)
+    fun onScroll(window: Window, scrollDelta: Vec2): Int
 
     fun onInput(key: KeyBind, action: Int): Int
 
-    fun onType(char: Char)
+    fun onType(char: Char): Int
 
     fun update(interval: Float, input: Inputs)
 

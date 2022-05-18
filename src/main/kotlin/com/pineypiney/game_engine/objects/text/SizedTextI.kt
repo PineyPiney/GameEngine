@@ -16,7 +16,7 @@ interface SizedTextI: TextI {
         var currentText = ""
         var i = 0
         var lastBreak = -1
-        while(i < text.length - 1){
+        while(i < text.length){
             while(i < text.length - 1 && !" \n".contains(text[i])){
                 i++
             }
