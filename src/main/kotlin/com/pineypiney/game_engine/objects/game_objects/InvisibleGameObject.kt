@@ -16,8 +16,4 @@ class InvisibleGameObject(position: Vec2 = Vec2(), scale: Vec2 = Vec2(1)) : Game
     override fun copy(): InvisibleGameObject {
         return InvisibleGameObject(position.copy())
     }
-
-    override fun delete() {
-        objects.forEach { it.gameItems.remove(this) }
-    }
 }

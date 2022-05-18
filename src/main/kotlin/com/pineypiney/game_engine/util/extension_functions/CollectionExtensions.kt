@@ -28,6 +28,18 @@ fun <E: Deleteable> Map<*, E?>.delete(){
     }
 }
 
+fun <E> MutableCollection<E>.popFirst(predicate: (E) -> Boolean): E{
+    val pop = first(predicate)
+    remove(pop)
+    return pop
+}
+
+fun <E> MutableCollection<E>.popFirstOrNull(predicate: (E) -> Boolean): E?{
+    val pop = firstOrNull(predicate)
+    remove(pop)
+    return pop
+}
+
 fun <E, T> MutableMap<E, T>.getOrSet(key: E, create: (key: E) -> T): T{
     val current = getOrNull(key)
     return if(current != null) current

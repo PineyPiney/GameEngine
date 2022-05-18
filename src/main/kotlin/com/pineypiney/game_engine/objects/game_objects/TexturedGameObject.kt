@@ -33,8 +33,4 @@ open class TexturedGameObject(override val id: ResourceKey, var texture: Texture
     override fun copy(): TexturedGameObject {
         return this.clone() as TexturedGameObject
     }
-
-    override fun delete() {
-        objects.forEach { it.gameItems.remove(this) }
-    }
 }

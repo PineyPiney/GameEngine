@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.objects.Interactable
-import com.pineypiney.game_engine.objects.ScreenObjectCollection
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import glm_.vec2.Vec2
 
@@ -23,7 +22,4 @@ open class InteractableScrollingListEntry<E: ScrollingListItem>(parent: E, numbe
     override fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean {
         return screenPos.isWithin(this.origin, this.size)
     }
-
-    override fun addTo(objects: ScreenObjectCollection) {}
-    override fun removeFrom(objects: ScreenObjectCollection) {}
 }

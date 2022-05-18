@@ -24,7 +24,7 @@ abstract class GameObject : IScreenObject, Storable, Copyable<GameObject> {
 
     override val objects: MutableList<ScreenObjectCollection> = mutableListOf()
 
-    var transform: Transform = Transform.origin.c
+    var transform: Transform = Transform.origin
 
     open var velocity: Vec2 = Vec2()
 
@@ -81,7 +81,7 @@ abstract class GameObject : IScreenObject, Storable, Copyable<GameObject> {
     }
 
     override fun delete() {
-        shader.delete()
+        for(o in objects) { o.gameItems.remove(this) }
     }
 
     companion object{

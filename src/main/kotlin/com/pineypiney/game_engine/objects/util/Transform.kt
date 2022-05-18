@@ -10,7 +10,6 @@ import glm_.vec3.Vec3
 class Transform(position: Vec2 = Vec2(), rotation: Float = 0f, scale: Vec2 = Vec2(1)): Copyable<Transform> {
 
     var model = I
-    val c; get() = copy()
 
     var position: Vec2 = position
         set(value) {
@@ -50,6 +49,6 @@ class Transform(position: Vec2 = Vec2(), rotation: Float = 0f, scale: Vec2 = Vec
     override fun copy(): Transform = Transform(position.copy(), rotation, scale.copy())
 
     companion object{
-        val origin = Transform(Vec2(), 0f, Vec2(1))
+        val origin; get() = Transform()
     }
 }

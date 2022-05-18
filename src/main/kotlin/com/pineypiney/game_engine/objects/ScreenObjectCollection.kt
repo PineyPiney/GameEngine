@@ -24,10 +24,10 @@ class ScreenObjectCollection {
         o?.objects?.add(this)
     }
     fun removeObject(o: Storable?){
-        // Add the object to this
+        // Remove the object from this
         o?.removeFrom(this)
 
-        // Add this to the object
+        // Remove this from the object
         o?.objects?.remove(this)
     }
 

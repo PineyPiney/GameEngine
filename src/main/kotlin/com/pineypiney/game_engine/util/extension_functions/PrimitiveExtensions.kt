@@ -89,11 +89,13 @@ fun Double.querp(): Double = eerp(2)
 fun Double.cerp(): Double = eerp(3)
 
 fun Float.wrap(min: Float, max: Float): Float{
-    val d = abs(max- min)
-    var x = this
-    while(x < min) x += d
-    while(x > max) x -= d
-    return x
+    val d = abs(max - min)
+    return min + ((this - min) % d)
+}
+
+fun Int.wrap(min: Int, max: Int): Int{
+    val d = abs(max - min)
+    return min + ((this - min) % d)
 }
 
 fun absMinOf(a: Float, vararg other: Float): Float{
