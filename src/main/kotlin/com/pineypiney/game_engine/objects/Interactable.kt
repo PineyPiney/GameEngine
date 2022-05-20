@@ -1,7 +1,8 @@
 package com.pineypiney.game_engine.objects
 
 import com.pineypiney.game_engine.IGameLogic
-import com.pineypiney.game_engine.util.input.KeyBind
+import com.pineypiney.game_engine.util.input.ControlType
+import com.pineypiney.game_engine.util.input.InputState
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
 
@@ -53,15 +54,15 @@ interface Interactable: Storable, Updateable {
         return 0
     }
 
-    fun onInput(game: IGameLogic, input: KeyBind, action: Int, cursorPos: Vec2): Int {
+    fun onInput(game: IGameLogic, input: InputState, action: Int, cursorPos: Vec2): Int {
         for(child in children.sortedByDescending { it.importance }){
             if(child.shouldUpdate()){
                 if(child.onInput(game, input, action, cursorPos) == INTERRUPT) return INTERRUPT
             }
         }
         return when {
-            input.matches(game.input.primary) -> onPrimary(game, action, input.mods, cursorPos)
-            input.matches(game.input.secondary) -> onSecondary(game, action, input.mods, cursorPos)
+            input.i == 0 && input.controlType == ControlType.MOUSE -> onPrimary(game, action, input.mods, cursorPos)
+            input.i == 1 && input.controlType == ControlType.MOUSE -> onSecondary(game, action, input.mods, cursorPos)
             else -> 0
         }
     }

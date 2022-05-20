@@ -6,8 +6,9 @@ import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.Visual
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.init
+import com.pineypiney.game_engine.util.input.ControlType
+import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
-import com.pineypiney.game_engine.util.input.KeyBind
 import glm_.vec2.Vec2
 
 abstract class GameLogic : IGameLogic {
@@ -51,7 +52,7 @@ abstract class GameLogic : IGameLogic {
         return 0
     }
 
-    override fun onInput(key: KeyBind, action: Int): Int {
+    override fun onInput(key: InputState, action: Int): Int {
 
         val mousePos = input.mouse.lastPos
         for(item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java).sortedByDescending { it.importance }){
@@ -61,8 +62,8 @@ abstract class GameLogic : IGameLogic {
         }
 
         when {
-            key.matches(this.input.primary) -> onPrimary(Window.INSTANCE, action, key.mods)
-            key.matches(this.input.secondary) -> onSecondary(Window.INSTANCE, action, key.mods)
+            key.i == 0 && key.controlType == ControlType.MOUSE -> onPrimary(Window.INSTANCE, action, key.mods)
+            key.i == 1 && key.controlType == ControlType.MOUSE -> onSecondary(Window.INSTANCE, action, key.mods)
         }
         return action
     }

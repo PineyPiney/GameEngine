@@ -9,8 +9,8 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.input.Inputs
-import com.pineypiney.game_engine.util.input.KeyBind
+import com.pineypiney.game_engine.util.input.ControlType
+import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.text.Font
 import com.pineypiney.game_engine.util.text.FontLoader
 import glm_.c
@@ -91,10 +91,10 @@ open class TextField(final override var origin: Vec2, final override val size: V
         return action
     }
 
-    override fun onInput(game: IGameLogic, input: KeyBind, action: Int, cursorPos: Vec2): Int {
+    override fun onInput(game: IGameLogic, input: InputState, action: Int, cursorPos: Vec2): Int {
         super.onInput(game, input, action, cursorPos)
 
-        if(input.controlType == Inputs.ControlType.KEYBOARD && this.forceUpdate){
+        if(input.controlType == ControlType.KEYBOARD && this.forceUpdate){
             if(action != GLFW_RELEASE) specialCharacter(input)
             return Interactable.INTERRUPT
         }
@@ -115,7 +115,7 @@ open class TextField(final override var origin: Vec2, final override val size: V
         caret++
     }
 
-    open fun specialCharacter(bind: KeyBind){
+    open fun specialCharacter(bind: InputState){
         when(bind.i){
             GLFW_KEY_ESCAPE -> {
                 this.forceUpdate = false

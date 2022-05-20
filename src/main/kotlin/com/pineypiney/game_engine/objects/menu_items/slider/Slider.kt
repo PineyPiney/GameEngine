@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.menu_items.slider
 
 import com.pineypiney.game_engine.IGameLogic
 import com.pineypiney.game_engine.objects.menu_items.InteractableMenuItem
-import com.pineypiney.game_engine.util.input.KeyBind
+import com.pineypiney.game_engine.util.input.InputState
 import glm_.vec2.Vec2
 
 abstract class Slider @Throws(IllegalArgumentException::class) constructor(final override val size: Vec2, private val low: Float, private val high: Float, value: Float): InteractableMenuItem() {
@@ -38,7 +38,7 @@ abstract class Slider @Throws(IllegalArgumentException::class) constructor(final
         return super.checkHover(screenPos, worldPos) || pointer.checkHover(screenPos, worldPos)
     }
 
-    override fun onInput(game: IGameLogic, input: KeyBind, action: Int, cursorPos: Vec2): Int {
+    override fun onInput(game: IGameLogic, input: InputState, action: Int, cursorPos: Vec2): Int {
         if(pointer.shouldUpdate()) pointer.onInput(game, input, action, cursorPos)
         return super.onInput(game, input, action, cursorPos)
     }

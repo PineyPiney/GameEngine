@@ -16,7 +16,7 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.round
-import com.pineypiney.game_engine.util.input.KeyBind
+import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.normal
 import glm_.f
 import glm_.s
@@ -86,7 +86,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         text = SizedStaticText("X Part: ${wp.x.round(2)} \n Y Part: ${wp.y.round(2)}", 100, Vec2(2))
     }
 
-    override fun onInput(key: KeyBind, action: Int): Int {
+    override fun onInput(key: InputState, action: Int): Int {
         if(super.onInput(key, action) == Interactable.INTERRUPT) return Interactable.INTERRUPT
 
         if(key.c == 'F' && action == 1){

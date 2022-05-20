@@ -11,7 +11,7 @@ class KeyboardInput(val input: Inputs, key: GLFWKeyCallback? = null, char: GLFWC
 
     private val keyCallback = key ?: object : GLFWKeyCallback() {
         override fun invoke(handle: Long, key: Int, scancode: Int, action: Int, mods: Int) {
-            input.onInput(key.s, action, mods.b, Inputs.ControlType.KEYBOARD)
+            input.onInput(key.s, action, mods.b, ControlType.KEYBOARD)
         }
     }
 

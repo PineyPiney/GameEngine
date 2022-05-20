@@ -19,7 +19,7 @@ abstract class GameEngine(val window: Window) : Runnable {
 
     private var nextUpdateTime: Double = Timer.getCurrentTime()
     private var FPSCounter: Int = 0
-    private var FPS: Float = 0f
+    var FPS: Float = 0f; private set
 
     init{
         // Load the resources for the game

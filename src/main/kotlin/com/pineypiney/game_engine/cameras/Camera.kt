@@ -14,7 +14,7 @@ import kotlin.math.tan
 
 open class Camera(pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), yaw: Double = -90.0, pitch: Double = 0.0, fov: Float = 90f) {
 
-    var cameraPos = Vec3(); protected set
+    var cameraPos = Vec3()
     var cameraUp = up
 
     var cameraFront = Vec3()
@@ -26,7 +26,7 @@ open class Camera(pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), yaw: Doub
     var cameraYaw = yaw; var cameraPitch = pitch
     var lastX = 0.0; var lastY = 0.0
     var movementSpeed = 0.0; var mouseSensitivity = 0.0
-    var FOV = fov; protected set
+    var FOV = fov
 
     var range = Vec2(0.1, 1000)
 

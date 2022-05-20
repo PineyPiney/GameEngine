@@ -19,10 +19,10 @@ abstract class BufferedGameRenderer: GameRenderer() {
         createFrameBuffer(FBO, TCB, RBO, Window.INSTANCE.size)
     }
 
-    private fun createFrameBuffer(FBO: Int, TCB: Int, RBO: Int, size: Vec2i) =
+    fun createFrameBuffer(FBO: Int, TCB: Int, RBO: Int, size: Vec2i) =
         createFrameBuffer(FBO, TCB, RBO, size.x, size.y)
 
-    private fun createFrameBuffer(FBO: Int, TCB: Int, RBO: Int, width: Int, height: Int){
+    fun createFrameBuffer(FBO: Int, TCB: Int, RBO: Int, width: Int, height: Int){
 
         glBindFramebuffer(GL_FRAMEBUFFER, FBO)
         glBindTexture(GL_TEXTURE_2D, TCB)
@@ -41,7 +41,7 @@ abstract class BufferedGameRenderer: GameRenderer() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
     }
 
-    protected fun clearFrameBuffer(buffer: Int = FBO){
+    open fun clearFrameBuffer(buffer: Int = FBO){
         glBindFramebuffer(GL_FRAMEBUFFER, buffer)
         clear()
     }

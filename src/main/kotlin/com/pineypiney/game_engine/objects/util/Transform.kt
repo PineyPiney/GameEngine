@@ -27,6 +27,10 @@ class Transform(position: Vec2 = Vec2(), rotation: Float = 0f, scale: Vec2 = Vec
             recalculateModel()
         }
 
+    init {
+        recalculateModel()
+    }
+
     fun translate(move: Vec2){
         position plusAssign move
         recalculateModel()
@@ -46,7 +50,7 @@ class Transform(position: Vec2 = Vec2(), rotation: Float = 0f, scale: Vec2 = Vec
         model = I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1))
     }
 
-    override fun copy(): Transform = Transform(position.copy(), rotation, scale.copy())
+    override fun copy(): Transform = Transform(position.copy(), rotation, scale.copy()).apply { recalculateModel() }
 
     companion object{
         val origin; get() = Transform()

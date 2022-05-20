@@ -60,13 +60,13 @@ class MouseInput(val input: Inputs, cursor: GLFWCursorPosCallback? = null, scrol
 
     private fun processMouseButtons(button: Short, action: Int, mods: Byte){
         buttonStates[button] = if(action == 1) Timer.frameTime.f else -1f
-        input.onInput(button, action, mods, Inputs.ControlType.MOUSE)
+        input.onInput(button, action, mods, ControlType.MOUSE)
     }
 
     fun update(time: Double){
         buttonStates.forEach { (button, buttonTime) ->
             if(buttonTime != -1f && time > buttonTime + 1){
-                input.onInput(button, GLFW_REPEAT, input.getMods(), Inputs.ControlType.MOUSE)
+                input.onInput(button, GLFW_REPEAT, input.getMods(), ControlType.MOUSE)
             }
         }
     }

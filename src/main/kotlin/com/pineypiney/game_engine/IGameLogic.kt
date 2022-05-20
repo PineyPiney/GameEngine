@@ -4,8 +4,8 @@ import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.objects.ScreenObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.renderers.GameRenderer
+import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
-import com.pineypiney.game_engine.util.input.KeyBind
 import glm_.vec2.Vec2
 
 interface IGameLogic {
@@ -28,7 +28,7 @@ interface IGameLogic {
 
     fun onScroll(window: Window, scrollDelta: Vec2): Int
 
-    fun onInput(key: KeyBind, action: Int): Int
+    fun onInput(key: InputState, action: Int): Int
 
     fun onType(char: Char): Int
 
