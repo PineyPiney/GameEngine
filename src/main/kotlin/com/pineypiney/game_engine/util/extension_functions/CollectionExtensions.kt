@@ -1,16 +1,16 @@
 package com.pineypiney.game_engine.util.extension_functions
 
 import com.pineypiney.game_engine.objects.Deleteable
-import com.pineypiney.game_engine.objects.IScreenObject
+import com.pineypiney.game_engine.objects.Initialisable
 
-fun <E: IScreenObject> Collection<E?>?.init(){
+fun <E: Initialisable> Collection<E?>?.init(){
     this?.forEach {
         it?.init()
     }
 
 }
 
-fun <E: IScreenObject> Map<*, E?>.init(){
+fun <E: Initialisable> Map<*, E?>.init(){
     forEach {
         it.value?.init()
     }

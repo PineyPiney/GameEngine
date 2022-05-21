@@ -22,9 +22,9 @@ class Renderer: BufferedGameRenderer() {
         game.gameObjects.forEachRendered { it.render(view, projection, tickDelta) }
 
         // This draws the buffer onto the screen
+        clearFrameBuffer(0)
         screenShader.use()
         screenShader.setInt("effects", 0)
-        clearFrameBuffer(0)
         drawBufferTexture()
     }
 

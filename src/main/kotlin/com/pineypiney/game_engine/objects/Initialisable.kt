@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects
 
-interface IScreenObject : Deleteable, Visual {
+interface Initialisable : Deleteable {
 
     fun init()
 }

@@ -63,8 +63,9 @@ class FontLoader private constructor() {
                     }
                 }
 
+                // If no pixels were detected in this character, set the width to 1/8th of the total space
                 if(charDim == Vec4i(letterWidth, letterHeight, 0, 0))
-                    charDim = Vec4i(0, letterHeight / 2, 0, letterHeight / 2)
+                    charDim = Vec4i(0, letterHeight / 2, letterWidth / 8, letterHeight / 2)
                 fonts[key]?.setChar(index.c, charDim)
                 index++
             }

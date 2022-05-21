@@ -1,8 +1,7 @@
 package com.pineypiney.game_engine.objects.game_objects
 
-import com.pineypiney.game_engine.Window
-import com.pineypiney.game_engine.objects.IScreenObject
-import com.pineypiney.game_engine.objects.ScreenObjectCollection
+import com.pineypiney.game_engine.objects.Initialisable
+import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.util.Transform
 import com.pineypiney.game_engine.resources.shaders.Shader
@@ -14,15 +13,13 @@ import glm_.i
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-abstract class GameObject : IScreenObject, Storable, Copyable<GameObject> {
+abstract class GameObject : Initialisable, Storable, Copyable<GameObject> {
 
     abstract val id: ResourceKey
 
     open val shader: Shader = defaultShader
 
-    override var visible: Boolean = true
-
-    override val objects: MutableList<ScreenObjectCollection> = mutableListOf()
+    override val objects: MutableList<ObjectCollection> = mutableListOf()
 
     var transform: Transform = Transform.origin
 
@@ -49,8 +46,6 @@ abstract class GameObject : IScreenObject, Storable, Copyable<GameObject> {
 
     override fun init() {}
 
-    override fun updateAspectRatio(window: Window) {}
-
     fun getWidth(): Float{
         return scale.x
     }
@@ -72,11 +67,11 @@ abstract class GameObject : IScreenObject, Storable, Copyable<GameObject> {
         transform.scale(mult)
     }
 
-    override fun addTo(objects: ScreenObjectCollection){
+    override fun addTo(objects: ObjectCollection){
         objects.gameItems.add(this)
     }
 
-    override fun removeFrom(objects: ScreenObjectCollection) {
+    override fun removeFrom(objects: ObjectCollection) {
         objects.gameItems.remove(this)
     }
 

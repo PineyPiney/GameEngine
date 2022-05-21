@@ -31,8 +31,7 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
     final override fun setDefaults(height: Float) {
         defaultCharHeight = height
         defaultCharWidth = height * 0.5f
-        lines = generateLines(window)
-        lengths = lines.map { pixelToRelative(getPixelWidth(it)) }.toFloatArray()
+        updateLines(window)
     }
 
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
@@ -71,5 +70,10 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
 
             yOffset -= 0.6f
         }
+    }
+
+    override fun updateLines(window: Window) {
+        lines = generateLines(window)
+        lengths = lines.map { pixelToRelative(getPixelWidth(it)) }.toFloatArray()
     }
 }

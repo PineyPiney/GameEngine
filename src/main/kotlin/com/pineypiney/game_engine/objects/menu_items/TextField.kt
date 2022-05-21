@@ -30,7 +30,7 @@ open class TextField(final override var origin: Vec2, final override val size: V
     var text: String = ""
         set(value) {
             field = value
-            textBox = textBox.rewrite(field)
+            textBox.text = text
         }
 
     var textBox = TextFieldText(text, size.y * 100 * textSize, Vec2(origin.x, origin.x + size.x))
@@ -55,6 +55,11 @@ open class TextField(final override var origin: Vec2, final override val size: V
                 value
             }
         }
+
+    override fun init() {
+        super.init()
+        textBox.init()
+    }
 
     override fun setUniforms() {
         super.setUniforms()
@@ -122,47 +127,25 @@ open class TextField(final override var origin: Vec2, final override val size: V
             }
             GLFW_KEY_BACKSPACE -> {
                 if(caret > 0){
-                    val i: Int =
-                        if(bind.control){
-                            val lastSpace = this.text.substring(0, caret - 1).lastIndexOf(' ')
-                            if(lastSpace >= 0) caret - lastSpace else caret
-                        }
-                        else 1
-                    this.text = this.text.removeRange(caret - i, caret)
-                    caret -= i
+                    val i: Int = moveCaretLeft(caret - 2, bind.control)
+                    text = text.removeRange(i, caret)
+                    caret = i
                 }
             }
             GLFW_KEY_DELETE -> {
                 if(caret < text.length){
-                    val i: Int =
-                        if(bind.control){
-                            val lastSpace = this.text.substring(caret - 1).indexOf(' ', caret)
-                            if(lastSpace >= 0) lastSpace else this.text.length - caret
-                        }
-                        else 1
-                    this.text = this.text.removeRange(caret, caret + i)
+                    val i: Int = moveCaretRight(caret + 1, bind.control)
+                    text = text.removeRange(caret, i)
                 }
             }
             GLFW_KEY_LEFT -> {
                 if(caret > 0){
-                    val i: Int =
-                        if(bind.control){
-                            val lastSpace = this.text.substring(0, caret - 1).lastIndexOf(' ')
-                            if(lastSpace >= 0) caret - lastSpace else caret
-                        }
-                        else 1
-                    caret -= i
+                    caret = moveCaretLeft(caret - 2, bind.control)
                 }
             }
             GLFW_KEY_RIGHT -> {
                 if(caret < text.length){
-                    val i: Int =
-                        if(bind.control){
-                            val lastSpace = this.text.substring(caret - 1).indexOf(' ', caret)
-                            if(lastSpace >= 0) lastSpace else this.text.length - caret
-                        }
-                        else 1
-                    caret += i
+                    caret = moveCaretRight(caret + 1, bind.control)
                 }
             }
         }
@@ -184,6 +167,22 @@ open class TextField(final override var origin: Vec2, final override val size: V
         else i
     }
 
+    fun moveCaretLeft(place: Int, control: Boolean): Int{
+        return if(control){
+                val lastSpace = text.lastIndexOf(' ', place)
+                if(lastSpace >= 0) lastSpace + 1 else 0
+            }
+            else caret - 1
+    }
+
+    fun moveCaretRight(place: Int, control: Boolean): Int{
+        return if(control){
+            val nextSpace = text.indexOf(' ', place)
+            if(nextSpace >= 0) nextSpace else text.length
+        }
+        else caret + 1
+    }
+
     class TextFieldText(text: String, fontSize: Number, private var limits: Vec2,
                         bounds: Vec2 = Vec2(Float.MAX_VALUE),
                         colour: Vec4 = Vec4(1, 1, 1, 1),
@@ -202,10 +201,6 @@ open class TextField(final override var origin: Vec2, final override val size: V
             val left = q.topLeft.x
             // This Vec2 contains the left of the texture and the width
             shader.setVec2("texture_section", Vec2(left, q.bottomRight.x - left))
-        }
-
-        fun rewrite(newText: String): TextFieldText{
-            return TextFieldText(newText, fontSize, limits, Vec2(maxWidth, maxHeight), colour, font, shader, window)
         }
     }
 

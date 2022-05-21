@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.renderers
 
 import com.pineypiney.game_engine.Window
-import com.pineypiney.game_engine.objects.ScreenObjectCollection
+import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.util.shapes.IndicesShape
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL46C.*
@@ -54,7 +54,7 @@ abstract class BufferedGameRenderer: GameRenderer() {
         shape.draw()
     }
 
-    override fun updateAspectRatio(window: Window, objects: ScreenObjectCollection) {
+    override fun updateAspectRatio(window: Window, objects: ObjectCollection) {
         createFrameBuffer(FBO, TCB, RBO, window.size)
     }
 

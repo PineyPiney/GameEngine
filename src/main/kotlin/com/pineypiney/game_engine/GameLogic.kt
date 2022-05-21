@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.objects.Interactable
-import com.pineypiney.game_engine.objects.ScreenObjectCollection
+import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.Visual
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -13,7 +13,7 @@ import glm_.vec2.Vec2
 
 abstract class GameLogic : IGameLogic {
 
-    override var gameObjects: ScreenObjectCollection = ScreenObjectCollection()
+    override var gameObjects: ObjectCollection = ObjectCollection()
 
     override val input get() = gameEngine.window.input
 

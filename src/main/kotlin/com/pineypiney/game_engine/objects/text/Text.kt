@@ -8,11 +8,17 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.text.Font
 import glm_.vec4.Vec4
 
-abstract class Text(override val text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
+abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
                 override val maxWidth: Float = 2f, override val maxHeight: Float = 2f,
                 override val font: Font = Font.defaultFont,
                 override val shader: Shader = font.shader, override val window: Window = Window.INSTANCE
 ): TextI, Visual {
+
+    override var text: String = text
+        set(value){
+            field = value
+            init()
+        }
 
     override var visible: Boolean = true
 

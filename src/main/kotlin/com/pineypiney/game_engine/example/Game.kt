@@ -36,7 +36,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     private val button = BasicTextButton("button", Vec2(0.6, 0.8), Vec2(0.4, 0.2)){
         println("Pressed!")
     }
-    private val textField = ActionTextField(Vec2(-1), Vec2(1)){ _, char, _ ->
+    private val textField = ActionTextField(Vec2(-1), Vec2(1, 0.2)){ _, char, _ ->
         println("Typing $char")
     }
     private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f)
@@ -45,6 +45,12 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     private val gameText = StretchyGameText("This is some Game Text", Vec2(17.78, 10), Vec4(0.0, 1.0, 1.0, 1.0))
 
     private var cycle = 0.0f
+
+    override fun init() {
+        super.init()
+        text.init()
+        gameText.init()
+    }
 
     override fun addObjects() {
         add(button)
@@ -65,7 +71,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         gameText.render(renderer.view, renderer.projection, tickDelta)
         button.drawBottomLeft(Vec2(0.6, 0.8))
         text.drawCentered(Vec2())
-        textField.drawTopRight(Vec2())
+        textField.drawBottomLeft(Vec2(-1))
         slider.draw()
     }
 
@@ -83,7 +89,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     override fun onCursorMove(window: Window, cursorPos: Vec2, cursorDelta: Vec2) {
         super.onCursorMove(window, cursorPos, cursorDelta)
         val wp = camera.screenToWorld(cursorPos)
-        text = SizedStaticText("X Part: ${wp.x.round(2)} \n Y Part: ${wp.y.round(2)}", 100, Vec2(2))
+        text.text = "X Part: ${wp.x.round(2)} \n Y Part: ${wp.y.round(2)}"
     }
 
     override fun onInput(key: InputState, action: Int): Int {

@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.objects.util.Transform
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.text.Font
 import glm_.f
@@ -25,6 +26,8 @@ open class StretchyGameText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
     final override val maxHeight: Float
         get() = super.maxHeight
 
+    override val transform: Transform = Transform()
+
     init{
         // First scale the text so it touches the vertical bounds
         setDefaults(maxHeight)
@@ -46,6 +49,7 @@ open class StretchyGameText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
     }
 
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
+
         shader.use()
         shader.setMat4("view", view)
         shader.setMat4("projection", projection)

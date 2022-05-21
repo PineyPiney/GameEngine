@@ -1,6 +1,9 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.objects.*
+import com.pineypiney.game_engine.objects.Drawable
+import com.pineypiney.game_engine.objects.Initialisable
+import com.pineypiney.game_engine.objects.ObjectCollection
+import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.util.shapes.IndicesShape
 import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.resources.shaders.Shader
@@ -10,11 +13,11 @@ import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-abstract class MenuItem : IScreenObject, Drawable, Storable, Deleteable {
+abstract class MenuItem : Initialisable, Storable, Drawable {
 
     override var visible: Boolean = true
 
-    override val objects: MutableList<ScreenObjectCollection> = mutableListOf()
+    override val objects: MutableList<ObjectCollection> = mutableListOf()
 
     override var origin: Vec2 = Vec2()
     override val size: Vec2 = Vec2()
@@ -38,11 +41,11 @@ abstract class MenuItem : IScreenObject, Drawable, Storable, Deleteable {
     fun relative(x: Number, y: Number) = origin + (size * Vec2(x, y))
     fun relative(pos: Vec2) = origin + (size * pos)
 
-    override fun addTo(objects: ScreenObjectCollection) {
+    override fun addTo(objects: ObjectCollection) {
         objects.guiItems.add(this)
     }
 
-    override fun removeFrom(objects: ScreenObjectCollection) {
+    override fun removeFrom(objects: ObjectCollection) {
         objects.guiItems.remove(this)
     }
 

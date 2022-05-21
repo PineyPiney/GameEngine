@@ -23,8 +23,12 @@ open class StretchyStaticText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
 
     override var origin: Vec2 = Vec2()
 
-    init{
+    init {
         defaultCharHeight = textMaxHeight
+    }
+
+    override fun init(){
+        super.init()
         updateAspectRatio(Window.INSTANCE)
     }
 

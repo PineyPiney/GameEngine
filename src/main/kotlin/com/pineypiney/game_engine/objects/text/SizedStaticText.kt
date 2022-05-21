@@ -33,6 +33,10 @@ open class SizedStaticText(text: String, fontSize: Int = 100, colour: Vec4 = Vec
         updateAspectRatio(Window.INSTANCE)
     }
 
+    override fun init() {
+        super.init()
+    }
+
     final override fun setDefaults(height: Float){
         defaultCharHeight = height
         defaultCharWidth = height * 0.5f / window.aspectRatio
@@ -82,8 +86,12 @@ open class SizedStaticText(text: String, fontSize: Int = 100, colour: Vec4 = Vec
         }
     }
 
-    final override fun updateAspectRatio(window: Window) {
+    override fun updateLines(window: Window) {
         lines = generateLines(window)
         lengths = lines.map { getScreenSize(it).x }.toFloatArray()
+    }
+
+    final override fun updateAspectRatio(window: Window) {
+        updateLines(window)
     }
 }

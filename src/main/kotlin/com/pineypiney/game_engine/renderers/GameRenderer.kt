@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.IGameLogic
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.objects.Deleteable
-import com.pineypiney.game_engine.objects.ScreenObjectCollection
+import com.pineypiney.game_engine.objects.ObjectCollection
 import glm_.func.rad
 import glm_.glm
 import glm_.mat4x4.Mat4
@@ -20,7 +20,7 @@ abstract class GameRenderer: Deleteable {
 
     abstract fun render(window: Window, camera: Camera, game: IGameLogic, tickDelta: Double)
 
-    abstract fun updateAspectRatio(window: Window, objects: ScreenObjectCollection)
+    abstract fun updateAspectRatio(window: Window, objects: ObjectCollection)
 
     open fun getPerspective(window: Window, camera: Camera): Mat4 = glm.perspective(camera.FOV.rad, window.aspectRatio, camera.range.x, camera.range.y)
 

@@ -17,6 +17,7 @@ abstract class TextButton : Button() {
         super.init()
 
         text = StretchyStaticText(string, size, textColour)
+        text.init()
         textPos = origin + (size * 0.5)
     }
 

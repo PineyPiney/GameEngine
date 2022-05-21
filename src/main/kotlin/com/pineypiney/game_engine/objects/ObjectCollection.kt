@@ -8,22 +8,20 @@ import com.pineypiney.game_engine.objects.util.collision.CollisionBox
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 
-class ScreenObjectCollection {
+open class ObjectCollection {
 
-    var backgrounds: MutableList<Drawable> = mutableListOf()
+    open var gameItems = mutableSetOf<GameObject>()
 
-    var gameItems: MutableSet<GameObject> = mutableSetOf()
+    open val guiItems = mutableSetOf<MenuItem>()
 
-    val guiItems = mutableSetOf<MenuItem>()
-
-    fun addObject(o: Storable?){
+    open fun addObject(o: Storable?){
         // Add the object to this
         o?.addTo(this)
 
         // Add this to the object
         o?.objects?.add(this)
     }
-    fun removeObject(o: Storable?){
+    open fun removeObject(o: Storable?){
         // Remove the object from this
         o?.removeFrom(this)
 
@@ -32,48 +30,31 @@ class ScreenObjectCollection {
     }
 
 
-    fun update(interval: Float){
+    open fun update(interval: Float){
         val time = Timer.time
-        for(o in getAllObjects().filterIsInstance(Updateable::class.java)){
-            o.update(interval, time)
+        getAllObjects().forEachInstance<Updateable>{
+            it.update(interval, time)
         }
     }
 
-    fun getAllObjects(): List<IScreenObject?>{
-        val x = MutableList<IScreenObject?>(0){null}
-        // Add gui items first so that they are interacted with first
-        x.addAll(guiItems)
-        x.addAll(gameItems)
-        return x
+    open fun getAllObjects(): Set<Initialisable>{
+        return guiItems + gameItems
     }
 
     fun getAllCollisions(): Set<CollisionBox>{
         return getAllObjects().filterIsInstance<Collidable>().map { it.collider }.toSet()
     }
 
-    fun isHudHovered(): Boolean{
-        return guiItems.filterIsInstance<Interactable>().any { it.hover }
-    }
-
     fun forEachItem(action: (it: GameObject) -> Unit){
-        gameItems.forEach { action.invoke(it) }
+        gameItems.forEach(action)
     }
 
     fun forEachRendered(action: (RenderedGameObject) -> Unit){
-        gameItems.forEachInstance<RenderedGameObject> { action(it) }
+        gameItems.forEachInstance(action)
     }
 
     fun forEachCollision(action: (it: CollisionBox) -> Unit){
-        getAllCollisions().forEach { action.invoke(it) }
-    }
-
-    fun firstItem(predicate: (GameObject) -> Boolean): GameObject?{
-        return try{
-            gameItems.first(predicate)
-        }
-        catch(e: NoSuchElementException){
-            null
-        }
+        getAllCollisions().forEach(action)
     }
 
     fun delete(){

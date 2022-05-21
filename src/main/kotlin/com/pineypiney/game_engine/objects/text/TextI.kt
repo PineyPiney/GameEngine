@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.Window
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.extension_functions.delete
@@ -10,7 +10,7 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 
-interface TextI: Deleteable {
+interface TextI: Initialisable {
 
     val text: String
     val colour: Vec4
