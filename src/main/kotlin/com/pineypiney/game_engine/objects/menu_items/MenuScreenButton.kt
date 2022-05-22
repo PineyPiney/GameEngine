@@ -4,16 +4,15 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
-class MenuScreenButton(override val string: String, override var origin: Vec2, override val size: Vec2, override val textColour: Vec4, override val shader: Shader) : TextButton() {
+class MenuScreenButton(string: String, origin: Vec2, size: Vec2, textColour: Vec4, override val shader: Shader) : TextButton(string, origin, size, textColour, setChange) {
 
-    override val action: (button: Button) -> Unit = {}
+    override val action: (button: AbstractButton) -> Unit = {}
 
     var change = false
 
     companion object{
-        fun setChange(button: Button, state: Boolean){
-            if(button is MenuScreenButton)
-                button.change = state
+        val setChange: (AbstractButton) -> Unit = { button ->
+            if(button is MenuScreenButton) button.change = button.pressed
         }
     }
 }

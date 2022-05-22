@@ -26,7 +26,7 @@ open class ScrollingListEntry<E: ScrollingListItem>(val parent: E, val index: In
     }
 
     override fun draw() {
-        TextureLoader.getTexture(ResourceKey("test/Pesto")).bind()
+        TextureLoader.getTexture(ResourceKey("broke")).bind()
         super.draw()
     }
 

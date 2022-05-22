@@ -7,7 +7,7 @@ import glm_.vec2.Vec2
 
 abstract class InteractableGameObject: RenderedGameObject(), Interactable {
 
-    override val children: MutableList<Interactable> = mutableListOf()
+    override val children: MutableSet<Interactable> = mutableSetOf()
     override var forceUpdate: Boolean = false
     override var hover: Boolean = false
     override var importance: Int = 0

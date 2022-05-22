@@ -11,9 +11,7 @@ fun <E: Initialisable> Collection<E?>?.init(){
 }
 
 fun <E: Initialisable> Map<*, E?>.init(){
-    forEach {
-        it.value?.init()
-    }
+    for(i in this) i.value?.init()
 }
 
 fun <E: Deleteable> Collection<E?>?.delete(){
@@ -23,9 +21,7 @@ fun <E: Deleteable> Collection<E?>?.delete(){
 }
 
 fun <E: Deleteable> Map<*, E?>.delete(){
-    forEach {
-        it.value?.delete()
-    }
+    for(i in this) i.value?.delete()
 }
 
 fun <E> MutableCollection<E>.popFirst(predicate: (E) -> Boolean): E{
@@ -67,12 +63,12 @@ fun <K, V: MutableCollection<E>, E> MutableMap<K, V>.combineLists(other: Mutable
 fun <K, V> Map<K, V>.getOrNull(key: K): V? = getOrDefault(key, null)
 
 inline fun <reified K> Map<*, *>.withKeys(): Map<K, Any>{
-    return asType<K, Any>()
+    return asType()
 }
 
 inline fun <reified K, reified V> Map<*, *>.asType(): Map<K, V>{
     val map: MutableMap<K, V> = mutableMapOf()
-    forEach{ (key, value) ->
+    for((key, value) in this){
         if(key is K && value is V){
             map[key] = value
         }
@@ -81,5 +77,5 @@ inline fun <reified K, reified V> Map<*, *>.asType(): Map<K, V>{
 }
 
 inline fun <reified E> Collection<*>.forEachInstance(action: (E) -> Unit){
-    this.filterIsInstance<E>().forEach { action(it) }
+    filterIsInstance<E>().forEach { action(it) }
 }

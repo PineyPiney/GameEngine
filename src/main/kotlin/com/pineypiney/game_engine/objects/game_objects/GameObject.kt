@@ -6,7 +6,6 @@ import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.util.Transform
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.i
@@ -80,7 +79,6 @@ abstract class GameObject : Initialisable, Storable, Copyable<GameObject> {
     }
 
     companion object{
-        val defaultObject: GameObject; get() = TexturedGameObject(ResourceKey("broke"), Texture.brokeTexture)
         val defaultShader = ShaderLoader.getShader(ResourceKey("vertex\\2D"), ResourceKey("fragment\\texture"))
     }
 }

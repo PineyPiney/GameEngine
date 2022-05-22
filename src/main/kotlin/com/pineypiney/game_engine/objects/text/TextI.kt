@@ -56,6 +56,6 @@ interface TextI: Initialisable {
     fun setIndividualUniforms(shader: Shader, index: Int){}
 
     override fun delete(){
-        quads.asList().delete()
+        quads.toSet().delete()
     }
 }

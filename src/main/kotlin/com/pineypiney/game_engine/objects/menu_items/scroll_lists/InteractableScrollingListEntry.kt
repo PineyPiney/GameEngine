@@ -11,7 +11,7 @@ open class InteractableScrollingListEntry<E: ScrollingListItem>(parent: E, numbe
     override var hover: Boolean = false
     override var pressed: Boolean = false
 
-    override val children: MutableList<Interactable> = mutableListOf()
+    override val children: MutableSet<Interactable> = mutableSetOf()
 
     override var importance: Int = 0
 

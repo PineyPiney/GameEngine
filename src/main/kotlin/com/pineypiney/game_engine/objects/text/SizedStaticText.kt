@@ -5,17 +5,18 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.text.Font
 import glm_.f
+import glm_.i
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-open class SizedStaticText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(1, 1, 1, 1),
+open class SizedStaticText(text: String, fontSize: Number = 100, colour: Vec4 = Vec4(1, 1, 1, 1),
                            maxWidth: Float = 2f, maxHeight: Float = 2f,
                            separation: Float = 0.6f, font: Font = Font.defaultFont,
                            shader: Shader = font.shader, window: Window = Window.INSTANCE):
-    SizedText(text, fontSize, colour, maxWidth, maxHeight, separation, font, shader, window), StaticTextI {
+    SizedText(text, fontSize.i, colour, maxWidth, maxHeight, separation, font, shader, window), StaticTextI {
 
-    constructor(text: String, fontSize: Int, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
+    constructor(text: String, fontSize: Number, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
                 separation: Float = 0.6f, font: Font = Font.defaultFont,
                 shader: Shader = Font.fontShader, window: Window = Window.INSTANCE):
             this(text, fontSize, colour, bounds.x, bounds.y, separation, font, shader, window)
@@ -31,10 +32,6 @@ open class SizedStaticText(text: String, fontSize: Int = 100, colour: Vec4 = Vec
     init{
         setDefaults(fontSize.f / 100)
         updateAspectRatio(Window.INSTANCE)
-    }
-
-    override fun init() {
-        super.init()
     }
 
     final override fun setDefaults(height: Float){

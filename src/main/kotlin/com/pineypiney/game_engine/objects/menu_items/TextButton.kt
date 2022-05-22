@@ -5,18 +5,18 @@ import com.pineypiney.game_engine.objects.text.StretchyStaticText
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
-abstract class TextButton : Button() {
+open class TextButton(val string: String, override var origin: Vec2, final override val size: Vec2, textColour: Vec4 = Vec4(0, 0, 0, 1), override val action: (button: AbstractButton) -> Unit) : AbstractButton() {
 
-    abstract val string: String
-    abstract val textColour: Vec4
-
-    private var text = StretchyStaticText("")
+    private val text = StretchyStaticText(string, size, textColour)
     private var textPos = Vec2()
+
+    var textColour: Vec4
+        get() = text.colour
+        set(value) { text.colour = value }
 
     override fun init(){
         super.init()
 
-        text = StretchyStaticText(string, size, textColour)
         text.init()
         textPos = origin + (size * 0.5)
     }

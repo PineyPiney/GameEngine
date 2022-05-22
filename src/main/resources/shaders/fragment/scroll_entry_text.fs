@@ -2,8 +2,8 @@
 #version 460 core
 
 in vec2 texCoords;
-in mat4 Fmodel;
 
+uniform mat4 model;
 uniform sampler2D ourTexture;
 uniform vec4 colour;
 uniform vec2 limits;
@@ -14,10 +14,10 @@ out vec4 FragColour;
 
 void main(){
 
-	float height = Fmodel[1][1];
+	float height = model[1][1];
 	// relTex is the height from the bottom of the TextQuad, from 0 to 1
 	float relTex = (texCoords.y - texture_section.x) / texture_section.y;
-	float y = Fmodel[3][1] + (relTex * height);
+	float y = model[3][1] + (relTex * height);
 
 	if(y < limits[0] || y > limits[1]) discard;
 

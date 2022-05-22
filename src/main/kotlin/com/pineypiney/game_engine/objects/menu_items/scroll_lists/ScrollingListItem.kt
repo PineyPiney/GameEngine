@@ -1,12 +1,14 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.IGameLogic
+import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.menu_items.StaticInteractableMenuItem
-import com.pineypiney.game_engine.util.input.Inputs
+import com.pineypiney.game_engine.util.extension_functions.forEachInstance
+import com.pineypiney.game_engine.util.extension_functions.init
 import glm_.vec2.Vec2
 
-abstract class ScrollingListItem(val input: Inputs, final override var origin: Vec2, final override val size: Vec2, val entryHeight: Float, val scrollerWidth: Float) : StaticInteractableMenuItem() {
+abstract class ScrollingListItem(final override var origin: Vec2, final override val size: Vec2, val entryHeight: Float, val scrollerWidth: Float): StaticInteractableMenuItem() {
 
     abstract val items: List<ScrollingListEntry<*>>
 
@@ -33,36 +35,24 @@ abstract class ScrollingListItem(val input: Inputs, final override var origin: V
             }
         }
 
-    private val scrollBar = ScrollBarItem(this, Vec2(origin.x + (size.x * (1f - scrollerWidth)), origin.y + (size.y * (1 - ratio - scroll))), Vec2(size.x * scrollerWidth, size.y * ratio))
+    protected open val scrollBar = ScrollBarItem(this, Vec2(origin.x + (size.x * (1f - scrollerWidth)), origin.y + (size.y * (1 - ratio - scroll))), Vec2(size.x * scrollerWidth, size.y * ratio))
 
     override fun init() {
         super.init()
+        items.init()
         updateEntries()
+    }
 
+    override fun setChildren() {
         addChild(scrollBar)
         addChildren(items.filterIsInstance<Interactable>())
     }
 
-    inline fun <reified T> getEntry(index: Int): T?{
-        val item = items.firstOrNull { it.index == index }
-        return try{
-            T::class.java.cast(item)
-        }
-        catch(e: ClassCastException){
-            println("$item is not an instance of class ${T::class.java} as required by ${ScrollingListItem::class}")
-            null
-        }
-        catch(e: NullPointerException){
-            println("Could not find a non-null entry in $this at index $index")
-            null
-        }
-    }
-
     override fun draw() {
         if(ratio < 1) scrollBar.draw()
-        items.forEach {
-            if(it.origin.y > (origin.y + size.y) || (it.origin.y + entryHeight) < origin.y) return@forEach
-            it.draw()
+        for(item in items){
+            if(item.origin.y > (origin.y + size.y) || (item.origin.y + entryHeight) < origin.y) continue
+            item.draw()
         }
     }
 
@@ -84,26 +74,15 @@ abstract class ScrollingListItem(val input: Inputs, final override var origin: V
         }
     }
 
-    override fun update(interval: Float, time: Double) {
-        super.update(interval, time)
-
-        scrollBar.update(interval, time)
-    }
-
     override fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean {
         if(super.checkHover(screenPos, worldPos)){
             scrollBar.hover = scrollBar.checkHover(screenPos, worldPos)
-            items.filterIsInstance(Interactable::class.java).forEach {
+            items.forEachInstance<Interactable> {
                 it.hover = it.checkHover(screenPos, worldPos)
             }
             return true
         }
         return false
-    }
-
-    override fun onCursorMove(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2) {
-        scrollBar.onCursorMove(game, cursorPos, cursorDelta)
-        super.onCursorMove(game, cursorPos, cursorDelta)
     }
 
     override fun onScroll(game: IGameLogic, scrollDelta: Vec2): Int {
@@ -112,16 +91,23 @@ abstract class ScrollingListItem(val input: Inputs, final override var origin: V
     }
 
     override fun onPrimary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int {
-
-        scrollBar.onPrimary(game, action, mods, cursorPos)
-        items.filterIsInstance<Interactable>().forEach { item ->
+        items.forEachInstance<Interactable> { item ->
             if (item.shouldUpdate()) item.onPrimary(game, action, mods, cursorPos)
         }
 
         return super.onPrimary(game, action, mods, cursorPos)
     }
 
-    abstract fun createKeys(): List<ScrollingListEntry<*>>
+    override fun update(interval: Float, time: Double) {
+        super.update(interval, time)
+
+        scrollBar.update(interval, time)
+    }
+
+    override fun updateAspectRatio(window: Window) {
+        super.updateAspectRatio(window)
+        for(item in items) item.updateAspectRatio(window)
+    }
 
     override fun delete() {
         super.delete()

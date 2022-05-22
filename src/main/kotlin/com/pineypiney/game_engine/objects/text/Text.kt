@@ -16,8 +16,11 @@ abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
 
     override var text: String = text
         set(value){
-            field = value
-            init()
+            if(field != value){
+                delete()
+                field = value
+                init()
+            }
         }
 
     override var visible: Boolean = true

@@ -6,13 +6,13 @@ import com.pineypiney.game_engine.util.input.InputState
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
 
-interface Interactable: Storable, Updateable {
+interface Interactable: Updateable {
 
     var forceUpdate: Boolean
     var hover: Boolean
     var pressed: Boolean
 
-    val children: MutableList<Interactable>
+    val children: MutableSet<Interactable>
 
     // Importance is used to set the order in which items are updated and interacted with
     // For example, in the level selection screen the buttons are clicked before the entries are

@@ -42,7 +42,7 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
 
             if(details[0] == 0) println("\nFailed to load texture at $name")
             else{
-                return Texture(name, pointer, details[0], details[1], details[2])
+                return Texture(name.substringAfterLast('\\'), pointer, details[0], details[1], details[2])
             }
         }
 
