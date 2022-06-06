@@ -1,10 +1,13 @@
 package com.pineypiney.game_engine.objects.text
 
+import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.Drawable
 import glm_.f
 import glm_.vec2.Vec2
 
 interface StaticTextI: TextI, Drawable {
+
+    val window: Window
 
     fun getScreenSize(): Vec2
 

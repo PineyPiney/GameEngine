@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
-abstract class OutlinedSlider(size: Vec2, low: Float, high: Float, value: Float): Slider(size, low, high, value) {
+abstract class OutlinedSlider(size: Vec2, low: Float, high: Float, value: Float, window: Window): Slider(size, low, high, value, window) {
 
     override val shader: Shader = sliderShader
 
@@ -17,7 +17,7 @@ abstract class OutlinedSlider(size: Vec2, low: Float, high: Float, value: Float)
 
     override fun setUniforms() {
         super.setUniforms()
-        shader.setFloat("aspect", Window.INSTANCE.aspectRatio)
+        shader.setFloat("aspect", window.aspectRatio)
         shader.setVec4("colour", colour)
         shader.setFloat("outlineThickness", outlineThickness)
         shader.setVec4("outlineColour", outlineColour)

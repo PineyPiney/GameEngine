@@ -2,13 +2,11 @@ package com.pineypiney.game_engine.example
 
 import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.IGameLogic
-import com.pineypiney.game_engine.Window
 import org.lwjgl.opengl.GL11C.glClearColor
 
 fun main() {
 
-    val window = Window.INSTANCE
-    window.setTitle("Example Window")
+    val window = ExampleWindow("Example Window", 960, 540, false)
 
     val engine = object : GameEngine(window) {
         override var TARGET_FPS: Int = 1000

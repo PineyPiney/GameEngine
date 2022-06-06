@@ -28,7 +28,7 @@ interface IGameLogic {
 
     fun onScroll(window: Window, scrollDelta: Vec2): Int
 
-    fun onInput(key: InputState, action: Int): Int
+    fun onInput(state: InputState, action: Int): Int
 
     fun onType(char: Char): Int
 

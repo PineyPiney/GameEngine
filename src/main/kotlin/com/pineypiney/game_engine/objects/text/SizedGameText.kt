@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.util.Transform
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.text.Font
@@ -14,13 +13,13 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
                          maxWidth: Float = 2f, maxHeight: Float = 2f,
                          separation: Float = 0.6f,
                          font: Font = Font.defaultFont,
-                         shader: Shader = gameTextShader, window: Window = Window.INSTANCE):
-    SizedText(text, fontSize, colour, maxWidth, maxHeight, separation, font, shader, window), GameTextI {
+                         shader: Shader = gameTextShader):
+    SizedText(text, fontSize, colour, maxWidth, maxHeight, separation, font, shader), GameTextI {
 
     constructor(text: String, fontSize: Int, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
                 separation: Float = 0.6f, font: Font = Font.defaultFont,
-                shader: Shader = gameTextShader, window: Window = Window.INSTANCE):
-            this(text, fontSize, colour, bounds.x, bounds.y, separation, font, shader, window)
+                shader: Shader = gameTextShader):
+            this(text, fontSize, colour, bounds.x, bounds.y, separation, font, shader)
 
     override val transform: Transform = Transform()
 
@@ -31,7 +30,7 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
     final override fun setDefaults(height: Float) {
         defaultCharHeight = height
         defaultCharWidth = height * 0.5f
-        updateLines(window)
+        updateLines()
     }
 
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
@@ -72,8 +71,8 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
         }
     }
 
-    override fun updateLines(window: Window) {
-        lines = generateLines(window)
+    override fun updateLines() {
+        lines = generateLines()
         lengths = lines.map { pixelToRelative(getPixelWidth(it)) }.toFloatArray()
     }
 }

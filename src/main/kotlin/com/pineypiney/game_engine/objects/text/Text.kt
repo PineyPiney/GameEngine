@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.Visual
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -11,8 +10,7 @@ import glm_.vec4.Vec4
 abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
                 override val maxWidth: Float = 2f, override val maxHeight: Float = 2f,
                 override val font: Font = Font.defaultFont,
-                override val shader: Shader = font.shader, override val window: Window = Window.INSTANCE
-): TextI, Visual {
+                override val shader: Shader = font.shader): TextI, Visual {
 
     override var text: String = text
         set(value){

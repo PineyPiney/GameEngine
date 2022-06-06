@@ -52,18 +52,18 @@ abstract class GameLogic : IGameLogic {
         return 0
     }
 
-    override fun onInput(key: InputState, action: Int): Int {
+    override fun onInput(state: InputState, action: Int): Int {
 
         val mousePos = input.mouse.lastPos
         for(item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java).sortedByDescending { it.importance }){
             if(item.shouldUpdate()){
-                if(item.onInput(this, key, action, mousePos) == Interactable.INTERRUPT) return Interactable.INTERRUPT
+                if(item.onInput(this, state, action, mousePos) == Interactable.INTERRUPT) return Interactable.INTERRUPT
             }
         }
 
         when {
-            key.i == 0 && key.controlType == ControlType.MOUSE -> onPrimary(Window.INSTANCE, action, key.mods)
-            key.i == 1 && key.controlType == ControlType.MOUSE -> onSecondary(Window.INSTANCE, action, key.mods)
+            state.i == 0 && state.controlType == ControlType.MOUSE -> onPrimary(gameEngine.window, action, state.mods)
+            state.i == 1 && state.controlType == ControlType.MOUSE -> onSecondary(gameEngine.window, action, state.mods)
         }
         return action
     }

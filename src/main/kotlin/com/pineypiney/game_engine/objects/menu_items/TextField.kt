@@ -21,7 +21,7 @@ import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.abs
 
-open class TextField(final override var origin: Vec2, final override val size: Vec2, textOffset: Float = -0.9f, textSize: Int = 2): StaticInteractableMenuItem() {
+open class TextField(final override var origin: Vec2, final override val size: Vec2, window: Window, textOffset: Float = -0.9f, textSize: Int = 2): StaticInteractableMenuItem() {
 
     open var parent: MenuItem? = null
     open var allowed = all.map { it.c }
@@ -33,7 +33,7 @@ open class TextField(final override var origin: Vec2, final override val size: V
             textBox.text = text
         }
 
-    var textBox = TextFieldText(text, size.y * 100 * textSize, Vec2(origin.x, origin.x + size.x))
+    var textBox = TextFieldText(text, window, size.y * 100 * textSize, Vec2(origin.x, origin.x + size.x))
 
     var caret: Int = 0
         set(value) {
@@ -183,12 +183,12 @@ open class TextField(final override var origin: Vec2, final override val size: V
         else caret + 1
     }
 
-    class TextFieldText(text: String, fontSize: Number, private var limits: Vec2,
+    class TextFieldText(text: String, window: Window, fontSize: Number, private var limits: Vec2,
                         bounds: Vec2 = Vec2(Float.MAX_VALUE),
                         colour: Vec4 = Vec4(1, 1, 1, 1),
                         font: Font = FontLoader.getFont(ResourceKey("fonts\\Large Font")),
-                        shader: Shader = fieldShader, window: Window = Window.INSTANCE):
-        SizedStaticText(text, fontSize.i, colour, bounds.x, bounds.y, 1f, font, shader, window) {
+                        shader: Shader = fieldShader):
+        SizedStaticText(text, window, fontSize.i, colour, bounds.x, bounds.y, 1f, font, shader) {
 
         override fun setUniversalUniforms(shader: Shader) {
             super.setUniversalUniforms(shader)

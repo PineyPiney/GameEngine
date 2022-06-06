@@ -8,7 +8,7 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
 
-class Renderer: BufferedGameRenderer() {
+class Renderer(override val window: Window): BufferedGameRenderer() {
 
     var view = I
     var projection = I

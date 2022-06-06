@@ -12,7 +12,7 @@ import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollLis
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicSlider
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.StretchyGameText
-import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
+import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
@@ -29,23 +29,23 @@ import kotlin.math.PI
 
 class Game(override val gameEngine: GameEngine): GameLogic() {
 
-    override var camera: Camera = Camera()
-    override val renderer: Renderer = Renderer()
+    override var camera: Camera = Camera(window)
+    override val renderer: Renderer = Renderer(window)
 
     private val pressedKeys = mutableSetOf<Short>()
 
-    private val button = TextButton("button", Vec2(0.6, 0.8), Vec2(0.4, 0.2)){
+    private val button = TextButton("button", Vec2(0.6, 0.8), Vec2(0.4, 0.2), window){
         println("Pressed!")
     }
-    private val textField = ActionTextField(Vec2(-1), Vec2(1, 0.2)){ _, char, _ ->
+    private val textField = ActionTextField(Vec2(-1), Vec2(1, 0.2), window){ _, char, _ ->
         println("Typing $char")
     }
-    private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f)
+    private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
 
-    private var text = SizedStaticText("X Part: 0.00 \n Y Part: 0.00")
+    private var text = SizedStaticText("X Part: 0.00 \n Y Part: 0.00", window)
     private val gameText = StretchyGameText("This is some Game Text", Vec2(17.78, 10), Vec4(0.0, 1.0, 1.0, 1.0))
 
-    private val list = BasicScrollList(Vec2(-1, -0.2), Vec2(1.2), 1f, 0.05f, arrayOf("Hello", "World"))
+    private val list = BasicScrollList(Vec2(-1, -0.2), Vec2(1.2), 1f, 0.05f, arrayOf("Hello", "World"), window)
 
     private var cycle = 0.0f
 
@@ -69,8 +69,8 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         backgroundShader.use()
         backgroundShader.setMat4("model", I.rotate(cycle * 2f * PI.f, normal))
         backgroundShader.setMat4("vp", I)
-        ArrayShape.cornerSquareShape3D.bind()
-        ArrayShape.cornerSquareShape3D.draw()
+        Shape.cornerSquareShape3D.bind()
+        Shape.cornerSquareShape3D.draw()
 
         gameText.render(renderer.view, renderer.projection, tickDelta)
         button.drawBottomLeft(Vec2(0.6, 0.8))
@@ -97,18 +97,18 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         text.text = "X Part: ${wp.x.round(2)} \n Y Part: ${wp.y.round(2)}"
     }
 
-    override fun onInput(key: InputState, action: Int): Int {
-        if(super.onInput(key, action) == Interactable.INTERRUPT) return Interactable.INTERRUPT
+    override fun onInput(state: InputState, action: Int): Int {
+        if(super.onInput(state, action) == Interactable.INTERRUPT) return Interactable.INTERRUPT
 
-        if(key.c == 'F' && action == 1){
+        if(state.c == 'F' && action == 1){
             toggleFullscreen()
         }
-        if(key.i == GLFW.GLFW_KEY_ESCAPE && action == 1){
+        if(state.i == GLFW.GLFW_KEY_ESCAPE && action == 1){
             window.setShouldClose()
         }
 
-        if(action == 0) pressedKeys.remove(key.key)
-        else pressedKeys.add(key.key)
+        if(action == 0) pressedKeys.remove(state.key)
+        else pressedKeys.add(state.key)
         return action
     }
 

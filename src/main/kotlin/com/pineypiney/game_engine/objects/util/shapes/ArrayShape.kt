@@ -25,29 +25,4 @@ open class ArrayShape(vertices: FloatArray, parts: IntArray): Shape() {
     override fun draw(mode: Int){
         glDrawArrays(mode, 0, size)
     }
-
-    companion object {
-
-        private val cornerSquareVertices = floatArrayOf(
-            // positions        // normals          // texture co-ords
-            0.0,  0.0,  0.0,    0.0,  0.0,  1.0,    0.0, 0.0,
-            1.0,  0.0,  0.0,    0.0,  0.0,  1.0,    1.0, 0.0,
-            1.0,  1.0,  0.0,    0.0,  0.0,  1.0,    1.0, 1.0,
-            1.0,  1.0,  0.0,    0.0,  0.0,  1.0,    1.0, 1.0,
-            0.0,  1.0,  0.0,    0.0,  0.0,  1.0,    0.0, 1.0,
-            0.0,  0.0,  0.0,    0.0,  0.0,  1.0,    0.0, 0.0
-        )
-        private val centerSquareVertices = floatArrayOf(
-            // positions        // normals          // texture co-ords
-            -0.5,  -0.5,  0.0,    0.0,  0.0,  1.0,    0.0, 0.0,
-            0.5,  -0.5,  0.0,    0.0,  0.0,  1.0,    1.0, 0.0,
-            0.5,  0.5,  0.0,    0.0,  0.0,  1.0,    1.0, 1.0,
-            0.5,  0.5,  0.0,    0.0,  0.0,  1.0,    1.0, 1.0,
-            -0.5,  0.5,  0.0,    0.0,  0.0,  1.0,    0.0, 1.0,
-            -0.5,  -0.5,  0.0,    0.0,  0.0,  1.0,    0.0, 0.0
-        )
-
-        val cornerSquareShape3D = ArrayShape(cornerSquareVertices, intArrayOf(3, 3, 2))
-        val centerSquareShape3D = ArrayShape(centerSquareVertices, intArrayOf(3, 3, 2))
-    }
 }

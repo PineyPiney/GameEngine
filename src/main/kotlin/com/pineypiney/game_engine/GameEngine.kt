@@ -69,6 +69,8 @@ abstract class GameEngine(val window: Window) : Runnable {
                 accumulator -= interval
             }
 
+            input.input()
+
             // Render screen regardless of the accumulator
             render(accumulator / interval)
 

@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
@@ -19,7 +18,6 @@ interface TextI: Initialisable {
 
     val font: Font
     val shader: Shader
-    val window: Window
 
     val letterIndices: List<Int>
     val letterPoints: List<Vec2i>

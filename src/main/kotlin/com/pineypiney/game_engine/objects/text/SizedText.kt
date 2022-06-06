@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
@@ -15,8 +14,8 @@ import glm_.vec4.Vec4
 abstract class SizedText(text: String, final override val fontSize: Int = 100, colour: Vec4 = Vec4(1, 1, 1, 1),
                 maxWidth: Float = 2f, maxHeight: Float = 2f,
                 override val separation: Float = 0.6f, font: Font = Font.defaultFont,
-                shader: Shader = font.shader, window: Window = Window.INSTANCE):
-    Text(text, colour, maxWidth, maxHeight, font, shader, window), SizedTextI {
+                shader: Shader = font.shader):
+    Text(text, colour, maxWidth, maxHeight, font, shader), SizedTextI {
 
     final override var letterIndices: List<Int> = listOf()
     override var letterPoints: List<Vec2i> = listOf()
@@ -38,12 +37,12 @@ abstract class SizedText(text: String, final override val fontSize: Int = 100, c
             val texturePos = Vec2(letterPoints[i]) / font.texture.size
             TextQuad(texturePos, texturePos + (letterSize[i]))
         }
-        updateLines(window)
+        updateLines()
     }
 
-    abstract fun updateLines(window: Window)
+    abstract fun updateLines()
 
-    final override fun generateLines(window: Window): Array<String>{
+    final override fun generateLines(): Array<String>{
         val lines = mutableListOf<String>()
         var currentText = ""
         var i = 0

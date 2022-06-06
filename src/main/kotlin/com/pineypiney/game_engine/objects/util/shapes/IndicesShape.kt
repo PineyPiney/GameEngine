@@ -41,33 +41,4 @@ open class IndicesShape(vertices: FloatArray, parts: IntArray, indices: IntArray
         super.delete()
         glDeleteBuffers(this.EBO)
     }
-
-    companion object{
-
-        private val cornerSquareVertices = floatArrayOf(
-            // positions    // texture co-ords
-            0, 0,           0, 0,
-            1, 0,           1, 0,
-            1, 1,           1, 1,
-            0, 1,           0, 1,
-        )
-        private val centerSquareVertices = floatArrayOf(
-            // positions    // texture co-ords
-            -0.5, -0.5,           0, 0,
-            0.5, -0.5,           1, 0,
-            0.5, 0.5,           1, 1,
-            -0.5, 0.5,           0, 1,
-        )
-        private val screenQuadVertices = floatArrayOf(
-            // positions    // texture co-ords
-            -1, -1,     0, 0,
-            1, -1,      1, 0,
-            1,  1,      1, 1,
-            -1,  1,     0, 1,
-        )
-
-        val cornerSquareShape2D = IndicesShape(cornerSquareVertices, intArrayOf(2, 2), intArrayOf(0, 1, 2, 2, 3, 0))
-        val centerSquareShape2D = IndicesShape(centerSquareVertices, intArrayOf(2, 2), intArrayOf(0, 1, 2, 2, 3, 0))
-        val screenQuadShape = IndicesShape(screenQuadVertices, intArrayOf(2, 2), intArrayOf(0, 1, 2, 2, 3, 0))
-    }
 }

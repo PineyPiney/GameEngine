@@ -10,28 +10,28 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-open class SizedStaticText(text: String, fontSize: Number = 100, colour: Vec4 = Vec4(1, 1, 1, 1),
+open class SizedStaticText(text: String, final override val window: Window, fontSize: Number = 100, colour: Vec4 = Vec4(1, 1, 1, 1),
                            maxWidth: Float = 2f, maxHeight: Float = 2f,
                            separation: Float = 0.6f, font: Font = Font.defaultFont,
-                           shader: Shader = font.shader, window: Window = Window.INSTANCE):
-    SizedText(text, fontSize.i, colour, maxWidth, maxHeight, separation, font, shader, window), StaticTextI {
+                           shader: Shader = font.shader):
+    SizedText(text, fontSize.i, colour, maxWidth, maxHeight, separation, font, shader), StaticTextI {
 
-    constructor(text: String, fontSize: Number, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
+    constructor(text: String, window: Window, fontSize: Number, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
                 separation: Float = 0.6f, font: Font = Font.defaultFont,
-                shader: Shader = Font.fontShader, window: Window = Window.INSTANCE):
-            this(text, fontSize, colour, bounds.x, bounds.y, separation, font, shader, window)
+                shader: Shader = Font.fontShader):
+            this(text, window, fontSize, colour, bounds.x, bounds.y, separation, font, shader)
 
-    constructor(text: String, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
+    constructor(text: String, window: Window, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
                 separation: Float = 0.6f, font: Font = Font.defaultFont,
-                shader: Shader = Font.fontShader, window: Window = Window.INSTANCE):
-            this(text, 100, colour, bounds.x, bounds.y, separation, font, shader, window)
+                shader: Shader = Font.fontShader):
+            this(text, window, 100, colour, bounds.x, bounds.y, separation, font, shader)
 
     override var origin: Vec2 = Vec2()
     final override val size: Vec2 = Vec2()
 
     init{
         setDefaults(fontSize.f / 100)
-        updateAspectRatio(Window.INSTANCE)
+        updateAspectRatio(window)
     }
 
     final override fun setDefaults(height: Float){
@@ -83,12 +83,12 @@ open class SizedStaticText(text: String, fontSize: Number = 100, colour: Vec4 = 
         }
     }
 
-    override fun updateLines(window: Window) {
-        lines = generateLines(window)
+    override fun updateLines() {
+        lines = generateLines()
         lengths = lines.map { getScreenSize(it).x }.toFloatArray()
     }
 
     final override fun updateAspectRatio(window: Window) {
-        updateLines(window)
+        updateLines()
     }
 }

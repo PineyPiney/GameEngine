@@ -8,12 +8,11 @@ import com.pineypiney.game_engine.util.text.Font
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
-class ScrollerText(text: String, bounds: Vec2 = Vec2(2, 2),
+class ScrollerText(text: String, window: Window, bounds: Vec2 = Vec2(2, 2),
                    private var limits: Vec2, colour: Vec4 = Vec4(1, 1, 1, 1),
                    font: Font = Font.defaultFont,
-                   shader: Shader = ScrollingListEntry.entryTextShader, window: Window = Window.INSTANCE
-
-): StretchyStaticText(text, bounds, colour, font, shader, window) {
+                   shader: Shader = ScrollingListEntry.entryTextShader
+): StretchyStaticText(text, window, bounds, colour, font, shader) {
 
     override fun setUniversalUniforms(shader: Shader) {
         super.setUniversalUniforms(shader)

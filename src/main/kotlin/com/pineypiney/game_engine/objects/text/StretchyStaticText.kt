@@ -10,16 +10,16 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-open class StretchyStaticText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
+open class StretchyStaticText(text: String, final override val window: Window, colour: Vec4 = Vec4(1, 1, 1, 1),
                               textMaxWidth: Float = 2f, textMaxHeight: Float = 2f,
                               font: Font = Font.defaultFont,
-                              shader: Shader = font.shader, window: Window = Window.INSTANCE):
-    StretchyText(text, colour, textMaxWidth, textMaxHeight, font, shader, window), StaticTextI {
+                              shader: Shader = font.shader):
+    StretchyText(text, colour, textMaxWidth, textMaxHeight, font, shader), StaticTextI {
 
-    constructor(text: String, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
+    constructor(text: String, window: Window, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
                 font: Font = Font.defaultFont,
-                shader: Shader = Font.fontShader, window: Window = Window.INSTANCE):
-            this(text, colour, bounds.x, bounds.y, font, shader, window)
+                shader: Shader = Font.fontShader):
+            this(text, window, colour, bounds.x, bounds.y, font, shader)
 
     override var origin: Vec2 = Vec2()
 
@@ -29,7 +29,7 @@ open class StretchyStaticText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
 
     override fun init(){
         super.init()
-        updateAspectRatio(Window.INSTANCE)
+        updateAspectRatio(window)
     }
 
     final override fun setDefaults(height: Float){

@@ -8,14 +8,15 @@ import glm_.pow
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW.*
 
-class Inputs(val window: Window) {
+abstract class Inputs(val window: Window) {
 
-    val keyboard = KeyboardInput(this)
-    val mouse = MouseInput(this)
+    abstract val keyboard: KeyboardInput
+    abstract val mouse: MouseInput
+    abstract val gamepad: GamepadInput
 
     var mouseMoveCallback = { _: Window, _: Vec2, _: Vec2 -> }          // gameEngine.activeScreen.onCursorMove(win, screenPos, cursorOffset)
     var mouseScrollCallback = { _: Window, _: Vec2 -> }                 // gameEngine.activeScreen.onScroll(Window.getWindow(handle), scrollOffset)
-    var keyPressCallback = { _: InputState, _: Int -> }                    // gameEngine.activeScreen.onInput(input, action)
+    var keyPressCallback = { _: InputState, _: Int -> }                 // gameEngine.activeScreen.onInput(input, action)
     var keyboardCharCallback = { _: Int -> }                            // gameEngine.activeScreen.onType(input)
 
     val primary = InputState(GLFW_MOUSE_BUTTON_1, ControlType.MOUSE)
@@ -30,7 +31,11 @@ class Inputs(val window: Window) {
         Pair(GLFW_MOD_NUM_LOCK.b, false),
     )
 
-    fun onInput(key: Short, action: Int, mods: Byte, type: ControlType){
+    fun input(){
+        gamepad.input()
+    }
+
+    fun onInput(key: Short, action: Int, type: ControlType, mods: Byte = getMods()){
         // First check if the key is a mod key and if so update the mods map
         setMods(mods)
 

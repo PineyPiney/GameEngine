@@ -12,9 +12,9 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
 
-open class Camera(pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), yaw: Double = -90.0, pitch: Double = 0.0, fov: Float = 90f) {
+open class Camera(val window: Window, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), yaw: Double = -90.0, pitch: Double = 0.0, fov: Float = 90f) {
 
-    var cameraPos = Vec3()
+    var cameraPos = Vec3(); private set
     var cameraUp = up
 
     var cameraFront = Vec3()
@@ -26,7 +26,7 @@ open class Camera(pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), yaw: Doub
     var cameraYaw = yaw; var cameraPitch = pitch
     var lastX = 0.0; var lastY = 0.0
     var movementSpeed = 0.0; var mouseSensitivity = 0.0
-    var FOV = fov
+    var FOV = fov; private set
 
     var range = Vec2(0.1, 1000)
 
@@ -58,7 +58,7 @@ open class Camera(pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), yaw: Doub
 
     fun getSpanAtDistance(distance: Float = cameraPos.z): Vec2{
         val backgroundVerticalSpan = 2 * distance * tan(FOV.rad * 0.5)
-        val backgroundHorizontalSpan = backgroundVerticalSpan * Window.INSTANCE.aspectRatio
+        val backgroundHorizontalSpan = backgroundVerticalSpan * window.aspectRatio
         return Vec2(backgroundHorizontalSpan, backgroundVerticalSpan)
     }
 

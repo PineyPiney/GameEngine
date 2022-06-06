@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.util.Transform
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.text.Font
@@ -13,13 +12,13 @@ import glm_.vec4.Vec4
 open class StretchyGameText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
                        textMaxWidth: Float = 2f, textMaxHeight: Float = 2f,
                        font: Font = Font.defaultFont,
-                       shader: Shader = gameTextShader, window: Window = Window.INSTANCE):
-    StretchyText(text, colour, textMaxWidth, textMaxHeight, font, shader, window), GameTextI {
+                       shader: Shader = gameTextShader):
+    StretchyText(text, colour, textMaxWidth, textMaxHeight, font, shader), GameTextI {
 
     constructor(text: String, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
                 font: Font = Font.defaultFont,
-                shader: Shader = gameTextShader, window: Window = Window.INSTANCE):
-            this(text, colour, bounds.x, bounds.y, font, shader, window)
+                shader: Shader = gameTextShader):
+            this(text, colour, bounds.x, bounds.y, font, shader)
 
     final override val maxWidth: Float
         get() = super.maxWidth

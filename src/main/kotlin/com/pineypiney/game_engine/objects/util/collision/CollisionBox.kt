@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.objects.util.collision
 
 import com.pineypiney.game_engine.objects.game_objects.GameObject
-import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.Copyable
@@ -32,15 +31,16 @@ abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size:
     val width; get() = worldScale.x
     val height; get() = worldScale.y
 
-    open var shape: Shape = ArrayShape.cornerSquareShape3D
+    open var shape: Shape = Shape.cornerSquareShape2D
 
-    fun render(vp: Mat4){
+    fun render(view: Mat4, projection: Mat4){
 
         val finalModel = (parent?.transform?.model ?: I) * this.relModel
 
         val colliderShader = colliderShader
         colliderShader.use()
-        colliderShader.setMat4("vp", vp)
+        colliderShader.setMat4("projection", projection)
+        colliderShader.setMat4("view", view)
         colliderShader.setMat4("model", finalModel)
         colliderShader.setVec4("colour", Vec4(1))
 

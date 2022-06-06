@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.renderers
 
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.objects.util.shapes.IndicesShape
+import com.pineypiney.game_engine.objects.util.shapes.Shape
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL46C.*
 import java.nio.ByteBuffer
@@ -16,7 +16,7 @@ abstract class BufferedGameRenderer: GameRenderer() {
     override fun init() {
         super.init()
 
-        createFrameBuffer(FBO, TCB, RBO, Window.INSTANCE.size)
+        createFrameBuffer(FBO, TCB, RBO, window.size)
     }
 
     fun createFrameBuffer(FBO: Int, TCB: Int, RBO: Int, size: Vec2i) =
@@ -47,7 +47,7 @@ abstract class BufferedGameRenderer: GameRenderer() {
     }
 
     protected fun drawBufferTexture(texture: Int = TCB){
-        val shape = IndicesShape.screenQuadShape
+        val shape = Shape.screenQuadShape
         shape.bind()
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, texture)

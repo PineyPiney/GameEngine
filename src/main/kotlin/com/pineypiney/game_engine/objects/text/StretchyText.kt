@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.text.Font
@@ -15,8 +14,8 @@ import kotlin.math.min
 abstract class StretchyText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
                             textMaxWidth: Float = 2f, textMaxHeight: Float = 2f,
                             font: Font = Font.defaultFont,
-                            shader: Shader = gameTextShader, window: Window = Window.INSTANCE):
-    Text(text, colour, textMaxWidth, textMaxHeight, font, shader, window), StretchyTextI {
+                            shader: Shader = gameTextShader):
+    Text(text, colour, textMaxWidth, textMaxHeight, font, shader), StretchyTextI {
 
     // dimensions is Vec4(0, min y, pixel width, max y). min y and max y are used so that all letters are lined up vertically
     private var dimensions = Vec4()

@@ -12,6 +12,8 @@ import org.lwjgl.opengl.GL46C.*
 
 abstract class GameRenderer: Deleteable {
 
+    abstract val window: Window
+
     open fun init(){
         glDisable(GL_DEPTH_TEST)
         glEnable(GL_BLEND)

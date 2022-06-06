@@ -42,7 +42,6 @@ class InputState(val key: Short, val controlType: ControlType = ControlType.KEYB
         string += when(controlType) {
             ControlType.KEYBOARD -> keyNames[this.key] ?: "Unknown"
             ControlType.MOUSE -> mouseKeyNames[this.key] ?: "Unknown"
-            ControlType.JOYSTICK -> joystickKeyNames[this.key] ?: "Unknown"
             ControlType.GAMEPAD_BUTTON -> gamepadKeyNames[this.key] ?: "Unknown"
             ControlType.GAMEPAD_AXIS -> gamepadAxisKeyNames[this.key] ?: "Unknown"
         }
@@ -223,6 +222,10 @@ class InputState(val key: Short, val controlType: ControlType = ControlType.KEYB
             Pair(GLFW_GAMEPAD_BUTTON_DPAD_RIGHT   , "GAMEPAD_BUTTON_DPAD_RIGHT"),
             Pair(GLFW_GAMEPAD_BUTTON_DPAD_DOWN    , "GAMEPAD_BUTTON_DPAD_DOWN"),
             Pair(GLFW_GAMEPAD_BUTTON_DPAD_LEFT    , "GAMEPAD_BUTTON_DPAD_LEFT"),
+            Pair(GLFW_GAMEPAD_BUTTON_CROSS        , "GLFW_GAMEPAD_BUTTON_CROSS"),
+            Pair(GLFW_GAMEPAD_BUTTON_CIRCLE       , "GLFW_GAMEPAD_BUTTON_CIRCLE"),
+            Pair(GLFW_GAMEPAD_BUTTON_SQUARE       , "GLFW_GAMEPAD_BUTTON_SQUARE"),
+            Pair(GLFW_GAMEPAD_BUTTON_TRIANGLE     , "GLFW_GAMEPAD_BUTTON_TRIANGLE")
         ).mapKeys { it.key.s }
 
         // Gamepad Axis Control Names
