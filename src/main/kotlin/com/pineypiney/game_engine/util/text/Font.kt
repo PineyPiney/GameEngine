@@ -26,5 +26,6 @@ class Font(fontKey: ResourceKey, val letterWidth: Int = 32, val letterHeight: In
     companion object{
         val defaultFont: Font; get() = FontLoader.getFont(ResourceKey("fonts/Large Font"))
         val fontShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/text"))
+        val brokeFont = Font(ResourceKey("broke"))
     }
 }

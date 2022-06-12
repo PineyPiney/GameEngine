@@ -15,6 +15,9 @@ import java.util.zip.ZipFile
 open class ResourceLoader private constructor(){
 
     fun loadResources(){
+
+        val streamMap = streamList.associateWith { entry -> getStream(entry) }
+
         ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith("shaders/") })
         TextureLoader.INSTANCE.loadTextures(streamMap.filter { it.key.startsWith("textures/") })
         AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith("audio/") })
@@ -35,9 +38,9 @@ open class ResourceLoader private constructor(){
         val INSTANCE: ResourceLoader = ResourceLoader()
 
         val zipFile = ZipFile("${directory}resources.zip")
-        val streamMap = zipFile.entries().asSequence().associate { it.name to zipFile.getInputStream(it) }
+        val streamList = zipFile.entries().toList().map { it.name }.toSet()
 
-        fun getStream(name: String): InputStream = streamMap[name] ?: throw NoSuchElementException("There is no resource stream at $name")
+        fun getStream(name: String): InputStream = zipFile.getInputStream(zipFile.getEntry(name))
 
         fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int): ByteBuffer{
 

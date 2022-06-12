@@ -27,8 +27,5 @@ abstract class RenderedGameObject(shader: Shader): GameObject(), Renderable, Sha
 
     override fun setUniforms() {
         uniforms.setMat4Uniform("model"){ transform.model }
-
-        println("Setting Uniforms")
-        Error().printStackTrace()
     }
 }
