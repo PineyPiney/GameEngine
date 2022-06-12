@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine
 
+import com.pineypiney.game_engine.objects.Drawable
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.Storable
-import com.pineypiney.game_engine.objects.Visual
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.input.ControlType
@@ -102,7 +102,7 @@ abstract class GameLogic : IGameLogic {
 
     override fun updateAspectRatio(window: Window) {
         renderer.updateAspectRatio(window, gameObjects)
-        gameObjects.getAllObjects().filterIsInstance<Visual>().forEach {
+        gameObjects.getAllObjects().filterIsInstance<Drawable>().forEach {
             it.updateAspectRatio(window)
         }
     }

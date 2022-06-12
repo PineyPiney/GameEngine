@@ -26,6 +26,12 @@ abstract class Slider @Throws(IllegalArgumentException::class) constructor(final
         pointer.origin = this.origin + Vec2(value/scale, 0)
     }
 
+    override fun setUniforms() {
+        super.setUniforms()
+
+        uniforms.setFloatUniform("aspect"){ window.aspectRatio }
+    }
+
     override fun setChildren() {
         addChild(pointer)
     }

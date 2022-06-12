@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.objects.Initialisable
+import com.pineypiney.game_engine.objects.Shaded
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.extension_functions.delete
@@ -9,7 +10,7 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 
-interface TextI: Initialisable {
+interface TextI: Initialisable, Shaded {
 
     val text: String
     val colour: Vec4
@@ -17,7 +18,6 @@ interface TextI: Initialisable {
     val maxHeight: Float
 
     val font: Font
-    val shader: Shader
 
     val letterIndices: List<Int>
     val letterPoints: List<Vec2i>

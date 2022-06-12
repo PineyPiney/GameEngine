@@ -1,18 +1,14 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.objects.Drawable
-import com.pineypiney.game_engine.objects.Initialisable
-import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.objects.Storable
+import com.pineypiney.game_engine.objects.*
 import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.I
+import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec2.Vec2
-import glm_.vec3.Vec3
 
-abstract class MenuItem : Initialisable, Storable, Drawable {
+abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
 
     override var visible: Boolean = true
 
@@ -22,16 +18,28 @@ abstract class MenuItem : Initialisable, Storable, Drawable {
     override val size: Vec2 = Vec2()
 
     open val shape: Shape = menuShape
-    open val shader: Shader = opaqueColourShader
+    override var shader: Shader = opaqueColourShader
+        set(value) {
+            field = value
+            uniforms = field.compileUniforms()
+        }
+    override var uniforms = Uniforms.default
+        set(value) {
+            field = value
+            setUniforms()
+        }
 
-    open fun setUniforms(){
-        shader.setMat4("model", I.translate(Vec3(origin)).scale(Vec3(size)))
+    override fun init() {
+        uniforms = shader.compileUniforms()
+    }
+
+    override fun setUniforms(){
+        uniforms.setMat4Uniform("model") { model }
     }
 
     override fun draw() {
         shader.use()
-
-        setUniforms()
+        shader.setUniforms(uniforms)
 
         shape.bind()
         shape.draw()

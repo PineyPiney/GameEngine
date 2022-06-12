@@ -8,7 +8,7 @@ import glm_.vec4.Vec4
 
 open class ScrollBarItem(val parent: ScrollingListItem, override var origin: Vec2 = Vec2(), override var size: Vec2 = Vec2()): InteractableMenuItem() {
 
-    override val shader: Shader = translucentColourShader
+    override var shader: Shader = translucentColourShader
 
     override var pressed: Boolean = false
 
@@ -16,7 +16,8 @@ open class ScrollBarItem(val parent: ScrollingListItem, override var origin: Vec
 
     override fun setUniforms() {
         super.setUniforms()
-        shader.setVec4("colour", colour)
+
+        uniforms.setVec4Uniform("colour"){ colour }
     }
 
     override fun update(interval: Float, time: Double) {

@@ -5,13 +5,19 @@ import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.renderers.BufferedGameRenderer
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.maths.I
 
 class Renderer(override val window: Window): BufferedGameRenderer() {
 
     var view = I
     var projection = I
+
+    override fun init() {
+        super.init()
+
+        screenUniforms.setIntUniform("effects") { 0 }
+    }
 
     override fun render(window: Window, camera: Camera, game: IGameLogic, tickDelta: Double) {
 
@@ -24,11 +30,12 @@ class Renderer(override val window: Window): BufferedGameRenderer() {
         // This draws the buffer onto the screen
         clearFrameBuffer(0)
         screenShader.use()
-        screenShader.setInt("effects", 0)
+        screenShader.setUniforms(screenUniforms)
         drawBufferTexture()
     }
 
     companion object{
         val screenShader = ShaderLoader.getShader(ResourceKey("vertex/frame_buffer"), ResourceKey("fragment/frame_buffer"))
+        val screenUniforms = screenShader.compileUniforms()
     }
 }

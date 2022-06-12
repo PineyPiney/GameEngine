@@ -3,10 +3,10 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.c
-import com.pineypiney.game_engine.util.normal
+import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.util.maths.normal
 import glm_.i
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -76,7 +76,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
         shader.setMat4("model", model * this.modelSpaceTransform * this.transform * boneMatrix)
         shader.setVec4("colour", Vec4((((this.id + 4) % 6) > 2).i, (((this.id + 2) % 6) > 2).i, (((this.id) % 6) > 2).i, 1))
 
-        Shape.centerSquareShape3D.draw()
+        Shape.centerSquareShape2D.draw()
 
         children.forEach { it.render(shader, model) }
     }

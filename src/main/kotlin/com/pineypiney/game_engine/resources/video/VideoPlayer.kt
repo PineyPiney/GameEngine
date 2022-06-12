@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.Drawable
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.util.shapes.Shape
-import com.pineypiney.game_engine.util.I
+import com.pineypiney.game_engine.util.maths.I
 import glm_.glm
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3

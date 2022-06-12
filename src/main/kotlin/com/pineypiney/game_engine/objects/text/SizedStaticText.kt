@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.util.I
+import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.text.Font
 import glm_.f
 import glm_.i
@@ -50,7 +50,7 @@ open class SizedStaticText(text: String, final override val window: Window, font
 
         val shader = shader
         shader.use()
-        setUniversalUniforms(shader)
+        shader.setUniforms(uniforms)
         font.texture.bind()
 
         var yOffset = separation * (lines.size - 1)

@@ -10,7 +10,7 @@ import glm_.vec2.Vec2
 abstract class SliderPointer(override val size: Vec2): InteractableMenuItem() {
 
     abstract val parent: Slider
-    override val shader: Shader = transparentTextureShader
+    override var shader: Shader = transparentTextureShader
 
     override fun draw() {
         pointerTexture.bind()

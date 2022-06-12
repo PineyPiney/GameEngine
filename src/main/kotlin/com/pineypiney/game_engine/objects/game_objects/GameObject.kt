@@ -4,10 +4,12 @@ import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.util.Transform
-import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.isWithin
+import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.util.maths.normal
 import glm_.i
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -15,8 +17,6 @@ import glm_.vec3.Vec3
 abstract class GameObject : Initialisable, Storable, Copyable<GameObject> {
 
     abstract val id: ResourceKey
-
-    open val shader: Shader = defaultShader
 
     override val objects: MutableList<ObjectCollection> = mutableListOf()
 
@@ -64,6 +64,14 @@ abstract class GameObject : Initialisable, Storable, Copyable<GameObject> {
 
     fun scale(mult: Vec2){
         transform.scale(mult)
+    }
+
+    open fun isCovered(point: Vec2): Boolean{
+        val originTranslation = Vec3(point - this.position)
+        val transform = I.rotate(-this.rotation, normal).translate(originTranslation)
+        val vec = Vec2(transform[3][0], transform[3][1])
+
+        return vec.isWithin(Vec2(-(0.5f * scale.x), 0), scale)
     }
 
     override fun addTo(objects: ObjectCollection){

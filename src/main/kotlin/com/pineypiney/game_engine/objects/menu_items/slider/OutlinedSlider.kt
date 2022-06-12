@@ -9,7 +9,7 @@ import glm_.vec4.Vec4
 
 abstract class OutlinedSlider(size: Vec2, low: Float, high: Float, value: Float, window: Window): Slider(size, low, high, value, window) {
 
-    override val shader: Shader = sliderShader
+    override var shader: Shader = sliderShader
 
     open var colour: Vec4 = Vec4(0.7)
     open var outlineThickness: Float = 0.005f
@@ -17,10 +17,10 @@ abstract class OutlinedSlider(size: Vec2, low: Float, high: Float, value: Float,
 
     override fun setUniforms() {
         super.setUniforms()
-        shader.setFloat("aspect", window.aspectRatio)
-        shader.setVec4("colour", colour)
-        shader.setFloat("outlineThickness", outlineThickness)
-        shader.setVec4("outlineColour", outlineColour)
+
+        uniforms.setFloatUniform("outlineThickness"){ outlineThickness }
+        uniforms.setVec4Uniform("outlineColour"){ outlineColour }
+        uniforms.setVec4Uniform("colour"){ colour }
     }
 
     companion object {

@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.util.I
+import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.text.Font
 import glm_.f
 import glm_.glm
@@ -42,7 +42,7 @@ open class StretchyStaticText(text: String, final override val window: Window, c
     override fun draw() {
 
         shader.use()
-        setUniversalUniforms(shader)
+        shader.setUniforms(uniforms)
         font.texture.bind()
 
         // Add a bit of space at the beginning

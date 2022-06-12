@@ -1,17 +1,12 @@
 package com.pineypiney.game_engine.objects.util.collision
 
 import com.pineypiney.game_engine.objects.game_objects.GameObject
-import com.pineypiney.game_engine.objects.util.shapes.Shape
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.Copyable
-import com.pineypiney.game_engine.util.I
-import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.absMinOf
 import com.pineypiney.game_engine.util.extension_functions.copy
-import glm_.mat4x4.Mat4
+import com.pineypiney.game_engine.util.maths.I
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import glm_.vec4.Vec4
 import kotlin.math.abs
 
 abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size: Vec2): Copyable<CollisionBox> {
@@ -19,9 +14,7 @@ abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size:
     var active: Boolean = true
 
     val relModel = I.translate(Vec3(origin)).scale(Vec3(size))
-
     val worldOrigin: Vec2; get()  = (parent?.position ?: Vec2()) + ((parent?.scale ?: Vec2()) * this.origin)
-
     val worldScale: Vec2; get() = ((parent?.scale ?: Vec2()) * this.size)
 
     val left; get() = if(worldScale.x > 0) this.worldOrigin.x else this.worldOrigin.x + this.worldScale.x
@@ -30,23 +23,6 @@ abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size:
     val top; get() = bottom + abs(this.worldScale.y)
     val width; get() = worldScale.x
     val height; get() = worldScale.y
-
-    open var shape: Shape = Shape.cornerSquareShape2D
-
-    fun render(view: Mat4, projection: Mat4){
-
-        val finalModel = (parent?.transform?.model ?: I) * this.relModel
-
-        val colliderShader = colliderShader
-        colliderShader.use()
-        colliderShader.setMat4("projection", projection)
-        colliderShader.setMat4("view", view)
-        colliderShader.setMat4("model", finalModel)
-        colliderShader.setVec4("colour", Vec4(1))
-
-        shape.bind()
-        shape.draw()
-    }
 
     infix fun collidesWith(other: CollisionBox): Boolean{
         return this.parent != other.parent && this.active && other.active &&
@@ -93,9 +69,5 @@ abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size:
         if(collidedMove.y != movement.y) obj.velocity.y = 0f
 
         return collidedMove
-    }
-
-    companion object{
-        val colliderShader = ShaderLoader.getShader(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/collider"))
     }
 }

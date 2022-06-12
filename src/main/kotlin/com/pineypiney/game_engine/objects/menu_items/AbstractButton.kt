@@ -14,17 +14,17 @@ abstract class AbstractButton : StaticInteractableMenuItem() {
     var active: Boolean = true
     abstract val action: (button: AbstractButton) -> Unit
 
+    override fun setUniforms() {
+        super.setUniforms()
+        uniforms.setVec3Uniform("colour", this::getCurrentColour)
+    }
+
     override fun onPrimary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int {
         val ret = super.onPrimary(game, action, mods, cursorPos)
         if(ret == GLFW.GLFW_RELEASE && this.active){
             this.action.invoke(this)
         }
         return ret
-    }
-
-    override fun setUniforms() {
-        super.setUniforms()
-        shader.setVec3("colour", getCurrentColour())
     }
 
     private fun getCurrentColour() : Vec3 {

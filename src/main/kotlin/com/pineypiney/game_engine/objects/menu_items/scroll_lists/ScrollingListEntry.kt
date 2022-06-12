@@ -14,21 +14,20 @@ open class ScrollingListEntry<E: ScrollingListItem>(val parent: E, val index: In
     override var origin: Vec2 = Vec2()
     override val size = Vec2(parent.size.x * (1f - parent.scrollerWidth), parent.entryHeight)
 
-    override val shader: Shader = entryShader
-
-    override fun init() {}
-
-    override fun delete() {}
+    override var shader: Shader = entryShader
 
     override fun setUniforms() {
         super.setUniforms()
-        shader.setVec2("limits", limits)
+
+        uniforms.setVec2Uniform("limits"){ limits }
     }
 
     override fun draw() {
         TextureLoader.getTexture(ResourceKey("broke")).bind()
         super.draw()
     }
+
+    override fun delete() {}
 
     companion object{
         val entryShader = ShaderLoader.getShader(ResourceKey("vertex/scroll_entry"), ResourceKey("fragment/scroll_entry"))

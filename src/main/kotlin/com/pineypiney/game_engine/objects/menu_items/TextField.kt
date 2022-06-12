@@ -7,10 +7,10 @@ import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.text.Font
 import com.pineypiney.game_engine.util.text.FontLoader
 import glm_.c
@@ -63,7 +63,8 @@ open class TextField(final override var origin: Vec2, final override val size: V
 
     override fun setUniforms() {
         super.setUniforms()
-        shader.setVec3("colour", Vec3(0.5f))
+
+        uniforms.setVec3Uniform("colour"){ Vec3(0.5f) }
     }
 
     override fun draw() {
@@ -190,9 +191,9 @@ open class TextField(final override var origin: Vec2, final override val size: V
                         shader: Shader = fieldShader):
         SizedStaticText(text, window, fontSize.i, colour, bounds.x, bounds.y, 1f, font, shader) {
 
-        override fun setUniversalUniforms(shader: Shader) {
-            super.setUniversalUniforms(shader)
-            shader.setVec2("limits", limits)
+        override fun setUniforms() {
+            super.setUniforms()
+            uniforms.setVec2Uniform("limits"){ limits }
         }
 
         override fun setIndividualUniforms(shader: Shader, index: Int) {

@@ -9,35 +9,44 @@ import java.io.InputStream
 class ShaderLoader private constructor(): AbstractResourceLoader<Shader>(){
 
     // This map stores the bytebuffer codes of each shader file
-    private val shaderMap: MutableMap<ResourceKey, String> = mutableMapOf()
+    private val shaderMap: MutableMap<ResourceKey, SubShader> = mutableMapOf()
 
     fun loadShaders(streams: Map<String, InputStream>) {
         streams.forEach { (fileName, stream) ->
 
             val i = fileName.lastIndexOf(".")
             if (i <= 0) return@forEach
-            val type = fileName.substring(i + 1)
+            val suf = fileName.substring(i + 1)
 
-            loadShader(fileName.removePrefix("shaders/").removeSuffix(".$type"), stream.readBytes())
+            val type = when(suf){
+                "vs" -> GL_VERTEX_SHADER
+                "fs" -> GL_FRAGMENT_SHADER
+                "gs" -> GL_GEOMETRY_SHADER
+                else -> 0
+            }
+
+            loadShader(fileName.removePrefix("shaders/").removeSuffix(".$suf"), stream.readBytes(), type)
 
             stream.close()
         }
     }
 
-    private fun loadShader(name: String, bytes: ByteArray){
-        shaderMap[ResourceKey(name)] = bytes.copyOf().toString(Charsets.UTF_8)
+    private fun loadShader(name: String, bytes: ByteArray, type: Int){
+        val code = bytes.copyOf().toString(Charsets.UTF_8)
+        val shader = generateSubShader(name, code, type)
+        shaderMap[ResourceKey(name)] = shader
     }
 
     fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): Shader{
-        val vertex: String = shaderMap.getOrElse(vertexKey){
+        val vertex: SubShader = shaderMap.getOrElse(vertexKey){
             println("Could not find vertex shader $vertexKey")
             return Shader.brokeShader
         }
-        val fragment: String = shaderMap.getOrElse(fragmentKey){
+        val fragment: SubShader = shaderMap.getOrElse(fragmentKey){
             println("Could not find fragment shader $fragmentKey")
             return Shader.brokeShader
         }
-        val geometry: String? = shaderMap[geometryKey]
+        val geometry: SubShader? = shaderMap[geometryKey]
 
         return generateShader(vertexKey.key, vertex, fragmentKey.key, fragment, geometryKey?.key, geometry)
     }
@@ -53,38 +62,36 @@ class ShaderLoader private constructor(): AbstractResourceLoader<Shader>(){
             return INSTANCE.getShader(vertexKey, fragmentKey, geometryKey)
         }
 
-        fun generateShader(vName: String, vertexString: String, fName: String, fragmentString: String, gName: String? = null, geometryString: String? = null): Shader{
+        fun generateSubShader(name: String, code: String, type: Int): SubShader{
+
+            val id = createShaderFromString(code, type, name)
+
+            val uniforms = compileUniforms(code)
+
+            return SubShader(id, uniforms.toMap())
+
+        }
+
+        fun generateShader(vName: String, vertexShader: SubShader, fName: String, fragmentShader: SubShader, gName: String? = null, geometryShader: SubShader? = null): Shader{
             val ID = glCreateProgram()
-            val hasGeometry: Boolean = geometryString?.isNotEmpty() ?: false
-
-            val vertexShader =
-                if(vertexString.isNotEmpty()) createShaderFromString(vertexString, GL_VERTEX_SHADER, vName)
-                else createShaderFromString(Shader.vS, GL_VERTEX_SHADER, vName)
-
-            val fragmentShader =
-                if(fragmentString.isNotEmpty()) createShaderFromString(fragmentString, GL_FRAGMENT_SHADER, fName)
-                else createShaderFromString(Shader.fS, GL_FRAGMENT_SHADER, fName)
-
-            val geometryShader =
-                if (hasGeometry) createShaderFromString(geometryString!!, GL_GEOMETRY_SHADER, gName ?: "")
-                else 0
-
 
             // Shader Program
-            glAttachShader(ID, vertexShader)
-            glAttachShader(ID, fragmentShader)
-            if (hasGeometry) glAttachShader(ID, geometryShader)
+            glAttachShader(ID, vertexShader.id)
+            glAttachShader(ID, fragmentShader.id)
+            if (geometryShader != null) glAttachShader(ID, geometryShader.id)
             glLinkProgram(ID)
 
             // print linking errors if any
             checkCompileErrors(ID, GL_SHADER, "$vName x $fName" + if(gName != null) " x $gName" else "")
 
             // delete the shaders as they're linked into our program now and no longer necessary
-            glDeleteShader(vertexShader)
-            glDeleteShader(fragmentShader)
-            if (hasGeometry) glDeleteShader(geometryShader)
+            glDeleteShader(vertexShader.id)
+            glDeleteShader(fragmentShader.id)
+            if (geometryShader != null) glDeleteShader(geometryShader.id)
 
-            return Shader(ID, vName, fName, gName)
+            val uniforms = vertexShader.uniforms + fragmentShader.uniforms + (geometryShader?.uniforms ?: mapOf())
+
+            return Shader(ID, vName, fName, gName, uniforms)
         }
 
         fun createShaderFromString(code: String, shaderType: Int, shaderName: String): Int{
@@ -98,6 +105,18 @@ class ShaderLoader private constructor(): AbstractResourceLoader<Shader>(){
             checkCompileErrors(shader, shaderType, shaderName)
 
             return shader
+        }
+
+        fun compileUniforms(code: String): Map<String, String>{
+            val uniforms = mutableMapOf<String, String>()
+            for(line in code.split('\n')) {
+                val parts = line.split(' ')
+                if (parts[0] != "uniform") continue
+                val name = parts[2].substringBefore(';')
+                uniforms[name] = parts[1]
+            }
+
+            return uniforms
         }
 
         fun checkCompileErrors(shader: Int, shaderType: Int, shaderName: String) {

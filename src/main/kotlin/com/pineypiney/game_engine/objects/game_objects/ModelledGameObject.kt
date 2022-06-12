@@ -4,9 +4,9 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.models.animations.Animation
-import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.normal
+import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.util.maths.normal
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
@@ -22,10 +22,6 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
 
     var erp: String = "lerp"
 
-    override fun init() {
-        super.init()
-    }
-
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
         this.animation?.let { animation ->
             if(this.loopAnimation || animationEndTime > Timer.frameTime){
@@ -34,7 +30,7 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
             }
             else setAnimation(nextAnimation)
         }
-        model.Draw(I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1)), view, projection, debug)
+        model.Draw(I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1)), view, projection, tickDelta, debug)
     }
 
     override fun renderInstanced(amount: Int, view: Mat4, projection: Mat4, tickDelta: Double) {

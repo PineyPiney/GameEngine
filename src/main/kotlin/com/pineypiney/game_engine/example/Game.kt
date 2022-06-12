@@ -6,26 +6,24 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.objects.Interactable
+import com.pineypiney.game_engine.objects.game_objects.ModelledGameObject
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicSlider
+import com.pineypiney.game_engine.objects.text.SizedGameText
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.StretchyGameText
-import com.pineypiney.game_engine.objects.util.shapes.Shape
+import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.round
 import com.pineypiney.game_engine.util.input.InputState
-import com.pineypiney.game_engine.util.normal
-import glm_.f
 import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW
-import kotlin.math.PI
 
 class Game(override val gameEngine: GameEngine): GameLogic() {
 
@@ -42,8 +40,10 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     }
     private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
 
-    private var text = SizedStaticText("X Part: 0.00 \n Y Part: 0.00", window)
+    private val model = ModelledGameObject(ResourceKey("goblin"), Model.DEBUG_COLLIDER)
+    private val text = SizedStaticText("X Part: 0.00 \n Y Part: 0.00", window)
     private val gameText = StretchyGameText("This is some Game Text", Vec2(17.78, 10), Vec4(0.0, 1.0, 1.0, 1.0))
+    private val siGameText = SizedGameText("This is some Sized Game Text", 300, Vec2(11, 10), Vec4(0.0, 1.0, 1.0, 1.0))
 
     private val list = BasicScrollList(Vec2(-1, -0.2), Vec2(1.2), 1f, 0.05f, arrayOf("Hello", "World"), window)
 
@@ -53,6 +53,8 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         super.init()
         text.init()
         gameText.init()
+        siGameText.init()
+        model.setAnimation("Wipe Nose")
     }
 
     override fun addObjects() {
@@ -60,24 +62,30 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         add(textField)
         add(slider)
         add(list)
+        add(model)
     }
 
     private fun drawScene(tickDelta: Double){
 
+        gameText.render(renderer.view, renderer.projection, tickDelta)
+        siGameText.render(renderer.view, renderer.projection, tickDelta)
+        //text.drawCentered(Vec2())
+        //button.drawBottomLeft(Vec2(0.6, 0.8))
+        //textField.drawBottomLeft(Vec2(-1))
+        //slider.draw()
+        //list.draw()
+
+        /*
         cycle += Timer.frameDelta.f
 
         backgroundShader.use()
         backgroundShader.setMat4("model", I.rotate(cycle * 2f * PI.f, normal))
-        backgroundShader.setMat4("vp", I)
-        Shape.cornerSquareShape3D.bind()
-        Shape.cornerSquareShape3D.draw()
+        backgroundShader.setMat4("view", I)
+        backgroundShader.setMat4("projection", I)
+        Shape.cornerSquareShape2D.bind()
+        Shape.cornerSquareShape2D.draw()
 
-        gameText.render(renderer.view, renderer.projection, tickDelta)
-        button.drawBottomLeft(Vec2(0.6, 0.8))
-        text.drawCentered(Vec2())
-        textField.drawBottomLeft(Vec2(-1))
-        slider.draw()
-        list.draw()
+         */
     }
 
     override fun render(window: Window, tickDelta: Double) {
@@ -122,6 +130,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         super.cleanUp()
         text.delete()
         gameText.delete()
+        siGameText.delete()
         textField.delete()
     }
 

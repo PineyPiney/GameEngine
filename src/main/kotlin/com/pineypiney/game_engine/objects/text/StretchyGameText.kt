@@ -27,7 +27,9 @@ open class StretchyGameText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
 
     override val transform: Transform = Transform()
 
-    init{
+    override fun init() {
+        super.init()
+
         // First scale the text so it touches the vertical bounds
         setDefaults(maxHeight)
 
@@ -50,9 +52,9 @@ open class StretchyGameText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
 
         shader.use()
+        shader.setUniforms(uniforms)
         shader.setMat4("view", view)
         shader.setMat4("projection", projection)
-        setUniversalUniforms(shader)
         font.texture.bind()
 
         // Add a bit of space at the beginning

@@ -36,9 +36,9 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
 
         shader.use()
+        shader.setUniforms(uniforms)
         shader.setMat4("view", view)
         shader.setMat4("projection", projection)
-        setUniversalUniforms(shader)
 
         font.texture.bind()
 

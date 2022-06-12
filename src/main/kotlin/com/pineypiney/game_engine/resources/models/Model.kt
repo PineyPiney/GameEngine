@@ -1,6 +1,8 @@
 package com.pineypiney.game_engine.resources.models
 
+import com.pineypiney.game_engine.objects.Shaded
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox
+import com.pineypiney.game_engine.objects.util.collision.CollisionBoxRenderer
 import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
 import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.resources.Resource
@@ -8,10 +10,11 @@ import com.pineypiney.game_engine.resources.models.animations.Animation
 import com.pineypiney.game_engine.resources.models.animations.State
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.copy
-import com.pineypiney.game_engine.util.normal
+import com.pineypiney.game_engine.util.maths.normal
 import glm_.i
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -25,51 +28,68 @@ import org.lwjgl.assimp.Assimp.aiProcess_Triangulate
 
 // Materials are also stored in the model, and accessed by the meshes through IDs
 
-class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<Animation>, val name: String = "broke", val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource(),
-    Copyable<Model> {
+class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<Animation>, val name: String = "broke", val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource(), Copyable<Model>, Shaded {
 
-    var shader: Shader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/translucent_texture"))
-    var collisionBox: CollisionBox = SoftCollisionBox(null, Vec2(), Vec2(1))
-
-    fun Draw(model: Mat4, view: Mat4, projection: Mat4, debug: Int = 0) {
-
-        val modelShader = if(debug and DEBUG_MESH > 0) ShaderLoader.getShader(ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights"))
-        else this.shader
-
-        modelShader.use()
-
-        val bones: List<Bone> = rootBone?.getAllChildren() ?: listOf()
-        bones.forEach { bone ->
-            val boneSpaceTransform = bone.getMeshTransform()
-            modelShader.setMat4("boneTransforms[${bone.id}]", boneSpaceTransform)
-
-            val colour = Vec4((((bone.id + 4) % 6) > 2).i, (((bone.id + 2) % 6) > 2).i, (((bone.id) % 6) > 2).i, 1)
-            modelShader.setVec4("boneColours[${bone.id}]", colour)
+    override var shader: Shader = defaultShader
+        set(value) {
+            field = value
+            uniforms = field.compileUniforms()
+        }
+    override var uniforms: Uniforms = Uniforms.default
+        set(value) {
+            field = value
+            setUniforms()
         }
 
+    var collisionBox: CollisionBox = SoftCollisionBox(null, Vec2(), Vec2(1))
+
+    init {
+        uniforms = shader.compileUniforms()
+    }
+
+    override fun setUniforms() {
+        val bones = rootBone?.getAllChildren() ?: listOf()
+        uniforms.setMat4sUniform("boneTransforms"){ bones.map { it.getMeshTransform() }.toTypedArray() }
+        if(shader == debugShader){
+            uniforms.setVec4sUniform("boneColours"){ bones.map { bone -> Vec4((((bone.id + 4) % 6) > 2).i, (((bone.id + 2) % 6) > 2).i, (((bone.id) % 6) > 2).i, 1) }.toTypedArray() }
+            //uniforms.setVec4sUniform("boneColours"){ bones.map { Vec4(1) }.toTypedArray() }
+        }
+    }
+
+    fun Draw(model: Mat4, view: Mat4, projection: Mat4, tickDelta: Double, debug: Int = 0) {
+
+        shader = if(debug and DEBUG_MESH > 0) debugShader else defaultShader
+        shader.use()
+        shader.setUniforms(uniforms)
+
         val vp = projection * view
-        modelShader.setMat4("vp", vp)
-        modelShader.setMat4("model", model)
+        shader.setMat4("vp", vp)
+        shader.setMat4("model", model)
 
         meshes.forEach {
-            modelShader.setFloat("alpha", it.alpha)
+            shader.setFloat("alpha", it.alpha)
             it.Draw()
         }
 
         if(debug and DEBUG_BONES > 0){
 
             // Render Bones
-            Shape.centerSquareShape3D.bind()
+            Shape.centerSquareShape2D.bind()
             val boneShader = Bone.boneShader
 
             boneShader.use()
-            boneShader.setMat4("vp", vp)
+            boneShader.setMat4("view", view)
+            boneShader.setMat4("projection", projection)
 
+            val bones: List<Bone> = rootBone?.getAllChildren() ?: listOf()
             bones.forEach { it.render(boneShader, model) }
         }
 
         if(debug and DEBUG_COLLIDER > 0){
-            collisionBox.render(view, projection)
+            val shader = CollisionBoxRenderer.defaultShader
+            val renderer = CollisionBoxRenderer(collisionBox, shader, shader.compileUniforms())
+            renderer.setUniforms()
+            renderer.render(view, projection, tickDelta)
         }
     }
 
@@ -112,6 +132,9 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
     override fun delete() {}
 
     companion object{
+
+        val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/translucent_texture"))
+        val debugShader = ShaderLoader.getShader(ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights"))
 
         const val DEBUG_MESH = 1
         const val DEBUG_BONES = 2

@@ -29,6 +29,7 @@ abstract class StretchyText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
     override var quads: Array<TextQuad> = arrayOf()
 
     override fun init() {
+        super.init()
 
         dimensions = getPixelSize()
         size = Vec2(dimensions.z, dimensions.w - dimensions.y)

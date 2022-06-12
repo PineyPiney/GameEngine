@@ -26,6 +26,7 @@ abstract class SizedText(text: String, final override val fontSize: Int = 100, c
     override var lengths = floatArrayOf()
 
     override fun init() {
+        super.init()
         letterIndices = text.replace("\n", "").map{ it.i - 32 }
         letterPoints = letterIndices.map { index ->
             Vec2i((index%font.columns) * font.letterWidth, font.texture.height - ((index/font.columns) * font.letterHeight))

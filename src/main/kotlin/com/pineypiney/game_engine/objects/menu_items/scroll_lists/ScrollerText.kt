@@ -14,9 +14,9 @@ class ScrollerText(text: String, window: Window, bounds: Vec2 = Vec2(2, 2),
                    shader: Shader = ScrollingListEntry.entryTextShader
 ): StretchyStaticText(text, window, bounds, colour, font, shader) {
 
-    override fun setUniversalUniforms(shader: Shader) {
-        super.setUniversalUniforms(shader)
-        shader.setVec2("limits", limits)
+    override fun setUniforms() {
+        super.setUniforms()
+        uniforms.setVec2Uniform("limits"){ limits }
     }
 
     override fun setIndividualUniforms(shader: Shader, index: Int) {

@@ -1,31 +1,47 @@
 package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.resources.shaders.uniforms.*
 import glm_.f
+import glm_.i
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import kool.lib.iterator
 import org.lwjgl.opengl.GL46C.*
-import java.nio.FloatBuffer
 
-class Shader(private var ID: Int, val vName: String, val fName: String, val gName: String? = null) : Deleteable {
+class Shader(private var ID: Int, val vName: String, val fName: String, val gName: String? = null, val uniforms: Map<String, String>) : Deleteable {
 
     fun use() {
         glUseProgram(ID)
+    }
+
+    fun setUniforms(uniforms: Uniforms){
+        for(u in uniforms.uniforms){
+            u.apply(this)
+        }
     }
 
     // Functions to set uniforms within shaders
 
     fun setBool(name: String, value: Boolean) {
         val varLocation = getVar(name)
-        glUniform1i(varLocation, if (value) 1 else 0)
+        glUniform1i(varLocation, value.i)
+    }
+
+    fun setBools(name: String, value: BooleanArray) {
+        val varLocation = getVar(name)
+        glUniform1iv(varLocation, value.map { it.i }.toIntArray())
     }
 
     fun setInt(name: String, value: Int) {
         val varLocation = getVar(name)
         glUniform1i(varLocation, value)
+    }
+
+    fun setInts(name: String, value: IntArray) {
+        val varLocation = getVar(name)
+        glUniform1iv(varLocation, value)
     }
 
     fun setUInt(name: String, value: Int) {
@@ -38,20 +54,14 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
         glUniform1f(varLocation, value)
     }
 
-    fun setDouble(name: String, value: Double) {
-        val varLocation = getVar(name)
-        glUniform1d(varLocation, value)
-    }
-
     fun setFloats(name: String, values: FloatArray) {
         val varLocation = getVar(name)
         glUniform1fv(varLocation, values)
     }
 
-    fun setVec2s(name: String, values: Array<Vec2>) {
+    fun setDouble(name: String, value: Double) {
         val varLocation = getVar(name)
-        val floats = values.flatMap { listOf(it.x, it.y) }.toFloatArray()
-        glUniform2fv(varLocation, floats)
+        glUniform1d(varLocation, value)
     }
 
     fun setVec2(name: String, v: Vec2) {
@@ -64,8 +74,15 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
         glUniform2f(varLocation, x.f, y.f)
     }
 
+    fun setVec2s(name: String, values: Array<Vec2>) {
+        val varLocation = getVar(name)
+        val floats = values.flatMap { listOf(it.x, it.y) }.toFloatArray()
+        glUniform2fv(varLocation, floats)
+    }
+
     fun setVec3(name: String, v: Vec3) {
-        setVec3(name, v.r, v.g, v.b)
+        val varLocation = getVar(name)
+        glUniform3f(varLocation, v.r, v.g, v.b)
     }
 
     fun setVec3(name: String, r: Number, g: Number, b: Number) {
@@ -73,8 +90,15 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
         glUniform3f(varLocation, r.f, g.f, b.f)
     }
 
+    fun setVec3s(name: String, values: Array<Vec3>) {
+        val varLocation = getVar(name)
+        val floats = values.flatMap { listOf(it.x, it.y, it.z) }.toFloatArray()
+        glUniform3fv(varLocation, floats)
+    }
+
     fun setVec4(name: String, v: Vec4) {
-        setVec4(name, v.x, v.y, v.z, v.w)
+        val varLocation = getVar(name)
+        glUniform4f(varLocation, v.r, v.g, v.b, v.a)
     }
 
     fun setVec4(name: String, r: Number, g: Number, b: Number, a: Number) {
@@ -82,15 +106,52 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
         glUniform4f(varLocation, r.f, g.f, b.f, a.f)
     }
 
+    fun setVec4s(name: String, values: Array<Vec4>) {
+        val varLocation = getVar(name)
+        val floats = values.flatMap { listOf(it.x, it.y, it.z, it.w) }.toFloatArray()
+        glUniform4fv(varLocation, floats)
+    }
+
     fun setMat4(name: String, value: Mat4) {
         val varLocation = getVar(name)
-        val buffer = FloatBuffer.allocate(16)
-        val array = FloatArray(16)
-        value to buffer
-        for(f in buffer){
-            value to array
+        glUniformMatrix4fv(varLocation, false, value.array)
+    }
+
+    fun setMat4s(name: String, value: Array<Mat4>) {
+        val varLocation = getVar(name)
+        val arrays = value.flatMap { it.array.toList() }
+        glUniformMatrix4fv(varLocation, false, arrays.toFloatArray())
+    }
+
+    fun compileUniforms(): Uniforms{
+        val set = mutableSetOf<Uniform<*>>()
+        for((name, type) in uniforms){
+            if(name.contains('[') && name.contains(']')){
+                val newName = name.substringBefore('[')
+                when(type){
+                    "bool" -> set.add(BoolsUniform(newName))
+                    "int" -> set.add(IntsUniform(newName))
+                    "float" -> set.add(FloatsUniform(newName))
+                    "vec2" -> set.add(Vec2sUniform(newName))
+                    "vec3" -> set.add(Vec3sUniform(newName))
+                    "vec4" -> set.add(Vec4sUniform(newName))
+                    "mat4" -> set.add(Mat4sUniform(newName))
+                }
+            }
+            else {
+                when(type){
+                    "bool" -> set.add(BoolUniform(name))
+                    "int" -> set.add(IntUniform(name))
+                    "float" -> set.add(FloatUniform(name))
+                    "vec2" -> set.add(Vec2Uniform(name))
+                    "vec3" -> set.add(Vec3Uniform(name))
+                    "vec4" -> set.add(Vec4Uniform(name))
+                    "mat4" -> set.add(Mat4Uniform(name))
+                }
+            }
         }
-        glUniformMatrix4fv(varLocation, false, array)
+
+        return Uniforms(set.toTypedArray())
     }
 
     private fun getVar(name: String) = glGetUniformLocation(ID, name)
@@ -131,6 +192,9 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
                 "\tFragColour = colour;\n" +
                 "}"
 
-        val brokeShader: Shader = ShaderLoader.generateShader("broke", vS, "broke", fS)
+        val brokeShader: Shader = ShaderLoader.generateShader(
+            "broke", ShaderLoader.generateSubShader("broke", vS, GL_VERTEX_SHADER),
+            "broke", ShaderLoader.generateSubShader("broke", fS, GL_FRAGMENT_SHADER)
+        )
     }
 }

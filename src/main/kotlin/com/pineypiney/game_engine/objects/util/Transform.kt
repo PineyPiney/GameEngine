@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine.objects.util
 
 import com.pineypiney.game_engine.util.Copyable
-import com.pineypiney.game_engine.util.I
 import com.pineypiney.game_engine.util.extension_functions.copy
-import com.pineypiney.game_engine.util.normal
+import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.util.maths.normal
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 

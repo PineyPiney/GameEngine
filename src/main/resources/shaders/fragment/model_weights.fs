@@ -14,9 +14,8 @@ void main(){
 	if(texture.a == 0) discard;
 
 	// Make the image black and white
-	vec4 colour;
-	if(texture.r + texture.g + texture.b > 2) colour = vec4(1.0);
-	else colour = vec4(0.0, 0.0, 0.0, 1.0);
+	float b = sqrt(texture.r + texture.g + texture.b) / sqrt(3);
+	vec4 colour = vec4(b, b, b, 1.0);
 
 	// Tint the black and white image
 	FragColour = colour * boneTint;
