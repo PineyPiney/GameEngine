@@ -9,5 +9,5 @@ abstract class SelectableScrollingListItem(origin: Vec2, size: Vec2, entryHeight
 
     open var selectedEntry: Int = -1
 
-    open fun getSelectedEntry(): SelectableScrollingListEntry<*>? = items[selectedEntry]
+    open fun getSelectedEntry(): SelectableScrollingListEntry<*>? = items.getOrNull(selectedEntry)
 }

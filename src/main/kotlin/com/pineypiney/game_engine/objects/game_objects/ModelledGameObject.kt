@@ -23,11 +23,6 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
 
     var erp: String = "lerp"
 
-    override fun init() {
-        super.init()
-        setUniforms()
-    }
-
     override fun setUniforms() {
         super.setUniforms()
         val bones = model.rootBone?.getAllChildren() ?: listOf()
@@ -35,7 +30,6 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
         if(debug and Model.DEBUG_MESH > 0){
             uniforms.setVec3sUniform("boneColours"){ bones.map { bone -> Vec3((((bone.id + 4) % 6) > 2).i, (((bone.id + 2) % 6) > 2).i, (((bone.id) % 6) > 2).i) }.toTypedArray() }
         }
-
     }
 
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {

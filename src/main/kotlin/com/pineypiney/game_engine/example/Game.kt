@@ -53,7 +53,9 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         text.init()
         gameText.init()
         siGameText.init()
+
         model.setAnimation("Wipe Nose")
+        model.translate(Vec2(5, -5))
     }
 
     override fun addObjects() {
