@@ -22,11 +22,7 @@ class CollisionBoxRenderer(val collider: CollisionBox, override val shader: Shad
     }
 
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double){
-
-        shader.use()
-        shader.setUniforms(uniforms)
-        shader.setMat4("projection", projection)
-        shader.setMat4("view", view)
+        super.render(view, projection, tickDelta)
 
         shape.bind()
         shape.draw()

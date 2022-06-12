@@ -10,10 +10,11 @@ layout (location = 3) in ivec4 boneIndices;
 layout (location = 4) in vec4 boneWeights;
 
 uniform mat4 boneTransforms[MAX_BONES];
-uniform vec4 boneColours[MAX_BONES];
+uniform vec3 boneColours[MAX_BONES];
 
 uniform mat4 model;
-uniform mat4 vp;
+uniform mat4 view;
+uniform mat4 projection;
 
 out vec2 texCoords;
 out vec4 boneTint;
@@ -21,7 +22,7 @@ out vec4 boneTint;
 void main(){
 
 	vec4 pos = vec4(0.0);
-	vec4 colour = vec4(0.0);
+	vec3 colour = vec3(0.0);
 
 	for(int i = 0; i < MAX_WEIGHTS; i++){
 
@@ -34,7 +35,7 @@ void main(){
 		colour += boneColours[boneIndices[i]] * boneWeights[i];
 	}
 
-	gl_Position = vp * model * pos;
+	gl_Position = projection * view * model * pos;
 	texCoords = aTexCoord;
-	boneTint = colour;
+	boneTint = vec4(colour, 1.0);
 }

@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.objects.util.shapes
 
 import com.pineypiney.game_engine.objects.Deleteable
 import glm_.f
+import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL46C.*
 
 abstract class Shape: Deleteable {
@@ -13,21 +14,31 @@ abstract class Shape: Deleteable {
     }
 
     abstract fun draw(mode: Int = GL_TRIANGLES)
+    abstract fun drawInstanced(amount: Int, mode: Int = GL_TRIANGLES, )
 
-    fun setAttribs(parts: IntArray){
+    fun setAttribs(data: Array<Vec2i>, type: Int){
 
         // How to read non-indices array
         val bytes = 4 //Float.BYTES
-        val stride = parts.sum()
+        val stride = data.sumOf { it.y } * bytes
 
         var step = 0L
-        for(i in parts.indices){
-            glEnableVertexAttribArray(i)
+        for(attrib in data){
+            val index = attrib.x
+            val size = attrib.y
 
-            val part = parts[i]
-            glVertexAttribPointer(i, part, GL_FLOAT, false, stride * bytes, step * stride)
-            step += part
+            glEnableVertexAttribArray(index)
+            when(type){
+                GL_FLOAT -> glVertexAttribPointer(index, size, type, false, stride, step)
+                GL_INT -> glVertexAttribIPointer(index, size, type, stride, step)
+            }
+
+            step += size * bytes
         }
+    }
+
+    fun setAttribs(parts: IntArray){
+        setAttribs(parts.mapIndexed{ i, p -> Vec2i(i, p) }.toTypedArray(), GL_FLOAT)
     }
 
     override fun delete() {

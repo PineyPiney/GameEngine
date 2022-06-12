@@ -12,7 +12,8 @@ layout (location = 4) in vec4 boneWeights;
 uniform mat4 boneTransforms[MAX_BONES];
 
 uniform mat4 model;
-uniform mat4 vp;
+uniform mat4 view;
+uniform mat4 projection;
 
 out vec2 texCoords;
 
@@ -26,6 +27,6 @@ void main(){
 		pos += posePos * boneWeights[i];
 	}
 
-	gl_Position = vp * model * pos;
+	gl_Position = projection * view * model * pos;
 	texCoords = aTexCoord;
 }

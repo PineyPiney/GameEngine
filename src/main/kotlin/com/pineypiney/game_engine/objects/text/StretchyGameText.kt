@@ -50,11 +50,8 @@ open class StretchyGameText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
     }
 
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
+        super.render(view, projection, tickDelta)
 
-        shader.use()
-        shader.setUniforms(uniforms)
-        shader.setMat4("view", view)
-        shader.setMat4("projection", projection)
         font.texture.bind()
 
         // Add a bit of space at the beginning

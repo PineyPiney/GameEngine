@@ -1,16 +1,17 @@
 package com.pineypiney.game_engine.objects.game_objects
 
 import com.pineypiney.game_engine.Timer
+import com.pineypiney.game_engine.objects.util.Transform
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.models.animations.Animation
+import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.maths.I
-import com.pineypiney.game_engine.util.maths.normal
+import glm_.i
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
-open class ModelledGameObject(final override val id: ResourceKey, val debug: Int = 0): RenderedGameObject() {
+open class ModelledGameObject(final override val id: ResourceKey, val debug: Int = 0): RenderedGameObject(if(debug and Model.DEBUG_MESH > 0) debugShader else defaultShader) {
 
     val model: Model = ModelLoader.getModel(id)
 
@@ -22,19 +23,33 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
 
     var erp: String = "lerp"
 
-    override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
-        this.animation?.let { animation ->
-            if(this.loopAnimation || animationEndTime > Timer.frameTime){
-                val states = animation.getState(animation.getAnimationTime(animationStartTime), erp)
-                model.animate(states)
-            }
-            else setAnimation(nextAnimation)
-        }
-        model.Draw(I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1)), view, projection, tickDelta, debug)
+    override fun init() {
+        super.init()
+        setUniforms()
     }
 
-    override fun renderInstanced(amount: Int, view: Mat4, projection: Mat4, tickDelta: Double) {
-        model.DrawInstanced(amount, I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1)), view)
+    override fun setUniforms() {
+        super.setUniforms()
+        val bones = model.rootBone?.getAllChildren() ?: listOf()
+        uniforms.setMat4sUniform("boneTransforms"){ bones.map { it.getMeshTransform() }.toTypedArray() }
+        if(debug and Model.DEBUG_MESH > 0){
+            uniforms.setVec3sUniform("boneColours"){ bones.map { bone -> Vec3((((bone.id + 4) % 6) > 2).i, (((bone.id + 2) % 6) > 2).i, (((bone.id) % 6) > 2).i) }.toTypedArray() }
+        }
+
+    }
+
+    override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
+        super.render(view, projection, tickDelta)
+
+        updateAnimation()
+        model.Draw(transform.model, view, projection, tickDelta, shader, debug)
+    }
+
+    override fun renderInstanced(transforms: Array<Transform>, view: Mat4, projection: Mat4, tickDelta: Double) {
+        super.renderInstanced(transforms, view, projection, tickDelta)
+
+        updateAnimation()
+        model.DrawInstanced(transforms.size, transform.model, view, projection, tickDelta, shader, debug)
     }
 
     fun initAnimation(animation: Animation, loop: Boolean = true){
@@ -45,6 +60,16 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
     }
 
     fun getAnimation(name: String) = model.animations.firstOrNull { it.name == name }
+
+    fun updateAnimation(){
+        this.animation?.let { animation ->
+            if(this.loopAnimation || animationEndTime > Timer.frameTime){
+                val states = animation.getState(animation.getAnimationTime(animationStartTime), erp)
+                model.animate(states)
+            }
+            else setAnimation(nextAnimation)
+        }
+    }
 
     fun setAnimation(name: String, loop: Boolean = true): Boolean{
 
@@ -75,5 +100,12 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
 
     override fun copy(): GameObject {
         return ModelledGameObject(id, debug)
+    }
+
+    companion object{
+
+        val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/translucent_texture"))
+        val debugShader = ShaderLoader.getShader(ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights"))
+
     }
 }

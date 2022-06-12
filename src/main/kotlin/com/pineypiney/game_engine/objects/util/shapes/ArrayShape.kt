@@ -25,4 +25,8 @@ open class ArrayShape(vertices: FloatArray, parts: IntArray): Shape() {
     override fun draw(mode: Int){
         glDrawArrays(mode, 0, size)
     }
+
+    override fun drawInstanced(amount: Int, mode: Int) {
+        glDrawArraysInstanced(mode, 0, size, amount)
+    }
 }

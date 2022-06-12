@@ -9,6 +9,10 @@ class TextQuad(val topLeft: Vec2 = Vec2(), val bottomRight: Vec2 = Vec2(1)) : Ar
         super.draw(GL_TRIANGLE_FAN)
     }
 
+    override fun drawInstanced(amount: Int, mode: Int) {
+        super.drawInstanced(amount, GL_TRIANGLE_FAN)
+    }
+
     companion object{
         fun createTextVertices(topLeft: Vec2, bottomRight: Vec2) : FloatArray {
             return floatArrayOf(

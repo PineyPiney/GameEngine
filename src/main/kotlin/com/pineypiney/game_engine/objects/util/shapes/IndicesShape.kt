@@ -37,6 +37,10 @@ open class IndicesShape(vertices: FloatArray, parts: IntArray, indices: IntArray
         glDrawElements(mode, size, GL_UNSIGNED_INT, 0)
     }
 
+    override fun drawInstanced(amount: Int, mode: Int) {
+        glDrawElementsInstanced(mode, size, GL_UNSIGNED_INT, 0, amount)
+    }
+
     override fun delete() {
         super.delete()
         glDeleteBuffers(this.EBO)

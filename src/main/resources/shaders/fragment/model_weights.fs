@@ -5,6 +5,7 @@ in vec2 texCoords;
 in vec4 boneTint;
 
 uniform sampler2D ourTexture;
+uniform float alpha;
 
 out vec4 FragColour;
 
@@ -15,7 +16,7 @@ void main(){
 
 	// Make the image black and white
 	float b = sqrt(texture.r + texture.g + texture.b) / sqrt(3);
-	vec4 colour = vec4(b, b, b, 1.0);
+	vec4 colour = vec4(b, b, b, alpha);
 
 	// Tint the black and white image
 	FragColour = colour * boneTint;
