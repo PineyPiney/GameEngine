@@ -13,11 +13,6 @@ open class TexturedGameObject(override val id: ResourceKey, var texture: Texture
     constructor(id: ResourceKey, textureKey: ResourceKey, shape: Shape = Shape.centerSquareShape2D, shader: Shader = defaultShader):
             this(id, TextureLoader.getTexture(textureKey), shape, shader)
 
-    override fun init() {
-        super.init()
-        uniforms = shader.compileUniforms()
-    }
-
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
         super.render(view, projection, tickDelta)
 

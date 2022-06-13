@@ -36,14 +36,14 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
         super.render(view, projection, tickDelta)
 
         updateAnimation()
-        model.Draw(transform.model, view, projection, tickDelta, shader, debug)
+        model.Draw(this, view, projection, tickDelta, shader, debug)
     }
 
     override fun renderInstanced(transforms: Array<Transform>, view: Mat4, projection: Mat4, tickDelta: Double) {
         super.renderInstanced(transforms, view, projection, tickDelta)
 
         updateAnimation()
-        model.DrawInstanced(transforms.size, transform.model, view, projection, tickDelta, shader, debug)
+        model.DrawInstanced(transforms.size, this, view, projection, tickDelta, shader, debug)
     }
 
     fun initAnimation(animation: Animation, loop: Boolean = true){

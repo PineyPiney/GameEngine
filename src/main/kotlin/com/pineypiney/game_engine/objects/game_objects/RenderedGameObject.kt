@@ -22,7 +22,7 @@ abstract class RenderedGameObject(shader: Shader): GameObject(), Renderable, Sha
 
     override fun init() {
         super.init()
-        setUniforms()
+        uniforms = shader.compileUniforms()
     }
 
     override fun setUniforms() {

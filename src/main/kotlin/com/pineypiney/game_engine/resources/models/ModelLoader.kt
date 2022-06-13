@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.models
 
+import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
 import com.pineypiney.game_engine.resources.AbstractResourceLoader
 import com.pineypiney.game_engine.resources.models.animations.*
 import com.pineypiney.game_engine.resources.s
@@ -7,7 +8,6 @@ import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.*
-import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
 import glm_.f
 import glm_.i
 import glm_.mat4x4.Mat4
@@ -123,10 +123,10 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
             val normalsSource = sources.firstOrNull { it.id == normalInput["source"]?.removePrefix("#") }
             val texMapSource = sources.firstOrNull { it.id == texcoordInput["source"]?.removePrefix("#") }
 
-            val points = verticesSource?.createVec2List() ?: listOf()
-            val verticesList: List<VertexPosition> = points.indices.map { i -> VertexPosition(i, Vec3(points[i], 0)) }
-            val normalsList: List<Vec3> = normalsSource?.createVec3List() ?: listOf()
-            val texMapsList: List<Vec2> = texMapSource?.createVec2List("ST") ?: listOf()
+            val points = verticesSource?.createVec2Array() ?: arrayOf()
+            val verticesList: List<VertexPosition> = points.mapIndexed { i, v -> VertexPosition(i, Vec3(v, 0)) }
+            val normalsList: Array<Vec3> = normalsSource?.createVec3Array() ?: arrayOf()
+            val texMapsList: Array<Vec2> = texMapSource?.createVec2Array("S-T") ?: arrayOf()
 
             // Read the indices
             val indices = (path.evaluate("$trianglesRoot/p", doc, XPathConstants.STRING) as String)
@@ -360,14 +360,14 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
             val translations = sources.firstOrNull { it.id == tranInput["source"]?.removePrefix("#") } ?: DataSource.EMPTY
             val rotations = sources.firstOrNull { it.id == rotInput["source"]?.removePrefix("#") } ?: DataSource.EMPTY
 
-            val timesArray = times["TIME"]
-            val tranArray = translations.createVec2List()
-            val rotArray = rotations["ROTATION"]
+            val timesArray = times.createFloatArray("TIME")
+            val tranArray = translations.createVec2Array()
+            val rotArray = rotations.createFloatArray("ROTATION")
 
             timesArray.indices.forEach { i ->
-                val time = timesArray[i].f
+                val time = timesArray[i]
                 val translation = if(tranArray.size > i) tranArray[i] else Vec2()
-                val rotation = if(rotArray.size > i) rotArray[i].f else 0f
+                val rotation = if(rotArray.size > i) rotArray[i] else 0f
 
                 // Initialise list if it doesn't yet exist, and don't forget to convert degrees to radians
                 stateMap.addToListOr(time,
@@ -405,20 +405,20 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
             val orders = sources.firstOrNull { it.id == orderInput["source"]?.removePrefix("#") } ?: DataSource.EMPTY
             // -------- Compile into Animation -------
 
-            val timesArray = times["TIME"]
-            val tranArray = translations.createVec2List()
-            val rotArray = rotations["ROTATION"]
-            val alphaArray = alphas["ALPHA"]
-            val orderArray = orders["ORDER"]
+            val timesArray = times.createFloatArray("TIME")
+            val tranArray = translations.createVec2Array()
+            val rotArray = rotations.createFloatArray("ROTATION")
+            val alphaArray = alphas.createFloatArray("ALPHA")
+            val orderArray = orders.createIntArray("ORDER")
 
             val geo = meshes.firstOrNull { it.name == mesh.removePrefix("Animation_") }
 
             timesArray.indices.forEach { i ->
-                val time = timesArray[i].f
+                val time = timesArray[i]
                 val translation = if(tranArray.size > i) tranArray[i] else Vec2()
-                val rotation = if(rotArray.size > i) rotArray[i].f else 0f
-                val alpha = if(alphaArray.size > i) alphaArray[i].f else geo?.alpha ?: 1f
-                val order = if(orderArray.size > i) orderArray[i].i else geo?.order ?: 0
+                val rotation = if(rotArray.size > i) rotArray[i] else 0f
+                val alpha = if(alphaArray.size > i) alphaArray[i] else geo?.alpha ?: 1f
+                val order = if(orderArray.size > i) orderArray[i] else geo?.order ?: 0
 
                 // Initialise list if it doesn't yet exist, and don't forget to convert degrees to radians
                 stateMap.addToListOr(time,

@@ -50,6 +50,17 @@ class Transform(position: Vec2 = Vec2(), rotation: Float = 0f, scale: Vec2 = Vec
         model = I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1))
     }
 
+    override fun equals(other: Any?): Boolean {
+        if(other !is Transform) return false
+        return this.position == other.position &&
+                this.rotation == other.rotation &&
+                this.scale == other.scale
+    }
+
+    override fun hashCode(): Int {
+        return this.position.hashCode() + this.rotation.hashCode() + this.scale.hashCode()
+    }
+
     override fun copy(): Transform = Transform(position.copy(), rotation, scale.copy()).apply { recalculateModel() }
 
     companion object{

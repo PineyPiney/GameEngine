@@ -1,8 +1,10 @@
 package com.pineypiney.game_engine.resources.models
 
 import glm_.f
+import glm_.i
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
+import glm_.vec4.Vec4
 import org.w3c.dom.Document
 import org.w3c.dom.NodeList
 import javax.xml.xpath.XPath
@@ -19,19 +21,34 @@ class DataSource(val id: String, val count: Int, val stride: Int, val arrays: Ma
         return array.getOrElse(indey){ array.getOrElse(0) {""} }
     }
 
-    fun createVec2List(s: String = "XY"): List<Vec2>{
-        val x = arrays[s.substring(0, 1)]
-        val y = arrays[s.substring(1, 2)]
-        return if(x == null || y == null) listOf()
-        else List(x.size){ Vec2(x[it].f, y[it].f) }
+    fun createIntArray(s: String = "X"): IntArray{
+        val x = arrays[s]
+        return if(x == null) intArrayOf()
+        else IntArray(x.size){ x[it].i }
     }
 
-    fun createVec3List(s: String = "XYZ"): List<Vec3>{
-        val x = arrays[s.substring(0, 1)]
-        val y = arrays[s.substring(1, 2)]
-        val z = arrays[s.substring(2, 3)]
-        return if(x == null || y == null || z == null) listOf()
-        else List(x.size){ Vec3(x[it].f, y[it].f, z[it].f) }
+    fun createFloatArray(s: String = "X"): FloatArray{
+        val x = arrays[s]
+        return if(x == null) floatArrayOf()
+        else FloatArray(x.size){ x[it].f }
+    }
+
+    fun createVec2Array(s: String = "X-Y"): Array<Vec2>{
+        val (x, y) = s.split("-").map { arrays[it] }
+        return if(x == null || y == null) arrayOf()
+        else Array(x.size){ Vec2(x[it].f, y[it].f) }
+    }
+
+    fun createVec3Array(s: String = "X-Y-Z"): Array<Vec3>{
+        val (x, y, z) = s.split("-").map { arrays[it] }
+        return if(x == null || y == null || z == null) arrayOf()
+        else Array(x.size){ Vec3(x[it].f, y[it].f, z[it].f) }
+    }
+
+    fun createVec4Array(s: String = "X-Y-Z-W"): Array<Vec4>{
+        val (x, y, z, w) = s.split("-").map { arrays[it] }
+        return if(x == null || y == null || z == null || w == null) arrayOf()
+        else Array(x.size){ Vec4(x[it].f, y[it].f, z[it].f, w[it].f) }
     }
 
     companion object{

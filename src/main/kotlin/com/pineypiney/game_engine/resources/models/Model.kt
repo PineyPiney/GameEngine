@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.models
 
+import com.pineypiney.game_engine.objects.game_objects.GameObject
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox
 import com.pineypiney.game_engine.objects.util.collision.CollisionBoxRenderer
 import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
@@ -26,29 +27,29 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
 
     var collisionBox: CollisionBox = SoftCollisionBox(null, Vec2(), Vec2(1))
 
-    fun Draw(model: Mat4, view: Mat4, projection: Mat4, tickDelta: Double, shader: Shader, debug: Int = 0) {
+    fun Draw(parent: GameObject, view: Mat4, projection: Mat4, tickDelta: Double, shader: Shader, debug: Int = 0) {
 
         for(mesh in meshes) {
             shader.setFloat("alpha", mesh.alpha)
             mesh.draw()
         }
 
-        if(debug and DEBUG_BONES > 0) renderBones(model, view, projection)
-        if(debug and DEBUG_COLLIDER > 0) renderCollider(view, projection, tickDelta)
+        if(debug and DEBUG_BONES > 0) renderBones(parent, view, projection)
+        if(debug and DEBUG_COLLIDER > 0) renderCollider(parent, view, projection, tickDelta)
     }
 
-    fun DrawInstanced(amount: Int, model: Mat4, view: Mat4, projection: Mat4, tickDelta: Double, shader: Shader, debug: Int) {
+    fun DrawInstanced(amount: Int, parent: GameObject, view: Mat4, projection: Mat4, tickDelta: Double, shader: Shader, debug: Int) {
 
         for(mesh in meshes) {
             shader.setFloat("alpha", mesh.alpha)
             mesh.drawInstanced(amount)
         }
 
-        if(debug and DEBUG_BONES > 0) renderBones(model, view, projection)
-        if(debug and DEBUG_COLLIDER > 0) renderCollider(view, projection, tickDelta)
+        if(debug and DEBUG_BONES > 0) renderBones(parent, view, projection)
+        if(debug and DEBUG_COLLIDER > 0) renderCollider(parent, view, projection, tickDelta)
     }
 
-    fun renderBones(model: Mat4, view: Mat4, projection: Mat4){
+    fun renderBones(parent: GameObject, view: Mat4, projection: Mat4){
         // Render Bones
         Shape.centerSquareShape2D.bind()
         val boneShader = Bone.boneShader
@@ -58,12 +59,11 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
         boneShader.setMat4("projection", projection)
 
         val bones: List<Bone> = rootBone?.getAllChildren() ?: listOf()
-        bones.forEach { it.render(boneShader, model) }
+        bones.forEach { it.render(boneShader, parent.transform.model) }
     }
 
-    fun renderCollider(view: Mat4, projection: Mat4, tickDelta: Double){
-        val colliderShader = CollisionBoxRenderer.defaultShader
-        val renderer = CollisionBoxRenderer(collisionBox, colliderShader, colliderShader.compileUniforms())
+    fun renderCollider(parent: GameObject, view: Mat4, projection: Mat4, tickDelta: Double){
+        val renderer = CollisionBoxRenderer(collisionBox, parent, CollisionBoxRenderer.defaultShader)
         renderer.setUniforms()
         renderer.render(view, projection, tickDelta)
     }
