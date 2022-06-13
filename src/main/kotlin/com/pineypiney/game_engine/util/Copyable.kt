@@ -1,5 +1,5 @@
 package com.pineypiney.game_engine.util
 
-interface Copyable<E>: Cloneable {
+interface Copyable<E> {
     fun copy(): E
 }

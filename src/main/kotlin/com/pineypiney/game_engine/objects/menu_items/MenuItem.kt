@@ -12,7 +12,7 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
 
     override var visible: Boolean = true
 
-    override val objects: MutableList<ObjectCollection> = mutableListOf()
+    override val objects: MutableSet<ObjectCollection> = mutableSetOf()
 
     override var origin: Vec2 = Vec2()
     override val size: Vec2 = Vec2()

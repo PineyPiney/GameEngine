@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.game_objects.ModelledGameObject
+import com.pineypiney.game_engine.objects.game_objects.TexturedGameObject
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
@@ -39,7 +40,9 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     }
     private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
 
+    private val texture = TexturedGameObject(ResourceKey("texture"), ResourceKey("menu_items/slider/pointer"))
     private val model = ModelledGameObject(ResourceKey("goblin"))
+
     private val text = SizedStaticText("X Part: 0.00 \n Y Part: 0.00", window)
     private val gameText = StretchyGameText("This is some Game Text", Vec2(17.78, 10), Vec4(0.0, 1.0, 1.0, 1.0))
     private val siGameText = SizedGameText("This is some Sized Game Text", 300, Vec2(11, 10), Vec4(0.0, 1.0, 1.0, 1.0))
@@ -59,22 +62,24 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     }
 
     override fun addObjects() {
+        add(texture)
+        add(model)
+
         add(button)
         add(textField)
         add(slider)
         add(list)
-        add(model)
     }
 
     private fun drawScene(tickDelta: Double){
 
         gameText.render(renderer.view, renderer.projection, tickDelta)
         siGameText.render(renderer.view, renderer.projection, tickDelta)
-        //text.drawCentered(Vec2())
-        //button.drawBottomLeft(Vec2(0.6, 0.8))
-        //textField.drawBottomLeft(Vec2(-1))
-        //slider.draw()
-        //list.draw()
+        text.drawCentered(Vec2())
+        button.drawBottomLeft(Vec2(0.6, 0.8))
+        textField.drawBottomLeft(Vec2(-1))
+        slider.draw()
+        list.draw()
 
         /*
         cycle += Timer.frameDelta.f

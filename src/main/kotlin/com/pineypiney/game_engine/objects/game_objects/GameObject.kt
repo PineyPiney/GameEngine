@@ -18,7 +18,7 @@ abstract class GameObject : Initialisable, Storable, Copyable<GameObject> {
 
     abstract val id: ResourceKey
 
-    override val objects: MutableList<ObjectCollection> = mutableListOf()
+    override val objects: MutableSet<ObjectCollection> = mutableSetOf()
 
     var transform: Transform = Transform.origin
 

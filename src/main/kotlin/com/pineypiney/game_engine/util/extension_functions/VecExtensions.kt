@@ -73,9 +73,9 @@ fun Vec3.transform(m: Mat4): Vec3 {
     return Vec3(m * Vec4(this))
 }
 
-fun Vec2.roundedString(places: Int) = "${this.x.round(places)}, ${this.y.round(places)}"
-fun Vec3.roundedString(places: Int) = "${this.x.round(places)}, ${this.y.round(places)}, ${this.z.round(places)}"
+fun Vec2.roundedString(places: Int) = "${x.round(places)}, ${y.round(places)}"
+fun Vec3.roundedString(places: Int) = "${x.round(places)}, ${y.round(places)}, ${z.round(places)}"
 
-fun Vec2.copy() = Vec2(this.x, this.y)
-fun Vec3.copy() = Vec3(this.x, this.y, this.z)
+fun Vec2.copy() = Vec2(x, y)
+fun Vec3.copy() = Vec3(x, y, z)
 
