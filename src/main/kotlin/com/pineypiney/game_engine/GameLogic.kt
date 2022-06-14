@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
@@ -37,14 +38,14 @@ abstract class GameLogic : IGameLogic {
 
     override fun onCursorMove(window: Window, cursorPos: Vec2, cursorDelta: Vec2) {
         val worldPos = camera.screenToWorld(cursorPos)
-        for (item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java)){
+        for (item in gameObjects.getAllInteractables()){
             item.hover = item.checkHover(cursorPos, worldPos)
             if(item.shouldUpdate()) item.onCursorMove(this, cursorPos, cursorDelta)
         }
     }
 
     override fun onScroll(window: Window, scrollDelta: Vec2): Int {
-        for (item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java).sortedByDescending { it.importance }){
+        for (item in gameObjects.getAllInteractables()){
             if(item.shouldUpdate()){
                 if(item.onScroll(this, scrollDelta) == Interactable.INTERRUPT) return Interactable.INTERRUPT
             }
@@ -55,7 +56,7 @@ abstract class GameLogic : IGameLogic {
     override fun onInput(state: InputState, action: Int): Int {
 
         val mousePos = input.mouse.lastPos
-        for(item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java).sortedByDescending { it.importance }){
+        for(item in gameObjects.getAllInteractables()){
             if(item.shouldUpdate()){
                 if(item.onInput(this, state, action, mousePos) == Interactable.INTERRUPT) return Interactable.INTERRUPT
             }
@@ -69,7 +70,7 @@ abstract class GameLogic : IGameLogic {
     }
 
     override fun onType(char: Char): Int {
-        for (item in gameObjects.getAllObjects().filterIsInstance(Interactable::class.java).sortedByDescending { it.importance }){
+        for (item in gameObjects.getAllInteractables()){
             if(item.shouldUpdate()){
                 if(item.onType(this, char) == Interactable.INTERRUPT) return Interactable.INTERRUPT
             }
@@ -102,7 +103,7 @@ abstract class GameLogic : IGameLogic {
 
     override fun updateAspectRatio(window: Window) {
         renderer.updateAspectRatio(window, gameObjects)
-        gameObjects.getAllObjects().filterIsInstance<Drawable>().forEach {
+        gameObjects.getAllObjects().forEachInstance<Drawable> {
             it.updateAspectRatio(window)
         }
     }

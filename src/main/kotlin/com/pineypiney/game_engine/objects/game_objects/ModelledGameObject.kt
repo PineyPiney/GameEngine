@@ -33,9 +33,9 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
     }
 
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
+        updateAnimation()
         super.render(view, projection, tickDelta)
 
-        updateAnimation()
         model.Draw(this, view, projection, tickDelta, shader, debug)
     }
 

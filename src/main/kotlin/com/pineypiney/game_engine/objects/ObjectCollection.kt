@@ -41,6 +41,11 @@ open class ObjectCollection {
         return guiItems + gameItems
     }
 
+    fun getAllInteractables(sort: Boolean = true): Set<Interactable>{
+        val items = getAllObjects().filterIsInstance<Interactable>()
+        return (if(sort) items.sortedByDescending { it.importance } else items).toSet()
+    }
+
     fun getAllCollisions(): Set<CollisionBox>{
         return getAllObjects().filterIsInstance<Collidable>().map { it.collider }.toSet()
     }

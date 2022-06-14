@@ -77,5 +77,5 @@ inline fun <reified K, reified V> Map<*, *>.asType(): Map<K, V>{
 }
 
 inline fun <reified E> Collection<*>.forEachInstance(action: (E) -> Unit){
-    filterIsInstance<E>().forEach { action(it) }
+    filterIsInstance<E>().forEach(action)
 }

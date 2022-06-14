@@ -50,6 +50,10 @@ class Transform(position: Vec2 = Vec2(), rotation: Float = 0f, scale: Vec2 = Vec
         model = I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1))
     }
 
+    operator fun component1() = position
+    operator fun component2() = rotation
+    operator fun component3() = scale
+
     override fun equals(other: Any?): Boolean {
         if(other !is Transform) return false
         return this.position == other.position &&

@@ -15,7 +15,6 @@ import com.pineypiney.game_engine.objects.menu_items.slider.BasicSlider
 import com.pineypiney.game_engine.objects.text.SizedGameText
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.StretchyGameText
-import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.round
@@ -42,7 +41,8 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
 
     private val texture = TexturedGameObject(ResourceKey("texture"), ResourceKey("menu_items/slider/pointer"))
-    private val model = ModelledGameObject(ResourceKey("goblin"), Model.DEBUG_COLLIDER)
+    private val model1 = ModelledGameObject(ResourceKey("goblin"))
+    private val model2 = ModelledGameObject(ResourceKey("goblin"))
 
     private val text = SizedStaticText("X Part: 0.00 \n Y Part: 0.00", window)
     private val gameText = StretchyGameText("This is some Game Text", Vec2(17.78, 10), Vec4(0.0, 1.0, 1.0, 1.0))
@@ -58,13 +58,16 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         gameText.init()
         siGameText.init()
 
-        model.setAnimation("Wipe Nose")
-        model.translate(Vec2(5, -5))
+        model1.setAnimation("Wipe Nose")
+        model2.setAnimation("Magic Trick")
+        model1.translate(Vec2(2, -5))
+        model2.translate(Vec2(5, -5))
     }
 
     override fun addObjects() {
         add(texture)
-        add(model)
+        add(model1)
+        add(model2)
 
         add(button)
         add(textField)
