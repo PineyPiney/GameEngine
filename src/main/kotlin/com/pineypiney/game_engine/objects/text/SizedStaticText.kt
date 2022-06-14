@@ -89,6 +89,7 @@ open class SizedStaticText(text: String, final override val window: Window, font
     }
 
     final override fun updateAspectRatio(window: Window) {
+        setDefaults(fontSize.f / 100)
         updateLines()
     }
 }

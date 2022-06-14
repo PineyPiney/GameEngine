@@ -11,7 +11,7 @@ import glm_.vec4.Vec4
 
 class ColourSlider(size: Vec2, window: Window, override var shader: Shader, val action: (Int) -> Unit) : Slider(size, 0f, 255f, 255f, window) {
 
-    override val pointer: ColourSliderPointer = ColourSliderPointer(this, size * Vec2((size.y / size.x) * (SliderPointer.pointerTexture.aspectRatio / window.aspectRatio) , 1))
+    override val pointer: ColourSliderPointer = ColourSliderPointer(this, 1f)
 
     override fun setUniforms() {
         super.setUniforms()

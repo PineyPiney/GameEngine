@@ -49,4 +49,8 @@ abstract class Slider @Throws(IllegalArgumentException::class) constructor(final
         val relative = (move - origin.x) / size.x
         value = low + (relative * range)
     }
+
+    override fun updateAspectRatio(window: Window) {
+        super.updateAspectRatio(window)
+    }
 }

@@ -149,6 +149,16 @@ open class TextField(final override var origin: Vec2, final override val size: V
                     caret = moveCaretRight(caret + 1, bind.control)
                 }
             }
+            GLFW_KEY_HOME -> {
+                if(caret > 0){
+                    caret = 0
+                }
+            }
+            GLFW_KEY_END -> {
+                if(caret < text.length){
+                    caret = text.length
+                }
+            }
         }
     }
 
@@ -182,6 +192,11 @@ open class TextField(final override var origin: Vec2, final override val size: V
             if(nextSpace >= 0) nextSpace else text.length
         }
         else caret + 1
+    }
+
+    override fun updateAspectRatio(window: Window) {
+        super.updateAspectRatio(window)
+        textBox.updateAspectRatio(window)
     }
 
     class TextFieldText(text: String, window: Window, fontSize: Number, private var limits: Vec2,
