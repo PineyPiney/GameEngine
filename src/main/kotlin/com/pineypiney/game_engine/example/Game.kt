@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.game_objects.ModelledGameObject
-import com.pineypiney.game_engine.objects.game_objects.TexturedGameObject
+import com.pineypiney.game_engine.objects.game_objects.SimpleTexturedGameObject
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
@@ -40,7 +40,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     }
     private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
 
-    private val texture = TexturedGameObject(ResourceKey("texture"), ResourceKey("menu_items/slider/pointer"))
+    private val texture = SimpleTexturedGameObject(ResourceKey("texture"), ResourceKey("menu_items/slider/pointer"))
     private val model1 = ModelledGameObject(ResourceKey("goblin"))
     private val model2 = ModelledGameObject(ResourceKey("goblin"))
 

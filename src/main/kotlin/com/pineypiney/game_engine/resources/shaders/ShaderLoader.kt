@@ -12,10 +12,10 @@ class ShaderLoader private constructor(): AbstractResourceLoader<Shader>(){
     private val shaderMap: MutableMap<ResourceKey, SubShader> = mutableMapOf()
 
     fun loadShaders(streams: Map<String, InputStream>) {
-        streams.forEach { (fileName, stream) ->
+        for((fileName, stream) in streams){
 
             val i = fileName.lastIndexOf(".")
-            if (i <= 0) return@forEach
+            if (i <= 0) continue
             val suf = fileName.substring(i + 1)
 
             val type = when(suf){
@@ -25,7 +25,7 @@ class ShaderLoader private constructor(): AbstractResourceLoader<Shader>(){
                 else -> 0
             }
 
-            loadShader(fileName.removePrefix("shaders/").removeSuffix(".$suf"), stream.readBytes(), type)
+            loadShader(fileName.removeSuffix(".$suf"), stream.readBytes(), type)
 
             stream.close()
         }

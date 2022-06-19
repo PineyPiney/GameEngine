@@ -14,7 +14,7 @@ class VideoLoader private constructor(): AbstractResourceLoader<Video>() {
             if (i <= 0) return@forEach
             val type = fileName.substring(i + 1)
 
-            //loadVideo(fileName.removePrefix("video/").removeSuffix(".$type"), BufferedInputStream(stream))
+            //loadVideo(fileName.removeSuffix(".$type"), BufferedInputStream(stream))
 
             stream.close()
         }

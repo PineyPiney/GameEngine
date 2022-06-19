@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.resources.AbstractResourceLoader
-import com.pineypiney.game_engine.resources.ResourceLoader
+import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.delete
 import org.lwjgl.opengl.GL46C.*
@@ -20,14 +20,14 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
             if (i <= 0) return@forEach
             val type = fileName.substring(i + 1)
 
-            loadTexture(fileName.removePrefix("textures/").removeSuffix(".$type"), stream)
+            loadTexture(fileName.removeSuffix(".$type"), stream)
 
             stream.close()
         }
     }
 
     private fun loadTexture(name: String, stream: InputStream){
-        textures[ResourceKey(name)] = loadTextures(name, ResourceLoader.ioResourceToByteBuffer(stream, 1024))
+        textures[ResourceKey(name)] = loadTextures(name, ResourcesLoader.ioResourceToByteBuffer(stream, 1024))
     }
 
     private fun loadTextures(name: String, buffer: ByteBuffer): Texture{

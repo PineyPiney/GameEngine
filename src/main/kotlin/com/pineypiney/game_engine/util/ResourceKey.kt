@@ -1,15 +1,13 @@
 package com.pineypiney.game_engine.util
 
-import com.pineypiney.game_engine.resources.s
-
 class ResourceKey(key: String) {
 
     val key: String
 
     init {
-        this.key = key.replace("\\", s)
-            .replace("/", s)
-            .replace(";", s)
+        this.key = key.replace('\\', '/')
+            .replace('/', '/')
+            .replace(';', '/')
     }
 
     // Equals is used for any other occasions where it doesn't use the HashCode

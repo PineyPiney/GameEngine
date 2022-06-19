@@ -19,7 +19,7 @@ class AudioLoader private constructor(): AbstractResourceLoader<Audio>() {
             if (i <= 0) return@forEach
             val type = fileName.substring(i + 1)
 
-            loadAudio(fileName.removePrefix("audio/").removeSuffix(".$type"), AudioSystem.getAudioInputStream(BufferedInputStream(stream)))
+            loadAudio(fileName.removeSuffix(".$type"), AudioSystem.getAudioInputStream(BufferedInputStream(stream)))
 
             stream.close()
         }

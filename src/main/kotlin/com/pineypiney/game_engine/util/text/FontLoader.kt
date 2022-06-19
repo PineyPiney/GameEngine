@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.util.text
 
-import com.pineypiney.game_engine.resources.ResourceLoader
+import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.c
@@ -12,9 +12,9 @@ class FontLoader private constructor() {
 
     private val fonts = mutableMapOf<ResourceKey, Font>()
 
-    fun loadFontWithTexture(fontName: String, letterWidth: Int, letterHeight: Int, charSpacing: Int, shader: Shader = Font.fontShader){
+    fun loadFontWithTexture(fontName: String, resourcesLoader: ResourcesLoader, letterWidth: Int, letterHeight: Int, charSpacing: Int, shader: Shader = Font.fontShader){
 
-        val stream: InputStream = ResourceLoader.getStream("textures/fonts/$fontName")
+        val stream: InputStream = resourcesLoader.getStream("textures/fonts/$fontName")
 
         if(stream.available() < 1){
             println("Font $fontName does not exist")

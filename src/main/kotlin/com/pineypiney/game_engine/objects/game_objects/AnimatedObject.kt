@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.mat4x4.Mat4
 
-abstract class AnimatedObject(id: ResourceKey): TexturedGameObject(id, Texture.brokeTexture), Animatable {
+abstract class AnimatedObject(id: ResourceKey): SimpleTexturedGameObject(id, Texture.brokeTexture), Animatable {
 
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
 

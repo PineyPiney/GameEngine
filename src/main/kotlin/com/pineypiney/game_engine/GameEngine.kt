@@ -1,13 +1,13 @@
 //do you have a hernia
 package com.pineypiney.game_engine
 
-import com.pineypiney.game_engine.resources.ResourceLoader
+import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.text.FontLoader
 import glm_.c
 import glm_.f
 import org.lwjgl.glfw.GLFW.glfwTerminate
 
-abstract class GameEngine(val window: Window) : Runnable {
+abstract class GameEngine(val window: Window, val resourcesLoader: ResourcesLoader) : Runnable {
 
     abstract var TARGET_FPS: Int
     abstract val TARGET_UPS: Int
@@ -23,12 +23,12 @@ abstract class GameEngine(val window: Window) : Runnable {
 
     init{
         // Load the resources for the game
-        ResourceLoader.INSTANCE.loadResources()
+        resourcesLoader.loadResources()
 
         // Create all the fonts
-        FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", 128, 256, 8)
-        FontLoader.INSTANCE.loadFontWithTexture("ExportedFont.png", 32, 64, 2)
-        FontLoader.INSTANCE.loadFontWithTexture("PixelFont.png", 32, 64, 2)
+        FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", resourcesLoader, 128, 256, 8)
+        FontLoader.INSTANCE.loadFontWithTexture("ExportedFont.png", resourcesLoader, 32, 64, 2)
+        FontLoader.INSTANCE.loadFontWithTexture("PixelFont.png", resourcesLoader, 32, 64, 2)
     }
 
     override fun run() {
@@ -127,7 +127,7 @@ abstract class GameEngine(val window: Window) : Runnable {
     }
 
     protected open fun cleanUp() {
-        ResourceLoader.INSTANCE.cleanUp()
+        resourcesLoader.cleanUp()
         activeScreen.cleanUp()
         glfwTerminate()
     }

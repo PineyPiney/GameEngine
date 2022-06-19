@@ -97,8 +97,17 @@ abstract class Shape: Deleteable {
             -1,  1,     0, 1,
         )
 
-        val cornerSquareShape2D = IndicesShape(cornerSquareVertices, intArrayOf(2, 2), intArrayOf(0, 1, 2, 2, 3, 0))
-        val centerSquareShape2D = IndicesShape(centerSquareVertices, intArrayOf(2, 2), intArrayOf(0, 1, 2, 2, 3, 0))
-        val screenQuadShape = IndicesShape(screenQuadVertices, intArrayOf(2, 2), intArrayOf(0, 1, 2, 2, 3, 0))
+        val footSquareVertices = floatArrayOf(
+            -0.5, 0, 0, 0,
+            -0.5, 1, 0, 1,
+            0.5, 1, 1, 1,
+            0.5, 0, 1, 0
+        )
+
+
+        val cornerSquareShape2D = SquareShape(cornerSquareVertices)
+        val centerSquareShape2D = SquareShape(centerSquareVertices)
+        val screenQuadShape = SquareShape(screenQuadVertices)
+        val footSquare = SquareShape(footSquareVertices)
     }
 }

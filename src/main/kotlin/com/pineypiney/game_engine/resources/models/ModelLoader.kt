@@ -3,11 +3,11 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
 import com.pineypiney.game_engine.resources.AbstractResourceLoader
 import com.pineypiney.game_engine.resources.models.animations.*
-import com.pineypiney.game_engine.resources.s
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.*
+import com.pineypiney.game_engine.util.s
 import glm_.f
 import glm_.i
 import glm_.mat4x4.Mat4
@@ -80,7 +80,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
 
             val newModel = Model(meshes.toTypedArray().reversedArray(), bones.getOrNull(0)?.getRoot(), animations, fileName)
             newModel.collisionBox = physics.collision
-            modelMap[ResourceKey(fileName.removePrefix("models/").removeSuffix(".pgm"))] = newModel
+            modelMap[ResourceKey(fileName.removeSuffix(".pgm"))] = newModel
         }
     }
 

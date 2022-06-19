@@ -4,7 +4,6 @@ import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.util.Transform
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.isWithin
@@ -84,9 +83,5 @@ abstract class GameObject : Initialisable, Storable, Copyable<GameObject> {
 
     override fun delete() {
         for(o in objects) { o.gameItems.remove(this) }
-    }
-
-    companion object{
-        val defaultShader = ShaderLoader.getShader(ResourceKey("vertex\\2D"), ResourceKey("fragment\\texture"))
     }
 }

@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine
 
-import com.pineypiney.game_engine.resources.ResourceLoader
+import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.input.Inputs
 import glm_.f
 import glm_.i
@@ -11,6 +11,7 @@ import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11C.glViewport
 import org.lwjgl.stb.STBImage
+import java.io.InputStream
 
 
 abstract class Window(title: String, var width: Int, var height: Int, vSync: Boolean) {
@@ -117,8 +118,8 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         glfwSetWindowIcon(this.windowHandle, icon)
     }
 
-    fun setIcon(icon: String){
-        var iconByteBuffer = ResourceLoader.ioResourceToByteBuffer(ResourceLoader.getStream(icon), 1024)
+    fun setIcon(icon: InputStream){
+        var iconByteBuffer = ResourcesLoader.ioResourceToByteBuffer(icon, 1024)
         val width = IntArray(1)
         val height = IntArray(1)
         val channel = IntArray(1)
