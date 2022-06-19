@@ -14,7 +14,7 @@ class FontLoader private constructor() {
 
     fun loadFontWithTexture(fontName: String, resourcesLoader: ResourcesLoader, letterWidth: Int, letterHeight: Int, charSpacing: Int, shader: Shader = Font.fontShader){
 
-        val stream: InputStream = resourcesLoader.getStream("textures/fonts/$fontName")
+        val stream: InputStream = resourcesLoader.getStream("textures/fonts/$fontName") ?: return
 
         if(stream.available() < 1){
             println("Font $fontName does not exist")

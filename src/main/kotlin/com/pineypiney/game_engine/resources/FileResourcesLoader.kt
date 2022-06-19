@@ -16,17 +16,16 @@ open class FileResourcesLoader(val file: File) : ResourcesLoader(){
         else file.walk().filter { !it.isDirectory }.map { it.canonicalPath.removePrefix(file.canonicalPath + s).replace(s, '/') }.toSet()
     }
 
-
-    override fun getStream(name: String): InputStream {
+    override fun getStream(name: String): InputStream? {
+        val path = file.canonicalPath + s + name
         return try {
-            val path = file.canonicalPath + s + name
             val file = File(path)
             file.inputStream()
         }
         catch (e: FileNotFoundException){
-            println("Could not find file $name")
-            InputStream.nullInputStream()
+            println("Could not find resource file $path")
+            e.printStackTrace()
+            null
         }
-
     }
 }

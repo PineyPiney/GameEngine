@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.video.VideoLoader
+import com.pineypiney.game_engine.util.extension_functions.removeNullValues
 import org.lwjgl.BufferUtils
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -21,10 +22,10 @@ abstract class ResourcesLoader {
 
     abstract val streamList: Set<String>
 
-    abstract fun getStream(name: String): InputStream
+    abstract fun getStream(name: String): InputStream?
 
     fun getStreams(): Map<String, InputStream> {
-        return streamList.associateWith { entry -> getStream(entry) }
+        return streamList.associateWith { entry -> getStream(entry) }.removeNullValues()
     }
 
     fun loadResources(){

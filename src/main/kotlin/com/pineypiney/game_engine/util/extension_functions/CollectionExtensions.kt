@@ -24,6 +24,10 @@ fun <E: Deleteable> Map<*, E?>.delete(){
     for(i in this) i.value?.delete()
 }
 
+inline fun <reified E> Collection<*>.forEachInstance(action: (E) -> Unit){
+    filterIsInstance<E>().forEach(action)
+}
+
 fun <E> MutableCollection<E>.popFirst(predicate: (E) -> Boolean): E{
     val pop = first(predicate)
     remove(pop)
@@ -76,6 +80,10 @@ inline fun <reified K, reified V> Map<*, *>.asType(): Map<K, V>{
     return map.toMap()
 }
 
-inline fun <reified E> Collection<*>.forEachInstance(action: (E) -> Unit){
-    filterIsInstance<E>().forEach(action)
+inline fun <reified K, reified V> Map<K?, V>.removeNullKeys(): Map<K, V>{
+    return this.entries.filter { it.key != null }.associate { it.key!! to it.value }
+}
+
+inline fun <reified K, reified V> Map<K, V?>.removeNullValues(): Map<K, V>{
+    return this.entries.filter { it.value != null }.associate { it.key to it.value!! }
 }
