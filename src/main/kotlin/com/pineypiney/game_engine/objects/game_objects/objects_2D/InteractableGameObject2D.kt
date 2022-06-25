@@ -1,11 +1,11 @@
-package com.pineypiney.game_engine.objects.game_objects
+package com.pineypiney.game_engine.objects.game_objects.objects_2D
 
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import glm_.vec2.Vec2
 
-abstract class InteractableGameObject(shader: Shader): RenderedGameObject(shader), Interactable {
+abstract class InteractableGameObject2D(shader: Shader): RenderedGameObject2D(shader), Interactable {
 
     override val children: MutableSet<Interactable> = mutableSetOf()
     override var forceUpdate: Boolean = false

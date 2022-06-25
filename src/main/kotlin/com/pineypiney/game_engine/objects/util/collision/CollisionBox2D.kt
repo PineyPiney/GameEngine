@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.util.collision
 
-import com.pineypiney.game_engine.objects.game_objects.GameObject
+import com.pineypiney.game_engine.objects.game_objects.objects_2D.GameObject2D
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.extension_functions.absMinOf
 import com.pineypiney.game_engine.util.extension_functions.copy
@@ -9,7 +9,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import kotlin.math.abs
 
-abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size: Vec2): Copyable<CollisionBox> {
+abstract class CollisionBox2D(var parent: GameObject2D?, val origin: Vec2, val size: Vec2): Copyable<CollisionBox2D> {
 
     var active: Boolean = true
 
@@ -24,17 +24,17 @@ abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size:
     val width; get() = worldScale.x
     val height; get() = worldScale.y
 
-    infix fun collidesWith(other: CollisionBox): Boolean{
+    infix fun collidesWith(other: CollisionBox2D): Boolean{
         return this.parent != other.parent && this.active && other.active &&
                 !(this.left > other.right || other.left > this.right || this.bottom > other.top || other.bottom > this.top)
     }
 
-    fun isColliding(collisions: Collection<CollisionBox> = parent?.objects?.flatMap { it.getAllCollisions() } ?: emptySet()): Boolean{
+    fun isColliding(collisions: Collection<CollisionBox2D> = parent?.objects?.flatMap { it.getAllCollisions() } ?: emptySet()): Boolean{
         for(c in collisions.toSet()) if(this collidesWith c) return true
         return false
     }
 
-    fun getEjectionVector(other: CollisionBox): Vec2{
+    fun getEjectionVector(other: CollisionBox2D): Vec2{
         if(!(this collidesWith other)) return Vec2()
 
         val eLeft = other.left - this.right
@@ -48,7 +48,7 @@ abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size:
             else Vec2(0, smallest)
     }
 
-    fun checkAllCollisions(obj: GameObject, movement: Vec2): Vec2{
+    fun checkAllCollisions(obj: GameObject2D, movement: Vec2): Vec2{
 
         val collidedMove = movement.copy()
 

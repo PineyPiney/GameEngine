@@ -11,7 +11,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 import glm_.mat4x4.Mat4
 import glm_.vec4.Vec4
 
-class CollisionBoxRenderer(val collider: CollisionBox, val parent: GameObject, override val shader: Shader): Renderable, Shaded {
+class CollisionBoxRenderer(val collider: CollisionBox2D, val parent: GameObject, override val shader: Shader): Renderable, Shaded {
 
     override var visible: Boolean = true
     val shape = Shape.cornerSquareShape2D

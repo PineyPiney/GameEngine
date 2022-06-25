@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.game_objects.GameObject
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
-import com.pineypiney.game_engine.objects.util.collision.CollisionBox
+import com.pineypiney.game_engine.objects.util.collision.CollisionBox2D
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 
@@ -44,7 +44,7 @@ open class ObjectCollection {
         return (if(sort) items.sortedByDescending { it.importance } else items).toSet()
     }
 
-    fun getAllCollisions(): Set<CollisionBox>{
+    fun getAllCollisions(): Set<CollisionBox2D>{
         return getAllObjects().filterIsInstance<Collidable>().map { it.collider }.toSet()
     }
 

@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.objects.game_objects.Transform
+import com.pineypiney.game_engine.objects.game_objects.transforms.Transform2D
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
 import glm_.f
@@ -25,7 +25,7 @@ open class StretchyGameText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
     final override val maxHeight: Float
         get() = super.maxHeight
 
-    override val transform: Transform = Transform()
+    override val transform: Transform2D = Transform2D()
 
     override fun init() {
         super.init()

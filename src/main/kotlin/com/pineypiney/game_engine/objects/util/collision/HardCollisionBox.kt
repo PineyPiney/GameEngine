@@ -1,12 +1,12 @@
 package com.pineypiney.game_engine.objects.util.collision
 
-import com.pineypiney.game_engine.objects.game_objects.GameObject
+import com.pineypiney.game_engine.objects.game_objects.objects_2D.GameObject2D
 import com.pineypiney.game_engine.util.extension_functions.copy
 import glm_.vec2.Vec2
 
-class HardCollisionBox(parent: GameObject?, origin: Vec2, size: Vec2): CollisionBox(parent, origin, size) {
+class HardCollisionBox(parent: GameObject2D?, origin: Vec2, size: Vec2): CollisionBox2D(parent, origin, size) {
 
-    override fun copy(): CollisionBox {
+    override fun copy(): CollisionBox2D {
         val new = HardCollisionBox(parent, origin.copy(), size.copy())
         new.active = this.active
         return new

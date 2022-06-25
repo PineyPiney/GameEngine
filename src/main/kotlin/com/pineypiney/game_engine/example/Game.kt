@@ -5,8 +5,9 @@ import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.Interactable
-import com.pineypiney.game_engine.objects.game_objects.ModelledGameObject
-import com.pineypiney.game_engine.objects.game_objects.SimpleTexturedGameObject
+import com.pineypiney.game_engine.objects.game_objects.objects_2D.ModelledGameObject2D
+import com.pineypiney.game_engine.objects.game_objects.objects_2D.SimpleTexturedGameObject2D
+import com.pineypiney.game_engine.objects.game_objects.objects_3D.SimpleTexturedGameObject3D
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
@@ -19,11 +20,14 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.roundedString
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.input.Inputs
 import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.opengl.GL11C.GL_DEPTH_TEST
+import org.lwjgl.opengl.GL11C.glDisable
 
 class Game(override val gameEngine: GameEngine): GameLogic() {
 
@@ -40,9 +44,11 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     }
     private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
 
-    private val texture = SimpleTexturedGameObject(ResourceKey("texture"), ResourceKey("menu_items/slider/pointer"))
-    private val model1 = ModelledGameObject(ResourceKey("goblin"))
-    private val model2 = ModelledGameObject(ResourceKey("goblin"))
+    private val texture = SimpleTexturedGameObject2D(ResourceKey("texture"), ResourceKey("menu_items/slider/pointer"))
+    private val model1 = ModelledGameObject2D(ResourceKey("goblin"))
+    private val model2 = ModelledGameObject2D(ResourceKey("goblin"))
+
+    private val object3D = SimpleTexturedGameObject3D(ResourceKey("3d"), ResourceKey("broke"))
 
     private val text = SizedStaticText("X Part: 0.00 \n Y Part: 0.00", window)
     private val gameText = StretchyGameText("This is some Game Text", Vec2(17.78, 10), Vec4(0.0, 1.0, 1.0, 1.0))
@@ -68,6 +74,8 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         add(texture)
         add(model1)
         add(model2)
+
+        add(object3D.apply { translate(Vec3(-2, 0, 0)) })
 
         add(button)
         add(textField)
@@ -100,6 +108,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
 
     override fun render(window: Window, tickDelta: Double) {
         super.render(window, tickDelta)
+        glDisable(GL_DEPTH_TEST)
         drawScene(tickDelta)
 
         val speed = 10
@@ -128,6 +137,12 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         if(action == 0) pressedKeys.remove(state.key)
         else pressedKeys.add(state.key)
         return action
+    }
+
+    override fun update(interval: Float, input: Inputs) {
+        super.update(interval, input)
+
+        object3D.rotate(Vec3(0.5, 1, 1.5) * interval)
     }
 
     override fun updateAspectRatio(window: Window) {

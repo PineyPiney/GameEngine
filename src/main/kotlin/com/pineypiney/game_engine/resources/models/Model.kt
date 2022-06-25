@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.objects.game_objects.GameObject
-import com.pineypiney.game_engine.objects.util.collision.CollisionBox
+import com.pineypiney.game_engine.objects.util.collision.CollisionBox2D
 import com.pineypiney.game_engine.objects.util.collision.CollisionBoxRenderer
 import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
 import com.pineypiney.game_engine.objects.util.shapes.Shape
@@ -25,7 +25,7 @@ import org.lwjgl.assimp.Assimp.aiProcess_Triangulate
 
 class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<Animation>, val name: String = "broke", val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource(), Copyable<Model> {
 
-    var collisionBox: CollisionBox = SoftCollisionBox(null, Vec2(), Vec2(1))
+    var collisionBox: CollisionBox2D = SoftCollisionBox(null, Vec2(), Vec2(1))
 
     fun Draw(parent: GameObject, view: Mat4, projection: Mat4, tickDelta: Double, shader: Shader, debug: Int = 0) {
 

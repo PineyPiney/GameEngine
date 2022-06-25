@@ -9,6 +9,8 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 import com.pineypiney.game_engine.util.maths.I
+import org.lwjgl.opengl.GL11C.GL_DEPTH_TEST
+import org.lwjgl.opengl.GL11C.glEnable
 
 class Renderer(override val window: Window): BufferedGameRenderer() {
 
@@ -27,6 +29,7 @@ class Renderer(override val window: Window): BufferedGameRenderer() {
         projection = getPerspective(window, camera)
 
         clearFrameBuffer()
+        glEnable(GL_DEPTH_TEST)
         game.gameObjects.gameItems.forEachInstance<Renderable> { it.render(view, projection, tickDelta) }
 
         // This draws the buffer onto the screen

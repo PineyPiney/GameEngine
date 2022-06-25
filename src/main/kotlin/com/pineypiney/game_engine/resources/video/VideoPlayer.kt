@@ -43,7 +43,7 @@ class VideoPlayer(val video: Video, override var origin: Vec2 = Vec2(-1, -1), ov
     }
 
     companion object{
-        val shape = Shape.cornerSquareShape3D
+        val shape = Shape.cornerSquareShape2D
         val shader = MenuItem.opaqueTextureShader
     }
 }

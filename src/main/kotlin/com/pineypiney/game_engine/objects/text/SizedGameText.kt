@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.objects.game_objects.Transform
+import com.pineypiney.game_engine.objects.game_objects.transforms.Transform2D
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
 import glm_.f
@@ -21,7 +21,7 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
                 shader: Shader = gameTextShader):
             this(text, fontSize, colour, bounds.x, bounds.y, separation, font, shader)
 
-    override val transform: Transform = Transform()
+    override val transform: Transform2D = Transform2D()
 
     init {
         setDefaults(fontSize.f / 100)

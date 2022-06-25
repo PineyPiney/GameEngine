@@ -1,6 +1,7 @@
-package com.pineypiney.game_engine.objects.game_objects
+package com.pineypiney.game_engine.objects.game_objects.objects_3D
 
 import com.pineypiney.game_engine.Timer
+import com.pineypiney.game_engine.objects.game_objects.GameObject
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.models.animations.Animation
@@ -10,7 +11,7 @@ import glm_.i
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
-open class ModelledGameObject(final override val id: ResourceKey, val debug: Int = 0): RenderedGameObject(if(debug and Model.DEBUG_MESH > 0) debugShader else defaultShader) {
+open class ModelledGameObject3D(final override val id: ResourceKey, val debug: Int = 0): RenderedGameObject3D(if(debug and Model.DEBUG_MESH > 0) debugShader else defaultShader) {
 
     val model: Model = ModelLoader.getModel(id)
 
@@ -36,13 +37,6 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
         super.render(view, projection, tickDelta)
 
         model.Draw(this, view, projection, tickDelta, shader, debug)
-    }
-
-    override fun renderInstanced(transforms: Array<Transform>, view: Mat4, projection: Mat4, tickDelta: Double) {
-        super.renderInstanced(transforms, view, projection, tickDelta)
-
-        updateAnimation()
-        model.DrawInstanced(transforms.size, this, view, projection, tickDelta, shader, debug)
     }
 
     fun initAnimation(animation: Animation, loop: Boolean = true){
@@ -92,7 +86,7 @@ open class ModelledGameObject(final override val id: ResourceKey, val debug: Int
     }
 
     override fun copy(): GameObject {
-        return ModelledGameObject(id, debug)
+        return ModelledGameObject3D(id, debug)
     }
 
     companion object{
