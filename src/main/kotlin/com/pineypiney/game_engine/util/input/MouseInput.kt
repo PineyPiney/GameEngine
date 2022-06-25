@@ -55,7 +55,7 @@ open class MouseInput(val input: Inputs) {
     }
 
     fun update(time: Double){
-        buttonStates.forEach { (button, buttonTime) ->
+        for((button, buttonTime) in buttonStates){
             if(buttonTime != -1f && time > buttonTime + 1){
                 input.onInput(button, GLFW_REPEAT, ControlType.MOUSE)
             }

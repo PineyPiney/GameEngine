@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.util.text.Font
+import com.pineypiney.game_engine.resources.text.Font
 import glm_.f
 import glm_.i
 import glm_.vec2.Vec2

@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects
 
-import com.pineypiney.game_engine.objects.util.Transform
+import com.pineypiney.game_engine.objects.game_objects.Transform
 import glm_.mat4x4.Mat4
 
 interface Renderable: Visual, Shaded {

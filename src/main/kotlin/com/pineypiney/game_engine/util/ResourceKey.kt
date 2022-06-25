@@ -6,7 +6,6 @@ class ResourceKey(key: String) {
 
     init {
         this.key = key.replace('\\', '/')
-            .replace('/', '/')
             .replace(';', '/')
     }
 

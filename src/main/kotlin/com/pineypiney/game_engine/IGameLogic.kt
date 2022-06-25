@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine
 
-import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.Storable
-import com.pineypiney.game_engine.renderers.GameRenderer
+import com.pineypiney.game_engine.rendering.GameRenderer
+import com.pineypiney.game_engine.rendering.cameras.Camera
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import glm_.vec2.Vec2

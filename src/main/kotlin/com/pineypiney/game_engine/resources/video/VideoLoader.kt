@@ -8,10 +8,10 @@ class VideoLoader private constructor(): AbstractResourceLoader<Video>() {
 
 
     fun loadVideos(streams: Map<String, InputStream>) {
-        streams.forEach { (fileName, stream) ->
+        for((fileName, stream) in streams){
 
             val i = fileName.lastIndexOf(".")
-            if (i <= 0) return@forEach
+            if (i <= 0) continue
             val type = fileName.substring(i + 1)
 
             //loadVideo(fileName.removeSuffix(".$type"), BufferedInputStream(stream))

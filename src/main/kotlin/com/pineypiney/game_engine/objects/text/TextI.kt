@@ -4,8 +4,8 @@ import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.Shaded
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.delete
-import com.pineypiney.game_engine.util.text.Font
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4

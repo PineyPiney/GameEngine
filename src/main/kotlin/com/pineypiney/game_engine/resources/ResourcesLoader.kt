@@ -16,6 +16,7 @@ abstract class ResourcesLoader {
 
     open val shaderLocation = "shaders/"
     open val textureLocation = "textures/"
+    open val fontLocation = "textures/fonts/"
     open val audioLocation = "audio/"
     open val videoLocation = "videos/"
     open val modelLocation = "models/"
@@ -33,7 +34,7 @@ abstract class ResourcesLoader {
         val streamMap = getStreams()
 
         ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) })
-        TextureLoader.INSTANCE.loadTextures(streamMap.filter { it.key.startsWith(textureLocation) }.mapKeys { it.key.removePrefix(textureLocation) })
+        TextureLoader.INSTANCE.loadTexture(streamMap.filter { it.key.startsWith(textureLocation) }.mapKeys { it.key.removePrefix(textureLocation) })
         AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }.mapKeys { it.key.removePrefix(audioLocation) })
         VideoLoader.INSTANCE.loadVideos(streamMap.filter { it.key.startsWith(videoLocation) }.mapKeys { it.key.removePrefix(videoLocation) })
         ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) })

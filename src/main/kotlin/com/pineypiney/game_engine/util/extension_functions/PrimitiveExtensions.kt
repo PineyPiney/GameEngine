@@ -4,34 +4,79 @@ import glm_.f
 import glm_.pow
 import kotlin.math.*
 
-
+/**
+ * Round the double to [places] decimal places
+ *
+ * @param places The number of decimal places to round to
+ *
+ * @return The rounded value of the double
+ */
 fun Double.round(places: Int): Double{
     val mult = 10.0.pow(places)
     return (mult * this).roundToInt()/mult
 }
 
+/**
+ * Round the float to [places] decimal places
+ *
+ * @param places The number of decimal places to round to
+ *
+ * @return The rounded value of the float
+ */
 fun Float.round(places: Int): Float{
     val mult = 10f.pow(places)
     return (mult * this).roundToInt()/mult
 }
 
-fun Float.isWithin(left: Float, size: Float): Boolean{
-    return left < this && this < left + size
+/**
+ * Check if [this] is larger than [min] but not by more than [size]
+ *
+ * @param min The minimum value the value can be
+ * @param size The range the value can fall within, starting at [min]
+ *
+ * @return If [this] is within these criteria
+ */
+fun Float.isWithin(min: Float, size: Float): Boolean{
+    return min < this && this < min + size
 }
 
-fun Float.isBetween(left: Float, right: Float): Boolean{
-    return left < this && this < right
+/**
+ * Check if [this] is larger than [min] and smaller than [max]
+ *
+ * @param min The minimum value the value can be
+ * @param max The maximum value the value can be
+ *
+ * @return If [this] is within these criteria
+ */
+fun Float.isBetween(min: Float, max: Float): Boolean{
+    return min < this && this < max
 }
 
 
 // Interpolation Functions
 
+/**
+ * Linearly interpolate between [this] and [next] by [delta]
+ *
+ * @param next The return value when [delta] is 1
+ * @param delta The value of interpolation. When 0 [this] is returned, when 1 [next] is returned
+ *
+ * @return The interpolated value
+ */
 fun Double.lerp(next: Double, delta: Double): Double{
     return this + ((next - this) * delta)
 }
 
 // Interpolate floats, assuming they are between 0 and 1
+/**
+ * Sin interpolate between 0 and 1, using [this] as delta
+ */
 fun Float.serp(): Float = 0.5f + 0.5f * sin((this - 0.5) * PI).f
+/**
+ * Exponentially interpolate between 0 and 1, using [this] as delta
+ *
+ * @param [exponent] The exponent to interpolate with. A greater value will mean a steeper curve nearer 0.5
+ */
 fun Float.eerp(exponent: Int): Float =
     if(this < 0.5){
         0.5 * pow(exponent) / 0.5.pow(exponent)
@@ -39,7 +84,13 @@ fun Float.eerp(exponent: Int): Float =
     else{
         1 - 0.5 * ((1f - this).pow(exponent) / 0.5.pow(exponent))
     }.f
+/**
+ * Quadratically interpolate between 0 and 1, using [this] as delta
+ */
 fun Float.querp(): Float = eerp(2)
+/**
+ * Cubically interpolate between 0 and 1, using [this] as delta
+ */
 fun Float.cerp(): Float = eerp(3)
 
 // Simple Interpolation functions
@@ -102,16 +153,18 @@ fun Int.wrap(min: Int, max: Int): Int{
     return min + rem
 }
 
+/**
+ * Return the value with the smallest absolute value
+ */
 fun absMinOf(a: Float, vararg other: Float): Float{
-    var min = a
-    other.forEach {
-        if (abs(it) < abs(min)) min = it
-    }
-    return min
+    return (other + a).minByOrNull { abs(it) } ?: 0f
 }
 
 // Yes I know Strings aren't primitive types, STFU
 
+/**
+ * Replace all whitespaces with [replace]
+ */
 fun String.replaceWhiteSpaces(replace: String = ""): String{
     return replace(Regex("\\s+"), replace)
 }

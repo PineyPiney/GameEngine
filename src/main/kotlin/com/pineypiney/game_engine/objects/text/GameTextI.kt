@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.objects.Renderable
-import com.pineypiney.game_engine.objects.util.Transform
+import com.pineypiney.game_engine.objects.game_objects.Transform
 
 interface GameTextI: TextI, Renderable {
 

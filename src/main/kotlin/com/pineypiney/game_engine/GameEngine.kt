@@ -2,7 +2,7 @@
 package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.resources.ResourcesLoader
-import com.pineypiney.game_engine.util.text.FontLoader
+import com.pineypiney.game_engine.resources.text.FontLoader
 import glm_.c
 import glm_.f
 import org.lwjgl.glfw.GLFW.glfwTerminate

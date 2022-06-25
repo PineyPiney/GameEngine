@@ -2,8 +2,8 @@ package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
-import com.pineypiney.game_engine.util.text.Font
 import glm_.c
 import glm_.f
 import glm_.i

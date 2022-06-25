@@ -2,10 +2,12 @@ package com.pineypiney.game_engine.example
 
 import com.pineypiney.game_engine.IGameLogic
 import com.pineypiney.game_engine.Window
-import com.pineypiney.game_engine.cameras.Camera
-import com.pineypiney.game_engine.renderers.BufferedGameRenderer
+import com.pineypiney.game_engine.objects.Renderable
+import com.pineypiney.game_engine.rendering.BufferedGameRenderer
+import com.pineypiney.game_engine.rendering.cameras.Camera
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 import com.pineypiney.game_engine.util.maths.I
 
 class Renderer(override val window: Window): BufferedGameRenderer() {
@@ -25,7 +27,7 @@ class Renderer(override val window: Window): BufferedGameRenderer() {
         projection = getPerspective(window, camera)
 
         clearFrameBuffer()
-        game.gameObjects.forEachRendered { it.render(view, projection, tickDelta) }
+        game.gameObjects.gameItems.forEachInstance<Renderable> { it.render(view, projection, tickDelta) }
 
         // This draws the buffer onto the screen
         clearFrameBuffer(0)

@@ -58,9 +58,9 @@ abstract class CollisionBox(var parent: GameObject?, val origin: Vec2, val size:
 
         // Iterate over all collision boxes sharing object collections and
         // eject this collision boxes object if the collision boxes collide
-        obj.objects.forEach {
-            it.forEachCollision { box ->
-                if(box != this) collidedMove plusAssign  newCollision.getEjectionVector(box)
+        for(o in obj.objects){
+            for(box in o.getAllCollisions()) {
+                if(box != this) collidedMove plusAssign newCollision.getEjectionVector(box)
             }
         }
 

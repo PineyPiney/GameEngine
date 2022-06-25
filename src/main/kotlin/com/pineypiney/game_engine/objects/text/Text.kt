@@ -4,8 +4,8 @@ import com.pineypiney.game_engine.objects.Visual
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
+import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.text.Font
 import glm_.vec4.Vec4
 
 abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),

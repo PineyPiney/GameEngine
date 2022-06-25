@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.objects.util.Transform
+import com.pineypiney.game_engine.objects.game_objects.Transform
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.util.text.Font
+import com.pineypiney.game_engine.resources.text.Font
 import glm_.f
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2

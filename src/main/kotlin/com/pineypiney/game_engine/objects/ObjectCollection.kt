@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.objects
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.game_objects.GameObject
-import com.pineypiney.game_engine.objects.game_objects.RenderedGameObject
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox
 import com.pineypiney.game_engine.util.extension_functions.delete
@@ -10,8 +9,7 @@ import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 
 open class ObjectCollection {
 
-    open var gameItems = mutableSetOf<GameObject>()
-
+    open val gameItems = mutableSetOf<GameObject>()
     open val guiItems = mutableSetOf<MenuItem>()
 
     open fun addObject(o: Storable?){
@@ -48,18 +46,6 @@ open class ObjectCollection {
 
     fun getAllCollisions(): Set<CollisionBox>{
         return getAllObjects().filterIsInstance<Collidable>().map { it.collider }.toSet()
-    }
-
-    fun forEachItem(action: (it: GameObject) -> Unit){
-        gameItems.forEach(action)
-    }
-
-    fun forEachRendered(action: (RenderedGameObject) -> Unit){
-        gameItems.forEachInstance(action)
-    }
-
-    fun forEachCollision(action: (it: CollisionBox) -> Unit){
-        getAllCollisions().forEach(action)
     }
 
     fun delete(){

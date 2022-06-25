@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.objects.util
+package com.pineypiney.game_engine.objects.game_objects
 
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.extension_functions.copy

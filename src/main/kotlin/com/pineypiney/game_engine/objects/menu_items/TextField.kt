@@ -7,12 +7,12 @@ import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.text.Font
+import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.maths.I
-import com.pineypiney.game_engine.util.text.Font
-import com.pineypiney.game_engine.util.text.FontLoader
 import glm_.c
 import glm_.i
 import glm_.vec2.Vec2

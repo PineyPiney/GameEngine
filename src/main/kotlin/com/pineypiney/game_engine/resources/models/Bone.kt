@@ -4,7 +4,6 @@ import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.c
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.normal
 import glm_.i
@@ -84,7 +83,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
     fun getMeshTransform() = modelSpaceTransform * transform * defaultModelSpace.inverse()
 
     fun copy(copyParent: Bone? = null): Bone{
-        val b = Bone(copyParent, id, name, sid, parentTransform.c)
+        val b = Bone(copyParent, id, name, sid, Mat4(parentTransform))
         children.forEach { c -> b.addChild(c.copy(b)) }
         return b
     }

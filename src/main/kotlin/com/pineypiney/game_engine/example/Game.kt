@@ -4,7 +4,6 @@ import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.Window
-import com.pineypiney.game_engine.cameras.Camera
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.game_objects.ModelledGameObject
 import com.pineypiney.game_engine.objects.game_objects.SimpleTexturedGameObject
@@ -15,9 +14,10 @@ import com.pineypiney.game_engine.objects.menu_items.slider.BasicSlider
 import com.pineypiney.game_engine.objects.text.SizedGameText
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.StretchyGameText
+import com.pineypiney.game_engine.rendering.cameras.Camera
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.round
+import com.pineypiney.game_engine.util.extension_functions.roundedString
 import com.pineypiney.game_engine.util.input.InputState
 import glm_.s
 import glm_.vec2.Vec2
@@ -112,7 +112,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     override fun onCursorMove(window: Window, cursorPos: Vec2, cursorDelta: Vec2) {
         super.onCursorMove(window, cursorPos, cursorDelta)
         val wp = camera.screenToWorld(cursorPos)
-        text.text = "X Part: ${wp.x.round(2)} \n Y Part: ${wp.y.round(2)}"
+        text.text = wp.roundedString(2).let { "X Part: ${it[0]} \n Y Part: ${it[1]}" }
     }
 
     override fun onInput(state: InputState, action: Int): Int {

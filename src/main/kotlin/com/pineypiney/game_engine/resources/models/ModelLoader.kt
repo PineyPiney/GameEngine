@@ -6,7 +6,10 @@ import com.pineypiney.game_engine.resources.models.animations.*
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.*
+import com.pineypiney.game_engine.util.extension_functions.addToListOr
+import com.pineypiney.game_engine.util.extension_functions.combineLists
+import com.pineypiney.game_engine.util.extension_functions.copy
+import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.s
 import glm_.f
 import glm_.i
@@ -54,8 +57,8 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
 
             stream.close()
 
-            controllerMap.forEach compile@{ (_, controller) ->
-                val geo: Geometry = geometryMap[controller.meshName.removePrefix("#")] ?: return@compile
+            for((_, controller) in controllerMap){
+                val geo: Geometry = geometryMap[controller.meshName.removePrefix("#")] ?: continue
                 println("Compiling mesh ${geo.name}")
 
                 // Construct Mesh Vertices
@@ -184,7 +187,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
             val nodeRoot = "$nodesRoot[@id = '$id']"
             val matrixString = (path.evaluate("$nodeRoot/matrix[@sid = 'transform']", doc, XPathConstants.STRING) as String)
             val floats = matrixString.split(" ").map { it.f }
-            val transform = Mat4.create(floats)
+            val transform = Mat4(floats).transpose()
 
             val idBuffer = IntArray(1) {0}
 
@@ -217,7 +220,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
             val matArray = (path.evaluate("$skinRoot/bind_shape_matrix", doc, XPathConstants.STRING) as String)
                 .split(" ")
                 .map { it.f }
-            val bindMatrix: Mat4 = Mat4.create(matArray)
+            val bindMatrix: Mat4 = Mat4(matArray).transpose()
 
             // Read the Sources
             val sources = DataSource.readAllDataFromXML(skinRoot, "source", doc, path)
@@ -326,7 +329,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
             val nodeRoot = "$root[@id = '$id']"
             val matrixString = (path.evaluate("$nodeRoot/matrix[@sid = 'transform']", doc, XPathConstants.STRING) as String)
             val floats = matrixString.split(" ").map { it.f }
-            val transform = Mat4.create(floats)
+            val transform = Mat4(floats).transpose()
 
             idBuffer[0]++
             val child = Bone(parent, idBuffer[0], getFirstAttribute(doc, nodeRoot, "name", id, path), getFirstAttribute(doc, nodeRoot, "sid", id, path), transform)

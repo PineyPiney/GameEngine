@@ -13,10 +13,10 @@ class AudioLoader private constructor(): AbstractResourceLoader<Audio>() {
     private val audioMap: MutableMap<ResourceKey, Audio> = mutableMapOf()
 
     fun loadAudio(streams: Map<String, InputStream>) {
-        streams.forEach { (fileName, stream) ->
+        for((fileName, stream) in streams){
 
             val i = fileName.lastIndexOf(".")
-            if (i <= 0) return@forEach
+            if (i <= 0) continue
             val type = fileName.substring(i + 1)
 
             loadAudio(fileName.removeSuffix(".$type"), AudioSystem.getAudioInputStream(BufferedInputStream(stream)))

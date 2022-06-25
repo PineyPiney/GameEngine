@@ -68,39 +68,28 @@ class Mesh(var id: String, var vertices: Array<MeshVertex>,
 
     fun setupFloats(floatVBO: Int){
 
-        // This line turns the faces into an array of float arrays
-        val floatArrays = vertices.map { it.position.pos.array
-            .plus(it.normal.array)
-            .plus(it.texCoord.array)
-            .plus(it.weights.map { w -> w.weight }.toFloatArray().expand(4)) }
-        // And this line turns the array of float arrays into one large array
-        val floatArray = floatArrays.flatMap { it.toList() }.toFloatArray()
-
         // Buffer floats
         glBindBuffer(GL_ARRAY_BUFFER, floatVBO)
 
+        // Get data from each vertex and put it in one long array
+        val floatArray = vertices.flatMap(MeshVertex::getFloatData).toFloatArray()
         // Send the data to the buffers
         glBufferData(GL_ARRAY_BUFFER, floatArray, GL_STATIC_DRAW)
 
         setAttribs(arrayOf(Vec2i(0, 3), Vec2i(1, 3), Vec2i(2, 2), Vec2i(4, 4)), GL_FLOAT)
-
     }
 
     fun setupInts(intVBO: Int){
 
-        // This line turns the faces into an array of int arrays
-        val intArrays = vertices.map { it.weights.map { w -> w.id }.toIntArray().expand(4)}
-        // And this line turns the array of int arrays into one large array
-        val intArray = intArrays.flatMap { it.toList() }.toIntArray()
-
         // Buffer ints
         glBindBuffer(GL_ARRAY_BUFFER, intVBO)
 
+        // Get data from each vertex and put it in one long array
+        val intArray = vertices.flatMap(MeshVertex::getIntData).toIntArray()
         // Send the data to the buffers
         glBufferData(GL_ARRAY_BUFFER, intArray, GL_STATIC_DRAW)
 
         setAttribs(arrayOf(Vec2i(3, 4)), GL_INT)
-
     }
 
     private fun setTextures() {
@@ -120,8 +109,19 @@ class Mesh(var id: String, var vertices: Array<MeshVertex>,
         TODO("Not yet implemented")
     }
 
+    companion object{
+    }
+
     data class MeshVertex(val position: ModelLoader.VertexPosition, val normal: Vec3 = Vec3(), val texCoord: Vec2 = Vec2(), val weights: Array<Controller.BoneWeight> = arrayOf()): Copyable<MeshVertex>,
         Deleteable {
+
+        fun getFloatData(): List<Float>{
+            return (position.pos.array + normal.array + texCoord.array).toList() + weights.map { w -> w.weight }.expand(4)
+        }
+
+        fun getIntData(): List<Int>{
+            return weights.map { w -> w.id }.expand(4)
+        }
 
         override fun copy(): MeshVertex{
             return MeshVertex(position.copy(), normal.copy(), texCoord.copy(), weights.copy())

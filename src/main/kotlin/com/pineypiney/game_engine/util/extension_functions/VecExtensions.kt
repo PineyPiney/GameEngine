@@ -8,43 +8,43 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-fun Vec2.Companion.of(array: FloatArray) = Vec2(array.expand(2))
-fun Vec3.Companion.of(array: FloatArray) = Vec3(array.expand(3))
-fun Vec4.Companion.of(array: FloatArray) = Vec4(array.expand(4))
+/**
+ * The distance between [this] and [other]
+ */
+fun Vec2.dist(other: Vec2): Float = sqrt(this dot other)
 
-fun Vec2.Companion.of(array: Array<Float>) = Vec2.of(array.toFloatArray())
-fun Vec3.Companion.of(array: Array<Float>) = Vec3.of(array.toFloatArray())
-fun Vec4.Companion.of(array: Array<Float>) = Vec4.of(array.toFloatArray())
-
-
-fun Vec3.positive() : Vec3 {
-    this.x = this.x.coerceAtLeast(0f)
-    this.y = this.y.coerceAtLeast(0f)
-    this.z = this.z.coerceAtLeast(0f)
-
-    return this
-}
-
-
-fun Vec2.sqLength(): Float = this.x*this.x + this.y*this.y
-fun Vec3.sqLength(): Float = this.x*this.x + this.y*this.y + this.z*this.z
-
-fun Vec2.sqDist(other: Vec2): Float = (this - other).sqLength()
-fun Vec3.sqDist(other: Vec3): Float = (this - other).sqLength()
-
-fun Vec2.dist(other: Vec2): Float = sqrt(this.sqDist(other))
-
-
+/**
+ * Coerce the x and y values of [this] between the x and y values of [low] and [high]
+ *
+ * @param low The minimum x and y values
+ * @param high The maximum x and y values
+ */
 fun Vec2.coerceIn(low: Vec2, high: Vec2): Vec2 = Vec2(this.x.coerceIn(low.x, high.x), this.y.coerceIn(low.y, high.y))
+
+/**
+ * coerce [this] between -[mag] and [mag]
+ */
 fun Vec2.coerceIn(mag: Vec2): Vec2 = this.coerceIn(-mag, mag)
 
+/**
+ * Coerce the xyz values of [this] between the xyz values of [low] and [high]
+ *
+ * @param low The minimum xyz values
+ * @param high The maximum xyz values
+ */
 fun Vec3.coerceIn(low: Vec3, high: Vec3): Vec3 = Vec3(this.x.coerceIn(min(low.x, high.x), max(low.x, high.x)), this.y.coerceIn(min(low.y, high.y), max(low.y, high.y)), this.z.coerceIn(min(low.z, high.z), max(low.z, high.z)))
 
+/**
+ * Check if [this] is within a box of dimensions [size] starting at [origin]
+ */
 fun Vec2.isWithin(origin: Vec2, size: Vec2): Boolean{
     return this.x.isWithin(origin.x, size.x) &&
             this.y.isWithin(origin.y, size.y)
 }
 
+/**
+ * Check if the xy values of [this] are larger than those of [bl] and smaller than those of [tr]
+ */
 fun Vec2.isBetween(bl: Vec2, tr: Vec2): Boolean{
     return this.x.isBetween(bl.x, tr.x) &&
             this.y.isBetween(bl.y, tr.y)
@@ -73,9 +73,9 @@ fun Vec3.transform(m: Mat4): Vec3 {
     return Vec3(m * Vec4(this))
 }
 
-fun Vec2.roundedString(places: Int) = "${x.round(places)}, ${y.round(places)}"
-fun Vec3.roundedString(places: Int) = "${x.round(places)}, ${y.round(places)}, ${z.round(places)}"
+fun Vec2.roundedString(places: Int) = arrayOf("${x.round(places)}", "${y.round(places)}")
+fun Vec3.roundedString(places: Int) = arrayOf("${x.round(places)}", "${y.round(places)}", "${z.round(places)}")
 
-fun Vec2.copy() = Vec2(x, y)
-fun Vec3.copy() = Vec3(x, y, z)
+fun Vec2.copy() = Vec2(ofs, array)
+fun Vec3.copy() = Vec3(ofs, array)
 

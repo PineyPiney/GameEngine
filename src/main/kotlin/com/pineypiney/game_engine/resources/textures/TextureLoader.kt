@@ -13,24 +13,22 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
 
     private val textures = mutableMapOf<ResourceKey, Texture>()
 
-    fun loadTextures(streams: Map<String, InputStream>) {
-        streams.forEach { (fileName, stream) ->
+    fun loadTexture(streams: Map<String, InputStream>) {
+        for((fileName, stream) in streams){
 
-            val i = fileName.lastIndexOf(".")
-            if (i <= 0) return@forEach
-            val type = fileName.substring(i + 1)
+            if (fileName.lastIndexOf(".") <= 0) continue
 
-            loadTexture(fileName.removeSuffix(".$type"), stream)
+            loadTexture(fileName, stream)
 
             stream.close()
         }
     }
 
     private fun loadTexture(name: String, stream: InputStream){
-        textures[ResourceKey(name)] = loadTextures(name, ResourcesLoader.ioResourceToByteBuffer(stream, 1024))
+        textures[ResourceKey(name.substringBefore('.'))] = loadTexture(name, ResourcesLoader.ioResourceToByteBuffer(stream, 1024))
     }
 
-    private fun loadTextures(name: String, buffer: ByteBuffer): Texture{
+    private fun loadTexture(name: String, buffer: ByteBuffer): Texture{
         if(!buffer.hasRemaining()){
             println("Buffer for $name is empty")
         }
@@ -42,7 +40,7 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
 
             if(details[0] == 0) println("\nFailed to load texture at $name")
             else{
-                return Texture(name.substringAfterLast('\\'), pointer, details[0], details[1], details[2])
+                return Texture(name.substringAfterLast('\\').substringBefore('.'), pointer, details[0], details[1], details[2])
             }
         }
 
