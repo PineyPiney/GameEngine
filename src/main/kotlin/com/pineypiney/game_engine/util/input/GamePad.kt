@@ -46,7 +46,6 @@ class GamePad(val id: Int, val inputs: Inputs) {
         if(buttonStates[button] == state) return
 
         buttonStates[button] = state
-        println("Button ${InputState.gamepadKeyNames[button.s]} is $state")
 
         inputs.onInput(button.s, state.i, ControlType.GAMEPAD_BUTTON)
     }

@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.rendering
 
+import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.util.shapes.Shape
@@ -37,7 +38,7 @@ abstract class BufferedGameRenderer: GameRenderer() {
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height) // use a single renderbuffer object for both a depth AND stencil buffer.
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO) // now actually attach it
 
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) println("ERROR::FRAMEBUFFER::Framebuffer is not complete!")
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) GameEngine.logger.error("Framebuffer could not be completed in ${this::class}")
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
     }
 

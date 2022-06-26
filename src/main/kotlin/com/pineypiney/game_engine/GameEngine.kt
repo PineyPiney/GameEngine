@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
 import glm_.c
 import glm_.f
+import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW.glfwTerminate
 
 abstract class GameEngine(val window: Window, val resourcesLoader: ResourcesLoader) : Runnable {
@@ -38,8 +39,6 @@ abstract class GameEngine(val window: Window, val resourcesLoader: ResourcesLoad
     }
 
     protected open fun init(){
-        println("Initialising GameEngine")
-
 
         timer.init()
         this.activeScreen.init()
@@ -130,5 +129,9 @@ abstract class GameEngine(val window: Window, val resourcesLoader: ResourcesLoad
         resourcesLoader.cleanUp()
         activeScreen.cleanUp()
         glfwTerminate()
+    }
+
+    companion object {
+        val logger = KotlinLogging.logger("Game Engine")
     }
 }

@@ -30,9 +30,6 @@ abstract class GameObject3D : GameObject() {
             transform.scale = value
         }
 
-    // Items are rendered in order of depth, from inf to -inf
-    open var depth: Int = 0
-
     override fun init() {}
 
     fun getWidth(): Float{

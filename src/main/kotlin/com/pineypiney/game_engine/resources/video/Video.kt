@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.video
 
+import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.resources.Media
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -58,7 +59,7 @@ class Video(grabber: FFmpegFrameGrabber): Media() {
             try {
                 val captured_frame = grabber.grabFrame()
                 if (captured_frame == null) {
-                    println("!!! Failed cvQueryFrame")
+                    GameEngine.logger.warn("!!! Failed cvQueryFrame")
                     break
                 }
                 recorder.timestamp = grabber.timestamp

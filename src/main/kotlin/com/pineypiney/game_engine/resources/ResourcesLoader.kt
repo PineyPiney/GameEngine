@@ -1,11 +1,13 @@
 package com.pineypiney.game_engine.resources
 
+import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.video.VideoLoader
 import com.pineypiney.game_engine.util.extension_functions.removeNullValues
+import com.pineypiney.game_engine.util.extension_functions.round
 import org.lwjgl.BufferUtils
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -33,11 +35,11 @@ abstract class ResourcesLoader {
 
         val streamMap = getStreams()
 
-        ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) })
-        TextureLoader.INSTANCE.loadTexture(streamMap.filter { it.key.startsWith(textureLocation) }.mapKeys { it.key.removePrefix(textureLocation) })
-        AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }.mapKeys { it.key.removePrefix(audioLocation) })
-        VideoLoader.INSTANCE.loadVideos(streamMap.filter { it.key.startsWith(videoLocation) }.mapKeys { it.key.removePrefix(videoLocation) })
-        ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) })
+        GameEngine.logger.info("Loaded Shaders in ${timeActionM{ ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) }) }.round(2)} ms")
+        GameEngine.logger.info("Loaded Textures in ${timeActionM{ TextureLoader.INSTANCE.loadTextures(streamMap.filter { it.key.startsWith(textureLocation) }.mapKeys { it.key.removePrefix(textureLocation) }) }.round(2)} ms")
+        GameEngine.logger.info("Loaded Audio in ${timeActionM{ AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }.mapKeys { it.key.removePrefix(audioLocation) }) }.round(2)} ms")
+        GameEngine.logger.info("Loaded Videos in ${timeActionM{ VideoLoader.INSTANCE.loadVideos(streamMap.filter { it.key.startsWith(videoLocation) }.mapKeys { it.key.removePrefix(videoLocation) }) }.round(2)} ms")
+        GameEngine.logger.info("Loaded Models in ${timeActionM{ ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) }) }.round(2)} ms")
     }
 
     fun cleanUp(){
@@ -49,6 +51,16 @@ abstract class ResourcesLoader {
     }
 
     companion object{
+
+        fun timeAction(action: () -> Unit): Long{
+            val start = System.nanoTime()
+            action()
+            return System.nanoTime() - start
+        }
+
+        fun timeActionM(action: () -> Unit): Double{
+            return timeAction(action) / 1e6
+        }
 
         fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int): ByteBuffer {
 

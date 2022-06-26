@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
 plugins {
-    val kotlinVersion = "1.6.21"
+    val kotlinVersion = "1.7.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
@@ -16,7 +16,6 @@ val lwjglVersion = "3.3.1"
 val lwjglNatives = "natives-windows"
 
 val javacv = "1.5.7"
-val kx = "com.github.kotlin-graphics"
 
 repositories {
     mavenCentral()
@@ -26,19 +25,14 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
 
-    // https://kotlinlang.org/docs/releases.html#release-details
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
-
-    // Reflection is needed by Assimp for model loading
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
-
+    implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
+    implementation("ch.qos.logback:logback-classic:1.2.11")
 
     // GLM
-    implementation("$kx.glm:glm:375708cf1c0942b0df9d624acddb1c9993f6d92d")
+    implementation("com.github.kotlin-graphics.glm:glm:375708cf1c0942b0df9d624acddb1c9993f6d92d")
 
 
     // LWJGL
-
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
 
     implementation("org.lwjgl", "lwjgl")
@@ -55,9 +49,6 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl-openal", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = lwjglNatives)
-
-
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")
 
     // JavaCV for video processing
     implementation("org.bytedeco:javacv:$javacv")

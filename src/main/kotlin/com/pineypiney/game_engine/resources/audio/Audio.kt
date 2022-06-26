@@ -31,7 +31,6 @@ class Audio(val stream: AudioInputStream): com.pineypiney.game_engine.resources.
 
     override fun pause(){
         if(status == MediaStatus.PAUSED){
-            println("Audio already paused")
             return
         }
 
@@ -42,7 +41,6 @@ class Audio(val stream: AudioInputStream): com.pineypiney.game_engine.resources.
 
     override fun resume(){
         if(status == MediaStatus.PLAYING){
-            println("Audio already playing")
             return
         }
         this.clip.close()

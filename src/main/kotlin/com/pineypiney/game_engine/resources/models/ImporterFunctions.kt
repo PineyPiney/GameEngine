@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.models
 
+import com.pineypiney.game_engine.GameEngine
 import glm_.d
 import glm_.f
 import glm_.i
@@ -9,7 +10,6 @@ import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import javax.xml.xpath.XPath
 import javax.xml.xpath.XPathConstants
-import kotlin.reflect.jvm.jvmName
 
 
 /**
@@ -60,50 +60,7 @@ inline fun <reified T> convertString(string: String, default: T): T{
         })
     }
     catch(e: ClassCastException){
-        println("Could not cast $string to ${T::class.jvmName}")
+        GameEngine.logger.warn("Could not cast $string to ${T::class.simpleName}")
         default
     }
-}
-
-inline fun <reified R, reified T> convert(base: R, cls: Class<T>): T {
-    if(R::class.java == cls) return base as T
-    return cls.cast(when(R::class.java){
-        Integer::class.java -> {
-            val b = Integer::class.java.cast(base)
-            when(cls){
-                java.lang.Float::class.java -> b.f
-                java.lang.Double::class.java -> b.d
-                String::class.java -> b.toString()
-                else -> null
-            }
-        }
-        java.lang.Float::class.java -> {
-            val b = Float::class.java.cast(base)
-            when(cls){
-                Integer::class.java -> b.i
-                java.lang.Double::class.java -> b.d
-                String::class.java -> b.toString()
-                else -> null
-            }
-        }
-        java.lang.Double::class.java -> {
-            val b = Double::class.java.cast(base)
-            when(cls){
-                Integer::class.java -> b.i
-                java.lang.Float::class.java -> b.f
-                String::class.java -> b.toString()
-                else -> null
-            }
-        }
-        String::class.java -> {
-            val b = String::class.java.cast(base)
-            when(cls){
-                Integer::class.java -> b.i
-                Float::class.java -> b.f
-                Double::class.java -> b.d
-                else -> null
-            }
-        }
-        else -> null
-    })
 }

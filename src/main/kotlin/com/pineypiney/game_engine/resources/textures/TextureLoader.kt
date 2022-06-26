@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.textures
 
+import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.AbstractResourceLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -13,10 +14,11 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
 
     private val textures = mutableMapOf<ResourceKey, Texture>()
 
-    fun loadTexture(streams: Map<String, InputStream>) {
+    fun loadTextures(streams: Map<String, InputStream>) {
         for((fileName, stream) in streams){
 
-            if (fileName.lastIndexOf(".") <= 0) continue
+            val end = fileName.split('.').getOrNull(1)
+            if (!fileTypes.contains(end)) continue
 
             loadTexture(fileName, stream)
 
@@ -25,12 +27,13 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
     }
 
     private fun loadTexture(name: String, stream: InputStream){
-        textures[ResourceKey(name.substringBefore('.'))] = loadTexture(name, ResourcesLoader.ioResourceToByteBuffer(stream, 1024))
+        textures[ResourceKey(name.substringBefore('.'))] =
+            loadTexture(name, ResourcesLoader.ioResourceToByteBuffer(stream, 1024))
     }
 
     private fun loadTexture(name: String, buffer: ByteBuffer): Texture{
         if(!buffer.hasRemaining()){
-            println("Buffer for $name is empty")
+            GameEngine.logger.warn("Buffer for texture $name is empty")
         }
         else {
             val pointer = loadTextureSettings()
@@ -38,7 +41,7 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
             // Load the image from file
             val details = loadImage(buffer)
 
-            if(details[0] == 0) println("\nFailed to load texture at $name")
+            if(details[0] == 0) GameEngine.logger.warn("\nFailed to load texture $name")
             else{
                 return Texture(name.substringAfterLast('\\').substringBefore('.'), pointer, details[0], details[1], details[2])
             }
@@ -125,6 +128,7 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
     }
 
     companion object{
+        val fileTypes = arrayOf("png", "jpg", "jpeg", "tga", "bmp", "hdr")
         val INSTANCE = TextureLoader()
 
         fun getTexture(key: ResourceKey): Texture = INSTANCE.getTexture(key)

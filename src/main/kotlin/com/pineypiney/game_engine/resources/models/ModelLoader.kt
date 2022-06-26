@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.models
 
+import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
 import com.pineypiney.game_engine.resources.AbstractResourceLoader
 import com.pineypiney.game_engine.resources.models.animations.*
@@ -40,8 +41,6 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
 
         streams.filter { it.key.endsWith(".pgm") }.forEach { (fileName, stream) ->
 
-            println("Loading Model $fileName")
-
             // https://www.hameister.org/KotlinXml.html
             val builder: DocumentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
             val doc: Document = builder.parse(stream)
@@ -59,7 +58,6 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
 
             for((_, controller) in controllerMap){
                 val geo: Geometry = geometryMap[controller.meshName.removePrefix("#")] ?: continue
-                println("Compiling mesh ${geo.name}")
 
                 // Construct Mesh Vertices
                 val vertices: MutableList<Mesh.MeshVertex> = mutableListOf()
@@ -208,8 +206,6 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
 
         controllerIDs.forEach control@ { id ->
 
-            println("Loading Controller $id")
-
             val skinRoot = "$controllerRoot[@id = '$id']"
 
             // Name and associated mesh of this controller
@@ -289,7 +285,6 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
 
         animationsIDs.forEach animation@ { id ->
 
-            println("Loading Animation $id")
             val animRoot = "$animationRoot[@id = '$id']/animation"
 
             val bones = path.evaluate(animRoot, doc, XPathConstants.NODESET) as NodeList
@@ -476,7 +471,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
                 return ModelMaterial(name, textures, baseColour)
             }
             else{
-                System.err.println("This is not a valid material file")
+                GameEngine.logger.warn("This is not a valid material file")
             }
             return null
         }

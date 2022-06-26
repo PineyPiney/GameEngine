@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.text
 
+import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -17,13 +18,13 @@ class FontLoader private constructor() {
         val stream: InputStream = resourcesLoader.getStream("${resourcesLoader.fontLocation}$fontName") ?: return
 
         if(stream.available() < 1){
-            println("Font $fontName does not exist")
+            GameEngine.logger.warn("Font $fontName does not exist")
             return
         }
 
         val image = ImageIO.read(stream)
         if(image == null){
-            println("$fontName Font File is not an image type")
+            GameEngine.logger.warn("$fontName Font File is not an image type")
             return
         }
 
@@ -70,7 +71,6 @@ class FontLoader private constructor() {
                 index++
             }
         }
-        println("Loaded Font $fontName")
     }
 
     fun getFont(key: ResourceKey): Font{

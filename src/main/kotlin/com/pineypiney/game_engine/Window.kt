@@ -156,7 +156,6 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
     companion object {
         var windows = mutableMapOf<Long, Window>()
 
-        fun getWindow(handle: Long): Window = windows.getValue(handle)
-
+        operator fun get(handle: Long): Window = windows.getValue(handle)
     }
 }

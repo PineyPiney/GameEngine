@@ -21,13 +21,13 @@ open class MouseInput(val input: Inputs) {
     private val buttonStates = mutableMapOf<Short, Float>()
 
     private val cursorPosCallback = { handle: Long, xpos: Double, ypos: Double ->
-        val win = Window.getWindow(handle)
+        val win = Window[handle]
         val screenPos = Vec2((xpos * 2/win.width) - 1, -((ypos * 2/win.height) - 1))
         processCursorPos(screenPos)
         input.mouseMoveCallback(win, screenPos, cursorOffset)
     }
     private val scrollCallback = { handle: Long, xOffset: Double, yOffset: Double ->
-        input.mouseScrollCallback(Window.getWindow(handle), Vec2(xOffset, yOffset))
+        input.mouseScrollCallback(Window[handle], Vec2(xOffset, yOffset))
     }
     private val mouseButtonCallback = { _: Long, button: Int, action: Int, mods: Int ->
         processMouseButtons(button.s, action, mods.b)

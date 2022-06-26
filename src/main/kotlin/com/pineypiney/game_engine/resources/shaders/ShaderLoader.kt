@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.shaders
 
+import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.AbstractResourceLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.bool
@@ -39,14 +40,19 @@ class ShaderLoader private constructor(): AbstractResourceLoader<Shader>(){
 
     fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): Shader{
         val vertex: SubShader = shaderMap.getOrElse(vertexKey){
-            println("Could not find vertex shader $vertexKey")
+            GameEngine.logger.warn("Could not find vertex shader ${vertexKey.key}")
             return Shader.brokeShader
         }
         val fragment: SubShader = shaderMap.getOrElse(fragmentKey){
-            println("Could not find fragment shader $fragmentKey")
+            GameEngine.logger.warn("Could not find fragment shader ${fragmentKey.key}")
             return Shader.brokeShader
         }
-        val geometry: SubShader? = shaderMap[geometryKey]
+        val geometry: SubShader? = geometryKey?.let{
+            shaderMap.getOrElse(it){
+                GameEngine.logger.warn("Could not find geometry shader ${it.key}")
+                return Shader.brokeShader
+            }
+        }
 
         return generateShader(vertexKey.key, vertex, fragmentKey.key, fragment, geometryKey?.key, geometry)
     }
@@ -126,7 +132,7 @@ class ShaderLoader private constructor(): AbstractResourceLoader<Shader>(){
                 success = glGetProgrami(shader, GL_LINK_STATUS).bool
                 if (!success) {
                     infoLog = glGetProgramInfoLog(shader)
-                    println("ERROR::SHADER::PROGRAM ::$shaderName::LINKING_FAILED\n$infoLog")
+                    GameEngine.logger.warn("Could not link shaders $shaderName \n$infoLog")
                 }
             }
 
@@ -134,16 +140,16 @@ class ShaderLoader private constructor(): AbstractResourceLoader<Shader>(){
 
                 // Type is used later on in error debugging
                 val type = when(shaderType){
-                    GL_VERTEX_SHADER -> "VERTEX"
-                    GL_FRAGMENT_SHADER -> "FRAGMENT"
-                    GL_GEOMETRY_SHADER -> "GEOMETRY"
+                    GL_VERTEX_SHADER -> "vertex"
+                    GL_FRAGMENT_SHADER -> "fragment"
+                    GL_GEOMETRY_SHADER -> "geometry"
                     else -> return
                 }
 
                 success = glGetShaderi(shader, GL_COMPILE_STATUS).bool
                 if (!success) {
                     infoLog = glGetShaderInfoLog(shader)
-                    println("\nERROR::SHADER::$type ::$shaderName::COMPILATION_FAILED $infoLog")
+                    GameEngine.logger.warn("Could not compile $type shader $shaderName \n$infoLog")
                 }
             }
         }
