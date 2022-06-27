@@ -2,6 +2,7 @@ package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.input.Inputs
+import glm_.d
 import glm_.f
 import glm_.i
 import glm_.vec2.Vec2i
@@ -98,12 +99,8 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         windows[windowHandle] = this
     }
 
-    fun init(){
-
-    }
-
     fun setSize(width: Int, height: Int){
-        glfwSetWindowSize(this.windowHandle, width, height)
+        glfwSetWindowSize(windowHandle, width, height)
     }
 
     fun setSize(size: Vec2i){
@@ -111,7 +108,15 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
     }
 
     fun setTitle(title: String){
-        glfwSetWindowTitle(this.windowHandle, title)
+        glfwSetWindowTitle(windowHandle, title)
+    }
+
+    fun setCursor(x: Number, y: Number){
+        glfwSetCursorPos(windowHandle, x.d, y.d)
+    }
+
+    fun setCursor(pos: Vec2i){
+        setCursor(pos.x, pos.y)
     }
 
     fun setIcon(icon: GLFWImage.Buffer){
@@ -123,12 +128,15 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         val width = IntArray(1)
         val height = IntArray(1)
         val channel = IntArray(1)
+        STBImage.stbi_set_flip_vertically_on_load(false)
         iconByteBuffer = STBImage.stbi_load_from_memory(iconByteBuffer, width, height, channel, 0) ?: return
 
         val iconBuffer = GLFWImage.create(1)
         val iconImage = GLFWImage.create().set(width[0], height[0], iconByteBuffer)
         iconBuffer.put(0, iconImage)
         setIcon(iconBuffer)
+
+        STBImage.stbi_image_free(iconByteBuffer)
     }
 
     // gameEngine.activeScreen.updateAspectRatio(this)

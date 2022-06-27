@@ -41,9 +41,9 @@ abstract class GameEngine(val window: Window, val resourcesLoader: ResourcesLoad
     protected open fun init(){
 
         timer.init()
-        this.activeScreen.init()
+        activeScreen.init()
 
-        window.setResizeCallback { window -> this.activeScreen.updateAspectRatio(window) }
+        window.setResizeCallback { window -> activeScreen.updateAspectRatio(window) }
         setInputCallbacks()
     }
 
@@ -68,7 +68,7 @@ abstract class GameEngine(val window: Window, val resourcesLoader: ResourcesLoad
                 accumulator -= interval
             }
 
-            input.input()
+            input()
 
             // Render screen regardless of the accumulator
             render(accumulator / interval)
@@ -88,18 +88,6 @@ abstract class GameEngine(val window: Window, val resourcesLoader: ResourcesLoad
         }
     }
 
-    private fun sync() {
-        val loopSlot = 1f / TARGET_FPS
-        val endTime: Double = Timer.time + loopSlot
-        while (Timer.getCurrentTime() < endTime) {
-            try {
-                Thread.sleep(1)
-            }
-            catch (_: InterruptedException) {
-            }
-        }
-    }
-
     open fun setInputCallbacks(){
         input.mouseMoveCallback = { win, screenPos, cursorOffset ->
             activeScreen.onCursorMove(win, screenPos, cursorOffset)
@@ -115,14 +103,30 @@ abstract class GameEngine(val window: Window, val resourcesLoader: ResourcesLoad
         }
     }
 
-    private fun update(interval: Float) {
+    protected open fun update(interval: Float) {
         timer.tick()
         activeScreen.update(interval, input)
     }
 
-    private fun render(tickDelta: Double) {
+    protected open fun render(tickDelta: Double) {
         activeScreen.render(window, tickDelta)
         window.update()
+    }
+
+    protected open fun input(){
+        input.input()
+    }
+
+    private fun sync() {
+        val loopSlot = 1f / TARGET_FPS
+        val endTime: Double = Timer.time + loopSlot
+        while (Timer.getCurrentTime() < endTime) {
+            try {
+                Thread.sleep(1)
+            }
+            catch (_: InterruptedException) {
+            }
+        }
     }
 
     protected open fun cleanUp() {

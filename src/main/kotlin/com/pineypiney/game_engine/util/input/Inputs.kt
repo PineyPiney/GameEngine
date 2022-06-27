@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.util.input
 
+import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.Window
 import glm_.and
 import glm_.b
@@ -19,8 +20,8 @@ abstract class Inputs(val window: Window) {
     var keyPressCallback = { _: InputState, _: Int -> }                 // gameEngine.activeScreen.onInput(input, action)
     var keyboardCharCallback = { _: Int -> }                            // gameEngine.activeScreen.onType(input)
 
-    val primary = InputState(GLFW_MOUSE_BUTTON_1, ControlType.MOUSE)
-    val secondary = InputState(GLFW_MOUSE_BUTTON_2, ControlType.MOUSE)
+    open val primary = InputState(GLFW_MOUSE_BUTTON_1, ControlType.MOUSE)
+    open val secondary = InputState(GLFW_MOUSE_BUTTON_2, ControlType.MOUSE)
 
     private val modStates: MutableMap<Byte, Boolean> = mutableMapOf(
         Pair(GLFW_MOD_SHIFT.b, false),
@@ -31,15 +32,16 @@ abstract class Inputs(val window: Window) {
         Pair(GLFW_MOD_NUM_LOCK.b, false),
     )
 
-    fun input(){
+    open fun input(){
         gamepad.input()
+        mouse.update(Timer.frameTime)
     }
 
-    fun onInput(key: Short, action: Int, type: ControlType, mods: Byte = getMods()){
+    open fun onInput(key: Short, action: Int, type: ControlType, mods: Byte? = null){
         // First check if the key is a mod key and if so update the mods map
-        setMods(mods)
+        mods?.let { setMods(it) }
 
-        val input = InputState(key, type, mods)
+        val input = InputState(key, type, mods ?: getMods())
 
         keyPressCallback(input, action)
     }
@@ -52,9 +54,5 @@ abstract class Inputs(val window: Window) {
             val mod = 2 pow i
             modStates[mod.b] = mods and mod > 0
         }
-    }
-
-    fun setCursorAt(pos: Vec2, drag: Boolean = false){
-        this.mouse.setCursorAt(pos, drag)
     }
 }

@@ -2,12 +2,11 @@ package com.pineypiney.game_engine.util.input
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.Window
-import com.pineypiney.game_engine.util.extension_functions.isWithin
 import glm_.b
-import glm_.d
 import glm_.f
 import glm_.s
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW.*
 
 open class MouseInput(val input: Inputs) {
@@ -63,12 +62,8 @@ open class MouseInput(val input: Inputs) {
     }
 
     fun setCursorAt(pos: Vec2, drag: Boolean = false){
-        glfwSetCursorPos(this.input.window.windowHandle, (pos.x.d + 1) * input.window.width/2, (-pos.y.d + 1) * input.window.height/2)
+        input.window.setCursor(Vec2i(Vec2(pos.x + 1, -pos.y + 1) * input.window.size / 2))
 
         if(!drag) lastPos = pos
-    }
-
-    fun isBetween(origin: Vec2, size: Vec2) : Boolean{
-        return lastPos.isWithin(origin, size)
     }
 }

@@ -133,6 +133,9 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         if(state.c == 'F' && action == 1){
             toggleFullscreen()
         }
+        if(state.c == 'C' && action == 1){
+            input.mouse.setCursorAt(Vec2(0.5))
+        }
         if(state.i == GLFW.GLFW_KEY_ESCAPE && action == 1){
             window.setShouldClose()
         }
