@@ -76,6 +76,6 @@ fun Vec3.transform(m: Mat4): Vec3 {
 fun Vec2.roundedString(places: Int) = arrayOf("${x.round(places)}", "${y.round(places)}")
 fun Vec3.roundedString(places: Int) = arrayOf("${x.round(places)}", "${y.round(places)}", "${z.round(places)}")
 
-fun Vec2.copy() = Vec2(ofs, array)
-fun Vec3.copy() = Vec3(ofs, array)
+fun Vec2.copy() = Vec2(ofs, array.clone())
+fun Vec3.copy() = Vec3(ofs, array.clone())
 

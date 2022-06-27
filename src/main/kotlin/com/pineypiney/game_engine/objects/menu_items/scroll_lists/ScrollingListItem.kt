@@ -113,6 +113,6 @@ abstract class ScrollingListItem(final override var origin: Vec2, final override
         super.delete()
 
         scrollBar.delete()
-        items.forEach { it.delete() }
+        for(it in items) { it.delete() }
     }
 }

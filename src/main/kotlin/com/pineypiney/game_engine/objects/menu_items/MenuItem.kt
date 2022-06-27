@@ -102,7 +102,7 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
     }
 
     override fun delete() {
-        objects.forEach { it.guiItems.remove(this)}
+        for(it in objects) { it.guiItems.remove(this)}
     }
 
     companion object{

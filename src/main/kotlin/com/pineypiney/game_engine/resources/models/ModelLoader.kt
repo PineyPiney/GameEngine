@@ -248,16 +248,14 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
                 .map { Vec2i(it[0].i, it[1].i) }
 
             var i = 0
-            var bId = 0;
             val boneWeights: MutableList<Map<String, Float>> = mutableListOf()
-            vCounts.forEach { count ->
+            for(count in vCounts){
                 val map: MutableMap<String, Float> = mutableMapOf()
                 for(index in 0 until count){
                     map[joints["JOINT"][v[i].x]] = weights["WEIGHT"][v[i].y].f
                     i++
                 }
                 boneWeights.add(map.toMap())
-                bId++
             }
 
             controlMap[id] = Controller(id, name, mesh, bindMatrix, boneWeights)
@@ -283,7 +281,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
         val animations = path.evaluate(animationRoot, doc, XPathConstants.NODESET) as NodeList
         val animationsIDs = getAttributes(animations)
 
-        animationsIDs.forEach animation@ { id ->
+        for(id in animationsIDs){
 
             val animRoot = "$animationRoot[@id = '$id']/animation"
 
@@ -320,7 +318,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
 
         val nodeIDs = getAttributes(nodes)
 
-        nodeIDs.forEach node@ { id ->
+        for(id in nodeIDs){
             val nodeRoot = "$root[@id = '$id']"
             val matrixString = (path.evaluate("$nodeRoot/matrix[@sid = 'transform']", doc, XPathConstants.STRING) as String)
             val floats = matrixString.split(" ").map { it.f }
@@ -340,7 +338,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
 
         val stateMap: MutableMap<Float, MutableList<State>> = mutableMapOf()
 
-        boneIDs.forEach bone@{ bone ->
+        for(bone in boneIDs){
             // Read the Sources
             val meshRoot = "$animRoot[@id = '$bone']"
             val sources = DataSource.readAllDataFromXML(meshRoot, "source", doc, path)
@@ -362,7 +360,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
             val tranArray = translations.createVec2Array()
             val rotArray = rotations.createFloatArray("ROTATION")
 
-            timesArray.indices.forEach { i ->
+            for(i in timesArray.indices){
                 val time = timesArray[i]
                 val translation = if(tranArray.size > i) tranArray[i] else Vec2()
                 val rotation = if(rotArray.size > i) rotArray[i] else 0f
@@ -379,7 +377,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
     private fun loadMeshStates(meshIDs: Array<String>, animRoot: String, meshes: Iterable<Geometry>, doc: Document, path: XPath): MutableMap<Float, MutableList<State>>{
         val stateMap: MutableMap<Float, MutableList<State>> = mutableMapOf()
 
-        meshIDs.forEach bone@{ mesh ->
+        for(mesh in meshIDs){
 
             // Read the Sources
             val meshRoot = "$animRoot[@id = '$mesh']"
@@ -411,7 +409,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
 
             val geo = meshes.firstOrNull { it.name == mesh.removePrefix("Animation_") }
 
-            timesArray.indices.forEach { i ->
+            for(i in timesArray.indices){
                 val time = timesArray[i]
                 val translation = if(tranArray.size > i) tranArray[i] else Vec2()
                 val rotation = if(rotArray.size > i) rotArray[i] else 0f

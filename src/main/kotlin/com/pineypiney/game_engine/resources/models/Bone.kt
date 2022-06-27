@@ -36,11 +36,8 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
         children.add(newBone)
     }
 
-    fun getAllChildren(): List<Bone>{
-        val list: MutableList<Bone> = mutableListOf(this)
-        children.forEach { list.addAll(it.getAllChildren()) }
-
-        return list
+    fun getAllChildren(): List<Bone> {
+        return listOf(this) + children.flatMap { it.getAllChildren() }
     }
 
     fun getChild(name: String) = getAllChildren().firstOrNull { it.name == name }
@@ -50,7 +47,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
     }
 
     fun reset(){
-        getAllChildren().forEach {b ->
+        for(b in getAllChildren()){
             if(b.rotation != 0f) b.rotation = 0f
             if(b.translation.let { it.x != 0f || it.y != 0f}) b.translation = Vec2()
         }
@@ -59,7 +56,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
     private fun updateModel(){
         transform = I.translate(Vec3(translation)).rotate(rotation, normal)
         modelSpaceTransform = (parent?.modelSpaceTransform ?: I) * (parent?.transform ?: I) * parentTransform
-        children.forEach { it.updateModel() }
+        for(it in children) { it.updateModel() }
     }
 
     fun translate(vector: Vec2){
@@ -77,14 +74,14 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 
         Shape.centerSquareShape2D.draw()
 
-        children.forEach { it.render(shader, model) }
+        for(it in children) { it.render(shader, model) }
     }
 
     fun getMeshTransform() = modelSpaceTransform * transform * defaultModelSpace.inverse()
 
     fun copy(copyParent: Bone? = null): Bone{
         val b = Bone(copyParent, id, name, sid, Mat4(parentTransform))
-        children.forEach { c -> b.addChild(c.copy(b)) }
+        for(child in children) { b.addChild(child.copy(b)) }
         return b
     }
 

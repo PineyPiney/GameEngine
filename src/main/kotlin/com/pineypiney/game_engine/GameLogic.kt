@@ -108,10 +108,6 @@ abstract class GameLogic : IGameLogic {
         }
     }
 
-    override fun render(window: Window, tickDelta: Double) {
-        renderer.render(window, camera, this, tickDelta)
-    }
-
     override fun cleanUp() {
         gameObjects.delete()
         renderer.delete()

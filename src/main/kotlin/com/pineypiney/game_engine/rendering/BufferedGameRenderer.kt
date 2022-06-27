@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.IGameLogic
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.util.shapes.Shape
@@ -8,15 +9,13 @@ import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL46C.*
 import java.nio.ByteBuffer
 
-abstract class BufferedGameRenderer: GameRenderer() {
+abstract class BufferedGameRenderer<E: IGameLogic>: GameRenderer<E>() {
 
     val FBO = glGenFramebuffers()
     val TCB = glGenTextures()
     val RBO = glGenRenderbuffers()
 
     override fun init() {
-        super.init()
-
         createFrameBuffer(FBO, TCB, RBO, window.size)
     }
 

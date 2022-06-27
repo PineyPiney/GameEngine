@@ -16,7 +16,7 @@ class StringParser {
 
         val vec = Vec3()
 
-        values.forEach {
+        for(it in values){
             val axis: Char = it[0]
             val value: Float = it.filter { char -> numberDigits.contains(char) }.f
 

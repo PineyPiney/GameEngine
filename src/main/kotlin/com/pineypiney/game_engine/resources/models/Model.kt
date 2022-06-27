@@ -59,7 +59,7 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
         boneShader.setMat4("projection", projection)
 
         val bones: List<Bone> = rootBone?.getAllChildren() ?: listOf()
-        bones.forEach { it.render(boneShader, parent.transform.model) }
+        for(it in bones) { it.render(boneShader, parent.transform.model) }
     }
 
     fun renderCollider(parent: GameObject, view: Mat4, projection: Mat4, tickDelta: Double){
@@ -83,7 +83,7 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
     }
 
     private fun setStates(states: Array<State>){
-        states.forEach state@ { state ->
+        for(state in states){
             state.applyTo(this)
         }
     }

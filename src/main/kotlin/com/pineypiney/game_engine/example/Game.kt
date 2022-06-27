@@ -15,12 +15,13 @@ import com.pineypiney.game_engine.objects.menu_items.slider.BasicSlider
 import com.pineypiney.game_engine.objects.text.SizedGameText
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.StretchyGameText
-import com.pineypiney.game_engine.rendering.cameras.Camera
+import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.roundedString
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
+import com.pineypiney.game_engine.util.maths.I
 import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -31,7 +32,8 @@ import org.lwjgl.opengl.GL11C.glDisable
 
 class Game(override val gameEngine: GameEngine): GameLogic() {
 
-    override var camera: Camera = Camera(window)
+    //override var camera: PerspectiveCamera = PerspectiveCamera(window)
+    override val camera: OrthographicCamera = OrthographicCamera(window)
     override val renderer: Renderer = Renderer(window)
 
     private val pressedKeys = mutableSetOf<Short>()
@@ -85,8 +87,8 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
 
     private fun drawScene(tickDelta: Double){
 
-        gameText.render(renderer.view, renderer.projection, tickDelta)
-        siGameText.render(renderer.view, renderer.projection, tickDelta)
+        gameText.render(I, renderer.projection, tickDelta)
+        siGameText.render(I, renderer.projection, tickDelta)
         text.drawCentered(Vec2())
         button.drawBottomLeft(Vec2(0.6, 0.8))
         textField.drawBottomLeft(Vec2(-1))
@@ -107,7 +109,8 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     }
 
     override fun render(window: Window, tickDelta: Double) {
-        super.render(window, tickDelta)
+        renderer.render(window, this, tickDelta)
+
         glDisable(GL_DEPTH_TEST)
         drawScene(tickDelta)
 

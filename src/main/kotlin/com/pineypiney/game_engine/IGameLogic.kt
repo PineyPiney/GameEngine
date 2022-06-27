@@ -3,7 +3,7 @@ package com.pineypiney.game_engine
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.rendering.GameRenderer
-import com.pineypiney.game_engine.rendering.cameras.Camera
+import com.pineypiney.game_engine.rendering.cameras.ICamera
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import glm_.vec2.Vec2
@@ -11,8 +11,8 @@ import glm_.vec2.Vec2
 interface IGameLogic {
 
     val gameEngine: GameEngine
-    val camera: Camera
-    val renderer: GameRenderer
+    val camera: ICamera
+    val renderer: GameRenderer<*>
     val gameObjects: ObjectCollection
 
     val input: Inputs

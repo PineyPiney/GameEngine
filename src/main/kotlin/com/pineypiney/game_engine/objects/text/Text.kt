@@ -47,9 +47,7 @@ abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
 
     final override fun getPixelWidth(text: String): Int{
         // Starting at 2 accounts for the margin at the beginning of the text
-        var l = 2
-        text.indices.forEach { l += (getCharWidth(text[it]) + font.characterSpacing) }
-        return l
+        return font.characterSpacing + text.sumOf { getCharWidth(it) + font.characterSpacing }
     }
 
     override fun toString(): String {
