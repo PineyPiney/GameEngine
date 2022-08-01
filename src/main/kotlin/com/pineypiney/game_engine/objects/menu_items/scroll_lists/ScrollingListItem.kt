@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.menu_items.StaticInteractableMenuItem
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 import com.pineypiney.game_engine.util.extension_functions.init
+import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 
 abstract class ScrollingListItem(final override var origin: Vec2, final override val size: Vec2, val entryHeight: Float, val scrollerWidth: Float): StaticInteractableMenuItem() {
@@ -74,11 +75,11 @@ abstract class ScrollingListItem(final override var origin: Vec2, final override
         }
     }
 
-    override fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean {
-        if(super.checkHover(screenPos, worldPos)){
-            scrollBar.hover = scrollBar.checkHover(screenPos, worldPos)
+    override fun checkHover(ray: Ray, screenPos: Vec2): Boolean {
+        if(super.checkHover(ray, screenPos)){
+            scrollBar.hover = scrollBar.checkHover(ray, screenPos)
             items.forEachInstance<Interactable> {
-                it.hover = it.checkHover(screenPos, worldPos)
+                it.hover = it.checkHover(ray, screenPos)
             }
             return true
         }

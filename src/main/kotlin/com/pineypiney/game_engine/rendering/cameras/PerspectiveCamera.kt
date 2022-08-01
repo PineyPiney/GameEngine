@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.rendering.cameras
 
 import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.func.rad
 import glm_.glm
 import glm_.mat4x4.Mat4
@@ -23,31 +24,41 @@ open class PerspectiveCamera(window: Window, pos: Vec3 = Vec3(0, 0, 5), up: Vec3
         this.FOV = glm.clamp(FOV, 0.1f, 180f)
     }
 
-    override fun getSpanAtDistance(distance: Float): Vec2 {
-        val backgroundVerticalSpan = 2 * distance * tan(FOV.rad * 0.5)
+    override fun getSpan(): Vec2 {
+        val backgroundVerticalSpan = 2 * tan(FOV.rad * 0.5)
         val backgroundHorizontalSpan = backgroundVerticalSpan * window.aspectRatio
         return Vec2(backgroundHorizontalSpan, backgroundVerticalSpan)
     }
 
-    override fun screenToWorld(pos: Vec2, distance: Float): Vec2 {
-        return pos * getSpanAtDistance(distance) * 0.5 + Vec2(cameraPos)
+    fun screenToWorld(pos: Vec2, distance: Float): Vec2 {
+        return pos * getSpan() * distance * 0.5 + Vec2(cameraPos)
     }
 
-    override fun worldToScreen(pos: Vec2, distance: Float): Vec2 {
-        return (pos - Vec2(cameraPos)) / (getSpanAtDistance(distance) * 0.5)
+    fun worldToScreen(pos: Vec2, distance: Float): Vec2 {
+        return (pos - Vec2(cameraPos)) / (getSpan() * distance * 0.5)
     }
 
-    open fun getViewMatrix(): Mat4 {
-        return glm.lookAt(cameraPos, cameraPos.plus(cameraFront), cameraUp)
-    }
+    override fun getProjection(): Mat4 = glm.perspective(FOV.rad, window.aspectRatio, range.x, range.y)
 
-    override fun getPerspective(): Mat4 = glm.perspective(FOV.rad, window.aspectRatio, range.x, range.y)
+    override fun getRay(point: Vec2): Ray {
+        val yaw = Math.toRadians(point.x * FOV / 2.0 * window.aspectRatio)
+        val pitch = Math.toRadians(point.y * FOV / 2.0)
+        val direction = eulerToVector(cameraYaw + yaw, cameraPitch + pitch)
+        return Ray(cameraPos, direction)
+    }
 
     override fun updateCameraVectors() {
-        cameraFront.x = cos(glm.radians(cameraYaw)).toFloat() * cos(glm.radians(cameraPitch)).toFloat()
-        cameraFront.y = sin(glm.radians(cameraPitch)).toFloat()
-        cameraFront.z = sin(glm.radians(cameraYaw)).toFloat() * cos(glm.radians(cameraPitch)).toFloat()
-        cameraFront.normalize()
+        eulerToVector(cameraYaw, cameraPitch, cameraFront)
         super.updateCameraVectors()
+    }
+
+    companion object{
+        fun eulerToVector(yaw: Double, pitch: Double, res: Vec3 = Vec3()): Vec3{
+            res.x = (cos(Math.toRadians(yaw)) * cos(Math.toRadians(pitch))).toFloat()
+            res.y = sin(Math.toRadians(pitch)).toFloat()
+            res.z = (sin(Math.toRadians(yaw)) * cos(Math.toRadians(pitch))).toFloat()
+            res.normalize()
+            return res
+        }
     }
 }

@@ -31,6 +31,8 @@ abstract class RenderedGameObject3D(shader: Shader): GameObject3D(), Renderable,
         uniforms.setMat4Uniform("model"){ transform.model }
     }
 
+    abstract override fun copy(): RenderedGameObject3D
+
     companion object{
         val defaultShader = ShaderLoader.getShader(ResourceKey("vertex\\3D"), ResourceKey("fragment\\texture"))
     }

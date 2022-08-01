@@ -12,5 +12,4 @@ class ExampleWindow(title: String, width: Int, height: Int, vSync: Boolean): Win
     init {
         setIcon(File("src/main/resources/textures/menu_items/slider/pointer.png").inputStream())
     }
-
 }

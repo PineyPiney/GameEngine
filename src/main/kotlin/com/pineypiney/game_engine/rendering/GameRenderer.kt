@@ -14,7 +14,7 @@ abstract class GameRenderer<E: IGameLogic>: Initialisable {
 
     abstract fun updateAspectRatio(window: Window, objects: ObjectCollection)
 
-    fun clear(){
+    open fun clear(){
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
     }
 }

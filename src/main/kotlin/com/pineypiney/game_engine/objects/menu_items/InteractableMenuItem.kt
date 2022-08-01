@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.objects.Drawable
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.util.extension_functions.isWithin
+import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 
 abstract class InteractableMenuItem : MenuItem(), Interactable {
@@ -36,7 +37,7 @@ abstract class InteractableMenuItem : MenuItem(), Interactable {
         children.filterIsInstance<Drawable>().forEach { it.updateAspectRatio(window) }
     }
 
-    override fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean {
+    override fun checkHover(ray: Ray, screenPos: Vec2): Boolean {
         return screenPos.isWithin(this.origin, this.size)
     }
 }

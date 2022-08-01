@@ -14,9 +14,12 @@ import glm_.vec2.Vec2
 
 abstract class GameLogic : IGameLogic {
 
-    override var gameObjects: ObjectCollection = ObjectCollection()
+    override val gameObjects: ObjectCollection = ObjectCollection()
 
     override val input get() = gameEngine.window.input
+
+    override val window: Window
+        get() = super.window
 
     override fun init() {
         camera.init()
@@ -36,15 +39,14 @@ abstract class GameLogic : IGameLogic {
         Texture.brokeTexture.bind()
     }
 
-    override fun onCursorMove(window: Window, cursorPos: Vec2, cursorDelta: Vec2) {
-        val worldPos = camera.screenToWorld(cursorPos)
+    override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
         for (item in gameObjects.getAllInteractables()){
-            item.hover = item.checkHover(cursorPos, worldPos)
+            item.hover = item.checkHover(camera.getRay(), cursorPos)
             if(item.shouldUpdate()) item.onCursorMove(this, cursorPos, cursorDelta)
         }
     }
 
-    override fun onScroll(window: Window, scrollDelta: Vec2): Int {
+    override fun onScroll(scrollDelta: Vec2): Int {
         for (item in gameObjects.getAllInteractables()){
             if(item.shouldUpdate()){
                 if(item.onScroll(this, scrollDelta) == Interactable.INTERRUPT) return Interactable.INTERRUPT
@@ -82,19 +84,11 @@ abstract class GameLogic : IGameLogic {
     open fun onSecondary(window: Window, action: Int, mods: Byte){}
 
     open fun setFullscreen(state: Boolean){
-        gameEngine.window.fullScreen = state
+        window.fullScreen = state
     }
 
     open fun toggleFullscreen(){
-        setFullscreen(!gameEngine.window.fullScreen)
-    }
-
-    override fun add(o: Storable?){
-        this.gameObjects.addObject(o)
-    }
-
-    override fun remove(o: Storable?){
-        this.gameObjects.removeObject(o)
+        setFullscreen(!window.fullScreen)
     }
 
     override fun update(interval: Float, input: Inputs) {
@@ -103,9 +97,18 @@ abstract class GameLogic : IGameLogic {
 
     override fun updateAspectRatio(window: Window) {
         renderer.updateAspectRatio(window, gameObjects)
+        camera.updateAspectRatio()
         gameObjects.getAllObjects().forEachInstance<Drawable> {
             it.updateAspectRatio(window)
         }
+    }
+
+    override fun add(o: Storable?){
+        gameObjects.addObject(o)
+    }
+
+    override fun remove(o: Storable?){
+        gameObjects.removeObject(o)
     }
 
     override fun cleanUp() {

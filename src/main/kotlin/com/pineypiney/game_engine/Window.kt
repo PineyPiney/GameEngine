@@ -42,7 +42,7 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
             }
         }
 
-    val defaultResizeCallback = {_: Long, width: Int, height: Int ->
+    val defaultResizeCallback = { width: Int, height: Int ->
         this.width = width
         this.height = height
         this.aspectRatio = width.f / height
@@ -95,8 +95,6 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         }
 
         GL.createCapabilities()
-
-        windows[windowHandle] = this
     }
 
     fun setSize(width: Int, height: Int){
@@ -139,11 +137,10 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         STBImage.stbi_image_free(iconByteBuffer)
     }
 
-    // gameEngine.activeScreen.updateAspectRatio(this)
     fun setResizeCallback(callback: (Window) -> Unit){
         // Setup resize callback
-        glfwSetFramebufferSizeCallback(windowHandle) { handle: Long, width: Int, height: Int ->
-            defaultResizeCallback(handle, width, height)
+        glfwSetFramebufferSizeCallback(windowHandle) { _: Long, width: Int, height: Int ->
+            defaultResizeCallback(width, height)
             callback(this)
         }
     }
@@ -162,8 +159,13 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
     }
 
     companion object {
-        var windows = mutableMapOf<Long, Window>()
 
-        operator fun get(handle: Long): Window = windows.getValue(handle)
+        fun getSize(handle: Long): Vec2i{
+            val widths = IntArray(1)
+            val heights = IntArray(1)
+            glfwGetWindowSize(handle, widths, heights)
+
+            return Vec2i(widths[0], heights[0])
+        }
     }
 }

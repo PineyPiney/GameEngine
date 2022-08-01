@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.objects.game_objects.objects_3D
 
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.objects.game_objects.GameObject
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.models.animations.Animation
@@ -85,7 +84,7 @@ open class ModelledGameObject3D(final override val id: ResourceKey, val debug: I
         }
     }
 
-    override fun copy(): GameObject {
+    override fun copy(): ModelledGameObject3D {
         return ModelledGameObject3D(id, debug)
     }
 

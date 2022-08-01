@@ -24,9 +24,9 @@ interface IGameLogic {
 
     fun open()
 
-    fun onCursorMove(window: Window, cursorPos: Vec2, cursorDelta: Vec2)
+    fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2)
 
-    fun onScroll(window: Window, scrollDelta: Vec2): Int
+    fun onScroll(scrollDelta: Vec2): Int
 
     fun onInput(state: InputState, action: Int): Int
 
@@ -36,11 +36,11 @@ interface IGameLogic {
 
     fun updateAspectRatio(window: Window)
 
+    fun render(window: Window, tickDelta: Double)
+
     fun add(o: Storable?)
 
     fun remove(o: Storable?)
-
-    fun render(window: Window, tickDelta: Double)
 
     fun cleanUp()
 }

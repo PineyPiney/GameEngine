@@ -89,11 +89,11 @@ abstract class GameEngine(val window: Window, val resourcesLoader: ResourcesLoad
     }
 
     open fun setInputCallbacks(){
-        input.mouseMoveCallback = { win, screenPos, cursorOffset ->
-            activeScreen.onCursorMove(win, screenPos, cursorOffset)
+        input.mouseMoveCallback = { screenPos, cursorOffset ->
+            activeScreen.onCursorMove(screenPos, cursorOffset)
         }
-        input.mouseScrollCallback = { win, scrollOffset ->
-            activeScreen.onScroll(win, scrollOffset)
+        input.mouseScrollCallback = { scrollOffset ->
+            activeScreen.onScroll(scrollOffset)
         }
         input.keyPressCallback = { bind, action ->
             activeScreen.onInput(bind, action)

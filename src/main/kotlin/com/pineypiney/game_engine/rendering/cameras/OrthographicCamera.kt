@@ -1,34 +1,38 @@
 package com.pineypiney.game_engine.rendering.cameras
 
 import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
+import kotlin.math.max
 
-class OrthographicCamera(window: Window, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), val height: Float = 10f): Camera(window, pos, up) {
+open class OrthographicCamera(window: Window, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), var height: Float = 10f): Camera(window, pos, up) {
 
-    override var range: Vec2 = Vec2(-0.1, -1000)
-
-    override fun getSpanAtDistance(distance: Float): Vec2 {
-        return Vec2(window.aspectRatio, 1) * height
+    fun setCameraHeight(height: Float) {
+        this.height = max(height, 0.001f)
     }
 
-    override fun screenToWorld(pos: Vec2, distance: Float): Vec2 {
-        return pos * getSpanAtDistance(distance) * 0.5 + Vec2(cameraPos)
+    fun screenToWorld(pos: Vec2): Vec2 {
+        return pos * getSpan() * 0.5 + Vec2(cameraPos)
     }
 
-    override fun worldToScreen(pos: Vec2, distance: Float): Vec2 {
-        return (pos - Vec2(cameraPos)) / (getSpanAtDistance(distance) * 0.5)
+    fun worldToScreen(pos: Vec2): Vec2 {
+        return (pos - Vec2(cameraPos)) / (getSpan() * 0.5)
     }
 
-    override fun getPerspective(): Mat4{
-        val extents = getSpanAtDistance(0f) / 2
-        val (l, b) = Vec2(cameraPos) - extents
-        val (r, t) = Vec2(cameraPos) + extents
-        val (n, f) = range + Vec2(cameraPos.z)
-        return glm.ortho(l, r, b, t, n, f)
+    override fun getSpan(): Vec2 {
+        return Vec2(window.aspectRatio * height, height)
+    }
+
+    override fun getProjection(): Mat4{
+        val extents = getSpan() / 2
+        return glm.ortho(-extents.x, extents.x, -extents.y, extents.y, range.x, range.y)
 
     }
 
+    override fun getRay(point: Vec2): Ray {
+        return Ray(Vec3(screenToWorld(point), cameraPos.z), cameraFront)
+    }
 }

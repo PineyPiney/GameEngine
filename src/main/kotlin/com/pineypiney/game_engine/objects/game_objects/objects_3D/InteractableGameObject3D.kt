@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.objects.game_objects.objects_3D
 
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 
 abstract class InteractableGameObject3D(shader: Shader): RenderedGameObject3D(shader), Interactable {
@@ -12,7 +13,7 @@ abstract class InteractableGameObject3D(shader: Shader): RenderedGameObject3D(sh
     override var importance: Int = 0
     override var pressed: Boolean = false
 
-    override fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean {
+    override fun checkHover(ray: Ray, screenPos: Vec2): Boolean {
         TODO("I don't want to ;-;")
     }
 

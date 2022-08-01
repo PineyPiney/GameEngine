@@ -16,12 +16,16 @@ import com.pineypiney.game_engine.objects.text.SizedGameText
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.StretchyGameText
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
+import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.fromAngle
 import com.pineypiney.game_engine.util.extension_functions.roundedString
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.util.maths.shapes.Rect
+import glm_.f
 import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -29,6 +33,7 @@ import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11C.GL_DEPTH_TEST
 import org.lwjgl.opengl.GL11C.glDisable
+import kotlin.math.PI
 
 class Game(override val gameEngine: GameEngine): GameLogic() {
 
@@ -47,7 +52,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
 
     private val texture = SimpleTexturedGameObject2D(ResourceKey("texture"), ResourceKey("menu_items/slider/pointer"))
-    private val model1 = ModelledGameObject2D(ResourceKey("goblin"))
+    private val model1 = ModelledGameObject2D(ResourceKey("goblin"), Model.DEBUG_COLLIDER)
     private val model2 = ModelledGameObject2D(ResourceKey("goblin"))
 
     private val object3D = SimpleTexturedGameObject3D(ResourceKey("3d"), ResourceKey("broke"))
@@ -95,6 +100,14 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         slider.draw()
         list.draw()
 
+        val ray = camera.getRay(input.mouse.lastPos)
+        val up = Vec3(Vec2.fromAngle(model1.rotation, model1.model.collisionBox.size.y))
+        val right = Vec3((Vec2.fromAngle(model1.rotation + PI.f / 2, model1.model.collisionBox.size.x)))
+        val model1Rect = Rect(Vec3(model1.model.collisionBox.originWithParent(model1)), up, right)
+        if(ray.passesThroughRect(model1Rect)){
+            model1.rotate(0.005f)
+        }
+
         /*
         cycle += Timer.frameDelta.f
 
@@ -121,8 +134,8 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         if(pressedKeys.contains('D'.s)) this.camera.setPos(this.camera.cameraPos + Vec3(1, 0, 0) * Timer.frameDelta * speed)
     }
 
-    override fun onCursorMove(window: Window, cursorPos: Vec2, cursorDelta: Vec2) {
-        super.onCursorMove(window, cursorPos, cursorDelta)
+    override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
+        super.onCursorMove(cursorPos, cursorDelta)
         val wp = camera.screenToWorld(cursorPos)
         text.text = wp.roundedString(2).let { "X Part: ${it[0]} \n Y Part: ${it[1]}" }
     }

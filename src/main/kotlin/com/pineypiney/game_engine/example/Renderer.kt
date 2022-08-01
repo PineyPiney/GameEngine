@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.example
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.Renderable
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
+import com.pineypiney.game_engine.rendering.FrameBuffer
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
@@ -11,6 +12,7 @@ import org.lwjgl.opengl.GL46C.*
 
 class Renderer(override val window: Window): BufferedGameRenderer<Game>() {
 
+    var view = I
     var projection = I
 
     override fun init() {
@@ -25,14 +27,16 @@ class Renderer(override val window: Window): BufferedGameRenderer<Game>() {
 
     override fun render(window: Window, game: Game, tickDelta: Double) {
 
-        projection = game.camera.getPerspective()
+        view = game.camera.getView()
+        projection = game.camera.getProjection()
 
         clearFrameBuffer()
         glEnable(GL_DEPTH_TEST)
-        game.gameObjects.gameItems.forEachInstance<Renderable> { it.render(I, projection, tickDelta) }
+        game.gameObjects.gameItems.forEachInstance<Renderable> { it.render(view, projection, tickDelta) }
 
         // This draws the buffer onto the screen
-        clearFrameBuffer(0)
+        FrameBuffer.unbind()
+        clear()
         screenShader.use()
         screenShader.setUniforms(screenUniforms)
         drawBufferTexture()

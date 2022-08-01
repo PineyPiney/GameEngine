@@ -1,17 +1,24 @@
 package com.pineypiney.game_engine.util.extension_functions
 
+import glm_.f
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sqrt
+import kotlin.math.*
 
 /**
  * The distance between [this] and [other]
  */
-fun Vec2.dist(other: Vec2): Float = sqrt(this dot other)
+fun Vec2.dist(other: Vec2): Float = (this - other).length()
+
+/**
+ * Angle of Vec2, in radians, going clockwise starting at (0, 1)
+ */
+fun Vec2.angle(): Float {
+    return  if (y == 0f) (if (x > 0) PI / 2 else PI * 3 / 2).f
+            else (atan(x / y) + (if (y < 0) PI.f else 0f)).wrap(0f, PI.f * 2)
+}
 
 /**
  * Coerce the x and y values of [this] between the x and y values of [low] and [high]
@@ -62,6 +69,10 @@ fun Vec2.round(round: Float): Vec2 {
     return this
 }
 
+infix fun Vec3.projectOn(other: Vec3): Vec3{
+    return other * ((this dot other) / (other dot other))
+}
+
 fun Vec2.lerp(next: Vec2, delta: Float) = Vec2(this.x.lerp(next.x, delta), this.y.lerp(next.y, delta))
 fun Vec2.serp(next: Vec2, delta: Float) = Vec2(this.x.serp(next.x, delta), this.y.serp(next.y, delta))
 fun Vec2.eerp(next: Vec2, delta: Float, exponent: Int) = Vec2(this.x.eerp(next.x, delta, exponent), this.y.eerp(next.y, delta, exponent))
@@ -76,6 +87,16 @@ fun Vec3.transform(m: Mat4): Vec3 {
 fun Vec2.roundedString(places: Int) = arrayOf("${x.round(places)}", "${y.round(places)}")
 fun Vec3.roundedString(places: Int) = arrayOf("${x.round(places)}", "${y.round(places)}", "${z.round(places)}")
 
-fun Vec2.copy() = Vec2(ofs, array.clone())
-fun Vec3.copy() = Vec3(ofs, array.clone())
+fun Vec2.copy() = Vec2(0, floatArrayOf(x, y))
+fun Vec3.copy() = Vec3(0, floatArrayOf(x, y, z))
+
+fun Vec2.Companion.fromAngle(angle: Float, length: Float = 1f): Vec2{
+    return Vec2(length * sin(angle), length * cos(angle))
+}
+fun Vec2.Companion.fromMat4Translation(matrix: Mat4): Vec2{
+    return Vec2(matrix[3, 0], matrix[3, 1])
+}
+fun Vec3.Companion.fromMat4Translation(matrix: Mat4): Vec3{
+    return Vec3(matrix[3, 0], matrix[3, 1], matrix[3, 2])
+}
 

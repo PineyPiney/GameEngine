@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.util.extension_functions.isWithin
+import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 
 open class InteractableScrollingListEntry<E: ScrollingListItem>(parent: E, number: Int): ScrollingListEntry<E>(parent, number),
@@ -19,7 +20,7 @@ open class InteractableScrollingListEntry<E: ScrollingListItem>(parent: E, numbe
 
     }
 
-    override fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean {
+    override fun checkHover(ray: Ray, screenPos: Vec2): Boolean {
         return screenPos.isWithin(this.origin, this.size)
     }
 }

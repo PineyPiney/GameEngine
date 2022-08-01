@@ -134,6 +134,13 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
         fun getTexture(key: ResourceKey): Texture = INSTANCE.getTexture(key)
         fun findTexture(name: String): Texture = INSTANCE.findTexture(name)
 
-        fun blank(): Texture = INSTANCE.getTexture(ResourceKey("broke"))
+        val formatToChannels = mapOf(
+            GL_RED to 1,
+            GL_GREEN to 1,
+            GL_BLUE to 1,
+            GL_ALPHA to 1,
+            GL_RGB to 3,
+            GL_RGBA to 4
+        )
     }
 }

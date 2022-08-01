@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.objects.game_objects.objects_2D.GameObject2D
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.extension_functions.absMinOf
 import com.pineypiney.game_engine.util.extension_functions.copy
+import com.pineypiney.game_engine.util.extension_functions.fromMat4Translation
 import com.pineypiney.game_engine.util.maths.I
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -14,7 +15,7 @@ abstract class CollisionBox2D(var parent: GameObject2D?, val origin: Vec2, val s
     var active: Boolean = true
 
     val relModel = I.translate(Vec3(origin)).scale(Vec3(size))
-    val worldOrigin: Vec2; get()  = (parent?.position ?: Vec2()) + ((parent?.scale ?: Vec2()) * this.origin)
+    val worldOrigin: Vec2; get() = parent?.let { originWithParent(it) } ?: this.origin
     val worldScale: Vec2; get() = ((parent?.scale ?: Vec2()) * this.size)
 
     val left; get() = if(worldScale.x > 0) this.worldOrigin.x else this.worldOrigin.x + this.worldScale.x
@@ -69,5 +70,9 @@ abstract class CollisionBox2D(var parent: GameObject2D?, val origin: Vec2, val s
         if(collidedMove.y != movement.y) obj.velocity.y = 0f
 
         return collidedMove
+    }
+
+    fun originWithParent(parent: GameObject2D): Vec2{
+        return Vec2.fromMat4Translation(parent.transform.model * relModel)
     }
 }

@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.objects
 import com.pineypiney.game_engine.IGameLogic
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
 
@@ -31,14 +32,13 @@ interface Interactable: Updateable {
         this.children.removeAll(children.toSet())
     }
 
-    fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean
+    fun checkHover(ray: Ray, screenPos: Vec2): Boolean
 
     fun onCursorMove(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2){
         if(pressed) onDrag(game, cursorPos, cursorDelta)
 
-        val worldPos = game.camera.screenToWorld(cursorPos)
         for (child in children) {
-            child.hover = child.checkHover(cursorPos, worldPos)
+            child.hover = child.checkHover(game.camera.getRay(), cursorPos)
             if(child.shouldUpdate()) child.onCursorMove(game, cursorPos, cursorDelta)
         }
     }

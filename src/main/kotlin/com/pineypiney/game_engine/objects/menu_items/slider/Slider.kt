@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.objects.menu_items.slider
 
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.menu_items.InteractableMenuItem
+import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 
 abstract class Slider @Throws(IllegalArgumentException::class) constructor(final override val size: Vec2, private val low: Float, private val high: Float, value: Float, val window: Window): InteractableMenuItem() {
@@ -41,8 +42,8 @@ abstract class Slider @Throws(IllegalArgumentException::class) constructor(final
         pointer.drawCenteredBottom(origin + Vec2(value / scale, size.y * 0.2))
     }
 
-    override fun checkHover(screenPos: Vec2, worldPos: Vec2): Boolean {
-        return super.checkHover(screenPos, worldPos) || pointer.checkHover(screenPos, worldPos)
+    override fun checkHover(ray: Ray, screenPos: Vec2): Boolean {
+        return super.checkHover(ray, screenPos) || pointer.checkHover(ray, screenPos)
     }
 
     open fun moveSliderTo(move: Float){
