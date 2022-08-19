@@ -1,14 +1,14 @@
 package com.pineypiney.game_engine.objects.util.shapes
 
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL31.*
 
 open class ArrayShape(vertices: FloatArray, parts: IntArray): Shape() {
 
     override val size = vertices.size / parts.sum()
+    val VBO = glGenBuffers()
 
     init {
 
-        val VBO = glGenBuffers()
         glBindVertexArray(VAO)
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO)
@@ -19,7 +19,6 @@ open class ArrayShape(vertices: FloatArray, parts: IntArray): Shape() {
 
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindVertexArray(0)
-        glDeleteBuffers(VBO)
     }
 
     override fun draw(mode: Int){
@@ -28,5 +27,14 @@ open class ArrayShape(vertices: FloatArray, parts: IntArray): Shape() {
 
     override fun drawInstanced(amount: Int, mode: Int) {
         glDrawArraysInstanced(mode, 0, size, amount)
+    }
+
+    fun getVertices(): FloatArray {
+        return getBuffer(VBO)
+    }
+
+    override fun delete() {
+        super.delete()
+        glDeleteBuffers(VBO)
     }
 }

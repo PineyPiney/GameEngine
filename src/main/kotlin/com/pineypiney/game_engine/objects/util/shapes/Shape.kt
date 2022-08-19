@@ -3,9 +3,10 @@ package com.pineypiney.game_engine.objects.util.shapes
 import com.pineypiney.game_engine.objects.Deleteable
 import glm_.f
 import glm_.vec2.Vec2i
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL30.*
 
 abstract class Shape: Deleteable {
+
     val VAO = glGenVertexArrays()
     abstract val size: Int
 
@@ -42,10 +43,19 @@ abstract class Shape: Deleteable {
     }
 
     override fun delete() {
-        glDeleteVertexArrays(this.VAO)
+        glDeleteVertexArrays(VAO)
     }
 
     companion object{
+
+        fun getBuffer(buffer: Int, target: Int = GL_ARRAY_BUFFER): FloatArray{
+            glBindBuffer(target, buffer)
+            // Size is the buffer size in bytes, to must be divided by four to get the number of floats
+            val size = glGetBufferParameteri(target, GL_BUFFER_SIZE)
+            val a = FloatArray(size / 4)
+            glGetBufferSubData(target, 0, a)
+            return a
+        }
 
         fun floatArrayOf(vararg elements: Number) : FloatArray {
             return elements.map { it.f }.toFloatArray()

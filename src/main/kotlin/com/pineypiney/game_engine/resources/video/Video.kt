@@ -1,19 +1,14 @@
 package com.pineypiney.game_engine.resources.video
 
-import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.resources.Media
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.delete
 import glm_.d
 import glm_.i
-import org.bytedeco.ffmpeg.global.avcodec
 import org.bytedeco.javacv.FFmpegFrameGrabber
-import org.bytedeco.javacv.FFmpegFrameRecorder
-import org.bytedeco.javacv.Frame
 import java.io.File
 import java.io.InputStream
-import java.nio.ByteBuffer
 import kotlin.math.min
 
 class Video(grabber: FFmpegFrameGrabber): Media() {
@@ -33,7 +28,7 @@ class Video(grabber: FFmpegFrameGrabber): Media() {
     val frameRate: Double
     val frameTime: Double
 
-    val textures: List<Texture>
+    val textures: List<Texture> = listOf()
 
     init{
         grabber.start()
@@ -46,6 +41,8 @@ class Video(grabber: FFmpegFrameGrabber): Media() {
         this.frameRate = grabber.frameRate
         this.frameTime = 1000.0 / this.frameRate
 
+
+        /*
         // https://www.tabnine.com/code/java/classes/org.bytedeco.javacv.FFmpegFrameGrabber?snippet=5921ec434002b00004d6afd4
         val recorder = FFmpegFrameRecorder("src\\main\\resources\\videos\\new.mp4", width, height, audioChannels)
         recorder.videoCodec = avcodec.AV_CODEC_ID_H264
@@ -98,6 +95,8 @@ class Video(grabber: FFmpegFrameGrabber): Media() {
 
         grabber.stop()
         grabber.release()
+
+         */
     }
 
     fun getCurrentTexture(): Texture{
@@ -137,5 +136,9 @@ class Video(grabber: FFmpegFrameGrabber): Media() {
 
     override fun delete() {
         textures.delete()
+    }
+
+    companion object {
+        val broke = Video("src/main/resources/videos/broke.mp4")
     }
 }

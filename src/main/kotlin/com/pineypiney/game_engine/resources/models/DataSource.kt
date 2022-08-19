@@ -10,10 +10,14 @@ import org.w3c.dom.NodeList
 import javax.xml.xpath.XPath
 import javax.xml.xpath.XPathConstants
 
-class DataSource(val id: String, val count: Int, val stride: Int, val arrays: Map<String, Array<String>>) {
+class DataSource(val attributes: Map<String, String>, val count: Int, val stride: Int, val arrays: Map<String, Array<String>>) {
+
+    infix fun pointedBy(attribute: Pair<String, String>?): Boolean{
+        return attributes[attribute?.first] == attribute?.second
+    }
 
     operator fun get(index: String): Array<String>{
-        return arrays.getOrDefault(index, arrays.getOrDefault(0, arrayOf()))
+        return arrays.getOrDefault(index,  arrayOf())
     }
 
     operator fun get(index: String, indey: Int): String{
@@ -53,7 +57,7 @@ class DataSource(val id: String, val count: Int, val stride: Int, val arrays: Ma
 
     companion object{
 
-        val EMPTY = DataSource("", 0, 0, mapOf())
+        val EMPTY = DataSource(mapOf(), 0, 0, mapOf())
 
         @Throws(TypeCastException::class)
         fun readDataFromXML(id: String, root: String, doc: Document, path: XPath = ModelLoader.xPath): DataSource {
@@ -78,12 +82,11 @@ class DataSource(val id: String, val count: Int, val stride: Int, val arrays: Ma
                 map[params[i]] = subList.toTypedArray()
             }
 
-            return DataSource(id, count, stride, map.toMap())
+            return DataSource(mapOf("id" to id), count, stride, map.toMap())
         }
 
         @Throws(TypeCastException::class)
-        fun readAllDataFromXML(root: String, tag: String, doc: Document, path: XPath = ModelLoader.xPath): List<DataSource> {
-            val tagRoot = "$root/$tag"
+        fun readAllDataFromXML(tagRoot: String, doc: Document, path: XPath = ModelLoader.xPath): List<DataSource> {
             val nodes = path.evaluate(tagRoot, doc, XPathConstants.NODESET) as NodeList
             val allNodes = getAttributes(nodes)
             return allNodes.map { readDataFromXML(it, tagRoot, doc, path) }

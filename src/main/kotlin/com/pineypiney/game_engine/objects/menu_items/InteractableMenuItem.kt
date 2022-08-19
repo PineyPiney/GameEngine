@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.Drawable
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.Interactable
+import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
@@ -22,7 +23,7 @@ abstract class InteractableMenuItem : MenuItem(), Interactable {
         super.init()
 
         setChildren()
-        for(i in children.filterIsInstance<Initialisable>()) i.init()
+        children.filterIsInstance<Initialisable>().init()
     }
 
     open fun setChildren(){}

@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.IGameLogic
 import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.menu_items.StaticInteractableMenuItem
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
@@ -9,7 +10,7 @@ import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 
-abstract class ScrollingListItem(final override var origin: Vec2, final override val size: Vec2, val entryHeight: Float, val scrollerWidth: Float): StaticInteractableMenuItem() {
+abstract class ScrollingListItem(final override var origin: Vec2, final override val size: Vec2, val entryHeight: Float, val scrollerWidth: Float): StaticInteractableMenuItem() {  //, Iterable<ScrollingListEntry<*>>
 
     abstract val items: List<ScrollingListEntry<*>>
 
@@ -45,7 +46,7 @@ abstract class ScrollingListItem(final override var origin: Vec2, final override
     }
 
     override fun setChildren() {
-        addChild(scrollBar)
+        addChild(scrollBar, )
         addChildren(items.filterIsInstance<Interactable>())
     }
 
@@ -114,6 +115,6 @@ abstract class ScrollingListItem(final override var origin: Vec2, final override
         super.delete()
 
         scrollBar.delete()
-        for(it in items) { it.delete() }
+        items.forEach(Deleteable::delete)
     }
 }

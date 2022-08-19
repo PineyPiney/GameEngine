@@ -1,13 +1,14 @@
 package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.GameEngine
-import com.pineypiney.game_engine.resources.AbstractResourceLoader
+import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.delete
 import glm_.bool
 import org.lwjgl.opengl.GL46C.*
 import java.io.InputStream
 
-class ShaderLoader private constructor(): AbstractResourceLoader<Shader>(){
+class ShaderLoader private constructor(): Deleteable{
 
     // This map stores the bytebuffer codes of each shader file
     private val shaderMap: MutableMap<ResourceKey, SubShader> = mutableMapOf()
@@ -58,6 +59,7 @@ class ShaderLoader private constructor(): AbstractResourceLoader<Shader>(){
     }
 
     override fun delete() {
+        shaderMap.delete()
         shaderMap.clear()
     }
 

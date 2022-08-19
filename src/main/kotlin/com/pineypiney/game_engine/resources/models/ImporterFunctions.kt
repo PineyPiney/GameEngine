@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
 import glm_.d
 import glm_.f
 import glm_.i
@@ -47,6 +48,27 @@ fun getAllAttributes(doc: Document, ex: String, path: XPath = ModelLoader.xPath)
     val attributes = getFirstAttributes(doc, ex, path) ?: return mapOf()
     val nodes = List<Node>(attributes.length) {attributes.item(it)}
     return nodes.associate { Pair(it.nodeName, it.nodeValue) }
+}
+
+fun getSource(errorMsg: String, source: String, ex: String, doc: Document, path: XPath = ModelLoader.xPath): Pair<String, String>?{
+    val input = getAllAttributes(doc, ex, path)
+    val sourceId = input["source"] ?: run{
+        return null
+    }
+    val sourcePair = getAttributeIdentifier(sourceId) ?: run{
+        GameEngine.logger.warn { "$errorMsg because $source source $sourceId could be parsed" }
+        return null
+    }
+    return sourcePair
+}
+
+fun getAttributeIdentifier(s: String): Pair<String, String>?{
+    return when(s[0]){
+        '#' -> "id" to s.substring(1)
+        '.' -> "class" to s.substring(1)
+        '@' -> s.substring(1).substringBefore('=').replaceWhiteSpaces() to s.substringAfter('\'').removeSuffix("\'")
+        else -> null
+    }
 }
 
 inline fun <reified T> convertString(string: String, default: T): T{

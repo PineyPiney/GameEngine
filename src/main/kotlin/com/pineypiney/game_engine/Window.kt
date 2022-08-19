@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine
 
+import com.pineypiney.game_engine.audio.AudioDevice
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.input.Inputs
 import glm_.d
@@ -9,6 +10,8 @@ import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
+import org.lwjgl.openal.AL
+import org.lwjgl.openal.ALC
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11C.glViewport
 import org.lwjgl.stb.STBImage
@@ -24,6 +27,7 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         }
 
     var windowHandle = 0L; private set
+    var audioDevice: AudioDevice? = null; private set
     var aspectRatio = width.f/height.f
 
     val size: Vec2i; get() = Vec2i(this.width, this.height)
@@ -50,6 +54,13 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
     }
 
     init{
+        loadGL(title)
+        loadAL()
+
+        glfwSetWindowCloseCallback(windowHandle, ::close)
+    }
+
+    fun loadGL(title: String){
         GLFWErrorCallback.createPrint(System.err).set()
 
         // Initialize GLFW. Most GLFW functions will not work before doing this.
@@ -95,6 +106,14 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         }
 
         GL.createCapabilities()
+    }
+
+    fun loadAL(){
+        //val devices = ALUtil.getStringList(0L, ALC10.ALC_DEVICE_SPECIFIER)
+        audioDevice = AudioDevice()
+
+        val cCaps = ALC.getCapabilities()
+        AL.createCapabilities(cCaps)
     }
 
     fun setSize(width: Int, height: Int){
@@ -145,7 +164,7 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         }
     }
 
-    fun update(){
+    open fun update(){
         glfwSwapBuffers(windowHandle)
         glfwPollEvents()
     }
@@ -156,6 +175,10 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
 
     fun setShouldClose(close: Boolean = true){
         glfwSetWindowShouldClose(windowHandle, close)
+    }
+
+    open fun close(handle: Long = windowHandle){
+        audioDevice?.close()
     }
 
     companion object {

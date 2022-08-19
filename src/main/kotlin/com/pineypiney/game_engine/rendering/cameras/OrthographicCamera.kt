@@ -8,11 +8,10 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import kotlin.math.max
 
-open class OrthographicCamera(window: Window, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), var height: Float = 10f): Camera(window, pos, up) {
+open class OrthographicCamera(window: Window, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), height: Float = 10f): Camera(window, pos, up) {
 
-    fun setCameraHeight(height: Float) {
-        this.height = max(height, 0.001f)
-    }
+    var height: Float = height
+        set(value) { field = max(value, 0.001f) }
 
     fun screenToWorld(pos: Vec2): Vec2 {
         return pos * getSpan() * 0.5 + Vec2(cameraPos)
@@ -22,14 +21,14 @@ open class OrthographicCamera(window: Window, pos: Vec3 = Vec3(0, 0, 5), up: Vec
         return (pos - Vec2(cameraPos)) / (getSpan() * 0.5)
     }
 
-    override fun getSpan(): Vec2 {
-        return Vec2(window.aspectRatio * height, height)
-    }
-
     override fun getProjection(): Mat4{
         val extents = getSpan() / 2
         return glm.ortho(-extents.x, extents.x, -extents.y, extents.y, range.x, range.y)
 
+    }
+
+    override fun getSpan(): Vec2 {
+        return Vec2(window.aspectRatio * height, height)
     }
 
     override fun getRay(point: Vec2): Ray {

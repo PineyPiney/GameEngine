@@ -31,7 +31,6 @@ class Renderer(override val window: Window): BufferedGameRenderer<Game>() {
         projection = game.camera.getProjection()
 
         clearFrameBuffer()
-        glEnable(GL_DEPTH_TEST)
         game.gameObjects.gameItems.forEachInstance<Renderable> { it.render(view, projection, tickDelta) }
 
         // This draws the buffer onto the screen

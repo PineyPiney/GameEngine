@@ -37,6 +37,28 @@ fun <E: Deleteable> Map<*, E?>.delete(){
 }
 
 /**
+ * Adds all [elements] to the collection
+ *
+ * @param [elements] The elements to be added to the collection
+ *
+ * @return `true` if any of the specified elements was added to the collection, `false` if the collection was not modified.
+ */
+fun <E> MutableCollection<E>.addAll(vararg elements: E): Boolean{
+    return addAll(elements.toSet())
+}
+
+/**
+ * Removes all [elements] from the collection
+ *
+ * @param [elements] The elements to be removed from the collection
+ *
+ * @return `true` if any of the specified elements was removed from the collection, `false` if the collection was not modified.
+ */
+fun <E> MutableCollection<E>.removeAll(vararg elements: E): Boolean{
+    return removeAll(elements.toSet())
+}
+
+/**
  * Expand a list of floats using [entry] until its size is at least [size]
  * @param [size] The minimum size this list should be
  * @param [entry] The entry to add to the list

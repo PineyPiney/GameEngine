@@ -9,9 +9,6 @@ import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.resources.models.animations.Animation
 import com.pineypiney.game_engine.resources.models.animations.State
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.util.Copyable
-import com.pineypiney.game_engine.util.extension_functions.copy
-import com.pineypiney.game_engine.util.maths.normal
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -23,7 +20,7 @@ import org.lwjgl.assimp.Assimp.aiProcess_Triangulate
 
 // Materials are also stored in the model, and accessed by the meshes through IDs
 
-class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<Animation>, val name: String = "broke", val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource(), Copyable<Model> {
+class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<Animation>, val name: String = "broke", val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource() {
 
     var collisionBox: CollisionBox2D = SoftCollisionBox(null, Vec2(), Vec2(1))
 
@@ -93,13 +90,6 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
         rootBone?.reset()
     }
 
-    override fun copy(): Model{
-        val copyBone = rootBone?.copy()
-        val result = Model(meshes.copy(), copyBone, animations.copy(), name, flags)
-        result.collisionBox = this.collisionBox.copy()
-        return result
-    }
-
     override fun delete() {}
 
     companion object{
@@ -110,11 +100,11 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
 
         val brokeMaterial = ModelMaterial("broke", mapOf(), Vec3(1))
 
-        private val v1 = Mesh.MeshVertex(ModelLoader.VertexPosition(0, Vec3(0, 0, 0)), normal, Vec2(0, 0))
-        private val v2 = Mesh.MeshVertex(ModelLoader.VertexPosition(0, Vec3(1, 0, 0)), normal, Vec2(1, 0))
-        private val v3 = Mesh.MeshVertex(ModelLoader.VertexPosition(0, Vec3(1, 1, 0)), normal, Vec2(1, 1))
-        private val v4 = Mesh.MeshVertex(ModelLoader.VertexPosition(0, Vec3(0, 1, 0)), normal, Vec2(0, 1))
+        private val v1 = Mesh.MeshVertex(ModelLoader.VertexPosition(0, Vec2(0, 0)), Vec2(0, 0))
+        private val v2 = Mesh.MeshVertex(ModelLoader.VertexPosition(1, Vec2(1, 0)), Vec2(1, 0))
+        private val v3 = Mesh.MeshVertex(ModelLoader.VertexPosition(2, Vec2(1, 1)), Vec2(1, 1))
+        private val v4 = Mesh.MeshVertex(ModelLoader.VertexPosition(3, Vec2(0, 1)), Vec2(0, 1))
 
-        val brokeModel = Model(arrayOf(Mesh("brokeMesh", arrayOf(Face(arrayOf(v1, v2, v3)), Face(arrayOf(v1, v3, v4))))), null, arrayOf())
+        val brokeModel = Model(arrayOf(Mesh("brokeMesh", arrayOf(v1, v2, v3, v4), intArrayOf(0, 3, 2, 2, 1, 0))), null, arrayOf())
     }
 }

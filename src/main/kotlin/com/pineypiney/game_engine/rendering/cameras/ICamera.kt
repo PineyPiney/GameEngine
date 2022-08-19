@@ -27,7 +27,4 @@ interface ICamera: Initialisable {
     fun getProjection(): Mat4
     fun getSpan(): Vec2
     fun getRay(point: Vec2 = Vec2()): Ray
-
-//    fun screenToWorld(pos: Vec2, distance: Float = cameraPos.z): Vec2
-//    fun worldToScreen(pos: Vec2, distance: Float = cameraPos.z): Vec2
 }

@@ -18,17 +18,10 @@ open class PerspectiveCamera(window: Window, pos: Vec3 = Vec3(0, 0, 5), up: Vec3
 
     var cameraYaw = yaw
     var cameraPitch = pitch
-    var FOV = fov; private set
-
-    open fun setCameraFOV(FOV: Float){
-        this.FOV = glm.clamp(FOV, 0.1f, 180f)
-    }
-
-    override fun getSpan(): Vec2 {
-        val backgroundVerticalSpan = 2 * tan(FOV.rad * 0.5)
-        val backgroundHorizontalSpan = backgroundVerticalSpan * window.aspectRatio
-        return Vec2(backgroundHorizontalSpan, backgroundVerticalSpan)
-    }
+    var FOV = fov
+        private set(value){
+            field = glm.clamp(value, 0.1f, 180f)
+        }
 
     fun screenToWorld(pos: Vec2, distance: Float): Vec2 {
         return pos * getSpan() * distance * 0.5 + Vec2(cameraPos)
@@ -39,6 +32,12 @@ open class PerspectiveCamera(window: Window, pos: Vec3 = Vec3(0, 0, 5), up: Vec3
     }
 
     override fun getProjection(): Mat4 = glm.perspective(FOV.rad, window.aspectRatio, range.x, range.y)
+
+    override fun getSpan(): Vec2 {
+        val backgroundVerticalSpan = 2 * tan(FOV.rad * 0.5)
+        val backgroundHorizontalSpan = backgroundVerticalSpan * window.aspectRatio
+        return Vec2(backgroundHorizontalSpan, backgroundVerticalSpan)
+    }
 
     override fun getRay(point: Vec2): Ray {
         val yaw = Math.toRadians(point.x * FOV / 2.0 * window.aspectRatio)

@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.audio.AudioSource
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.ModelledGameObject2D
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.SimpleTexturedGameObject2D
@@ -16,14 +17,17 @@ import com.pineypiney.game_engine.objects.text.SizedGameText
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.StretchyGameText
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
+import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.models.ModelLoader
+import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.angle
 import com.pineypiney.game_engine.util.extension_functions.fromAngle
 import com.pineypiney.game_engine.util.extension_functions.roundedString
+import com.pineypiney.game_engine.util.extension_functions.wrap
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
-import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Rect
 import glm_.f
 import glm_.s
@@ -31,39 +35,38 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL11C.GL_DEPTH_TEST
-import org.lwjgl.opengl.GL11C.glDisable
 import kotlin.math.PI
+import kotlin.math.sign
 
 class Game(override val gameEngine: GameEngine): GameLogic() {
 
-    //override var camera: PerspectiveCamera = PerspectiveCamera(window)
     override val camera: OrthographicCamera = OrthographicCamera(window)
     override val renderer: Renderer = Renderer(window)
 
     private val pressedKeys = mutableSetOf<Short>()
+    private val audio = AudioLoader[(ResourceKey("clair_de_lune"))]
 
     private val button = TextButton("button", Vec2(0.6, 0.8), Vec2(0.4, 0.2), window){
         println("Pressed!")
+        AudioSource(audio).play()
     }
     private val textField = ActionTextField(Vec2(-1), Vec2(1, 0.2), window){ _, char, _ ->
         println("Typing $char")
+        AudioSource(audio).play()
     }
     private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
 
-    private val texture = SimpleTexturedGameObject2D(ResourceKey("texture"), ResourceKey("menu_items/slider/pointer"))
-    private val model1 = ModelledGameObject2D(ResourceKey("goblin"), Model.DEBUG_COLLIDER)
-    private val model2 = ModelledGameObject2D(ResourceKey("goblin"))
+    private val texture = SimpleTexturedGameObject2D(ResourceKey("texture"), Texture.missing)
+    private val model1 = ModelledGameObject2D(ModelLoader.getModel(ResourceKey("goblin")), Model.DEBUG_COLLIDER)
+    private val model2 = ModelledGameObject2D(ModelLoader.getModel(ResourceKey("goblin")), Model.DEBUG_COLLIDER)
 
     private val object3D = SimpleTexturedGameObject3D(ResourceKey("3d"), ResourceKey("broke"))
 
-    private val text = SizedStaticText("X Part: 0.00 \n Y Part: 0.00", window)
+    private val text = SizedStaticText("X Part: 0.00 \nY Part: 0.00", window, 24, Vec2(0.6, 0.2))
     private val gameText = StretchyGameText("This is some Game Text", Vec2(17.78, 10), Vec4(0.0, 1.0, 1.0, 1.0))
     private val siGameText = SizedGameText("This is some Sized Game Text", 300, Vec2(11, 10), Vec4(0.0, 1.0, 1.0, 1.0))
 
-    private val list = BasicScrollList(Vec2(-1, -0.2), Vec2(1.2), 1f, 0.05f, arrayOf("Hello", "World"), window)
-
-    private var cycle = 0.0f
+    private val list = BasicScrollList(Vec2(-1, 0.4), Vec2(0.6), 1f, 0.05f, arrayOf("Hello", "World"), window)
 
     override fun init() {
         super.init()
@@ -73,8 +76,8 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
 
         model1.setAnimation("Wipe Nose")
         model2.setAnimation("Magic Trick")
-        model1.translate(Vec2(2, -5))
-        model2.translate(Vec2(5, -5))
+        model1.translate(Vec2(2, -3))
+        model2.translate(Vec2(5, -3))
     }
 
     override fun addObjects() {
@@ -92,39 +95,41 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
 
     private fun drawScene(tickDelta: Double){
 
-        gameText.render(I, renderer.projection, tickDelta)
-        siGameText.render(I, renderer.projection, tickDelta)
-        text.drawCentered(Vec2())
-        button.drawBottomLeft(Vec2(0.6, 0.8))
-        textField.drawBottomLeft(Vec2(-1))
-        slider.draw()
-        list.draw()
+        gameText.render(renderer.view, renderer.projection, tickDelta)
+        siGameText.render(renderer.view, renderer.projection, tickDelta)
+
+        drawHUD()
 
         val ray = camera.getRay(input.mouse.lastPos)
         val up = Vec3(Vec2.fromAngle(model1.rotation, model1.model.collisionBox.size.y))
         val right = Vec3((Vec2.fromAngle(model1.rotation + PI.f / 2, model1.model.collisionBox.size.x)))
         val model1Rect = Rect(Vec3(model1.model.collisionBox.originWithParent(model1)), up, right)
-        if(ray.passesThroughRect(model1Rect)){
-            model1.rotate(0.005f)
+        val point = ray intersects model1Rect
+
+        if(point != null){
+            val t = Timer.getCurrentTime()
+            val passes = model1Rect containsPoint point
+            val dt = Timer.getCurrentTime() - t
+            if(passes){
+                println("Calc Time is $dt")
+                val pA = (Vec2(point) - model1.position).angle()
+                val a = (model1.rotation - pA).wrap(-PI.f, PI.f)
+                model1.rotate(a.sign * 0.05f)
+            }
         }
+    }
 
-        /*
-        cycle += Timer.frameDelta.f
-
-        backgroundShader.use()
-        backgroundShader.setMat4("model", I.rotate(cycle * 2f * PI.f, normal))
-        backgroundShader.setMat4("view", I)
-        backgroundShader.setMat4("projection", I)
-        Shape.cornerSquareShape2D.bind()
-        Shape.cornerSquareShape2D.draw()
-
-         */
+    fun drawHUD(){
+        text.drawCenteredLeft(Vec2(-1, 0))
+        button.draw()
+        textField.draw()
+        slider.draw()
+        list.draw()
     }
 
     override fun render(window: Window, tickDelta: Double) {
         renderer.render(window, this, tickDelta)
 
-        glDisable(GL_DEPTH_TEST)
         drawScene(tickDelta)
 
         val speed = 10
@@ -137,7 +142,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
         super.onCursorMove(cursorPos, cursorDelta)
         val wp = camera.screenToWorld(cursorPos)
-        text.text = wp.roundedString(2).let { "X Part: ${it[0]} \n Y Part: ${it[1]}" }
+        text.text = wp.roundedString(2).let { "X Part: ${it[0]} \nY Part: ${it[1]}" }
     }
 
     override fun onInput(state: InputState, action: Int): Int {
@@ -176,11 +181,5 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         gameText.delete()
         siGameText.delete()
         textField.delete()
-    }
-
-    companion object{
-
-        val backgroundShader = ShaderLoader.getShader(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/rainbow"))
-
     }
 }

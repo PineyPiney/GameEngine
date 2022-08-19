@@ -59,10 +59,8 @@ abstract class CollisionBox2D(var parent: GameObject2D?, val origin: Vec2, val s
 
         // Iterate over all collision boxes sharing object collections and
         // eject this collision boxes object if the collision boxes collide
-        for(o in obj.objects){
-            for(box in o.getAllCollisions()) {
-                if(box != this) collidedMove plusAssign newCollision.getEjectionVector(box)
-            }
+        for(box in obj.objects.flatMap { it.getAllCollisions() }){
+            if(box != this) collidedMove plusAssign newCollision.getEjectionVector(box)
         }
 
         // If a collision is detected in either direction then set the velocity to 0

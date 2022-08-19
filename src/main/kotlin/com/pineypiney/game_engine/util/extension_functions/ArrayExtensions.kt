@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.util.extension_functions
 
 import com.pineypiney.game_engine.util.Copyable
-import java.util.*
 
 /**
  * Expand FloatArray using [entry] until its size is at least [size]
@@ -39,118 +38,134 @@ fun IntArray.expand(size: Int, entry: Int = 0): IntArray{
 inline fun <reified E: Copyable<E>> Array<E>.copy() = map { i -> i.copy() }.toTypedArray()
 
 /**
- * Returns an array containing all elements of the original array except the given [element].
+ * Returns an array containing all elements of the original array except the first instance that equals the given [element].
+ *
+ * @param element The element to be removed
  */
 operator fun <T> Array<T>.minus(element: T): Array<T>{
     val index = indexOf(element)
     if(index == -1) return this
 
-    // Cannot use kotlin function because it returns an array of nullables
-    val newArray = Arrays.copyOf(this, size - 1)
+    // sliceArray must be used so that the array isn't a nullable one
+    val newArray = sliceArray(0 .. size - 2)
     for(i in (index..size - 2)) newArray[i] = this[i + 1]
     return newArray
 }
 
 /**
- * Returns an array containing all elements of the original array except the given [element].
+ * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
 operator fun ByteArray.minus(element: Byte): ByteArray{
     val index = indexOfFirst{ it == element }
     if(index == -1) return this
 
-    // Cannot use kotlin function because it returns an array of nullables
-    val newArray = Arrays.copyOf(this, size - 1)
+    val newArray = copyOf(size - 1)
     for(i in (index..size - 2)) newArray[i] = this[i + 1]
     return newArray
 }
 
 /**
- * Returns an array containing all elements of the original array except the given [element].
+ * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
 operator fun ShortArray.minus(element: Short): ShortArray{
     val index = indexOfFirst{ it == element }
     if(index == -1) return this
 
-    // Cannot use kotlin function because it returns an array of nullables
-    val newArray = Arrays.copyOf(this, size - 1)
+    val newArray = copyOf(size - 1)
     for(i in (index..size - 2)) newArray[i] = this[i + 1]
     return newArray
 }
 
 /**
- * Returns an array containing all elements of the original array except the given [element].
+ * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
 operator fun IntArray.minus(element: Int): IntArray{
     val index = indexOfFirst{ it == element }
     if(index == -1) return this
 
-    // Cannot use kotlin function because it returns an array of nullables
-    val newArray = Arrays.copyOf(this, size - 1)
+    val newArray = copyOf(size - 1)
     for(i in (index..size - 2)) newArray[i] = this[i + 1]
     return newArray
 }
 
 /**
- * Returns an array containing all elements of the original array except the given [element].
+ * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
 operator fun LongArray.minus(element: Long): LongArray{
     val index = indexOfFirst{ it == element }
     if(index == -1) return this
 
-    // Cannot use kotlin function because it returns an array of nullables
-    val newArray = Arrays.copyOf(this, size - 1)
+    val newArray = copyOf(size - 1)
     for(i in (index..size - 2)) newArray[i] = this[i + 1]
     return newArray
 }
 
 /**
- * Returns an array containing all elements of the original array except the given [element].
+ * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
 operator fun FloatArray.minus(element: Float): FloatArray{
     val index = indexOfFirst{ it == element }
     if(index == -1) return this
 
-    // Cannot use kotlin function because it returns an array of nullables
-    val newArray = Arrays.copyOf(this, size - 1)
+    val newArray = copyOf(size - 1)
     for(i in (index..size - 2)) newArray[i] = this[i + 1]
     return newArray
 }
 
 /**
- * Returns an array containing all elements of the original array except the given [element].
+ * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
 operator fun DoubleArray.minus(element: Double): DoubleArray{
     val index = indexOfFirst{ it == element }
     if(index == -1) return this
 
-    // Cannot use kotlin function because it returns an array of nullables
-    val newArray = Arrays.copyOf(this, size - 1)
+    val newArray = copyOf(size - 1)
     for(i in (index..size - 2)) newArray[i] = this[i + 1]
     return newArray
 }
 
 /**
- * Returns an array containing all elements of the original array except the given [element].
+ * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
 operator fun BooleanArray.minus(element: Boolean): BooleanArray{
     val index = indexOfFirst{ it == element }
     if(index == -1) return this
 
-    // Cannot use kotlin function because it returns an array of nullables
-    val newArray = Arrays.copyOf(this, size - 1)
+    val newArray = copyOf(size - 1)
     for(i in (index..size - 2)) newArray[i] = this[i + 1]
     return newArray
 }
 
 /**
- * Returns an array containing all elements of the original array except the given [element].
+ * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
 operator fun CharArray.minus(element: Char): CharArray{
     val index = indexOfFirst{ it == element }
     if(index == -1) return this
 
-    // Cannot use kotlin function because it returns an array of nullables
-    val newArray = Arrays.copyOf(this, size - 1)
+    val newArray = copyOf(size - 1)
     for(i in (index..size - 2)) newArray[i] = this[i + 1]
     return newArray
+}
+
+/**
+ * Returns an Array repeated [times] times.
+ */
+infix fun <T> Array<T>.repeat(times: Int): Array<T>{
+    var a = copyOf()
+    for(i in 2 .. times) {
+        a += this
+    }
+    return a
+}
+
+/**
+ * Returns a ByteArray repeated [times] times.
+ */
+infix fun ByteArray.repeat(times: Int): ByteArray{
+    var a = copyOf()
+    for(i in 2 .. times){
+        a += this
+    }
+    return a
 }

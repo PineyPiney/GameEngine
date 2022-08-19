@@ -23,7 +23,6 @@ import kotlin.math.abs
 
 open class TextField(final override var origin: Vec2, final override val size: Vec2, window: Window, textOffset: Float = -0.9f, textSize: Int = 2): StaticInteractableMenuItem() {
 
-    open var parent: MenuItem? = null
     open var allowed = all.map { it.c }
 
     var textPos = relative(0, textOffset)
