@@ -1,4 +1,4 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
-class BasicSliderPointer(parent: Slider, height: Float): SliderPointer(parent, height) {
+class BasicSliderPointer(override val parent: Slider, override val height: Float): SliderPointer() {
 }

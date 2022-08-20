@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 
-open class InteractableScrollingListEntry<E: ScrollingListItem>(parent: E, number: Int): ScrollingListEntry<E>(parent, number),
+open class InteractableScrollingListEntry<E: ScrollingListItem>(parent: E, override val index: Int): ScrollingListEntry<E>(parent),
     Interactable {
 
     override var forceUpdate: Boolean = false

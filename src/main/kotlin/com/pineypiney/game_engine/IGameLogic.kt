@@ -10,7 +10,7 @@ import glm_.vec2.Vec2
 
 interface IGameLogic {
 
-    val gameEngine: GameEngine
+    val gameEngine: GameEngine<*>
     val camera: ICamera
     val renderer: GameRenderer<*>
     val gameObjects: ObjectCollection

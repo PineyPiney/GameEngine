@@ -64,7 +64,7 @@ open class MouseInput(val input: Inputs) {
     fun getButton(button: Short) = buttonStates[button].let { it != -1f }
 
     fun setCursorAt(pos: Vec2, drag: Boolean = false){
-        input.window.setCursor(Vec2i(Vec2(pos.x + 1, -pos.y + 1) * input.window.size / 2))
+        input.window.setCursorPos(Vec2i(Vec2(pos.x + 1, -pos.y + 1) * input.window.size / 2))
 
         if(!drag) lastPos = pos
     }

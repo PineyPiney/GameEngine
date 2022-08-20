@@ -37,7 +37,7 @@ interface Interactable: Updateable {
     fun onCursorMove(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2){
         if(pressed) onDrag(game, cursorPos, cursorDelta)
 
-        val ray = game.camera.getRay()
+        val ray = game.camera.getRay(cursorPos)
         for (child in children) {
             child.hover = child.checkHover(ray, cursorPos)
             if(child.shouldUpdate()) child.onCursorMove(game, cursorPos, cursorDelta)

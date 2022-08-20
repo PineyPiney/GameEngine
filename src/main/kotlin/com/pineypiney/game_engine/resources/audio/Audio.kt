@@ -4,18 +4,18 @@ import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.util.ResourceKey
 import org.lwjgl.openal.AL10
 
-class Audio(val ptr: Int): Resource() {
+class Audio(val buf: Int): Resource() {
 
     override fun delete() {
-        AL10.alDeleteSources(ptr)
+        AL10.alDeleteBuffers(buf)
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is Audio && ptr == other.ptr
+        return other is Audio && buf == other.buf
     }
 
     override fun hashCode(): Int {
-        return ptr.hashCode()
+        return buf.hashCode()
     }
 
     companion object{

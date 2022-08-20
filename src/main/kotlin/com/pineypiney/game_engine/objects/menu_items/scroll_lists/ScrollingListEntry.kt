@@ -7,7 +7,9 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec2.Vec2
 
-open class ScrollingListEntry<E: ScrollingListItem>(val parent: E, val index: Int): MenuItem() {
+abstract class ScrollingListEntry<E: ScrollingListItem>(val parent: E): MenuItem() {
+
+    abstract val index: Int
 
     protected val limits = Vec2(parent.origin.y, parent.origin.y + parent.size.y)
 

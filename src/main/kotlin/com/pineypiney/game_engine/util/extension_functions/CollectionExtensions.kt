@@ -89,7 +89,7 @@ fun List<Int>.expand(size: Int, entry: Int = 0): List<Int>{
  *
  * @return A new list with no elements of type R
  */
-inline fun <reified R, reified E> Collection<E>.filterIsNotInstance(): Collection<E>{
+inline fun <reified R, E> Collection<E>.filterIsNotInstance(): Collection<E>{
     return this.filter { it !is R }
 }
 

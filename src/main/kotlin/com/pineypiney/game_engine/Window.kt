@@ -30,26 +30,23 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
     var audioDevice: AudioDevice? = null; private set
     var aspectRatio = width.f/height.f
 
-    val size: Vec2i; get() = Vec2i(this.width, this.height)
+    val size: Vec2i; get() = Vec2i(width, height)
     abstract val input: Inputs
 
-    var fullScreen = false
+    var fullScreen: Boolean
+        get() = glfwGetWindowAttrib(windowHandle, GLFW_DECORATED) == 0
         set(value) {
-            field = value
-            if(field) {
-                glfwSetWindowAttrib(this.windowHandle, GLFW_DECORATED, GLFW_FALSE)
-                glfwMaximizeWindow(this.windowHandle)
-            }
-            else {
-                glfwSetWindowAttrib(this.windowHandle, GLFW_DECORATED, GLFW_TRUE)
-                glfwRestoreWindow(this.windowHandle)
-            }
+
+            if(value) glfwMaximizeWindow(windowHandle)
+            else glfwRestoreWindow(windowHandle)
+
+            glfwSetWindowAttrib(windowHandle, GLFW_DECORATED, if(value) 0  else 1)
         }
 
     val defaultResizeCallback = { width: Int, height: Int ->
         this.width = width
         this.height = height
-        this.aspectRatio = width.f / height
+        aspectRatio = width.f / height
         glViewport(0, 0, width, height)
     }
 
@@ -116,6 +113,10 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         AL.createCapabilities(cCaps)
     }
 
+    fun setTitle(title: String){
+        glfwSetWindowTitle(windowHandle, title)
+    }
+
     fun setSize(width: Int, height: Int){
         glfwSetWindowSize(windowHandle, width, height)
     }
@@ -124,20 +125,24 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         setSize(size.x, size.y)
     }
 
-    fun setTitle(title: String){
-        glfwSetWindowTitle(windowHandle, title)
+    fun setCursor(cursor: Long){
+        glfwSetCursor(windowHandle, cursor)
     }
 
-    fun setCursor(x: Number, y: Number){
+    fun setCursor(cursor: Int){
+        setCursor(glfwCreateStandardCursor(cursor))
+    }
+
+    fun setCursorPos(x: Number, y: Number){
         glfwSetCursorPos(windowHandle, x.d, y.d)
     }
 
-    fun setCursor(pos: Vec2i){
-        setCursor(pos.x, pos.y)
+    fun setCursorPos(pos: Vec2i){
+        setCursorPos(pos.x, pos.y)
     }
 
     fun setIcon(icon: GLFWImage.Buffer){
-        glfwSetWindowIcon(this.windowHandle, icon)
+        glfwSetWindowIcon(windowHandle, icon)
     }
 
     fun setIcon(icon: InputStream){

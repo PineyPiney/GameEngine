@@ -8,11 +8,19 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec2.Vec2
 
-abstract class SliderPointer(val parent: Slider, val height: Float): InteractableMenuItem() {
+abstract class SliderPointer: InteractableMenuItem() {
 
+    abstract val parent: Slider
+    abstract val height: Float
+
+    // make size a variable
+    override var size: Vec2 = super.size
     override var shader: Shader = transparentTextureShader
 
-    override var size: Vec2 = calculateSize()
+    override fun init() {
+        super.init()
+        size = calculateSize()
+    }
 
     override fun draw() {
         pointerTexture.bind()

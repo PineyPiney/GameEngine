@@ -5,7 +5,6 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.maths.shapes.Rect
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
-import glm_.vec3.Vec3
 
 abstract class InteractableGameObject2D(shader: Shader): RenderedGameObject2D(shader), Interactable {
 
@@ -16,7 +15,7 @@ abstract class InteractableGameObject2D(shader: Shader): RenderedGameObject2D(sh
     override var pressed: Boolean = false
 
     override fun checkHover(ray: Ray, screenPos: Vec2): Boolean {
-        return ray.passesThroughRect(Rect(Vec3(position), Vec3(scale.x, 0, 0), Vec3(0, scale.y, 0)))
+        return ray.passesThroughRect(Rect(position, scale))
 
     }
 

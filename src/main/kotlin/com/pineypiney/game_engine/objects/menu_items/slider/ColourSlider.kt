@@ -9,7 +9,11 @@ import glm_.i
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
-class ColourSlider(size: Vec2, window: Window, override var shader: Shader, val action: (Int) -> Unit) : Slider(size, 0f, 255f, 255f, window) {
+class ColourSlider(override val size: Vec2, override val window: Window, override var shader: Shader, val action: (Int) -> Unit) : Slider() {
+
+    override val low: Float = 0f
+    override val high: Float = 255f
+    override var value: Float = 255f
 
     override val pointer: ColourSliderPointer = ColourSliderPointer(this, 1f)
 

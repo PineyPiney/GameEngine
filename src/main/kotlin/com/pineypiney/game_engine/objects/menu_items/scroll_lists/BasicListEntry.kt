@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 import com.pineypiney.game_engine.Window
 import glm_.vec2.Vec2
 
-class BasicListEntry(val name: String, parent: BasicScrollList, index: Int, window: Window): ScrollingListEntry<BasicScrollList>(parent, index) {
+class BasicListEntry(val name: String, parent: BasicScrollList, override val index: Int, window: Window): ScrollingListEntry<BasicScrollList>(parent) {
 
     val text = ScrollerText(name, window, size, limits)
 

@@ -40,7 +40,7 @@ abstract class GameLogic : IGameLogic {
     }
 
     override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
-        val ray = camera.getRay()
+        val ray = camera.getRay(cursorPos)
         for (item in gameObjects.getAllInteractables()){
             item.hover = item.checkHover(ray, cursorPos)
             if(item.shouldUpdate()) item.onCursorMove(this, cursorPos, cursorDelta)

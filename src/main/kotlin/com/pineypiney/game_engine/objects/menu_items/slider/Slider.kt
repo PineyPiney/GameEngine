@@ -5,25 +5,26 @@ import com.pineypiney.game_engine.objects.menu_items.InteractableMenuItem
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 
-abstract class Slider @Throws(IllegalArgumentException::class) constructor(final override val size: Vec2, private val low: Float, private val high: Float, value: Float, val window: Window): InteractableMenuItem() {
+abstract class Slider: InteractableMenuItem() {
 
     abstract val pointer: SliderPointer
-    private val range: Float = high - low
-    val scale: Float = range / size.x
 
-    var value: Float = value
-        set(value) {
-            field = value.coerceIn(low, high)
-        }
+    protected abstract val low: Float
+    protected abstract val high: Float
+    abstract var value: Float
+    abstract val window: Window
 
-    init {
+    private val range: Float; get() = high - low
+    val scale: Float; get() = (high - low) / size.x
+
+    @Throws(IllegalArgumentException::class)
+    override fun init() {
+        super.init()
+
         if(low > high){
             throw(IllegalArgumentException("Set Slider with low value $low and high value $high, high must be greater than low"))
         }
-    }
 
-    override fun init() {
-        super.init()
         pointer.origin = this.origin + Vec2(value/scale, 0)
     }
 
@@ -48,7 +49,7 @@ abstract class Slider @Throws(IllegalArgumentException::class) constructor(final
 
     open fun moveSliderTo(move: Float){
         val relative = (move - origin.x) / size.x
-        value = low + (relative * range)
+        value = (low + (relative * range)).coerceIn(low, high)
     }
 
     override fun updateAspectRatio(window: Window) {

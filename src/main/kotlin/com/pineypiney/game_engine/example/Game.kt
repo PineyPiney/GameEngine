@@ -34,11 +34,11 @@ import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import org.lwjgl.glfw.GLFW
+import org.lwjgl.glfw.GLFW.*
 import kotlin.math.PI
 import kotlin.math.sign
 
-class Game(override val gameEngine: GameEngine): GameLogic() {
+class Game(override val gameEngine: GameEngine<*>): GameLogic() {
 
     override val camera: OrthographicCamera = OrthographicCamera(window)
     override val renderer: Renderer = Renderer(window)
@@ -49,10 +49,12 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
     private val button = TextButton("button", Vec2(0.6, 0.8), Vec2(0.4, 0.2), window){
         println("Pressed!")
         AudioSource(audio).play()
+        window.setCursor(intArrayOf(GLFW_HRESIZE_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).random())
     }
     private val textField = ActionTextField(Vec2(-1), Vec2(1, 0.2), window){ _, char, _ ->
         println("Typing $char")
         AudioSource(audio).play()
+        window.setCursor(0L)
     }
     private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
 
@@ -154,7 +156,7 @@ class Game(override val gameEngine: GameEngine): GameLogic() {
         if(state.c == 'C' && action == 1){
             input.mouse.setCursorAt(Vec2(0.5))
         }
-        if(state.i == GLFW.GLFW_KEY_ESCAPE && action == 1){
+        if(state.i == GLFW_KEY_ESCAPE && action == 1){
             window.setShouldClose()
         }
 
