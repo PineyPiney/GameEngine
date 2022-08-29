@@ -8,12 +8,14 @@ import glm_.f
 import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW.glfwTerminate
 
-abstract class GameEngine<E: IGameLogic>(val window: Window, val resourcesLoader: ResourcesLoader) : Runnable {
+abstract class GameEngine<E: IGameLogic>(val resourcesLoader: ResourcesLoader) : Runnable {
+
+    abstract val window: Window
 
     abstract var TARGET_FPS: Int
     abstract val TARGET_UPS: Int
 
-    abstract var activeScreen: E
+    abstract val activeScreen: E
 
     private val timer = Timer()
     val input; get() = window.input
@@ -22,7 +24,7 @@ abstract class GameEngine<E: IGameLogic>(val window: Window, val resourcesLoader
     private var FPSCounter: Int = 0
     var FPS: Float = 0f; private set
 
-    init{
+    init {
         // Load the resources for the game
         resourcesLoader.loadResources()
 

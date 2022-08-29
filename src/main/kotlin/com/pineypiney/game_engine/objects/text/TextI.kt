@@ -31,12 +31,8 @@ interface TextI: Initialisable, Shaded {
 
     fun pixelToRelative(pixel: Int): Float
 
-    fun getCharWidth(char: Char): Int = (font.getDimensions(char)?.z ?: 0)
-    fun getCharHeight(char: Char): Vec2i = Vec2i(font.getDimensions(char)?.y ?: 31, font.getDimensions(char)?.w ?: 31)
-
-    fun getQuad(i: Int): TextQuad?{
-        return quads.getOrNull(i)
-    }
+    fun getCharWidth(char: Char): Int = font.getCharWidth(char)
+    fun getCharHeight(char: Char): Vec2i = font.getCharHeight(char)
 
     /**
      * Add the widths of all letters together in terms of pixels,
@@ -45,7 +41,11 @@ interface TextI: Initialisable, Shaded {
      * @param text The text to find the width of
      * @return The width in pixels
      */
-    fun getPixelWidth(text: String): Int
+    fun getPixelWidth(text: String): Int = font.getPixelWidth(text)
+
+    fun getQuad(i: Int): TextQuad?{
+        return quads.getOrNull(i)
+    }
 
     fun setUniversalUniforms(shader: Shader){
         shader.setVec4("colour", colour)

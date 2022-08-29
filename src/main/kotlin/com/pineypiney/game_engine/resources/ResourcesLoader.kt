@@ -32,13 +32,12 @@ abstract class ResourcesLoader {
     }
 
     fun loadResources(){
-
         val streamMap = getStreams()
 
         GameEngine.logger.info("Loaded Shaders in ${timeActionM{ ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) }) }.round(2)} ms")
-        GameEngine.logger.info("Loaded Textures in ${timeActionM{ TextureLoader.INSTANCE.loadTextures(streamMap.filter { it.key.startsWith(textureLocation) }.mapKeys { it.key.removePrefix(textureLocation) }) }.round(2)} ms")
+        GameEngine.logger.info("Loaded Textures in ${timeActionM{ TextureLoader.INSTANCE.loadTextures(this, streamList.filter { it.startsWith(textureLocation) }.map { it.removePrefix(textureLocation) }) }.round(2)} ms")
         GameEngine.logger.info("Loaded Audio in ${timeActionM{ AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }.mapKeys { it.key.removePrefix(audioLocation) }) }.round(2)} ms")
-        GameEngine.logger.info("Loaded Videos in ${timeActionM{ VideoLoader.INSTANCE.loadVideos(streamMap.filter { it.key.startsWith(videoLocation) }.mapKeys { it.key.removePrefix(videoLocation) }) }.round(2)} ms")
+        GameEngine.logger.info("Loaded Videos in ${timeActionM{ VideoLoader.INSTANCE.loadVideos(this, streamList.filter { it.startsWith(videoLocation) }.map { it.removePrefix(videoLocation) }) }.round(2)} ms")
         GameEngine.logger.info("Loaded Models in ${timeActionM{ ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) }) }.round(2)} ms")
     }
 
@@ -64,7 +63,7 @@ abstract class ResourcesLoader {
 
         fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int) = ioResourceToByteBuffer(stream, bufferSize, true)
 
-        fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int, resize: Boolean): ByteBuffer {
+        fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int, resize: Boolean = true): ByteBuffer {
 
             val rbc: ReadableByteChannel = Channels.newChannel(stream)
             var buffer: ByteBuffer = BufferUtils.createByteBuffer(bufferSize)

@@ -10,17 +10,23 @@ import com.pineypiney.game_engine.objects.game_objects.objects_2D.ModelledGameOb
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.SimpleTexturedGameObject2D
 import com.pineypiney.game_engine.objects.game_objects.objects_3D.SimpleTexturedGameObject3D
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton
+import com.pineypiney.game_engine.objects.menu_items.VideoPlayer
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicSlider
 import com.pineypiney.game_engine.objects.text.SizedGameText
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.StretchyGameText
+import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
+import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.resources.video.VideoLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.angle
 import com.pineypiney.game_engine.util.extension_functions.fromAngle
@@ -28,13 +34,18 @@ import com.pineypiney.game_engine.util.extension_functions.roundedString
 import com.pineypiney.game_engine.util.extension_functions.wrap
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
+import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Rect
 import glm_.f
 import glm_.s
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.GL11
+import java.awt.Font
+import java.awt.font.FontRenderContext
 import kotlin.math.PI
 import kotlin.math.sign
 
@@ -58,7 +69,7 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
     }
     private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
 
-    private val texture = SimpleTexturedGameObject2D(ResourceKey("texture"), Texture.missing)
+    private val texture = SimpleTexturedGameObject2D(ResourceKey("texture"), Texture.broke)
     private val model1 = ModelledGameObject2D(ModelLoader.getModel(ResourceKey("goblin")), Model.DEBUG_COLLIDER)
     private val model2 = ModelledGameObject2D(ModelLoader.getModel(ResourceKey("goblin")), Model.DEBUG_COLLIDER)
 
@@ -70,11 +81,33 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
 
     private val list = BasicScrollList(Vec2(-1, 0.4), Vec2(0.6), 1f, 0.05f, arrayOf("Hello", "World"), window)
 
+    val video = VideoPlayer(VideoLoader[ResourceKey("ghost"), gameEngine.resourcesLoader], Vec2(0.5, -0.15), Vec2(0.5, 0.3))
+
+    val f = Font.createFont(Font.TRUETYPE_FONT, gameEngine.resourcesLoader.getStream("textures/fonts/LightSlab.ttf"))
+    val v = f.createGlyphVector(FontRenderContext(null, false, false), "q").outline
+    val shape: Shape
+
+    init {
+        val iterator = v.getPathIterator(null)
+        val floats = mutableListOf<List<Float>>()
+        while(!iterator.isDone){
+            val floatA = FloatArray(5)
+            iterator.currentSegment(floatA)
+            floats.add(listOf(floatA[0], -floatA[1]))
+            iterator.next()
+        }
+        val cut = floats.filter { it != listOf(0f, 0f) }
+        shape = ArrayShape(cut.flatten().toFloatArray(), intArrayOf(2))
+    }
+
     override fun init() {
         super.init()
         text.init()
         gameText.init()
         siGameText.init()
+//        video.init()
+//        video.play()
+//        video.video.loop = true
 
         model1.setAnimation("Wipe Nose")
         model2.setAnimation("Magic Trick")
@@ -95,14 +128,25 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         add(list)
     }
 
+    private fun drawLetter(){
+        val shader = MenuItem.opaqueColourShader
+        shader.use()
+        shader.setMat4("model", I)
+        shader.setVec3("colour", Vec3(1, 0, 1))
+
+        shape.bind()
+        shape.draw(GL11.GL_LINE_LOOP)
+    }
+
     private fun drawScene(tickDelta: Double){
 
         gameText.render(renderer.view, renderer.projection, tickDelta)
         siGameText.render(renderer.view, renderer.projection, tickDelta)
 
         drawHUD()
+        drawLetter()
 
-        val ray = camera.getRay(input.mouse.lastPos)
+        val ray = camera.getRay()
         val up = Vec3(Vec2.fromAngle(model1.rotation, model1.model.collisionBox.size.y))
         val right = Vec3((Vec2.fromAngle(model1.rotation + PI.f / 2, model1.model.collisionBox.size.x)))
         val model1Rect = Rect(Vec3(model1.model.collisionBox.originWithParent(model1)), up, right)
@@ -117,6 +161,8 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
                 val pA = (Vec2(point) - model1.position).angle()
                 val a = (model1.rotation - pA).wrap(-PI.f, PI.f)
                 model1.rotate(a.sign * 0.05f)
+
+                window.setCursor(TextureLoader[ResourceKey("cursor")], Vec2i(34, 10))
             }
         }
     }
@@ -127,6 +173,7 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         textField.draw()
         slider.draw()
         list.draw()
+        video.draw()
     }
 
     override fun render(window: Window, tickDelta: Double) {

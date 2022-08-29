@@ -26,5 +26,5 @@ interface ICamera: Initialisable {
     fun getView(): Mat4
     fun getProjection(): Mat4
     fun getSpan(): Vec2
-    fun getRay(point: Vec2 = Vec2()): Ray
+    fun getRay(point: Vec2 = window.input.mouse.lastPos): Ray
 }

@@ -17,7 +17,7 @@ import org.lwjgl.opengl.GL31.*
 // interpolated from these 4 bone weights in the shader
 
 class Mesh(var id: String, val vertices: Array<MeshVertex>, val indices: IntArray,
-           val texture: Texture = Texture.missing, val defaultAlpha: Float = 1f,
+           val texture: Texture = Texture.broke, val defaultAlpha: Float = 1f,
            val defaultOrder: Int = 0, val material: ModelMaterial = Model.brokeMaterial
 ): Shape() {
 

@@ -1,40 +1,57 @@
 package com.pineypiney.game_engine.resources.textures
 
+import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.util.extension_functions.repeat
 import glm_.f
 import glm_.vec2.Vec2i
+import kool.Buffer
 import kool.ByteBuffer
+import kool.lim
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL46C.*
 import java.nio.ByteBuffer
 
-class Texture(val fileName: String = "", val texturePointer: Int = 0, val width: Int = 0, val height: Int = 0) : Resource() {
+class Texture(val fileName: String, val texturePointer: Int) : Resource() {
 
-    val size = Vec2i(width, height)
-    val aspectRatio = width.f/height
+    val width: Int get() = parameter(GL_TEXTURE_WIDTH)
+    val height: Int get() = parameter(GL_TEXTURE_HEIGHT)
+    val format: Int get() = parameter(GL_TEXTURE_INTERNAL_FORMAT)
+    val numChannels: Int get() = TextureLoader.formatToChannels(format)
 
-    val format: Int get(){
-        bind()
-        return glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT)
-    }
+    val size get() = Vec2i(width, height)
+    val aspectRatio get() = width.f/height
 
-    val numChannels: Int get() = TextureLoader.formatToChannels[format] ?: 3
 
     fun bind(){
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, this.texturePointer)
+        glBindTexture(GL_TEXTURE_2D, texturePointer)
     }
 
     fun unbind(){
-        brokeTexture.bind()
+        broke.bind()
+    }
+
+    fun setData(data: ByteBuffer, x: Int = 0, y: Int = 0, width: Int = this.width, height: Int = this.height, format: Int = this.format){
+        bind()
+        if(data.lim != width * height * numChannels){
+            GameEngine.logger.warn("Buffer is not the right size to set texture data")
+        }
+        val buf = Buffer(data.lim){ data.get(it) }
+        GL11.glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, format, GL_UNSIGNED_BYTE, buf)
     }
 
     fun getData(): ByteBuffer{
 
         bind()
         val buffer = ByteBuffer(width * height * numChannels)
-        glGetTexImage(GL_TEXTURE_2D, 0, format, GL_BYTE, buffer)
+        glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, buffer)
         return buffer
+    }
+
+    fun parameter(param: Int): Int{
+        bind()
+        return glGetTexLevelParameteri(GL_TEXTURE_2D, 0, param)
     }
 
     override fun delete() {
@@ -56,8 +73,7 @@ class Texture(val fileName: String = "", val texturePointer: Int = 0, val width:
     }
 
     companion object {
-        val brokeTexture: Texture = Texture("broke", 0, 0, 0)
-        val missing = Texture("missing", TextureLoader.createTexture(createArray(), 32, 32), 32, 32)
+        val broke: Texture = Texture("missing", TextureLoader.createTexture(createArray(), 32, 32))
 
         fun createArray(): ByteArray{
             val b = byteArrayOf(0, 0, 0)
