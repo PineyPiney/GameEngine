@@ -139,6 +139,9 @@ fun Double.eerp(exponent: Int): Double =
 fun Double.querp(): Double = eerp(2)
 fun Double.cerp(): Double = eerp(3)
 
+/**
+ * Returns the position [this] would be on a circle that starts at [min] and ends at [max]
+ */
 fun Float.wrap(min: Float, max: Float): Float{
     val ran = abs(max - min)
     var rem = (this - min) % ran

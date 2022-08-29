@@ -1,10 +1,14 @@
 package com.pineypiney.game_engine.resources.audio
 
 import com.pineypiney.game_engine.resources.Resource
-import com.pineypiney.game_engine.util.ResourceKey
 import org.lwjgl.openal.AL10
 
 class Audio(val buf: Int): Resource() {
+
+    val frequency get() = AL10.alGetBufferf(buf, AL10.AL_FREQUENCY)
+    val bits get() = AL10.alGetBufferf(buf, AL10.AL_BITS)
+    val channels get() = AL10.alGetBufferf(buf, AL10.AL_CHANNELS)
+    val size get() = AL10.alGetBufferf(buf, AL10.AL_SIZE)
 
     override fun delete() {
         AL10.alDeleteBuffers(buf)
@@ -19,6 +23,6 @@ class Audio(val buf: Int): Resource() {
     }
 
     companion object{
-        val brokeAudio: Audio; get() = AudioLoader[(ResourceKey("broke"))]
+        val broke = Audio(0)
     }
 }

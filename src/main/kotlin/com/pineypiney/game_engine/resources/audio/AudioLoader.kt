@@ -14,7 +14,7 @@ import javax.sound.sampled.AudioSystem
 
 open class AudioLoader protected constructor(): AbstractResourceLoader<Audio>() {
 
-    override val missing: Audio = Audio(0)
+    override val missing: Audio get() = Audio.broke
 
     fun loadAudio(streams: Map<String, InputStream>) {
         for((fileName, stream) in streams){

@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.objects.Initialisable
 /**
  * Initialise all items in a collection of initialisable objects
  */
-fun <E: Initialisable> Collection<E?>?.init(){
+fun <E: Initialisable> Iterable<E?>?.init(){
     this?.forEach {
         it?.init()
     }
@@ -23,7 +23,7 @@ fun <E: Initialisable> Map<*, E?>.init(){
 /**
  * Delete all items in a collection of deletable objects
  */
-fun <E: Deleteable> Collection<E?>?.delete(){
+fun <E: Deleteable> Iterable<E?>?.delete(){
     this?.forEach {
         it?.delete()
     }
@@ -98,7 +98,7 @@ inline fun <reified R, E> Collection<E>.filterIsNotInstance(): Collection<E>{
  *
  * @param [action] The function called on each instance of R
  */
-inline fun <reified R> Collection<*>.forEachInstance(action: (R) -> Unit){
+inline fun <reified R> Iterable<*>.forEachInstance(action: (R) -> Unit){
     filterIsInstance<R>().forEach(action)
 }
 
@@ -109,9 +109,9 @@ inline fun <reified R> Collection<*>.forEachInstance(action: (R) -> Unit){
  *
  * @return The removed element
  */
-fun <E> MutableCollection<E>.popFirst(predicate: (E) -> Boolean): E{
+fun <E> MutableIterable<E>.popFirst(predicate: (E) -> Boolean): E{
     val pop = first(predicate)
-    remove(pop)
+    removeAll{ it == pop }
     return pop
 }
 
@@ -122,9 +122,9 @@ fun <E> MutableCollection<E>.popFirst(predicate: (E) -> Boolean): E{
  *
  * @return The removed element, or null
  */
-fun <E> MutableCollection<E>.popFirstOrNull(predicate: (E) -> Boolean): E?{
+fun <E> MutableIterable<E>.popFirstOrNull(predicate: (E) -> Boolean): E?{
     val pop = firstOrNull(predicate)
-    remove(pop)
+    removeAll{ it == pop }
     return pop
 }
 

@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.objects.util.shapes
 
 import com.pineypiney.game_engine.objects.Deleteable
 import glm_.f
+import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL30.*
 
@@ -91,10 +92,10 @@ abstract class Shape: Deleteable {
             0.5, 0, 1, 0
         )
 
-        val cornerSquareShape2D = SquareShape(cornerSquareVertices)
-        val centerSquareShape2D = SquareShape(centerSquareVertices)
-        val screenQuadShape = SquareShape(screenQuadVertices)
-        val footSquare = SquareShape(footSquareVertices)
+        val cornerSquareShape2D = SquareShape(Vec2(0.5), Vec2(1))
+        val centerSquareShape2D = SquareShape(Vec2(), Vec2(1))
+        val screenQuadShape = SquareShape(Vec2(), Vec2(2))
+        val footSquare = SquareShape(Vec2(0, 0.5), Vec2(1))
 
 
 

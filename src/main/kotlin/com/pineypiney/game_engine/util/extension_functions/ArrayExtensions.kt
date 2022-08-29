@@ -1,6 +1,22 @@
 package com.pineypiney.game_engine.util.extension_functions
 
+import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.util.Copyable
+
+/**
+ * Initialise all items in an array of initialisable objects
+ */
+fun <E: Initialisable> Array<E>.init(){
+    forEach(Initialisable::init)
+}
+
+/**
+ * Deletes all items in an array of deleteable objects
+ */
+fun <E: Deleteable> Array<E>.delete(){
+    forEach(Deleteable::delete)
+}
 
 /**
  * Expand FloatArray using [entry] until its size is at least [size]

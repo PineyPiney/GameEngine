@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.f
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
 
 class Font(fontKey: ResourceKey, val letterWidth: Int = 32, val letterHeight: Int = 64, val characterSpacing: Int = 2, val rows: Int = 16, val columns: Int = 16, val shader: Shader = fontShader) {
@@ -22,6 +23,14 @@ class Font(fontKey: ResourceKey, val letterWidth: Int = 32, val letterHeight: In
     }
 
     fun getDimensions(char: Char): Vec4i? = charDimensions[char]
+
+
+    fun getCharWidth(char: Char): Int = (getDimensions(char)?.z ?: 0)
+    fun getCharHeight(char: Char): Vec2i = Vec2i(getDimensions(char)?.y ?: 31, getDimensions(char)?.w ?: 31)
+    fun getPixelWidth(text: String): Int{
+        // Starting at 2 accounts for the margin at the beginning of the text
+        return characterSpacing + text.sumOf { getCharWidth(it) + characterSpacing }
+    }
 
     companion object{
         val defaultFont: Font; get() = FontLoader.getFont(ResourceKey("fonts/Large Font"))
