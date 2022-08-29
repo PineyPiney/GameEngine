@@ -4,7 +4,6 @@ import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.AbstractResourceLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import glm_.vec2.Vec2i
 import kool.toBuffer
 import org.lwjgl.opengl.GL46C.*
 import org.lwjgl.stb.STBImage
@@ -13,16 +12,16 @@ import java.nio.ByteBuffer
 
 class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
 
-    override val missing: Texture = Texture.missing
+    override val missing: Texture get() = Texture.broke
 
-    fun loadTextures(streams: Map<String, InputStream>) {
-        for((fileName, stream) in streams){
+    fun loadTextures(loader: ResourcesLoader, textures: List<String>) {
+        for(fileName in textures){
 
             val end = fileName.split('.').getOrNull(1)
             if (!fileTypes.contains(end)) continue
 
+            val stream  = loader.getStream("textures/$fileName") ?: continue
             loadTexture(fileName, stream)
-
             stream.close()
         }
     }
@@ -41,22 +40,25 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
             val pointer = createPointer()
 
             // Load the image from file
-            val details = loadImageFromFile(buffer)
+            loadImageFromFile(buffer)
 
-            if(details[0] == 0) GameEngine.logger.warn("\nFailed to load texture $name")
-            else{
-                return Texture(name.substringAfterLast('\\').substringBefore('.'), pointer, details.x, details.y)
+            if(loadImageFromFile(buffer)){
+                return Texture(name.substringAfterLast('\\').substringBefore('.'), pointer)
+            }
+
+            else {
+                GameEngine.logger.warn("\nFailed to load texture $name")
             }
         }
 
-        return Texture.brokeTexture
+        return Texture.broke
     }
 
     fun findTexture(name: String): Texture{
         val t = map[ResourceKey(name)] ?: map.entries.firstOrNull { (key, _) ->
             key.key.contains(name)
         }?.value
-        return t ?: Texture.brokeTexture
+        return t ?: Texture.broke
     }
 
     companion object{
@@ -64,17 +66,15 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
         val INSTANCE = TextureLoader()
 
         operator fun get(key: ResourceKey) = INSTANCE[key]
-        fun getTexture(key: ResourceKey): Texture = INSTANCE[(key)]
+        fun getTexture(key: ResourceKey): Texture = INSTANCE[key]
         fun findTexture(name: String): Texture = INSTANCE.findTexture(name)
 
 
-        fun createPointer(wrapping: Int = GL_REPEAT, flip: Boolean = true): Int{
+        fun createPointer(wrapping: Int = GL_REPEAT): Int{
             // Create a handle for the texture
             val texturePointer = glGenTextures()
             // Settings
             loadIndividualSettings(texturePointer, wrapping)
-            // Set the flip state of the image (default to true)
-            STBImage.stbi_set_flip_vertically_on_load(flip)
 
             return texturePointer
         }
@@ -90,59 +90,77 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         }
 
-        private fun loadImageFromFile(buffer: ByteBuffer): Vec2i {
+        private fun loadImageFromFile(buffer: ByteBuffer, flip: Boolean = true): Boolean {
 
             // Arrays are Java equivalent for pointers
             val widthA = IntArray(1)
             val heightA = IntArray(1)
             val numChannelsA = IntArray(1)
 
-            var width = 0
-            var height = 0
-
+            // Set the flip state of the image (default to true)
+            STBImage.stbi_set_flip_vertically_on_load(flip)
             // Load texture data from file
             val data: ByteBuffer? = STBImage.stbi_load_from_memory(buffer, widthA, heightA, numChannelsA, 0)
             if (data != null) {
 
-                width = widthA[0]
-                height = heightA[0]
+                val width = widthA[0]
+                val height = heightA[0]
 
-                val format = when(numChannelsA[0]) {
-                    1 -> GL_RED
-                    3 -> GL_RGB
-                    4 -> GL_RGBA
-                    else -> GL_GREEN
-                }
+                val format = channelsToFormat(numChannelsA[0])
 
-                loadImageFromData(data, width, height, format)
+                loadImageFromData(data, width, height, format, format)
+
+                STBImage.stbi_image_free(data)
+                return true
             }
 
             buffer.clear()
-
-            return Vec2i(width, height)
+            return false
         }
 
-        fun loadImageFromData(data: ByteBuffer, width: Int, height: Int, format: Int){
-            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data)
+        fun loadImageFromData(data: ByteBuffer?, width: Int, height: Int, format: Int, internalFormat: Int){
+            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, internalFormat, GL_UNSIGNED_BYTE, data)
 
             glGenerateMipmap(GL_TEXTURE_2D)
-
-            STBImage.stbi_image_free(data)
         }
 
-        fun createTexture(data: ByteArray, width: Int, height: Int, format: Int = GL_RGB): Int{
+        fun createTexture(data: ByteArray, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format): Int{
             val pointer = createPointer()
-            loadImageFromData(data.toBuffer(), width, height, format)
+            loadImageFromData(data.toBuffer(), width, height, format, internalFormat)
             return pointer
         }
 
-        val formatToChannels = mapOf(
-            GL_RED to 1,
-            GL_GREEN to 1,
-            GL_BLUE to 1,
-            GL_ALPHA to 1,
-            GL_RGB to 3,
-            GL_RGBA to 4
-        )
+        fun createTexture(data: ByteBuffer?, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format): Int{
+            val pointer = createPointer()
+            loadImageFromData(data, width, height, format, internalFormat)
+            return pointer
+        }
+
+        fun createAtlas(textures: Iterable<ByteBuffer>, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format): Int {
+            val pointer = createTexture(null, width * textures.count(), height, format, internalFormat)
+            textures.forEachIndexed { i, data ->
+                glTexSubImage2D(GL_TEXTURE_2D, 0, width * i, 0, width, height, format, GL_UNSIGNED_BYTE, data)
+            }
+            return pointer
+        }
+
+        fun formatToChannels(format: Int?) = when(format) {
+            GL_RGB,
+            GL_BGR -> 3
+            GL_RGBA,
+            GL_BGRA-> 4
+            GL_RED,
+            GL_GREEN,
+            GL_BLUE,
+            GL_ALPHA -> 1
+            else -> 3
+        }
+
+        fun channelsToFormat(channels: Int?) = when(channels){
+            4 -> GL_RGBA
+            3 -> GL_RGB
+            1 -> GL_RED
+            else -> GL_RGB
+        }
     }
 }

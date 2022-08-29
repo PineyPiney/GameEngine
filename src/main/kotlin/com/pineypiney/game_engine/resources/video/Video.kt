@@ -3,142 +3,112 @@ package com.pineypiney.game_engine.resources.video
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.resources.Media
 import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.util.extension_functions.delete
-import glm_.d
 import glm_.i
-import org.bytedeco.javacv.FFmpegFrameGrabber
-import java.io.File
-import java.io.InputStream
-import kotlin.math.min
+import java.nio.ByteBuffer
+import java.nio.ShortBuffer
 
-class Video(grabber: FFmpegFrameGrabber): Media() {
+class Video(val name: String, val attributes: VideoAttributes, val images: Array<ByteBuffer>, val audioSamples: Array<ShortBuffer>): Media() {
 
-    constructor(stream: InputStream): this(FFmpegFrameGrabber(stream))
-    constructor(file: File): this(FFmpegFrameGrabber(file))
-    constructor(filename: String): this(FFmpegFrameGrabber(filename))
+    var loop: Boolean = false
+        set(value) {
+            field = value
+            audio.audio.loop = value
+        }
+
+    val textureData = VideoImages(this)
+    val audio = VideoAudio(this)
+
+    val length: Double get() = attributes.length
+    val frameRate: Double get() = attributes.frameRate
+    val frameNumber: Int get() = attributes.frameNumber
+    val frameTime: Double get() = 1 / frameRate
+    val width: Int get() = attributes.width
+    val height: Int get() = attributes.height
+    val pixelFormat: Int get() = attributes.pixelFormat
+    val sampleRate: Int get() = attributes.sampleRate
 
     var timeStamp = 0.0
+
+    var currentFrameTime = 0L
     var lastTextureGrabTime = 0.0
 
-    val width: Int
-    val height: Int
-    val audioChannels: Int
-
-    val length: Double
-    val frameRate: Double
-    val frameTime: Double
-
-    val textures: List<Texture> = listOf()
-
-    init{
-        grabber.start()
-
-        this.width = grabber.imageWidth
-        this.height = grabber.imageHeight
-        this.audioChannels = grabber.audioChannels
-
-        this.length = grabber.lengthInTime.d / 1000000
-        this.frameRate = grabber.frameRate
-        this.frameTime = 1000.0 / this.frameRate
-
-
-        /*
-        // https://www.tabnine.com/code/java/classes/org.bytedeco.javacv.FFmpegFrameGrabber?snippet=5921ec434002b00004d6afd4
-        val recorder = FFmpegFrameRecorder("src\\main\\resources\\videos\\new.mp4", width, height, audioChannels)
-        recorder.videoCodec = avcodec.AV_CODEC_ID_H264
-        recorder.format = "mp4"
-        recorder.frameRate = frameRate
-        recorder.sampleFormat = grabber.sampleFormat
-        recorder.sampleRate = grabber.sampleRate
-        recorder.start()
-
-        while (true) {
-            try {
-                val captured_frame = grabber.grabFrame()
-                if (captured_frame == null) {
-                    GameEngine.logger.warn("!!! Failed cvQueryFrame")
-                    break
-                }
-                recorder.timestamp = grabber.timestamp
-                recorder.record(captured_frame)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-
-        val t = mutableListOf<Texture>()
-        while(grabber.hasVideo()){
-            val frame: Frame? = grabber.grab()
-            val image: Frame? = grabber.grabImage()
-            val audio: Frame? = grabber.grabSamples()
-            val key: Frame? = grabber.grabKeyFrame()
-
-            val imageBuffer: ByteBuffer? = frame?.image?.get(0) as ByteBuffer?
-
-            /*
-            val frameStream = ByteArrayInputStream(image?.array() ?: continue)
-            t.add(Texture(frameStream))
-
-             */
-
-            /*
-            val data = frame?.data
-            val array = data?.array()
-            val frameStream = ByteArrayInputStream(array ?: continue)
-            t.add(Texture(frameStream))
-            */
-        }
-
-        textures = t.distinct()
-
-        grabber.audioStream
-
-        grabber.stop()
-        grabber.release()
-
-         */
+    init {
+//        textureData.init()
+//        audio.init()
     }
 
     fun getCurrentTexture(): Texture{
         // Update the time stamp
         updateTimeStamp()
-
-        val index = (this.timeStamp * this.frameRate).i
-        return textures.getOrElse(index) {textures.lastOrNull() ?: Texture.brokeTexture}
+        return textureData.current
     }
 
     fun updateTimeStamp(){
+
         val time = Timer.frameTime
-        if(this.status == MediaStatus.PLAYING && this.timeStamp < this.length){
-            this.timeStamp = min(timeStamp + (time - this.lastTextureGrabTime), this.length)
-            this.lastTextureGrabTime = time
-            if(this.timeStamp == this.length) this.status = MediaStatus.PAUSED
+        if(status == MediaStatus.PLAYING && timeStamp < length){
+            timeStamp += (time - lastTextureGrabTime)
+            if(timeStamp >= length){
+                if(loop) {
+                    timeStamp -= length
+                    currentFrameTime = 0L
+                    textureData.reset()
+                    audio.reset()
+                }
+                else{
+                    timeStamp = length
+                    status = MediaStatus.PAUSED
+                }
+            }
+
+            textureData.update()
+            //audio.update()
+            lastTextureGrabTime = time
         }
+    }
+
+    fun imageAt(time: Double): ByteBuffer{
+        return image((time * frameRate).i)
+    }
+
+    fun image(index: Int): ByteBuffer{
+        return images[index]
+    }
+
+    fun audio(index: Int): ShortBuffer{
+        return audioSamples[index]
     }
 
     override fun play(volume: Float) {
         timeStamp = 0.0
-        this.status = MediaStatus.PLAYING
+        lastTextureGrabTime = Timer.frameTime
+        status = MediaStatus.PLAYING
+        audio.audio.rewind()
+        //audio.audio.play()
     }
 
     override fun pause() {
-        this.status = MediaStatus.PAUSED
+        status = MediaStatus.PAUSED
+        audio.audio.pause()
     }
 
     override fun resume() {
-        this.status = MediaStatus.PLAYING
+        lastTextureGrabTime = Timer.frameTime
+        status = MediaStatus.PLAYING
+        audio.audio.play()
     }
 
     override fun stop() {
         timeStamp = 0.0
-        this.status = MediaStatus.STOPPED
+        status = MediaStatus.STOPPED
+        audio.audio.stop()
     }
 
     override fun delete() {
-        textures.delete()
+        textureData.delete()
     }
 
-    companion object {
-        val broke = Video("src/main/resources/videos/broke.mp4")
+    companion object{
+        //val broke = Video(Texture.broke, AudioSource(Audio.broke), 1.0, 1.0, 1)
     }
 }

@@ -82,5 +82,6 @@ class FontLoader private constructor() {
         val INSTANCE = FontLoader()
 
         fun getFont(key: ResourceKey): Font = INSTANCE.getFont(key)
+        operator fun get(key: ResourceKey) = INSTANCE.getFont(key)
     }
 }

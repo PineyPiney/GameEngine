@@ -70,6 +70,10 @@ class ShaderLoader private constructor(): Deleteable{
             return INSTANCE.getShader(vertexKey, fragmentKey, geometryKey)
         }
 
+        operator fun get(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null) : Shader{
+            return INSTANCE.getShader(vertexKey, fragmentKey, geometryKey)
+        }
+
         fun generateSubShader(name: String, code: String, type: Int): SubShader{
 
             val id = createShaderFromString(code, type, name)

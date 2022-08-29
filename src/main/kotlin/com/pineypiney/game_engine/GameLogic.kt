@@ -36,11 +36,11 @@ abstract class GameLogic : IGameLogic {
         gameObjects.update(0f)
 
         // Reset textures so that the last bound texture isn't carried over
-        Texture.brokeTexture.bind()
+        Texture.broke.bind()
     }
 
     override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
-        val ray = camera.getRay(cursorPos)
+        val ray = camera.getRay()
         for (item in gameObjects.getAllInteractables()){
             item.hover = item.checkHover(ray, cursorPos)
             if(item.shouldUpdate()) item.onCursorMove(this, cursorPos, cursorDelta)

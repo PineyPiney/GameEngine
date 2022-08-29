@@ -63,7 +63,7 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
                 i++
             }
 
-            yOffset -= 0.6f
+            yOffset -= separation
         }
     }
 

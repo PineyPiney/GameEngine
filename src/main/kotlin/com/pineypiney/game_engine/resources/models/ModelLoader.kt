@@ -410,7 +410,8 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
 
         val xPath: XPath = XPathFactory.newInstance().newXPath()
 
-        fun getModel(key: ResourceKey) = INSTANCE[(key)]
+        fun getModel(key: ResourceKey) = INSTANCE[key]
+        operator fun get(key: ResourceKey) = INSTANCE[key]
 
         fun loadMaterial(stream: InputStream, materialTextures: Array<Texture>): ModelMaterial?{
             val scanner = Scanner(stream)
@@ -429,7 +430,7 @@ class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
                             materialTextures.toList().first { it.fileName.substringAfterLast(s) == (split[1]) }
                         }
                         catch (e: NoSuchElementException){
-                            Texture.brokeTexture
+                            Texture.broke
                         }
                     }
                 }
