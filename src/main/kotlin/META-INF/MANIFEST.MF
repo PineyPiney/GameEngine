@@ -1,2 +1,48 @@
 Manifest-Version: 1.0
-Main-Class: com.pineypiney.pixel_game.PixelGame
+Class-Path: javacpp-1.5.7.jar lwjgl-3.3.1-natives-linux.jar openblas-0.3
+ .19-1.5.7-linux-arm64.jar libfreenect-0.5.7-1.5.7.jar kotlin-stdlib-jdk
+ 7-1.7.10.jar javacpp-1.5.7-macosx-arm64.jar kotlin-unsigned-3538d42beb0
+ 64972946c92fe839dc76e2a4d3ec2.jar lwjgl-glfw-3.3.1-natives-linux.jar ff
+ mpeg-5.0-1.5.7-macosx-x86_64-gpl.jar ffmpeg-5.0-1.5.7-android-x86_64-gp
+ l.jar kool-a77c7291389c360f1b2a4939ed5b000ddccb8f27.jar javacpp-1.5.7-l
+ inux-ppc64le.jar ffmpeg-5.0-1.5.7-windows-x86_64-gpl.jar kotlin-logging
+ -jvm-2.1.23.jar openblas-0.3.19-1.5.7-android-arm64.jar javacpp-1.5.7-m
+ acosx-x86_64.jar artoolkitplus-2.3.1-1.5.7.jar leptonica-1.82.0-1.5.7.j
+ ar glm-375708cf1c0942b0df9d624acddb1c9993f6d92d.jar openblas-0.3.19-1.5
+ .7-macosx-x86_64.jar openblas-0.3.19-1.5.7-windows-x86.jar lwjgl-3.3.1.
+ jar opencv-platform-gpu-4.5.5-1.5.7.jar lwjgl-3.3.1-natives-windows.jar
+  openblas-0.3.19-1.5.7-linux-x86_64.jar lwjgl-openal-3.3.1-natives-wind
+ ows.jar openblas-0.3.19-1.5.7-android-x86_64.jar lwjgl-opengl-3.3.1-nat
+ ives-linux.jar lwjgl-stb-3.3.1-natives-linux.jar ffmpeg-5.0-1.5.7-linux
+ -armhf-gpl.jar javacpp-1.5.7-windows-x86_64.jar javacpp-1.5.7-linux-arm
+ 64.jar tesseract-5.0.1-1.5.7.jar flycapture-2.13.3.31-1.5.7.jar javacpp
+ -1.5.7-ios-x86_64.jar javacpp-1.5.7-android-x86.jar javacpp-1.5.7-linux
+ -x86_64.jar opencv-4.5.5-1.5.7.jar openblas-0.3.19-1.5.7-android-x86.ja
+ r javacpp-1.5.7-windows-x86.jar ffmpeg-5.0-1.5.7-linux-x86_64-gpl.jar o
+ penblas-0.3.19-1.5.7-linux-armhf.jar openblas-0.3.19-1.5.7-ios-arm64.ja
+ r openblas-0.3.19-1.5.7-ios-x86_64.jar javacpp-1.5.7-android-arm64.jar 
+ annotations-13.0.jar kotlin-stdlib-jdk8-1.7.10.jar ffmpeg-platform-gpl-
+ 5.0-1.5.7.jar lwjgl-glfw-3.3.1-natives-windows.jar logback-core-1.2.11.
+ jar lwjgl-jemalloc-3.3.1.jar libfreenect2-0.2.0-1.5.7.jar javacpp-1.5.7
+ -ios-arm64.jar ffmpeg-5.0-1.5.7-linux-arm64-gpl.jar openblas-0.3.19-1.5
+ .7-android-arm.jar flandmark-1.07-1.5.7.jar ffmpeg-5.0-1.5.7-macosx-arm
+ 64-gpl.jar openblas-platform-0.3.19-1.5.7.jar librealsense2-2.50.0-1.5.
+ 7.jar logback-classic-1.2.11.jar lwjgl-stb-3.3.1-natives-windows.jar ja
+ vacpp-platform-1.5.7.jar ffmpeg-5.0-1.5.7-windows-x86-gpl.jar opencv-4.
+ 5.5-1.5.7-windows-x86_64-gpu.jar openblas-0.3.19-1.5.7-windows-x86_64.j
+ ar javacpp-1.5.7-android-arm.jar ffmpeg-5.0-1.5.7.jar ffmpeg-5.0-1.5.7-
+ android-x86-gpl.jar libdc1394-2.2.6-1.5.7.jar ffmpeg-5.0-1.5.7-android-
+ arm64-gpl.jar javacpp-1.5.7-linux-x86.jar openblas-0.3.19-1.5.7.jar lwj
+ gl-glfw-3.3.1.jar lwjgl-assimp-3.3.1.jar ffmpeg-5.0-1.5.7-android-arm-g
+ pl.jar lwjgl-assimp-3.3.1-natives-windows.jar openblas-0.3.19-1.5.7-mac
+ osx-arm64.jar kotlin-stdlib-1.7.10.jar lwjgl-stb-3.3.1.jar ffmpeg-5.0-1
+ .5.7-linux-ppc64le-gpl.jar lwjgl-opengl-3.3.1-natives-windows.jar javac
+ pp-1.5.7-android-x86_64.jar lwjgl-jemalloc-3.3.1-natives-windows.jar vi
+ deoinput-0.200-1.5.7.jar javacpp-1.5.7-linux-armhf.jar slf4j-api-1.7.32
+ .jar lwjgl-openal-3.3.1.jar librealsense-1.12.4-1.5.7.jar opencv-4.5.5-
+ 1.5.7-linux-x86_64-gpu.jar openblas-0.3.19-1.5.7-linux-ppc64le.jar lwjg
+ l-jemalloc-3.3.1-natives-linux.jar ffmpeg-5.0-1.5.7-linux-x86-gpl.jar l
+ wjgl-openal-3.3.1-natives-linux.jar kotlin-stdlib-common-1.7.10.jar ope
+ nblas-0.3.19-1.5.7-linux-x86.jar lwjgl-opengl-3.3.1.jar javacv-1.5.7.ja
+ r
+
