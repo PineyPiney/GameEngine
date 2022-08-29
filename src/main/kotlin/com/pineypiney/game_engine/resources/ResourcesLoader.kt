@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.resources.video.VideoLoader
 import com.pineypiney.game_engine.util.extension_functions.removeNullValues
 import com.pineypiney.game_engine.util.extension_functions.round
 import org.lwjgl.BufferUtils
@@ -36,7 +37,7 @@ abstract class ResourcesLoader {
         GameEngine.logger.info("Loaded Shaders in ${timeActionM{ ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) }) }.round(2)} ms")
         GameEngine.logger.info("Loaded Textures in ${timeActionM{ TextureLoader.INSTANCE.loadTextures(this, streamList.filter { it.startsWith(textureLocation) }.map { it.removePrefix(textureLocation) }) }.round(2)} ms")
         GameEngine.logger.info("Loaded Audio in ${timeActionM{ AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }.mapKeys { it.key.removePrefix(audioLocation) }) }.round(2)} ms")
-//        GameEngine.logger.info("Loaded Videos in ${timeActionM{ VideoLoader.INSTANCE.loadVideos(this, streamList.filter { it.startsWith(videoLocation) }.map { it.removePrefix(videoLocation) }) }.round(2)} ms")
+        GameEngine.logger.info("Loaded Videos in ${timeActionM{ VideoLoader.INSTANCE.loadVideos(this, streamList.filter { it.startsWith(videoLocation) }.map { it.removePrefix(videoLocation) }) }.round(2)} ms")
         GameEngine.logger.info("Loaded Models in ${timeActionM{ ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) }) }.round(2)} ms")
     }
 
@@ -44,7 +45,7 @@ abstract class ResourcesLoader {
         ShaderLoader.INSTANCE.delete()
         TextureLoader.INSTANCE.delete()
         AudioLoader.INSTANCE.delete()
-//        VideoLoader.INSTANCE.delete()
+        VideoLoader.INSTANCE.delete()
         ModelLoader.INSTANCE.delete()
     }
 
