@@ -8,8 +8,7 @@ import glm_.vec2.Vec2i
 import kool.Buffer
 import kool.ByteBuffer
 import kool.lim
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL13.*
 import java.nio.ByteBuffer
 
 class Texture(val fileName: String, val texturePointer: Int) : Resource() {
@@ -38,7 +37,7 @@ class Texture(val fileName: String, val texturePointer: Int) : Resource() {
             GameEngine.logger.warn("Buffer is not the right size to set texture data")
         }
         val buf = Buffer(data.lim){ data.get(it) }
-        GL11.glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, format, GL_UNSIGNED_BYTE, buf)
+        glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, format, GL_UNSIGNED_BYTE, buf)
     }
 
     fun getData(): ByteBuffer{

@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.delete
 import glm_.bool
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL32.*
 import java.io.InputStream
 
 class ShaderLoader private constructor(): Deleteable{
@@ -94,7 +94,7 @@ class ShaderLoader private constructor(): Deleteable{
             glLinkProgram(ID)
 
             // print linking errors if any
-            checkCompileErrors(ID, GL_SHADER, "$vName x $fName" + if(gName != null) " x $gName" else "")
+            checkCompileErrors(ID, 0, "$vName x $fName" + if(gName != null) " x $gName" else "")
 
             // delete the shaders as they're linked into our program now and no longer necessary
             glDeleteShader(vertexShader.id)
@@ -134,7 +134,7 @@ class ShaderLoader private constructor(): Deleteable{
         fun checkCompileErrors(shader: Int, shaderType: Int, shaderName: String) {
             val success: Boolean
             val infoLog: String
-            if (shaderType == GL_SHADER) {
+            if (shaderType == 0) {
                 success = glGetProgrami(shader, GL_LINK_STATUS).bool
                 if (!success) {
                     infoLog = glGetProgramInfoLog(shader)

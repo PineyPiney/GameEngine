@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.util.shapes
 
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL31.*
 
 open class IndicesShape(vertices: FloatArray, parts: IntArray, indices: IntArray): Shape() {
 

@@ -23,7 +23,7 @@ import org.lwjgl.stb.STBImage
 import java.io.InputStream
 
 
-abstract class Window(title: String, var width: Int, var height: Int, vSync: Boolean) {
+abstract class Window(title: String, var width: Int, var height: Int, vSync: Boolean, val version: Vec2i = Vec2i(4, 6)) {
 
     var vSync: Boolean = vSync
         set(value) {
@@ -74,8 +74,8 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
 
         glfwWindowHint(GLFW_RESIZABLE, 1) // the window will be resizable
 
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.x)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.y)
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1)
 

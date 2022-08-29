@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.resources.AbstractResourceLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import kool.toBuffer
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL30.*
 import org.lwjgl.stb.STBImage
 import java.io.InputStream
 import java.nio.ByteBuffer

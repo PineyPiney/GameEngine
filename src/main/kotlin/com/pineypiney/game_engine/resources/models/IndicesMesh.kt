@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL31.*
 
 class IndicesMesh(var vertices: Array<MeshVertex> = arrayOf(),
                   var indices: IntArray = intArrayOf(),

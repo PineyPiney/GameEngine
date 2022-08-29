@@ -8,7 +8,7 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 import com.pineypiney.game_engine.util.maths.I
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL11.*
 
 class Renderer(override val window: Window): BufferedGameRenderer<Game>() {
 
