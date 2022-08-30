@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.resources.text.Font
+import com.pineypiney.game_engine.resources.text.BitMapFont
 import com.pineypiney.game_engine.util.maths.I
 import glm_.f
 import glm_.glm
@@ -12,13 +12,13 @@ import glm_.vec4.Vec4
 
 open class StretchyStaticText(text: String, final override val window: Window, colour: Vec4 = Vec4(1, 1, 1, 1),
                               textMaxWidth: Float = 2f, textMaxHeight: Float = 2f,
-                              font: Font = Font.defaultFont,
+                              font: BitMapFont = BitMapFont.defaultFont,
                               shader: Shader = font.shader):
     StretchyText(text, colour, textMaxWidth, textMaxHeight, font, shader), StaticTextI {
 
     constructor(text: String, window: Window, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
-                font: Font = Font.defaultFont,
-                shader: Shader = Font.fontShader):
+                font: BitMapFont = BitMapFont.defaultFont,
+                shader: Shader = BitMapFont.fontShader):
             this(text, window, colour, bounds.x, bounds.y, font, shader)
 
     override var origin: Vec2 = Vec2()

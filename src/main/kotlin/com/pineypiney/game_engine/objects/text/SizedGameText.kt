@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.objects.game_objects.transforms.Transform2D
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.resources.text.Font
+import com.pineypiney.game_engine.resources.text.BitMapFont
 import glm_.f
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -12,12 +12,12 @@ import glm_.vec4.Vec4
 open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(1, 1, 1, 1),
                          maxWidth: Float = 2f, maxHeight: Float = 2f,
                          separation: Float = 0.6f,
-                         font: Font = Font.defaultFont,
+                         font: BitMapFont = BitMapFont.defaultFont,
                          shader: Shader = gameTextShader):
     SizedText(text, fontSize, colour, maxWidth, maxHeight, separation, font, shader), GameTextI {
 
     constructor(text: String, fontSize: Int, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
-                separation: Float = 0.6f, font: Font = Font.defaultFont,
+                separation: Float = 0.6f, font: BitMapFont = BitMapFont.defaultFont,
                 shader: Shader = gameTextShader):
             this(text, fontSize, colour, bounds.x, bounds.y, separation, font, shader)
 

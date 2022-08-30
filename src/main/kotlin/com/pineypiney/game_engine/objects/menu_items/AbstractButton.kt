@@ -16,7 +16,7 @@ abstract class AbstractButton : StaticInteractableMenuItem() {
 
     override fun setUniforms() {
         super.setUniforms()
-        uniforms.setVec3Uniform("colour", this::getCurrentColour)
+        uniforms.setVec3Uniform("colour", ::getCurrentColour)
     }
 
     override fun onPrimary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int {

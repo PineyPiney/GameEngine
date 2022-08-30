@@ -6,7 +6,7 @@ import glm_.b
 import glm_.f
 import glm_.s
 import glm_.vec2.Vec2
-import glm_.vec2.Vec2i
+import glm_.vec2.Vec2d
 import org.lwjgl.glfw.GLFW.*
 
 open class MouseInput(val input: Inputs) {
@@ -64,7 +64,7 @@ open class MouseInput(val input: Inputs) {
     fun getButton(button: Short) = buttonStates[button].let { it != -1f }
 
     fun setCursorAt(pos: Vec2, drag: Boolean = false){
-        input.window.setCursorPos(Vec2i(Vec2(pos.x + 1, -pos.y + 1) / 2 * input.window.size))
+        input.window.cursorPos = Vec2d(Vec2(pos.x + 1, -pos.y + 1) / 2 * input.window.size)
 
         if(!drag) lastPos = pos
     }

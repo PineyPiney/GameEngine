@@ -4,92 +4,116 @@ import com.pineypiney.game_engine.audio.AudioDevice
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.input.Inputs
-import glm_.d
 import glm_.f
 import glm_.i
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
-import glm_.vec2.Vec2t
 import kool.lib.toByteArray
 import kool.toBuffer
-import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11C.glViewport
 import org.lwjgl.stb.STBImage
 import java.io.InputStream
 
 
-abstract class Window(title: String, var width: Int, var height: Int, vSync: Boolean, val version: Vec2i = Vec2i(4, 6)) {
+abstract class Window(title: String, width: Int, height: Int, vSync: Boolean, val version: Vec2i = Vec2i(4, 6)) {
+
+    abstract val input: Inputs
+
+    var windowHandle = 0L; private set
+    var audioDevice: AudioDevice? = null; private set
+
+    var title: String = title
+    set(value) {
+        field = value
+        GLFW.glfwSetWindowTitle(windowHandle, value)
+    }
+
+    var pos: Vec2i
+    get() = getVec2i(GLFW::glfwGetWindowPos)
+    set(value) = setVec2i(GLFW::glfwSetWindowPos, value)
+
+    var size: Vec2i
+    get() = getVec2i(GLFW::glfwGetWindowSize)
+    set(value) = setVec2i(GLFW::glfwSetWindowSize, value)
+
+    val frameSize: Vec2i
+    get() = getVec2i(GLFW::glfwGetFramebufferSize)
+
+    var cursorPos: Vec2d
+    get() = getVec2d(GLFW::glfwGetCursorPos)
+    set(value) = setVec2d(GLFW::glfwSetCursorPos, value)
+
+    var width: Int
+    get() = size.x
+    set(value) { size = Vec2i(value, size.y) }
+
+    var height: Int
+    get() = size.y
+    set(value) { size = Vec2i(size.x, value) }
+
+    val aspectRatio get() = width.f/height
+
+    var fullScreen: Boolean
+        get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_DECORATED) == 0
+        set(value) {
+
+            if(value) GLFW.glfwMaximizeWindow(windowHandle)
+            else GLFW.glfwRestoreWindow(windowHandle)
+
+            GLFW.glfwSetWindowAttrib(windowHandle, GLFW.GLFW_DECORATED, if(value) 0  else 1)
+        }
+
+    var shouldClose: Boolean
+    get() = GLFW.glfwWindowShouldClose(windowHandle)
+    set(value) = GLFW.glfwSetWindowShouldClose(windowHandle, value)
 
     var vSync: Boolean = vSync
         set(value) {
             field = value
-            glfwSwapInterval(field.i)
+            GLFW.glfwSwapInterval(field.i)
         }
-
-    var windowHandle = 0L; private set
-    var audioDevice: AudioDevice? = null; private set
-    var aspectRatio = width.f/height.f
-
-    val size: Vec2i; get() = Vec2i(width, height)
-    abstract val input: Inputs
-
-    var fullScreen: Boolean
-        get() = glfwGetWindowAttrib(windowHandle, GLFW_DECORATED) == 0
-        set(value) {
-
-            if(value) glfwMaximizeWindow(windowHandle)
-            else glfwRestoreWindow(windowHandle)
-
-            glfwSetWindowAttrib(windowHandle, GLFW_DECORATED, if(value) 0  else 1)
-        }
-
-    val defaultResizeCallback = { width: Int, height: Int ->
-        this.width = width
-        this.height = height
-        aspectRatio = width.f / height
-        glViewport(0, 0, width, height)
-    }
 
     init{
-        loadGL(title)
+        loadGL(title, width, height)
         loadAL()
 
-        glfwSetWindowCloseCallback(windowHandle, ::close)
+        GLFW.glfwSetWindowCloseCallback(windowHandle, ::close)
     }
 
-    fun loadGL(title: String){
+    fun loadGL(title: String, width: Int, height: Int){
         GLFWErrorCallback.createPrint(System.err).set()
 
         // Initialize GLFW. Most GLFW functions will not work before doing this.
-        check(glfwInit()) { "Unable to initialize GLFW" }
+        check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
 
-        glfwDefaultWindowHints() // optional, the current window hints are already the default
+        GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
 
-        glfwWindowHint(GLFW_VISIBLE, 0) // the window will stay hidden after creation
+        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, 0) // the window will stay hidden after creation
 
-        glfwWindowHint(GLFW_RESIZABLE, 1) // the window will be resizable
+        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, 1) // the window will be resizable
 
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.x)
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.y)
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1)
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, version.x)
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, version.y)
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, 1)
 
         // Create the window
-        windowHandle = glfwCreateWindow(width, height, title, 0, 0)
+        windowHandle = GLFW.glfwCreateWindow(width, height, title, 0, 0)
         if (windowHandle == 0L) {
             throw RuntimeException("Failed to create the GLFW window")
         }
 
         // Get the resolution of the primary monitor
-        val vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor())
+        val vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor())
         // Center our window
         vidmode?.let {
-            glfwSetWindowPos(
+            GLFW.glfwSetWindowPos(
                 windowHandle,
                 (it.width() - width) / 2,
                 (it.height() - height) / 2
@@ -98,13 +122,13 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
 
 
         // Make the OpenGL context current
-        glfwMakeContextCurrent(windowHandle)
+        GLFW.glfwMakeContextCurrent(windowHandle)
         // Make the window visible
-        glfwShowWindow(windowHandle)
+        GLFW.glfwShowWindow(windowHandle)
 
         if (vSync) {
             // Enable v-sync
-            glfwSwapInterval(1)
+            GLFW.glfwSwapInterval(1)
         }
 
         GL.createCapabilities()
@@ -118,16 +142,24 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         AL.createCapabilities(cCaps)
     }
 
-    fun setTitle(title: String){
-        glfwSetWindowTitle(windowHandle, title)
+    fun getVec2i(func: (Long, IntArray, IntArray) -> Unit): Vec2i{
+        val (wa, ha) = arrayOf(IntArray(1), IntArray(1))
+        func(windowHandle, wa, ha)
+        return Vec2i(wa[0], ha[0])
     }
 
-    fun setSize(width: Int, height: Int){
-        glfwSetWindowSize(windowHandle, width, height)
+    fun setVec2i(func: (Long, Int, Int) -> Unit, value: Vec2i){
+        func(windowHandle, value.x, value.y)
     }
 
-    fun setSize(size: Vec2i){
-        setSize(size.x, size.y)
+    fun getVec2d(func: (Long, DoubleArray, DoubleArray) -> Unit): Vec2d{
+        val (wa, ha) = arrayOf(DoubleArray(1), DoubleArray(1))
+        func(windowHandle, wa, ha)
+        return Vec2d(wa[0], ha[0])
+    }
+
+    fun setVec2d(func: (Long, Double, Double) -> Unit, value: Vec2d){
+        func(windowHandle, value.x, value.y)
     }
 
     /**
@@ -136,17 +168,17 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
      * @param cursor The handle for the new cursor
      */
     fun setCursor(cursor: Long){
-        glfwSetCursor(windowHandle, cursor)
+        GLFW.glfwSetCursor(windowHandle, cursor)
     }
 
     /**
      * Set the cursor to a standard cursor defined by GLFW
      *
      * @param cursor One of the standard GLFW cursors. One of:
-     * <br><table><tr><td>[GLFW_ARROW_CURSOR]</td><td>[GLFW_IBEAM_CURSOR]</td><td>[GLFW_CROSSHAIR_CURSOR]</td><td>[GLFW_POINTING_HAND_CURSOR]</td><td>[GLFW_RESIZE_EW_CURSOR]</td><td>[GLFW_RESIZE_NS_CURSOR]</td><td>[GLFW_RESIZE_NWSE_CURSOR]</td><td>[GLFW_RESIZE_NESW_CURSOR]</td><td>[GLFW_RESIZE_ALL_CURSOR]</td><td>[GLFW_NOT_ALLOWED_CURSOR]</td></tr></table>
+     * <br><table><tr><td>[GLFW.GLFW_ARROW_CURSOR]</td><td>[GLFW.GLFW_IBEAM_CURSOR]</td><td>[GLFW.GLFW_CROSSHAIR_CURSOR]</td><td>[GLFW.GLFW_POINTING_HAND_CURSOR]</td><td>[GLFW.GLFW_RESIZE_EW_CURSOR]</td><td>[GLFW.GLFW_RESIZE_NS_CURSOR]</td><td>[GLFW.GLFW_RESIZE_NWSE_CURSOR]</td><td>[GLFW.GLFW_RESIZE_NESW_CURSOR]</td><td>[GLFW.GLFW_RESIZE_ALL_CURSOR]</td><td>[GLFW.GLFW_NOT_ALLOWED_CURSOR]</td></tr></table>
      */
     fun setCursor(cursor: Int){
-        setCursor(glfwCreateStandardCursor(cursor))
+        setCursor(GLFW.glfwCreateStandardCursor(cursor))
     }
 
     /**
@@ -173,27 +205,8 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         val rgba = flipped.flatMap { p -> List(4){ p.getOrElse(it){-1} } }
 
         val image = GLFWImage.create().set(texture.width, texture.height, rgba.toByteArray().toBuffer())
-        val handle = glfwCreateCursor(image, point.x, point.y)
+        val handle = GLFW.glfwCreateCursor(image, point.x, point.y)
         setCursor(handle)
-    }
-
-    /**
-     * Set the position of the cursor in the window
-     *
-     * @param x The horizontal position of the cursor, in pixels from the left
-     * @param y The vertical position of the cursor, in pixels from the top
-     */
-    fun setCursorPos(x: Number, y: Number){
-        glfwSetCursorPos(windowHandle, x.d, y.d)
-    }
-
-    /**
-     * Set the position of the cursor
-     *
-     * @param pos The position of the cursor, in pixels from the top left
-     */
-    fun setCursorPos(pos: Vec2t<*>){
-        setCursorPos(pos.x, pos.y)
     }
 
     /**
@@ -202,7 +215,7 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
      * @param icon The pixel data for the new icon
      */
     fun setIcon(icon: GLFWImage.Buffer){
-        glfwSetWindowIcon(windowHandle, icon)
+        GLFW.glfwSetWindowIcon(windowHandle, icon)
     }
 
     /**
@@ -228,23 +241,14 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
 
     fun setResizeCallback(callback: (Window) -> Unit){
         // Setup resize callback
-        glfwSetFramebufferSizeCallback(windowHandle) { _: Long, width: Int, height: Int ->
-            defaultResizeCallback(width, height)
+        GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _: Long, _: Int, _: Int ->
             callback(this)
         }
     }
 
     open fun update(){
-        glfwSwapBuffers(windowHandle)
-        glfwPollEvents()
-    }
-
-    fun windowShouldClose(): Boolean {
-        return glfwWindowShouldClose(windowHandle)
-    }
-
-    fun setShouldClose(close: Boolean = true){
-        glfwSetWindowShouldClose(windowHandle, close)
+        GLFW.glfwSwapBuffers(windowHandle)
+        GLFW.glfwPollEvents()
     }
 
     open fun close(handle: Long = windowHandle){
@@ -256,7 +260,7 @@ abstract class Window(title: String, var width: Int, var height: Int, vSync: Boo
         fun getSize(handle: Long): Vec2i{
             val widths = IntArray(1)
             val heights = IntArray(1)
-            glfwGetWindowSize(handle, widths, heights)
+            GLFW.glfwGetWindowSize(handle, widths, heights)
 
             return Vec2i(widths[0], heights[0])
         }

@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.resources.text.Font
+import com.pineypiney.game_engine.resources.text.BitMapFont
 import glm_.f
 import glm_.i
 import glm_.vec2.Vec2
@@ -13,7 +13,7 @@ import kotlin.math.min
 
 abstract class StretchyText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
                             textMaxWidth: Float = 2f, textMaxHeight: Float = 2f,
-                            font: Font = Font.defaultFont,
+                            font: BitMapFont = BitMapFont.defaultFont,
                             shader: Shader = gameTextShader):
     Text(text, colour, textMaxWidth, textMaxHeight, font, shader), StretchyTextI {
 

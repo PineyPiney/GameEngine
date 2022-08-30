@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.resources.textures.TextureLoader
 import glm_.i
 import glm_.vec2.Vec2t
 import org.lwjgl.opengl.GL30.*
@@ -30,8 +31,7 @@ class FrameBuffer(var width: Int, var height: Int): Deleteable {
         glBindTexture(GL_TEXTURE_2D, TCB)
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        TextureLoader.loadIndividualSettings(TCB, filtering = GL_LINEAR)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TCB, 0)
 
 

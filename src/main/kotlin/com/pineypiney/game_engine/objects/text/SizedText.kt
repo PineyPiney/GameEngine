@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.resources.text.Font
+import com.pineypiney.game_engine.resources.text.BitMapFont
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
 import glm_.c
 import glm_.f
@@ -12,9 +12,9 @@ import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 
 abstract class SizedText(text: String, final override val fontSize: Int = 100, colour: Vec4 = Vec4(1, 1, 1, 1),
-                maxWidth: Float = 2f, maxHeight: Float = 2f,
-                override val separation: Float = 0.6f, font: Font = Font.defaultFont,
-                shader: Shader = font.shader):
+                         maxWidth: Float = 2f, maxHeight: Float = 2f,
+                         override val separation: Float = 0.6f, font: BitMapFont = BitMapFont.defaultFont,
+                         shader: Shader = font.shader):
     Text(text, colour, maxWidth, maxHeight, font, shader), SizedTextI {
 
     final override var letterIndices: List<Int> = listOf()

@@ -79,15 +79,15 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
             return texturePointer
         }
 
-        fun loadIndividualSettings(pointer: Int, wrapping: Int = GL_REPEAT) {
+        fun loadIndividualSettings(pointer: Int, wrapping: Int = GL_REPEAT, filtering: Int = GL_NEAREST) {
 
             glBindTexture(GL_TEXTURE_2D, pointer)
             // Set wrapping and filtering options
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapping)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapping)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, wrapping)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filtering)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtering)
         }
 
         private fun loadImageFromFile(buffer: ByteBuffer, flip: Boolean = true): Boolean {

@@ -7,8 +7,7 @@ import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.text.Font
-import com.pineypiney.game_engine.resources.text.FontLoader
+import com.pineypiney.game_engine.resources.text.BitMapFont
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
@@ -201,7 +200,7 @@ open class TextField(final override var origin: Vec2, final override val size: V
     class TextFieldText(text: String, window: Window, fontSize: Number, private var limits: Vec2,
                         bounds: Vec2 = Vec2(Float.MAX_VALUE),
                         colour: Vec4 = Vec4(1, 1, 1, 1),
-                        font: Font = FontLoader.getFont(ResourceKey("fonts\\Large Font")),
+                        font: BitMapFont = BitMapFont.defaultFont,
                         shader: Shader = fieldShader):
         SizedStaticText(text, window, fontSize.i, colour, bounds.x, bounds.y, 1f, font, shader) {
 

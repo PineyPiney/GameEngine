@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.Shaded
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.resources.text.Font
+import com.pineypiney.game_engine.resources.text.BitMapFont
 import com.pineypiney.game_engine.util.extension_functions.delete
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -17,7 +17,7 @@ interface TextI: Initialisable, Shaded {
     val maxWidth: Float
     val maxHeight: Float
 
-    val font: Font
+    val font: BitMapFont
 
     val letterIndices: List<Int>
     val letterPoints: List<Vec2i>

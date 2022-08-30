@@ -4,14 +4,14 @@ import com.pineypiney.game_engine.objects.Visual
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
-import com.pineypiney.game_engine.resources.text.Font
+import com.pineypiney.game_engine.resources.text.BitMapFont
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec4.Vec4
 
 abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
-                override val maxWidth: Float = 2f, override val maxHeight: Float = 2f,
-                override val font: Font = Font.defaultFont,
-                shader: Shader = font.shader): TextI, Visual {
+                    override val maxWidth: Float = 2f, override val maxHeight: Float = 2f,
+                    override val font: BitMapFont = BitMapFont.defaultFont,
+                    shader: Shader = font.shader): TextI, Visual {
 
     override var text: String = text
         set(value){

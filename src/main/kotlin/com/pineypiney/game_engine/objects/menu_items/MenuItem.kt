@@ -14,7 +14,7 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
 
     override val objects: MutableSet<ObjectCollection> = mutableSetOf()
 
-    override var origin: Vec2 = Vec2()
+    override val origin: Vec2 = Vec2()
     override val size: Vec2 = Vec2()
 
     open val shape: Shape = menuShape
@@ -54,51 +54,6 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
 
     override fun removeFrom(objects: ObjectCollection) {
         objects.guiItems.remove(this)
-    }
-
-    override fun drawCentered(p: Vec2){
-        origin = p - (size/2)
-        draw()
-    }
-
-    override fun drawCenteredLeft(p: Vec2) {
-        origin = p - Vec2(0f, size.y * 0.5f)
-        draw()
-    }
-
-    override fun drawCenteredTop(p: Vec2) {
-        origin = p - Vec2(size.x * 0.5f, size.y)
-        draw()
-    }
-
-    override fun drawCenteredRight(p: Vec2) {
-        origin = p - Vec2(size.x, size.y * 0.5f)
-        draw()
-    }
-
-    override fun drawCenteredBottom(p: Vec2) {
-        origin = p - Vec2(size.x * 0.5f, 0f)
-        draw()
-    }
-
-    override fun drawTopLeft(p: Vec2) {
-        origin = p - Vec2(0, size.y)
-        draw()
-    }
-
-    override fun drawTopRight(p: Vec2) {
-        origin = p - size
-        draw()
-    }
-
-    override fun drawBottomLeft(p: Vec2) {
-        origin = p
-        draw()
-    }
-
-    override fun drawBottomRight(p: Vec2) {
-        origin = p - Vec2(size.x, 0)
-        draw()
     }
 
     override fun delete() {

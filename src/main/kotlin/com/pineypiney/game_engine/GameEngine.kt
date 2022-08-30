@@ -30,8 +30,8 @@ abstract class GameEngine<E: IGameLogic>(val resourcesLoader: ResourcesLoader) :
 
         // Create all the fonts
         FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", resourcesLoader, 128, 256, 8)
-        FontLoader.INSTANCE.loadFontWithTexture("ExportedFont.png", resourcesLoader, 32, 64, 2)
-        FontLoader.INSTANCE.loadFontWithTexture("PixelFont.png", resourcesLoader, 32, 64, 2)
+
+        FontLoader.INSTANCE.loadFontFromTTF("LightSlab.ttf", resourcesLoader)
     }
 
     override fun run() {
@@ -55,7 +55,7 @@ abstract class GameEngine<E: IGameLogic>(val resourcesLoader: ResourcesLoader) :
         var accumulator = 0.0
         val interval: Float = 1f / TARGET_UPS
 
-        while (!window.windowShouldClose()) {
+        while (!window.shouldClose) {
             // elapsed time is the time since this function was last called
             frameTime = timer.tickFrame()
 

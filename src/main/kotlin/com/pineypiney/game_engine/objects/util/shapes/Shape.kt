@@ -16,7 +16,7 @@ abstract class Shape: Deleteable {
     }
 
     abstract fun draw(mode: Int = GL_TRIANGLES)
-    abstract fun drawInstanced(amount: Int, mode: Int = GL_TRIANGLES, )
+    abstract fun drawInstanced(amount: Int, mode: Int = GL_TRIANGLES)
 
     fun setAttribs(data: Array<Vec2i>, type: Int){
 
@@ -62,42 +62,16 @@ abstract class Shape: Deleteable {
             return elements.map { it.f }.toFloatArray()
         }
 
-
-        private val cornerSquareVertices = floatArrayOf(
-            // positions    // texture co-ords
-            0, 0,           0, 0,
-            1, 0,           1, 0,
-            1, 1,           1, 1,
-            0, 1,           0, 1,
-        )
-        private val centerSquareVertices = floatArrayOf(
-            // positions    // texture co-ords
-            -0.5, -0.5,           0, 0,
-            0.5, -0.5,           1, 0,
-            0.5, 0.5,           1, 1,
-            -0.5, 0.5,           0, 1,
-        )
-        private val screenQuadVertices = floatArrayOf(
-            // positions    // texture co-ords
-            -1, -1,     0, 0,
-            1, -1,      1, 0,
-            1,  1,      1, 1,
-            -1,  1,     0, 1,
-        )
-
-        val footSquareVertices = floatArrayOf(
-            -0.5, 0, 0, 0,
-            -0.5, 1, 0, 1,
-            0.5, 1, 1, 1,
-            0.5, 0, 1, 0
-        )
+        val width = when(System.getProperty("os.name").substringBefore(' ')){
+            "Windows" -> 2
+            "Mac" -> 4
+            else -> 2
+        }
+        val screenQuadShape = SquareShape(Vec2(), Vec2(width))
 
         val cornerSquareShape2D = SquareShape(Vec2(0.5), Vec2(1))
         val centerSquareShape2D = SquareShape(Vec2(), Vec2(1))
-        val screenQuadShape = SquareShape(Vec2(), Vec2(2))
         val footSquare = SquareShape(Vec2(0, 0.5), Vec2(1))
-
-
 
         private val cornerCubeVertices = floatArrayOf(
             // positions        // normals          // texture co-ords

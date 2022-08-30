@@ -9,10 +9,7 @@ import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.ModelledGameObject2D
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.SimpleTexturedGameObject2D
 import com.pineypiney.game_engine.objects.game_objects.objects_3D.SimpleTexturedGameObject3D
-import com.pineypiney.game_engine.objects.menu_items.ActionTextField
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
-import com.pineypiney.game_engine.objects.menu_items.TextButton
-import com.pineypiney.game_engine.objects.menu_items.VideoPlayer
+import com.pineypiney.game_engine.objects.menu_items.*
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicSlider
 import com.pineypiney.game_engine.objects.text.SizedGameText
@@ -43,9 +40,10 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11C
 import java.awt.Font
 import java.awt.font.FontRenderContext
+import java.awt.geom.PathIterator
 import kotlin.math.PI
 import kotlin.math.sign
 
@@ -82,22 +80,34 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
     private val list = BasicScrollList(Vec2(-1, 0.4), Vec2(0.6), 1f, 0.05f, arrayOf("Hello", "World"), window)
 
     val video = VideoPlayer(VideoLoader[ResourceKey("ghost"), gameEngine.resourcesLoader], Vec2(0.5, -0.15), Vec2(0.5, 0.3))
+    val bezier = BezierDisplay(Vec2(0.1), Vec2(0.9, 0.2), Vec2(0.4, 0.8), window)
 
     val f = Font.createFont(Font.TRUETYPE_FONT, gameEngine.resourcesLoader.getStream("textures/fonts/LightSlab.ttf"))
-    val v = f.createGlyphVector(FontRenderContext(null, false, false), "q").outline
-    val shape: Shape
+    val v = f.createGlyphVector(FontRenderContext(null, true, true), "Have").outline
+    val shape: Array<Shape>
 
     init {
         val iterator = v.getPathIterator(null)
         val floats = mutableListOf<List<Float>>()
+        val shapes = mutableListOf<Shape>()
         while(!iterator.isDone){
             val floatA = FloatArray(5)
-            iterator.currentSegment(floatA)
-            floats.add(listOf(floatA[0], -floatA[1]))
+            val type = iterator.currentSegment(floatA)
+            when(type){
+                PathIterator.SEG_CLOSE -> {
+                    shapes.add(ArrayShape(floats.flatten().toFloatArray(), intArrayOf(2)))
+                    floats.clear()
+                }
+                else -> {
+                    floats.add(listOf(floatA[0], -floatA[1]))
+                }
+            }
+
             iterator.next()
+//            GameEngine.logger.debug("Adding point ${Vec2(0, floatA)} with type $type")
         }
-        val cut = floats.filter { it != listOf(0f, 0f) }
-        shape = ArrayShape(cut.flatten().toFloatArray(), intArrayOf(2))
+
+        shape = shapes.toTypedArray()
     }
 
     override fun init() {
@@ -126,16 +136,19 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         add(textField)
         add(slider)
         add(list)
+        add(bezier)
     }
 
     private fun drawLetter(){
         val shader = MenuItem.opaqueColourShader
         shader.use()
-        shader.setMat4("model", I)
+        shader.setMat4("model", I.scale(0.2f))
         shader.setVec3("colour", Vec3(1, 0, 1))
 
-        shape.bind()
-        shape.draw(GL11.GL_LINE_LOOP)
+        shape.forEach {
+            it.bind()
+            it.draw(GL11C.GL_LINE_LOOP)
+        }
     }
 
     private fun drawScene(tickDelta: Double){
@@ -173,7 +186,8 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         textField.draw()
         slider.draw()
         list.draw()
-        video.draw()
+        //video.draw()
+        bezier.draw()
     }
 
     override fun render(window: Window, tickDelta: Double) {
@@ -201,10 +215,10 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
             toggleFullscreen()
         }
         if(state.c == 'C' && action == 1){
-            input.mouse.setCursorAt(Vec2(0.5))
+            input.mouse.setCursorAt(Vec2(0.75))
         }
         if(state.i == GLFW_KEY_ESCAPE && action == 1){
-            window.setShouldClose()
+            window.shouldClose = true
         }
 
         if(action == 0) pressedKeys.remove(state.key)
@@ -220,6 +234,7 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
 
     override fun updateAspectRatio(window: Window) {
         super.updateAspectRatio(window)
+        GL11C.glViewport(0, 0, window.width, window.height)
         text.updateAspectRatio(window)
         textField.updateAspectRatio(window)
     }

@@ -3,17 +3,20 @@ package com.pineypiney.game_engine.resources.text
 import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.c
 import glm_.vec4.Vec4i
 import java.io.InputStream
 import javax.imageio.ImageIO
+import java.awt.Font as JavaFont
 
 class FontLoader private constructor() {
 
     private val fonts = mutableMapOf<ResourceKey, Font>()
 
-    fun loadFontWithTexture(fontName: String, resourcesLoader: ResourcesLoader, letterWidth: Int, letterHeight: Int, charSpacing: Int, shader: Shader = Font.fontShader){
+    fun loadFontWithTexture(fontName: String, resourcesLoader: ResourcesLoader, letterWidth: Int, letterHeight: Int, charSpacing: Int, shader: Shader = BitMapFont.fontShader){
 
         val stream: InputStream = resourcesLoader.getStream("${resourcesLoader.fontLocation}$fontName") ?: return
 
@@ -36,10 +39,7 @@ class FontLoader private constructor() {
 
         var index = 32
 
-
-        val key = ResourceKey("fonts/${fontName.substringBefore('.')}")
-        fonts[key] = Font(key, letterWidth, letterHeight, charSpacing, rows, columns, shader)
-
+        val charMap = mutableMapOf<Char, Vec4i>()
         // Iterate through every row of letters
         for(y in 0 until rows){
             val textureY = y * letterHeight
@@ -67,19 +67,31 @@ class FontLoader private constructor() {
                 // If no pixels were detected in this character, set the width to 1/8th of the total space
                 if(charDim == Vec4i(letterWidth, letterHeight, 0, 0))
                     charDim = Vec4i(0, letterHeight / 2, letterWidth / 8, letterHeight / 2)
-                fonts[key]?.setChar(index.c, charDim)
+                charMap[index.c] = charDim
                 index++
             }
         }
+
+        val key = ResourceKey(fontName.substringBefore('.'))
+        val texture = TextureLoader[ResourceKey("fonts/${key.key}")]
+        fonts[key] = BitMapFont(texture, charMap.toMap(), letterWidth, letterHeight, charSpacing, rows, columns, shader)
     }
 
-    fun getFont(key: ResourceKey): Font{
+    fun loadFontFromTTF(fontName: String, resourcesLoader: ResourcesLoader){
+        val stream: InputStream = resourcesLoader.getStream("${resourcesLoader.fontLocation}$fontName") ?: return
+
+        val font = JavaFont.createFont(JavaFont.TRUETYPE_FONT, stream)
+        fonts[ResourceKey(fontName.substringBefore('.'))] = TrueTypeFont(font)
+    }
+
+    fun getFont(key: ResourceKey): Font {
         val f = fonts[key]
-        return f ?: Font.brokeFont
+        return f ?: brokeFont
     }
 
     companion object{
         val INSTANCE = FontLoader()
+        val brokeFont = BitMapFont(Texture.broke, mapOf())
 
         fun getFont(key: ResourceKey): Font = INSTANCE.getFont(key)
         operator fun get(key: ResourceKey) = INSTANCE.getFont(key)
