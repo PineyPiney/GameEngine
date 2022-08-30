@@ -159,7 +159,7 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
                 "\ttexCoords = aTexCoord;\n" +
                 "}"
         const val fS: String =
-                "#version 130 core\n" +
+                "#version 330 core\n" +
                 "\n" +
                 "in vec2 texCoords;\n" +
                 "\n" +

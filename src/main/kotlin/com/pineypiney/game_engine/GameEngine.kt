@@ -2,7 +2,6 @@
 package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.resources.ResourcesLoader
-import com.pineypiney.game_engine.resources.text.FontLoader
 import glm_.c
 import glm_.f
 import mu.KotlinLogging
@@ -27,11 +26,6 @@ abstract class GameEngine<E: IGameLogic>(val resourcesLoader: ResourcesLoader) :
     init {
         // Load the resources for the game
         resourcesLoader.loadResources()
-
-        // Create all the fonts
-        FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", resourcesLoader, 128, 256, 8)
-
-        FontLoader.INSTANCE.loadFontFromTTF("LightSlab.ttf", resourcesLoader)
     }
 
     override fun run() {

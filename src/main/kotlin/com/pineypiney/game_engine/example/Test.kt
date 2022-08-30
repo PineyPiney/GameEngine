@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.example
 import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.resources.FileResourcesLoader
+import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.util.directory
 import org.lwjgl.opengl.GL11C.glClearColor
 
@@ -16,6 +17,13 @@ fun main() {
         override val window: Window = window
         override var TARGET_FPS: Int = 1000
         override val TARGET_UPS: Int = 20
+
+        init {
+            // Create all the fonts
+            FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", resourcesLoader, 128, 256, 8)
+
+            FontLoader.INSTANCE.loadFontFromTTF("LightSlab.ttf", resourcesLoader)
+        }
 
         override fun init() {
             super.init()
