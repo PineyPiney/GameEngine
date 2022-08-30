@@ -62,15 +62,10 @@ abstract class Shape: Deleteable {
             return elements.map { it.f }.toFloatArray()
         }
 
-        val width = when(System.getProperty("os.name").substringBefore(' ')){
-            "Windows" -> 2
-            "Mac" -> 4
-            else -> 2
-        }
-        val screenQuadShape = SquareShape(Vec2(), Vec2(width))
 
         val cornerSquareShape2D = SquareShape(Vec2(0.5), Vec2(1))
         val centerSquareShape2D = SquareShape(Vec2(), Vec2(1))
+        val screenQuadShape = SquareShape(Vec2(), Vec2(2))
         val footSquare = SquareShape(Vec2(0, 0.5), Vec2(1))
 
         private val cornerCubeVertices = floatArrayOf(
