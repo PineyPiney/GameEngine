@@ -1,10 +1,7 @@
 // FRAGMENT SHADER INFORMATION
 #version 130 core
 
-uniform vec2 p0;
-uniform vec2 p1;
-uniform vec2 p2;
-uniform vec2 p3;
+uniform vec2 points[4];
 uniform vec2 windowSize;
 
 uniform vec4 colour;
@@ -20,6 +17,11 @@ vec2 getValue(float t);
 float length2(vec2 vec);
 bool measure(float t, vec2 pos);
 
+vec2 p0 = points[0];
+vec2 p1 = points[1];
+vec2 p2 = points[2];
+vec2 p3 = points[3];
+
 vec2 pos = (gl_FragCoord.xy / windowSize) - vec2(1);
 float aspect = windowSize.x / windowSize.y;
 
@@ -31,7 +33,7 @@ void main(){
 	// (0, 0) = (-p0 + 3p1 - 3p2 + p3) * t^3 +
 	//			(3*p0 - 6*p1 + 3*p2) * t^2 +
 	//			(3*p0 - 3*p1) * t +
-	//			(P0 - pos)
+	//			(p0 - pos)
 
 	bool x = true;
 	bool y = true;

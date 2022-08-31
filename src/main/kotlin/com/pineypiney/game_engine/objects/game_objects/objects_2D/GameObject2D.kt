@@ -9,6 +9,7 @@ import com.pineypiney.game_engine.util.maths.normal
 import glm_.i
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
+import glm_.vec3.Vec3t
 
 abstract class GameObject2D : GameObject() {
 
@@ -39,17 +40,13 @@ abstract class GameObject2D : GameObject() {
 
     override fun init() {}
 
-    fun getWidth(): Float{
-        return scale.x
-    }
-
-    fun setPosition(pos: Vec3){
+    fun setPosition(pos: Vec3t<*>){
         position = Vec2(pos)
         depth = pos.z.i
     }
 
     fun translate(move: Vec2){
-        transform.translate(move)
+        transform translate move
     }
 
     fun rotate(angle: Float){

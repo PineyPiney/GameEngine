@@ -124,7 +124,7 @@ class ShaderLoader private constructor(): Deleteable{
             for(line in code.split('\n')) {
                 val parts = line.split(' ')
                 if (parts[0] != "uniform") continue
-                val name = parts[2].substringBefore(';')
+                val name = line.removePrefix("uniform ${parts[1]} ").substringBefore(';')
                 uniforms[name] = parts[1]
             }
 

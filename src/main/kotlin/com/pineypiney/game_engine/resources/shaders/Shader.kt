@@ -39,7 +39,7 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
     fun setInt(name: String, value: Int) = set1(name, value, GL20::glUniform1i)
     fun setInts(name: String, values: IntArray) = set1(name, values, GL20::glUniform1iv)
 
-    fun setUInt(name: String, value: Int) = set1(name, value, GL30::glUniform1ui)
+    fun setUInt(name: String, value: UInt) = set1(name, value.toInt(), GL30::glUniform1ui)
     fun setUInts(name: String, values: IntArray) = set1(name, values, GL30::glUniform1uiv)
 
     fun setFloat(name: String, value: Float) = set1(name, value, GL30::glUniform1f)
@@ -63,12 +63,19 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
     fun setVec4i(name: String, v: Vec4t<*>) = set4(name, Vec4i(v), GL20::glUniform4i)
     fun setVec4i(name: String, r: Number, g: Number, b: Number, a: Number) = set4(name, Vec4i(r, g, b, a), GL20::glUniform4i)
 
-    fun setVec2s(name: String, values: Array<Vec2t<*>>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f) }.toFloatArray(), GL20::glUniform2fv)
-    fun setVec2is(name: String, values: Array<Vec2t<*>>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i) }.toIntArray(), GL20::glUniform2iv)
-    fun setVec3s(name: String, values: Array<Vec3t<*>>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f) }.toFloatArray(), GL20::glUniform3fv)
-    fun setVec3is(name: String, values: Array<Vec3t<*>>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i) }.toIntArray(), GL20::glUniform3iv)
-    fun setVec4s(name: String, values: Array<Vec4t<*>>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f, it.w.f) }.toFloatArray(), GL20::glUniform4fv)
-    fun setVec4is(name: String, values: Array<Vec4t<*>>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i, it.w.i) }.toIntArray(), GL20::glUniform4iv)
+    fun <E: Vec2t<*>> setVec2s(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f) }.toFloatArray(), GL20::glUniform2fv)
+    fun <E: Vec2t<*>> setVec2is(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i) }.toIntArray(), GL20::glUniform2iv)
+    fun <E: Vec3t<*>> setVec3s(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f) }.toFloatArray(), GL20::glUniform3fv)
+    fun <E: Vec3t<*>> setVec3is(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i) }.toIntArray(), GL20::glUniform3iv)
+    fun <E: Vec4t<*>> setVec4s(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f, it.w.f) }.toFloatArray(), GL20::glUniform4fv)
+    fun <E: Vec4t<*>> setVec4is(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i, it.w.i) }.toIntArray(), GL20::glUniform4iv)
+
+    fun <E: Vec2t<*>> setVec2s(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f) }.toFloatArray(), GL20::glUniform2fv)
+    fun <E: Vec2t<*>> setVec2is(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i) }.toIntArray(), GL20::glUniform2iv)
+    fun <E: Vec3t<*>> setVec3s(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f) }.toFloatArray(), GL20::glUniform3fv)
+    fun <E: Vec3t<*>> setVec3is(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i) }.toIntArray(), GL20::glUniform3iv)
+    fun <E: Vec4t<*>> setVec4s(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f, it.w.f) }.toFloatArray(), GL20::glUniform4fv)
+    fun <E: Vec4t<*>> setVec4is(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i, it.w.i) }.toIntArray(), GL20::glUniform4iv)
 
     fun setMat4(name: String, value: Mat4) = setMatrix(name, value.array, GL20::glUniformMatrix4fv)
     fun setMat4s(name: String, value: Array<Mat4>) = setMatrix(name, value.flatMap { it.array.toList() }.toFloatArray(), GL20::glUniformMatrix4fv)
@@ -106,6 +113,7 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
                 when(type){
                     "bool" -> set.add(BoolsUniform(newName))
                     "int" -> set.add(IntsUniform(newName))
+                    "uint" -> set.add(UIntsUniform(newName))
                     "float" -> set.add(FloatsUniform(newName))
                     "vec2" -> set.add(Vec2sUniform(newName))
                     "vec3" -> set.add(Vec3sUniform(newName))
@@ -120,6 +128,7 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
                 when(type){
                     "bool" -> set.add(BoolUniform(name))
                     "int" -> set.add(IntUniform(name))
+                    "uint" -> set.add(UIntUniform(name))
                     "float" -> set.add(FloatUniform(name))
                     "vec2" -> set.add(Vec2Uniform(name))
                     "vec3" -> set.add(Vec3Uniform(name))

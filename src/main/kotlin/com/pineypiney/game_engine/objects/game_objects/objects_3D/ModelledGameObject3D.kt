@@ -27,7 +27,7 @@ open class ModelledGameObject3D(final override val id: ResourceKey, val debug: I
         val bones = model.rootBone?.getAllChildren() ?: listOf()
         uniforms.setMat4sUniform("boneTransforms"){ bones.map { it.getMeshTransform() }.toTypedArray() }
         if(debug and Model.DEBUG_MESH > 0){
-            uniforms.setVec3sUniform("boneColours"){ bones.map { bone -> Vec3((((bone.id + 4) % 6) > 2).i, (((bone.id + 2) % 6) > 2).i, (((bone.id) % 6) > 2).i) }.toTypedArray() }
+            uniforms.setVec3sUniform("boneColours"){ bones.map { bone -> Vec3((((bone.id + 4) % 6) > 2).i, (((bone.id + 2) % 6) > 2).i, (((bone.id) % 6) > 2).i) } }
         }
     }
 

@@ -28,17 +28,17 @@ class Transform2D(position: Vec2 = Vec2(), rotation: Float = 0f, scale: Vec2 = V
         recalculateModel()
     }
 
-    override fun translate(move: Vec2){
+    override infix fun translate(move: Vec2){
         position plusAssign move
         recalculateModel()
     }
 
-    override fun rotate(angle: Float){
+    override infix fun rotate(angle: Float){
         rotation += angle
         recalculateModel()
     }
 
-    override fun scale(mult: Vec2){
+    override infix fun scale(mult: Vec2){
         scale timesAssign mult
         recalculateModel()
     }

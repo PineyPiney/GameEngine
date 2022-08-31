@@ -80,34 +80,53 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
     private val list = BasicScrollList(Vec2(-1, 0.4), Vec2(0.6), 1f, 0.05f, arrayOf("Hello", "World"), window)
 
     val video = VideoPlayer(VideoLoader[ResourceKey("ghost"), gameEngine.resourcesLoader], Vec2(0.5, -0.15), Vec2(0.5, 0.3))
-    val bezier = BezierDisplay(Vec2(0.1), Vec2(0.9, 0.2), Vec2(0.4, 0.8), window)
+    val bezier = BezierDisplay(arrayOf(Vec2(0.1), Vec2(0.9, 0.2), Vec2(0.4, 0.8)), window)
 
     val f = Font.createFont(Font.TRUETYPE_FONT, gameEngine.resourcesLoader.getStream("textures/fonts/LightSlab.ttf"))
-    val v = f.createGlyphVector(FontRenderContext(null, true, true), "Have").outline
+    val v = f.createGlyphVector(FontRenderContext(null, true, true), "lol").outline
     val shape: Array<Shape>
+    val textShape: TextShape
 
     init {
         val iterator = v.getPathIterator(null)
+
         val floats = mutableListOf<List<Float>>()
         val shapes = mutableListOf<Shape>()
+
+        val bezierEnds = mutableListOf<Int>()
+        val textFloats = mutableListOf<Vec2>()
+
         while(!iterator.isDone){
-            val floatA = FloatArray(5)
+            val floatA = FloatArray(6)
             val type = iterator.currentSegment(floatA)
+            iterator.next()
+
             when(type){
                 PathIterator.SEG_CLOSE -> {
                     shapes.add(ArrayShape(floats.flatten().toFloatArray(), intArrayOf(2)))
+                    textFloats.addAll(floats.map { Vec2(it) })
                     floats.clear()
+                    continue
                 }
-                else -> {
+                PathIterator.SEG_QUADTO -> {
+                    bezierEnds.add(2)
+                    floats.addAll(listOf(listOf(floatA[0], -floatA[1]), listOf(floatA[2], -floatA[3])))
+                }
+                PathIterator.SEG_LINETO -> {
+                    bezierEnds.add(1)
+                    floats.add(listOf(floatA[0], -floatA[1]))
+                }
+                PathIterator.SEG_MOVETO -> {
+                    bezierEnds.add(0)
                     floats.add(listOf(floatA[0], -floatA[1]))
                 }
             }
 
-            iterator.next()
-//            GameEngine.logger.debug("Adding point ${Vec2(0, floatA)} with type $type")
+            GameEngine.logger.debug("Adding point ${Vec2(0, floatA)} with type $type")
         }
 
         shape = shapes.toTypedArray()
+        textShape = TextShape(textFloats.toTypedArray(), bezierEnds.apply { removeAt(0) }.toIntArray() + 4, window, Vec2(0.42f))
     }
 
     override fun init() {
@@ -118,6 +137,8 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
 //        video.init()
 //        video.play()
 //        video.video.loop = true
+
+        textShape.init()
 
         model1.setAnimation("Wipe Nose")
         model2.setAnimation("Magic Trick")
@@ -136,7 +157,7 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         add(textField)
         add(slider)
         add(list)
-        add(bezier)
+        //add(bezier)
     }
 
     private fun drawLetter(){
@@ -145,10 +166,11 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         shader.setMat4("model", I.scale(0.2f))
         shader.setVec3("colour", Vec3(1, 0, 1))
 
-        shape.forEach {
-            it.bind()
-            it.draw(GL11C.GL_LINE_LOOP)
-        }
+//        shape.forEach {
+//            it.bind()
+//            it.draw(GL11C.GL_LINE_LOOP)
+//        }
+        textShape.draw()
     }
 
     private fun drawScene(tickDelta: Double){
@@ -187,7 +209,7 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         slider.draw()
         list.draw()
         //video.draw()
-        bezier.draw()
+        //bezier.draw()
     }
 
     override fun render(window: Window, tickDelta: Double) {

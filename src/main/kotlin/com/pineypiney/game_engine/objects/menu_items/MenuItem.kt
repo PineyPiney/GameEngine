@@ -15,7 +15,7 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
     override val objects: MutableSet<ObjectCollection> = mutableSetOf()
 
     override val origin: Vec2 = Vec2()
-    override val size: Vec2 = Vec2()
+    override val size: Vec2 = Vec2(1)
 
     open val shape: Shape = menuShape
     override var shader: Shader = opaqueColourShader
@@ -31,6 +31,7 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
 
     override fun init() {
         uniforms = shader.compileUniforms()
+
     }
 
     override fun setUniforms(){
