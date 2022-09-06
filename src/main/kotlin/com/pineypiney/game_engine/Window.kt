@@ -21,7 +21,7 @@ import org.lwjgl.stb.STBImage
 import java.io.InputStream
 
 
-abstract class Window(title: String, width: Int, height: Int, vSync: Boolean, val version: Vec2i = Vec2i(4, 6)) {
+abstract class Window(title: String, width: Int, height: Int, vSync: Boolean, val version: Vec2i = Vec2i(4, 6), samples: Int = 1) {
 
     abstract val input: Inputs
 
@@ -80,13 +80,13 @@ abstract class Window(title: String, width: Int, height: Int, vSync: Boolean, va
         }
 
     init{
-        loadGL(title, width, height)
+        loadGL(title, width, height, samples)
         loadAL()
 
         GLFW.glfwSetWindowCloseCallback(windowHandle, ::close)
     }
 
-    fun loadGL(title: String, width: Int, height: Int){
+    fun loadGL(title: String, width: Int, height: Int, samples: Int){
         GLFWErrorCallback.createPrint(System.err).set()
 
         // Initialize GLFW. Most GLFW functions will not work before doing this.
@@ -102,6 +102,8 @@ abstract class Window(title: String, width: Int, height: Int, vSync: Boolean, va
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, version.y)
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, 1)
+
+        if(samples > 1) GLFW.glfwWindowHint(GLFW.GLFW_SAMPLES, samples)
 
         // Create the window
         windowHandle = GLFW.glfwCreateWindow(width, height, title, 0, 0)

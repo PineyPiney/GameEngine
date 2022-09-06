@@ -10,6 +10,5 @@ uniform vec4 colour;
 void main(){
     vec4 texture = texture(ourTexture, texCoords);
     if(texture.r + texture.g + texture.b < 0.05) discard;
-
-    FragColour = texture * colour;
+    else FragColour = texture * colour;
 }

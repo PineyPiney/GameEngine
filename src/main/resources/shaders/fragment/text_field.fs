@@ -6,17 +6,16 @@ in vec2 texCoords;
 uniform mat4 model;
 uniform sampler2D ourTexture;
 uniform vec3 colour;
+
+// The horizontal edges of the field
+// Ranges from 0 to Window#width
 uniform vec2 limits;
-// texture_section is the x value of the left of the TextQuad, and the width of the quad
-uniform vec2 texture_section;
 
 out vec4 FragColour;
 
 void main(){
 
-	float width = model[0][0];
-	float relTex = (texCoords.x - texture_section.x) / texture_section.y;
-	float x = model[3][0] + (relTex * width);
+	float x = gl_FragCoord.x;
 
 	if(x < limits[0] || x > limits[1]) discard;
 

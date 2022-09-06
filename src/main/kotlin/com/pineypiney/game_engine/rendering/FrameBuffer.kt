@@ -31,7 +31,7 @@ class FrameBuffer(var width: Int, var height: Int): Deleteable {
         glBindTexture(GL_TEXTURE_2D, TCB)
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
-        TextureLoader.loadIndividualSettings(TCB, filtering = GL_LINEAR)
+        TextureLoader.loadIndividualSettings(TCB)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TCB, 0)
 
 

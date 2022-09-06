@@ -2,43 +2,26 @@ package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.resources.text.BitMapFont
+import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
-import glm_.c
-import glm_.f
-import glm_.i
-import glm_.vec2.Vec2
-import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 
-abstract class SizedText(text: String, final override val fontSize: Int = 100, colour: Vec4 = Vec4(1, 1, 1, 1),
+abstract class SizedText(text: String, override val fontSize: Int = 100, colour: Vec4 = Vec4(1, 1, 1, 1),
                          maxWidth: Float = 2f, maxHeight: Float = 2f,
-                         override val separation: Float = 0.6f, font: BitMapFont = BitMapFont.defaultFont,
+                         override val separation: Float = 0.6f, font: Font = Font.defaultFont,
                          shader: Shader = font.shader):
     Text(text, colour, maxWidth, maxHeight, font, shader), SizedTextI {
 
-    final override var letterIndices: List<Int> = listOf()
-    override var letterPoints: List<Vec2i> = listOf()
-    override var letterSize: List<Vec2> = listOf()
     override var quads: Array<TextQuad> = arrayOf()
 
     override var lines = arrayOf<String>()
     override var lengths = floatArrayOf()
+    override var alignment: Int = ALIGN_LEFT
 
     override fun init() {
         super.init()
-        letterIndices = text.replace("\n", "").map{ it.i - 32 }
-        letterPoints = letterIndices.map { index ->
-            Vec2i((index%font.columns) * font.letterWidth, font.texture.height - ((index/font.columns) * font.letterHeight))
-        }
-        letterSize = letterIndices.map{ char ->
-            Vec2(getCharWidth((char + 32).c).f / font.texture.width, -font.letterSize.y)
-        }
-        quads = Array(letterIndices.size) { i ->
-            val texturePos = Vec2(letterPoints[i]) / font.texture.size
-            TextQuad(texturePos, texturePos + (letterSize[i]))
-        }
         updateLines()
+        quads = lines.mapIndexed { i, l -> font.getQuads(l, i).toList() }.flatten().toTypedArray()
     }
 
     abstract fun updateLines()
@@ -54,10 +37,10 @@ abstract class SizedText(text: String, final override val fontSize: Int = 100, c
             }
 
             val word = text.slice(lastBreak+1  ..  i)
-            val lineWidth = getPixelWidth(currentText + word.removeSuffix(" "))
 
-            val screenWidth = pixelToRelative(lineWidth)
-            if(screenWidth > maxWidth) {
+            val width = getWidth(currentText + word.removeSuffix(" "))
+
+            if(width > maxWidth) {
                 lines.add(currentText)
                 currentText = ""
             }
@@ -76,5 +59,19 @@ abstract class SizedText(text: String, final override val fontSize: Int = 100, c
         lines.add(currentText)
         lines.removeAll { it.replaceWhiteSpaces() == "" }
         return lines.toTypedArray()
+    }
+
+    fun getAlignment(line: String, totalWidth: Float): Float{
+        return when(alignment){
+            ALIGN_CENTER -> (totalWidth - getWidth(line.trim())) * 0.5f
+            ALIGN_RIGHT -> totalWidth - getWidth(line.trim())
+            else -> 0f
+        }
+    }
+
+    companion object{
+        const val ALIGN_CENTER = 0
+        const val ALIGN_LEFT = -1
+        const val ALIGN_RIGHT = 1
     }
 }

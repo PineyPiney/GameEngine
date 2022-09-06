@@ -2,26 +2,25 @@ package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.resources.text.BitMapFont
+import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.maths.I
-import glm_.f
-import glm_.glm
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
 open class StretchyStaticText(text: String, final override val window: Window, colour: Vec4 = Vec4(1, 1, 1, 1),
                               textMaxWidth: Float = 2f, textMaxHeight: Float = 2f,
-                              font: BitMapFont = BitMapFont.defaultFont,
+                              font: Font = Font.defaultFont,
                               shader: Shader = font.shader):
     StretchyText(text, colour, textMaxWidth, textMaxHeight, font, shader), StaticTextI {
 
     constructor(text: String, window: Window, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
-                font: BitMapFont = BitMapFont.defaultFont,
-                shader: Shader = BitMapFont.fontShader):
+                font: Font = Font.defaultFont,
+                shader: Shader = Font.fontShader):
             this(text, window, colour, bounds.x, bounds.y, font, shader)
 
     override var origin: Vec2 = Vec2()
+    override var size: Vec2 = getScreenSize()
 
     init {
         defaultCharHeight = textMaxHeight
@@ -34,34 +33,32 @@ open class StretchyStaticText(text: String, final override val window: Window, c
 
     final override fun setDefaults(height: Float){
         defaultCharHeight = height
-        defaultCharWidth = height * (font.letterWidth / pixelHeight) / window.aspectRatio
     }
 
-    override fun getScreenSize(): Vec2 = getScreenSize(text)
+    final override fun getScreenSize(): Vec2 = getScreenSize(text)
 
     override fun draw() {
 
         shader.use()
         shader.setUniforms(uniforms)
-        font.texture.bind()
-
-        // Add a bit of space at the beginning
-        var xOffset = font.characterSpacing.f
+        val lineModel = I.translate(origin.x, origin.y, 0f).scale(defaultCharHeight / window.aspectRatio, defaultCharHeight, 1f)
 
         for(i in text.indices){
 
-            setIndividualUniforms(shader, i)
+            val quad = quads[i]
+            setIndividualUniforms(shader, quad)
 
-            val charWidth = getCharWidth(text[i]).f
-            quads[i].bind()
+            quad.bind()
 
-            var model = glm.translate(I, Vec3(origin))
-            model = model.scale(Vec3(defaultCharWidth * (charWidth/font.letterWidth), defaultCharHeight, 1))
-            model = model.translate(Vec3(xOffset  / charWidth, 0, 0))
+            val model = lineModel.translate(Vec3(quad.offset, 0))
             shader.setMat4("model", model)
 
-            quads[i].draw()
-            xOffset += (charWidth + font.characterSpacing)
+            quad.draw()
+        }
+
+
+        if(underlineThickness > 0){
+            drawUnderline(lineModel.translate(Vec3(quads[0].offset, 0)).scale(getWidth(text) * window.aspectRatio / defaultCharHeight, underlineThickness, 0f).translate(0f, underlineOffset, 0f))
         }
     }
 

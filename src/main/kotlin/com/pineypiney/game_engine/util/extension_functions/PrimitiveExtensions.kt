@@ -168,6 +168,22 @@ fun absMinOf(a: Float, vararg other: Float): Float{
 /**
  * Replace all whitespaces with [replace]
  */
-fun String.replaceWhiteSpaces(replace: String = ""): String{
+fun CharSequence.replaceWhiteSpaces(replace: String = ""): String{
     return replace(Regex("\\s+"), replace)
+}
+
+fun CharSequence.sumOf(selector: (Char) -> Float): Float{
+    var sum = 0f
+    for(char in this){
+        sum += selector(char)
+    }
+    return sum
+}
+
+fun <E> CharSequence.reduce(initial: E, operation: (acc: E, it: Char) -> E): E{
+    var accumulator = initial
+    for(char in this) {
+        accumulator = operation(accumulator, char)
+    }
+    return accumulator
 }

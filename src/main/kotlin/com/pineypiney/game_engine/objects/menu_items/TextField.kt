@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.text.BitMapFont
+import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
@@ -20,7 +20,7 @@ import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.abs
 
-open class TextField(final override var origin: Vec2, final override val size: Vec2, window: Window, textOffset: Float = -0.9f, textSize: Int = 2): StaticInteractableMenuItem() {
+open class TextField(final override var origin: Vec2, final override val size: Vec2, window: Window, textOffset: Float = 0f, textSize: Int = 100): StaticInteractableMenuItem() {
 
     open var allowed = all.map { it.c }
 
@@ -31,7 +31,7 @@ open class TextField(final override var origin: Vec2, final override val size: V
             textBox.text = text
         }
 
-    var textBox = TextFieldText(text, window, size.y * 100 * textSize, Vec2(origin.x, origin.x + size.x))
+    var textBox = TextFieldText(text, window, size.y * textSize, Vec2(origin.x, origin.x + size.x))
 
     var caret: Int = 0
         set(value) {
@@ -200,21 +200,14 @@ open class TextField(final override var origin: Vec2, final override val size: V
     class TextFieldText(text: String, window: Window, fontSize: Number, private var limits: Vec2,
                         bounds: Vec2 = Vec2(Float.MAX_VALUE),
                         colour: Vec4 = Vec4(1, 1, 1, 1),
-                        font: BitMapFont = BitMapFont.defaultFont,
+                        font: Font = Font.defaultFont,
                         shader: Shader = fieldShader):
         SizedStaticText(text, window, fontSize.i, colour, bounds.x, bounds.y, 1f, font, shader) {
 
         override fun setUniforms() {
             super.setUniforms()
-            uniforms.setVec2Uniform("limits"){ limits }
-        }
-
-        override fun setIndividualUniforms(shader: Shader, index: Int) {
-            super.setIndividualUniforms(shader, index)
-            val q = getQuad(index) ?: return
-            val left = q.topLeft.x
-            // This Vec2 contains the left of the texture and the width
-            shader.setVec2("texture_section", Vec2(left, q.bottomRight.x - left))
+            // Limit is in 0 to Window#width space so must be transformed
+            uniforms.setVec2Uniform("limits"){ (limits + Vec2(1)) * (window.width / 2f) }
         }
     }
 

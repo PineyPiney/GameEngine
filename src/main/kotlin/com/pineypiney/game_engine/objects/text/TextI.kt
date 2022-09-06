@@ -4,10 +4,8 @@ import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.Shaded
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.resources.text.BitMapFont
+import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.delete
-import glm_.vec2.Vec2
-import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 
 interface TextI: Initialisable, Shaded {
@@ -17,41 +15,18 @@ interface TextI: Initialisable, Shaded {
     val maxWidth: Float
     val maxHeight: Float
 
-    val font: BitMapFont
-
-    val letterIndices: List<Int>
-    val letterPoints: List<Vec2i>
-    val letterSize: List<Vec2>
-    val quads: Array<TextQuad>
+    val font: Font
+    var italic: Float
+    var underlineThickness: Float
+    var underlineOffset: Float
 
     var defaultCharHeight: Float
-    var defaultCharWidth: Float
+    val quads: Array<TextQuad>
 
     fun setDefaults(height: Float)
+    fun getWidth(text: String): Float
 
-    fun pixelToRelative(pixel: Int): Float
-
-    fun getCharWidth(char: Char): Int = font.getCharWidth(char)
-    fun getCharHeight(char: Char): Vec2i = font.getCharHeight(char)
-
-    /**
-     * Add the widths of all letters together in terms of pixels,
-     * leaving space in between each letter according to the font
-     *
-     * @param text The text to find the width of
-     * @return The width in pixels
-     */
-    fun getPixelWidth(text: String): Int = font.getPixelWidth(text)
-
-    fun getQuad(i: Int): TextQuad?{
-        return quads.getOrNull(i)
-    }
-
-    fun setUniversalUniforms(shader: Shader){
-        shader.setVec4("colour", colour)
-    }
-
-    fun setIndividualUniforms(shader: Shader, index: Int){}
+    fun setIndividualUniforms(shader: Shader, quad: TextQuad){}
 
     override fun delete(){
         quads.toSet().delete()

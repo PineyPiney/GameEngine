@@ -1,23 +1,90 @@
 package com.pineypiney.game_engine.resources.text
 
+import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
-import glm_.vec2.Vec2i
+import com.pineypiney.game_engine.resources.textures.Texture
+import glm_.c
+import glm_.f
+import glm_.vec2.Vec2
+import java.awt.Shape
+import java.awt.font.FontRenderContext
 import java.awt.Font as JavaFont
 
-class TrueTypeFont(val font: JavaFont): Font() {
+class TrueTypeFont(val font: JavaFont, val textures: Map<Char, Texture>, val ctx: FontRenderContext = FontRenderContext(null, true, true), override val shader: Shader = fontShader): Font() {
 
-    override val shader: Shader
-        get() = TODO("Not yet implemented")
+    val res = 200
+    val missing = textures[127.c] ?: Texture.broke
 
-    override fun getCharWidth(char: Char): Int {
-        TODO("Not yet implemented")
+    // This is the width of a space character
+    val space = calcSpace()
+
+    override fun getCharWidth(char: Char): Float {
+        val outline = getOutline(char)
+        return outline.bounds2D.width.f
     }
 
-    override fun getCharHeight(char: Char): Vec2i {
-        TODO("Not yet implemented")
+    override fun getCharHeight(char: Char): Vec2 {
+        val bounds = getOutline(char).bounds2D
+        return Vec2(bounds.y, bounds.y + bounds.height)
     }
 
-    override fun getPixelWidth(text: String): Int {
-        TODO("Not yet implemented")
+    override fun getWidth(text: String): Float {
+        var width = getOutline(text).bounds2D.width.f
+        var i = text.lastIndex
+        while(i >= 0 && text[i] == ' '){
+            i--
+            width += space
+        }
+        return width
+    }
+
+    override fun getHeight(text: String): Float {
+        val bounds = getOutline(text).bounds2D
+        return bounds.height.f
+    }
+
+    override fun getQuads(text: String, line: Int): Array<TextQuad> {
+        val list = mutableListOf<TextQuad>()
+        val glyph = font.createGlyphVector(ctx, text)
+        for(i in text.indices){
+            val shape = glyph.getGlyphOutline(i)
+            list.add(createQuad(text[i], shape, line))
+        }
+
+        return list.toTypedArray()
+    }
+
+    fun getOutline(string: String): Shape{
+        return font.createGlyphVector(ctx, string).outline
+    }
+
+    fun getOutline(char: Char) = getOutline(char.toString())
+
+    fun createQuad(char: Char, shape: Shape, line: Int): TextQuad{
+        return TextQuad(createVertices(shape), getTexture(char), Vec2(shape.bounds2D.x, -(line + shape.bounds2D.y + shape.bounds2D.height)))
+    }
+
+    fun createVertices(shape: Shape): FloatArray{
+        val width = shape.bounds2D.width.f
+        val height = shape.bounds2D.height.f
+        return floatArrayOf(
+            // Positions    Texture
+            0.0f, 0.0f, 0f, 0f,
+            0.0f, height, 0f, 1f,
+            width, height, 1f, 1f,
+            width, 0.0f, 1f, 0f
+        )
+    }
+
+    fun getTexture(char: Char): Texture{
+        return textures[char] ?: missing
+    }
+
+    fun calcSpace(): Float{
+        val glyph = font.createGlyphVector(ctx, "! !")
+        val shapeA = glyph.getGlyphOutline(2)
+        val shapeB = glyph.getGlyphOutline(0)
+        val space = shapeA.bounds2D.x - shapeB.bounds2D.run { x + width }
+        return space.f
     }
 }

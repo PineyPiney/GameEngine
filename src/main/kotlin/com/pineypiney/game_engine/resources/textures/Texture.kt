@@ -8,10 +8,11 @@ import glm_.vec2.Vec2i
 import kool.Buffer
 import kool.ByteBuffer
 import kool.lim
-import org.lwjgl.opengl.GL13.*
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL33C.*
 import java.nio.ByteBuffer
 
-class Texture(val fileName: String, val texturePointer: Int) : Resource() {
+class Texture(val fileName: String, val texturePointer: Int, val target: Int = GL_TEXTURE_2D) : Resource() {
 
     val width: Int get() = parameter(GL_TEXTURE_WIDTH)
     val height: Int get() = parameter(GL_TEXTURE_HEIGHT)
@@ -24,7 +25,8 @@ class Texture(val fileName: String, val texturePointer: Int) : Resource() {
 
     fun bind(){
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, texturePointer)
+        glBindTexture(target, texturePointer)
+        GL11.GL_TEXTURE_2D
     }
 
     fun unbind(){
@@ -37,20 +39,25 @@ class Texture(val fileName: String, val texturePointer: Int) : Resource() {
             GameEngine.logger.warn("Buffer is not the right size to set texture data")
         }
         val buf = Buffer(data.lim){ data.get(it) }
-        glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, format, GL_UNSIGNED_BYTE, buf)
+        glTexSubImage2D(target, 0, x, y, width, height, format, GL_UNSIGNED_BYTE, buf)
     }
 
     fun getData(): ByteBuffer{
 
         bind()
         val buffer = ByteBuffer(width * height * numChannels)
-        glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, buffer)
+        glGetTexImage(target, 0, format, GL_UNSIGNED_BYTE, buffer)
         return buffer
+    }
+
+    fun setSamples(samples: Int, fixedSample: Boolean = true){
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texturePointer)
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, fixedSample)
     }
 
     fun parameter(param: Int): Int{
         bind()
-        return glGetTexLevelParameteri(GL_TEXTURE_2D, 0, param)
+        return glGetTexLevelParameteri(target, 0, param)
     }
 
     override fun delete() {

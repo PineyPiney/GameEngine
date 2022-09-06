@@ -7,6 +7,7 @@ interface SizedTextI: TextI {
 
     val lines: Array<String>
     val lengths: FloatArray
+    var alignment: Int
 
     fun generateLines(): Array<String>
 }

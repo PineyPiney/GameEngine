@@ -6,6 +6,8 @@ import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.util.directory
 import org.lwjgl.opengl.GL11C.glClearColor
+import org.lwjgl.opengl.GL11C.glEnable
+import org.lwjgl.opengl.GL13C.GL_MULTISAMPLE
 
 fun main() {
 
@@ -20,13 +22,14 @@ fun main() {
 
         init {
             // Create all the fonts
-            FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", resourcesLoader, 128, 256, 8)
+            FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", resourcesLoader, 128, 256, 0.0625f)
 
-            FontLoader.INSTANCE.loadFontFromTTF("LightSlab.ttf", resourcesLoader)
+            FontLoader.INSTANCE.loadFontFromTTF("LightSlab.ttf", resourcesLoader, res = 800)
         }
 
         override fun init() {
             super.init()
+            glEnable(GL_MULTISAMPLE)
             glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
         }
 

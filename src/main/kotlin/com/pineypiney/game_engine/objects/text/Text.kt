@@ -4,13 +4,13 @@ import com.pineypiney.game_engine.objects.Visual
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
-import com.pineypiney.game_engine.resources.text.BitMapFont
+import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec4.Vec4
 
 abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
                     override val maxWidth: Float = 2f, override val maxHeight: Float = 2f,
-                    override val font: BitMapFont = BitMapFont.defaultFont,
+                    override val font: Font = Font.defaultFont,
                     shader: Shader = font.shader): TextI, Visual {
 
     override var text: String = text
@@ -34,7 +34,9 @@ abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
             setUniforms()
         }
 
-    final override var defaultCharWidth: Float = 0f
+    override var italic: Float = 0f
+    override var underlineThickness: Float = 0f
+    override var underlineOffset: Float = -2f
     final override var defaultCharHeight: Float = 0f
 
     override fun init() {
@@ -43,11 +45,7 @@ abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
 
     override fun setUniforms() {
         uniforms.setVec4Uniform("colour"){ colour }
-    }
-
-    final override fun getPixelWidth(text: String): Int{
-        // Starting at 2 accounts for the margin at the beginning of the text
-        return font.characterSpacing + text.sumOf { getCharWidth(it) + font.characterSpacing }
+        uniforms.setFloatUniform("italic"){ italic }
     }
 
     override fun toString(): String {
@@ -55,6 +53,6 @@ abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
     }
 
     companion object{
-        val gameTextShader = ShaderLoader.getShader(ResourceKey("vertex/2D"), ResourceKey("fragment/text"))
+        val gameTextShader = ShaderLoader.getShader(ResourceKey("vertex/text"), ResourceKey("fragment/text"))
     }
 }

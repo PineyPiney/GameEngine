@@ -5,6 +5,134 @@ import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.util.Copyable
 
 /**
+ * Returns an array of Booleans containing the result of [init] performed on all the elements of this collection.
+ *
+ * @param init the function to be performed on each element in this collection
+ *
+ * @return An BooleanArray with all the results of [init]
+ */
+fun <E> Collection<E>.toBooleanArray(init: (E) -> Boolean): BooleanArray{
+    val res = BooleanArray(size)
+    var index = 0
+    for(i in this){
+        res[index++] = init(i)
+    }
+    return res
+}
+
+/**
+ * Returns an array of Bytes containing the result of [init] performed on all the elements of this collection.
+ *
+ * @param init the function to be performed on each element in this collection
+ *
+ * @return An ByteArray with all the results of [init]
+ */
+fun <E> Collection<E>.toByteArray(init: (E) -> Byte): ByteArray{
+    val res = ByteArray(size)
+    var index = 0
+    for(i in this){
+        res[index++] = init(i)
+    }
+    return res
+}
+
+/**
+ * Returns an array of Chars containing the result of [init] performed on all the elements of this collection.
+ *
+ * @param init the function to be performed on each element in this collection
+ *
+ * @return An CharArray with all the results of [init]
+ */
+fun <E> Collection<E>.toCharArray(init: (E) -> Char): CharArray{
+    val res = CharArray(size)
+    var index = 0
+    for(i in this){
+        res[index++] = init(i)
+    }
+    return res
+}
+
+/**
+ * Returns an array of Doubles containing the result of [init] performed on all the elements of this collection.
+ *
+ * @param init the function to be performed on each element in this collection
+ *
+ * @return An DoubleArray with all the results of [init]
+ */
+fun <E> Collection<E>.toDoubleArray(init: (E) -> Double): DoubleArray{
+    val res = DoubleArray(size)
+    var index = 0
+    for(i in this){
+        res[index++] = init(i)
+    }
+    return res
+}
+
+/**
+ * Returns an array of Floats containing the result of [init] performed on all the elements of this collection.
+ *
+ * @param init the function to be performed on each element in this collection
+ *
+ * @return An FloatArray with all the results of [init]
+ */
+fun <E> Collection<E>.toFloatArray(init: (E) -> Float): FloatArray{
+    val res = FloatArray(size)
+    var index = 0
+    for(i in this){
+        res[index++] = init(i)
+    }
+    return res
+}
+
+/**
+ * Returns an array of Ints containing the result of [init] performed on all the elements of this collection.
+ *
+ * @param init the function to be performed on each element in this collection
+ *
+ * @return An IntArray with all the results of [init]
+ */
+fun <E> Collection<E>.toIntArray(init: (E) -> Int): IntArray{
+    val res = IntArray(size)
+    var index = 0
+    for(i in this){
+        res[index++] = init(i)
+    }
+    return res
+}
+
+/**
+ * Returns an array of Longs containing the result of [init] performed on all the elements of this collection.
+ *
+ * @param init the function to be performed on each element in this collection
+ *
+ * @return An LongArray with all the results of [init]
+ */
+fun <E> Collection<E>.toLongArray(init: (E) -> Long): LongArray{
+    val res = LongArray(size)
+    var index = 0
+    for(i in this){
+        res[index++] = init(i)
+    }
+    return res
+}
+
+/**
+ * Returns an array of Shorts containing the result of [init] performed on all the elements of this collection.
+ *
+ * @param init the function to be performed on each element in this collection
+ *
+ * @return An ShortArray with all the results of [init]
+ */
+fun <E> Collection<E>.toShortArray(init: (E) -> Short): ShortArray{
+    val res = ShortArray(size)
+    var index = 0
+    for(i in this){
+        res[index++] = init(i)
+    }
+    return res
+}
+
+/**
  * Initialise all items in an array of initialisable objects
  */
 fun <E: Initialisable> Array<E>.init(){

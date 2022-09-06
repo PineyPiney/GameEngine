@@ -35,5 +35,6 @@ abstract class RenderedGameObject2D(shader: Shader): GameObject2D(), Renderable,
 
     companion object{
         val defaultShader = ShaderLoader.getShader(ResourceKey("vertex\\2D"), ResourceKey("fragment\\texture"))
+        val colourShader = ShaderLoader[ResourceKey("vertex\\2D"), ResourceKey("fragment\\colour")]
     }
 }

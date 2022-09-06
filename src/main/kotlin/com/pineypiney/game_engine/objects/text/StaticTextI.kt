@@ -2,23 +2,31 @@ package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.objects.MovableDrawable
-import glm_.f
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
+import com.pineypiney.game_engine.objects.util.shapes.Shape
+import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 
 interface StaticTextI: TextI, MovableDrawable {
 
     val window: Window
 
+    override fun getWidth(text: String): Float {
+        val size = font.getSize(text)
+        return size.x * defaultCharHeight / window.aspectRatio
+    }
+
     fun getScreenSize(): Vec2
+    fun getScreenSize(text: String): Vec2 = Vec2(getWidth(text), defaultCharHeight)
 
-    fun getScreenSize(text: String): Vec2 {
-        return Vec2(defaultCharWidth * (getPixelWidth(text).f/ font.letterWidth), defaultCharHeight)
+    fun drawUnderline(model: Mat4){
+        val shader = MenuItem.translucentColourShader
+        shader.use()
+        shader.setMat4("model", model)
+        shader.setVec4("colour", colour)
+        Shape.cornerSquareShape2D.bind()
+        Shape.cornerSquareShape2D.draw()
     }
-
-    override fun pixelToRelative(pixel: Int): Float {
-        return pixel * (defaultCharHeight / font.letterHeight) / window.aspectRatio
-    }
-
 
     override fun drawCentered(p: Vec2){
         val size = getScreenSize()
