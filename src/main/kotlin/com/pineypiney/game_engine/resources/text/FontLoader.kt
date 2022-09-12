@@ -24,7 +24,18 @@ import java.awt.Font as JavaFont
 class FontLoader private constructor() {
 
     private val fonts = mutableMapOf<ResourceKey, Font>()
-
+    /**
+     * Load and save a BitMap font from an image file
+     *
+     * @param fontName The location of the font from the fontLocation defined in [resourcesLoader]
+     * @param resourcesLoader The ResourcesLoader containing the InputStream for the font file
+     * @param letterWidth The width reserved for each character in the texture, in pixels
+     * @param letterHeight The height reserved for each character in the texture, in pixels
+     * @param charSpacing The space to be left between each character,
+     * where 1 is the maximum width of a character according to [letterWidth]
+     * @param shader The default shader used to render the text,
+     * this can be changed for individual uses and is just the default
+     */
     fun loadFontWithTexture(fontName: String, resourcesLoader: ResourcesLoader, letterWidth: Int, letterHeight: Int, charSpacing: Float, shader: Shader = Font.fontShader){
 
         val stream: InputStream = resourcesLoader.getStream("${resourcesLoader.fontLocation}$fontName") ?: return
@@ -86,6 +97,17 @@ class FontLoader private constructor() {
         fonts[key] = BitMapFont(texture, charMap.toMap(), letterWidth, letterHeight, charSpacing, rows, columns, shader)
     }
 
+    /**
+     * Load and save a TrueType font from a .ttf file
+     *
+     * @param fontName The location of the font from the fontLocation defined in [resourcesLoader]
+     * @param resourcesLoader The ResourcesLoader containing the InputStream for the font file
+     * @param chars The chars to generate textures for
+     * @param ctx The FontRenderContext for generating the character textures
+     * @param res The resolution of the texture for each character, in pixels per unit in the ttf file
+     * @param shader The default shader used to render the text,
+     * this can be changed for individual uses and is just the default
+     */
     fun loadFontFromTTF(fontName: String, resourcesLoader: ResourcesLoader, chars: CharArray = ('!'..127.c).distinct().toCharArray(), ctx: FontRenderContext = FontRenderContext(null, true, true), res: Int = 200, shader: Shader = Font.fontShader){
         val stream: InputStream = resourcesLoader.getStream("${resourcesLoader.fontLocation}$fontName") ?: return
         val font = JavaFont.createFont(JavaFont.TRUETYPE_FONT, stream)

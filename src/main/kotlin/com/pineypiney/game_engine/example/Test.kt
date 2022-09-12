@@ -21,10 +21,12 @@ fun main() {
         override val TARGET_UPS: Int = 20
 
         init {
+            defaultFont = "Large Font"
+
             // Create all the fonts
             FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", resourcesLoader, 128, 256, 0.0625f)
 
-            FontLoader.INSTANCE.loadFontFromTTF("LightSlab.ttf", resourcesLoader, res = 800)
+            FontLoader.INSTANCE.loadFontFromTTF("LightSlab.ttf", resourcesLoader, res = 200)
         }
 
         override fun init() {

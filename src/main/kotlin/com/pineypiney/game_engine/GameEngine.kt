@@ -133,5 +133,6 @@ abstract class GameEngine<E: IGameLogic>(val resourcesLoader: ResourcesLoader) :
 
     companion object {
         val logger = KotlinLogging.logger("Game Engine")
+        var defaultFont = ""
     }
 }

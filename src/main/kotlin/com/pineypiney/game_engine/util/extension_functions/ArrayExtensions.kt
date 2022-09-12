@@ -133,6 +133,21 @@ fun <E> Collection<E>.toShortArray(init: (E) -> Short): ShortArray{
 }
 
 /**
+ * Returns the sum of all values produced by [selector] function applied to each element in the array.
+ *
+ * @param selector The operator by which to get a float value from each element
+ *
+ * @return The sum of the values of [selector] performed on each element
+ */
+fun <T> Array<T>.sumOf(selector: (T) -> Float): Float{
+    var sum = 0f
+    for (element in this) {
+        sum += selector(element)
+    }
+    return sum
+}
+
+/**
  * Initialise all items in an array of initialisable objects
  */
 fun <E: Initialisable> Array<E>.init(){

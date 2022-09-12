@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.text
 
+import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -21,6 +22,6 @@ abstract class Font {
 
     companion object{
         val fontShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/text"))
-        val defaultFont: Font; get() = FontLoader[(ResourceKey("LightSlab"))]
+        val defaultFont: Font; get() = FontLoader[ResourceKey(GameEngine.defaultFont)]
     }
 }
