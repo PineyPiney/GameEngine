@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 
 
 plugins {
@@ -15,15 +16,16 @@ version = "1.0-SNAPSHOT"
 val lwjglVersion = "3.3.1"
 // Use https://www.lwjgl.org/customize to set natives
 val lwjglNatives = Pair(
-        System.getProperty("os.name")!!,
-        System.getProperty("os.arch")!!
+        System.getProperty("os.name")!!.toLowerCaseAsciiOnly(),
+        System.getProperty("os.arch")!!.toLowerCaseAsciiOnly()
 ).let { (name, arch) ->
+    println("Running GameEngine on OS $name arch $arch")
     when {
-        arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) } -> {
+        arrayOf("mac os x", "darwin").any { name.startsWith(it) } -> {
             "natives-macos${if (arch.startsWith("aarch64")) "-arm64" else ""}"
         }
 
-        arrayOf("Windows").any { name.startsWith(it) } -> {
+        arrayOf("windows", "linux").any { name.startsWith(it) } -> {
             "natives-windows"
         }
 
