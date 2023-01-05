@@ -1,5 +1,5 @@
 // FRAGMENT SHADER INFORMATION
-#version 460 core
+#version 400 core
 
 const float WIDTH = 0.02;
 

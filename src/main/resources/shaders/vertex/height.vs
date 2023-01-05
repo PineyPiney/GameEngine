@@ -1,5 +1,5 @@
 // VERTEX SHADER INFORMATION
-#version 460 core
+#version 400 core
 layout (location = 0) in vec3 aPos;
 layout (location = 2) in vec2 aTexCoord;
 

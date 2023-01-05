@@ -8,6 +8,7 @@ import glm_.f
 import glm_.vec2.Vec2
 import java.awt.Shape
 import java.awt.font.FontRenderContext
+import kotlin.math.max
 import java.awt.Font as JavaFont
 
 class TrueTypeFont(val font: JavaFont, val textures: Map<Char, Texture>, val ctx: FontRenderContext = FontRenderContext(null, true, true), override val shader: Shader = fontShader): Font() {
@@ -65,8 +66,8 @@ class TrueTypeFont(val font: JavaFont, val textures: Map<Char, Texture>, val ctx
     }
 
     fun createVertices(shape: Shape): FloatArray{
-        val width = shape.bounds2D.width.f
-        val height = shape.bounds2D.height.f
+        val width = max(shape.bounds2D.width.f, 0.25f)
+        val height = max(shape.bounds2D.height.f, 0.25f)
         return floatArrayOf(
             // Positions    Texture
             0.0f, 0.0f, 0f, 0f,

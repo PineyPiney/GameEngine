@@ -1,5 +1,5 @@
 // VERTEX SHADER INFORMATION
-#version 460 core
+#version 400 core
 layout (location = 0) in vec2 aPos;
 
 uniform mat4 model;

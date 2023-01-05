@@ -1,11 +1,10 @@
 // FRAGMENT SHADER INFORMATION
-#version 460 core
+#version 400 core
 
 in vec2 texCoords;
 in vec4 boneTint;
 
 uniform sampler2D ourTexture;
-uniform float alpha;
 
 out vec4 FragColour;
 
@@ -15,8 +14,9 @@ void main(){
 	if(texture.a == 0) discard;
 
 	// Make the image black and white
-	float b = sqrt(texture.r + texture.g + texture.b) / sqrt(3);
-	vec4 colour = vec4(b, b, b, alpha);
+	vec4 colour;
+	if(texture.r + texture.g + texture.b > 2) colour = vec4(1.0);
+	else colour = vec4(0.0, 0.0, 0.0, 1.0);
 
 	// Tint the black and white image
 	FragColour = colour * boneTint;

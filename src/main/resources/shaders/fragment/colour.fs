@@ -1,5 +1,5 @@
 // FRAGMENT SHADER INFORMATION
-#version 460 core
+#version 400 core
 
 uniform vec4 colour;
 

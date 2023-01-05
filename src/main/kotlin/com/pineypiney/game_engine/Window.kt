@@ -217,7 +217,9 @@ abstract class Window(title: String, width: Int, height: Int, vSync: Boolean, va
      * @param icon The pixel data for the new icon
      */
     fun setIcon(icon: GLFWImage.Buffer){
-        GLFW.glfwSetWindowIcon(windowHandle, icon)
+        if(System.getProperty("os.name").contains("Windows")){
+            GLFW.glfwSetWindowIcon(windowHandle, icon)
+        }
     }
 
     /**

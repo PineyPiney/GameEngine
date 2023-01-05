@@ -13,7 +13,23 @@ group = "com.pineypiney.game_engine"
 version = "1.0-SNAPSHOT"
 
 val lwjglVersion = "3.3.1"
-val lwjglNatives = "natives-windows"
+// Use https://www.lwjgl.org/customize to set natives
+val lwjglNatives = Pair(
+        System.getProperty("os.name")!!,
+        System.getProperty("os.arch")!!
+).let { (name, arch) ->
+    when {
+        arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) } -> {
+            "natives-macos${if (arch.startsWith("aarch64")) "-arm64" else ""}"
+        }
+
+        arrayOf("Windows").any { name.startsWith(it) } -> {
+            "natives-windows"
+        }
+
+        else -> throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
+    }
+}
 
 val javacv = "1.5.7"
 

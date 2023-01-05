@@ -1,5 +1,5 @@
 // FRAGMENT SHADER INFORMATION
-#version 460 core
+#version 400 core
 
 const float offset = 1.0 / 300.0;
 const vec2 offsets[25] = vec2[](

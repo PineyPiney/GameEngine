@@ -1,5 +1,5 @@
 // FRAGMENT SHADER INFORMATION
-#version 130 core
+#version 400 core
 
 uniform vec2 points[3];
 
@@ -60,7 +60,7 @@ void main(){
 }
 
 bool drawPoints(){
-	vec2[] points = { p0, p1, p2 };
+	vec2[] points = vec2[](p0, p1, p2);
 	for(uint i = 0u; i < 3u; i++){
 		if(length2(pos - points[i]) < (width * 0.6)){
 			FragColour = vec4(0, 1, 0, 1);

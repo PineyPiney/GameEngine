@@ -1,5 +1,5 @@
 // VERTEX SHADER INFORMATION
-#version 460 core
+#version 400 core
 
 const int MAX_BONES = 25;
 const int MAX_WEIGHTS = 4;
