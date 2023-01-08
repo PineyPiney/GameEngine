@@ -14,7 +14,7 @@ open class FileResourcesLoader(val file: File) : ResourcesLoader(){
 
     fun createStreamList(): Set<String>{
         return if(!file.isDirectory) setOf(file.canonicalPath)
-        else file.walk().filter { !it.isDirectory }.map { it.canonicalPath.removePrefix(file.canonicalPath + s).replace(s, '/') }.toSet()
+        else file.walk().filter { !it.isDirectory }.map { it.canonicalPath.removePrefix(file.canonicalPath + s).replace(s, '/').lowercase() }.toSet()
     }
 
     override fun getStream(name: String): InputStream? {

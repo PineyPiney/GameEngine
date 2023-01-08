@@ -4,6 +4,26 @@ import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.objects.Initialisable
 
 /**
+ * Reduce function that passes initial accumulator value
+ *
+ * @param acc Initial value for accumulator
+ * @param operation Operatiom to be applied to each element
+ * in the Iterable with the accumulator,
+ * and should return the new accumulator value
+ *
+ * @returns The final value of the accumulator
+ */
+inline fun <S, T> Iterable<T>.reduceA(acc: S, operation: (acc: S, T) -> S): S{
+    val iterator = this.iterator()
+    if (!iterator.hasNext()) throw UnsupportedOperationException("Empty collection can't be reduced.")
+    var accumulator: S = acc
+    while (iterator.hasNext()) {
+        accumulator = operation(accumulator, iterator.next())
+    }
+    return accumulator
+}
+
+/**
  * Initialise all items in a collection of initialisable objects
  */
 fun <E: Initialisable> Iterable<E?>?.init(){

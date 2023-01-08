@@ -6,7 +6,7 @@ import glm_.vec3.Vec3
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Rect(origin: Vec3, val side1: Vec3, val side2: Vec3): Plane(origin, (side1 cross side2).normalizeAssign()) {
+class Rect3D(origin: Vec3, val side1: Vec3, val side2: Vec3): Plane(origin, (side1 cross side2).normalizeAssign()) {
 
     constructor(origin: Vec2, size: Vec2): this(Vec3(origin, 0), Vec3(size.x, 0, 0), Vec3(0, size.y, 0))
     constructor(origin: Vec2, size: Vec2, angle: Float): this(Vec3(origin, 0), Vec3(size.x * cos(angle), size.y * sin(angle), 0), Vec3(size.x * sin(angle), size.y * cos(angle), 0))

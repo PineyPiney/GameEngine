@@ -170,7 +170,7 @@ abstract class Window(title: String, width: Int, height: Int, vSync: Boolean, va
      * @param cursor The handle for the new cursor
      */
     fun setCursor(cursor: Long){
-        GLFW.glfwSetCursor(windowHandle, cursor)
+        if(System.getProperty("os.name").contains("Windows")) GLFW.glfwSetCursor(windowHandle, cursor)
     }
 
     /**

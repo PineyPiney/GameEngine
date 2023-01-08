@@ -132,6 +132,28 @@ fun <E> Collection<E>.toShortArray(init: (E) -> Short): ShortArray{
     return res
 }
 
+
+/**
+ * Reduce function that passes initial accumulator value
+ *
+ * @param acc Initial value for accumulator
+ * @param operation Operatiom to be applied to each element
+ * in the Iterable with the accumulator,
+ * and should return the new accumulator value
+ *
+ * @returns The final value of the accumulator
+ */
+inline fun <S, T> Array<T>.reduceA(acc: S, operation: (acc: S, T) -> S): S{
+    val iterator = this.iterator()
+    if (!iterator.hasNext()) throw UnsupportedOperationException("Empty collection can't be reduced.")
+    var accumulator: S = acc
+    while (iterator.hasNext()) {
+        accumulator = operation(accumulator, iterator.next())
+    }
+    return accumulator
+}
+
+
 /**
  * Returns the sum of all values produced by [selector] function applied to each element in the array.
  *

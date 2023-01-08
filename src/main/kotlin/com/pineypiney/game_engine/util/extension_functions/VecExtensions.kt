@@ -21,6 +21,13 @@ fun Vec2.angle(): Float {
 }
 
 /**
+ * Function to return the normal of the Vector
+ */
+fun Vec2.normal(): Vec2 {
+    return Vec2(y, -x)
+}
+
+/**
  * Coerce the x and y values of [this] between the x and y values of [low] and [high]
  *
  * @param low The minimum x and y values
@@ -69,8 +76,12 @@ fun Vec2.round(round: Float): Vec2 {
     return this
 }
 
+infix fun Vec2.projectOn(other: Vec2): Vec2{
+    return other * (this dot other) / (other dot other)
+}
+
 infix fun Vec3.projectOn(other: Vec3): Vec3{
-    return other * ((this dot other) / (other dot other))
+    return other * (this dot other) / (other dot other)
 }
 
 fun Vec2.lerp(next: Vec2, delta: Float) = Vec2(this.x.lerp(next.x, delta), this.y.lerp(next.y, delta))

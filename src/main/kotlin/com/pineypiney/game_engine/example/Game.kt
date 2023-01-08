@@ -32,7 +32,7 @@ import com.pineypiney.game_engine.util.extension_functions.roundedString
 import com.pineypiney.game_engine.util.extension_functions.wrap
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
-import com.pineypiney.game_engine.util.maths.shapes.Rect
+import com.pineypiney.game_engine.util.maths.shapes.Rect3D
 import glm_.f
 import glm_.s
 import glm_.vec2.Vec2
@@ -119,7 +119,7 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         val ray = camera.getRay()
         val up = Vec3(Vec2.fromAngle(model1.rotation, model1.model.collisionBox.size.y))
         val right = Vec3((Vec2.fromAngle(model1.rotation + PI.f / 2, model1.model.collisionBox.size.x)))
-        val model1Rect = Rect(Vec3(model1.model.collisionBox.originWithParent(model1)), up, right)
+        val model1Rect = Rect3D(Vec3(model1.model.collisionBox.originWithParent(model1)), up, right)
         val point = ray intersects model1Rect
 
         if(point != null){
