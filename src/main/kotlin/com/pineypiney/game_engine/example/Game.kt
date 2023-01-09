@@ -6,10 +6,12 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.audio.AudioSource
 import com.pineypiney.game_engine.objects.Interactable
+import com.pineypiney.game_engine.objects.game_objects.objects_2D.ColourSquare
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.ModelledGameObject2D
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.SimpleTexturedGameObject2D
 import com.pineypiney.game_engine.objects.game_objects.objects_3D.SimpleTexturedGameObject3D
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.objects.menu_items.VideoPlayer
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
@@ -18,6 +20,7 @@ import com.pineypiney.game_engine.objects.text.SizedGameText
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.SizedText
 import com.pineypiney.game_engine.objects.text.StretchyGameText
+import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
@@ -32,8 +35,11 @@ import com.pineypiney.game_engine.util.extension_functions.roundedString
 import com.pineypiney.game_engine.util.extension_functions.wrap
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
+import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Rect3D
 import glm_.f
+import glm_.pow
 import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -41,8 +47,7 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11C
-import kotlin.math.PI
-import kotlin.math.sign
+import kotlin.math.*
 
 class Game(override val gameEngine: GameEngine<*>): GameLogic() {
 
@@ -51,6 +56,10 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
 
     private val pressedKeys = mutableSetOf<Short>()
     private val audio = AudioLoader[(ResourceKey("clair_de_lune"))]
+
+    private val b = TextButton("Button", Vec2(-0.3, 0.6), Vec2(0.6, 0.2), window){}
+    private val bc = Rect2D(b.origin, 0.6f, 0.2f)
+    private val cursorSquare = ColourSquare(size = Vec2(0.1f, 0.1f * window.aspectRatio))
 
     private val button = TextButton("button", Vec2(0.6, 0.8), Vec2(0.4, 0.2), window){
         println("Pressed!")
@@ -93,7 +102,7 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         model1.setAnimation("Wipe Nose")
         model2.setAnimation("Magic Trick")
         model1.translate(Vec2(2, -3))
-        model2.translate(Vec2(5, -3))
+        model2.translate(Vec2(3, -4))
     }
 
     override fun addObjects() {
@@ -107,6 +116,9 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         add(textField)
         add(slider)
         add(list)
+
+        add(b)
+        add(cursorSquare)
     }
 
     private fun drawScene(tickDelta: Double){
@@ -144,6 +156,12 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         slider.draw()
         list.draw()
 
+        b.draw()
+        cursorSquare.draw()
+
+        MenuItem.opaqueColourShader.setMat4("model", I.translate(Vec3(cursorSquare.origin - (Vec2(0.05f).rotate(-cursorSquare.rotation) * Vec2(1, window.aspectRatio)))).scale(Vec3(0.02f, 0.02f*window.aspectRatio, 0)))
+        Shape.centerSquareShape2D.draw()
+
         //video.draw()
         //bezier.draw()
     }
@@ -164,6 +182,19 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         super.onCursorMove(cursorPos, cursorDelta)
         val wp = camera.screenToWorld(cursorPos)
         text.text = wp.roundedString(2).let { "X Part: ${it[0]}\nY Part: ${it[1]}" }
+
+        cursorSquare.origin = cursorPos
+
+        val r = window.aspectRatio
+        val l1 = 0.1f * r / sqrt((r * cos(cursorSquare.rotation)).pow(2) + sin(cursorSquare.rotation).pow(2))
+        val l2 = 0.1f * r / sqrt((r * sin(cursorSquare.rotation)).pow(2) + cos(cursorSquare.rotation).pow(2))
+        val cursorRect = Rect2D(cursorSquare.origin - (Vec2(0.05f).rotate(-cursorSquare.rotation) * Vec2(1, window.aspectRatio)), l1, l2, cursorSquare.rotation)
+        cursorSquare.colour = if(cursorRect intersects bc) Vec4(0, 1, 0, 0.5) else Vec4(0, 0, 1, 0.5)
+
+//        val cursorRect = Rect2D(camera.screenToWorld(cursorSquare.origin), 0.5f, 0.5f, cursorSquare.rotation)
+//        val otherRect = Rect2D(model1.model.collisionBox.originWithParent(model1), model1.model.collisionBox.worldScale, model1.rotation)
+//        cursorSquare.colour = if(cursorRect intersects otherRect) Vec4(0, 1, 0, 0.5) else Vec4(0, 0, 1, 0.5)
+
     }
 
     override fun onInput(state: InputState, action: Int): Int {
@@ -182,6 +213,11 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         if(action == 0) pressedKeys.remove(state.key)
         else pressedKeys.add(state.key)
         return action
+    }
+
+    override fun onSecondary(window: Window, action: Int, mods: Byte) {
+        super.onSecondary(window, action, mods)
+        if(action == 1) cursorSquare.rotation += PI.f / 16
     }
 
     override fun update(interval: Float, input: Inputs) {

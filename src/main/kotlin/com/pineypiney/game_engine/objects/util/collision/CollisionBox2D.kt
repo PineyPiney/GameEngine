@@ -16,7 +16,7 @@ abstract class CollisionBox2D(var parent: GameObject2D?, val origin: Vec2, val s
 
     val relModel = I.translate(Vec3(origin)).scale(Vec3(size))
     val worldOrigin: Vec2; get() = parent?.let { originWithParent(it) } ?: this.origin
-    val worldScale: Vec2; get() = ((parent?.scale ?: Vec2()) * this.size)
+    val worldScale: Vec2; get() = ((parent?.scale ?: Vec2(1)) * this.size)
 
     val left; get() = if(worldScale.x > 0) this.worldOrigin.x else this.worldOrigin.x + this.worldScale.x
     val right; get() = left + abs(this.worldScale.x)

@@ -7,7 +7,7 @@ open class ZipResourcesLoader(val zipFile: ZipFile): ResourcesLoader(){
 
     constructor(location: String) : this(ZipFile(location))
 
-    override val streamList: Set<String> = zipFile.entries().toList().map { it.name.lowercase() }.toSet()
+    override val streamList: Set<String> = zipFile.entries().toList().map { lowercaseExtension(it.name) }.toSet()
 
     override fun getStream(name: String): InputStream = zipFile.getInputStream(zipFile.getEntry(name))
 }

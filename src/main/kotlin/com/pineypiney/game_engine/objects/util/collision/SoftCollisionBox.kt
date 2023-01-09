@@ -6,7 +6,7 @@ import glm_.vec2.Vec2
 
 class SoftCollisionBox(parent: GameObject2D?, origin: Vec2, size: Vec2): CollisionBox2D(parent, origin, size) {
 
-    override fun copy(): CollisionBox2D {
+    override fun copy(): SoftCollisionBox {
         val new = SoftCollisionBox(parent, origin.copy(), size.copy())
         new.active = this.active
         return new

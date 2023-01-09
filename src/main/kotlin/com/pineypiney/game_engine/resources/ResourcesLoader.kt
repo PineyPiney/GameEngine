@@ -51,6 +51,8 @@ abstract class ResourcesLoader {
 
     companion object{
 
+        fun lowercaseExtension(file: String): String = file.split('.').run { this[0] + '.' + this[1].lowercase() }
+
         fun timeAction(action: () -> Unit): Long{
             val start = System.nanoTime()
             action()

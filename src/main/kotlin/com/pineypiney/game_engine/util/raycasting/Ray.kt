@@ -16,4 +16,8 @@ class Ray(val rayOrigin: Vec3, val direction: Vec3) {
         val p = intersects(rect) ?: return false
         return rect containsPoint p
     }
+
+    override fun toString(): String {
+        return "Ray[$rayOrigin, $direction]"
+    }
 }
