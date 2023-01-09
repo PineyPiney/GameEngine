@@ -20,7 +20,7 @@ abstract class CollisionBox2D(var parent: GameObject2D?, val origin: Vec2, val s
     val relModel = I.translate(Vec3(origin)).scale(Vec3(size)).rotate(rotation, normal)
     val worldScale: Vec2; get() = ((parent?.scale ?: Vec2(1)) * size)
 
-    val box: Rect2D get() = (parent?.transform ?: Transform2D.origin).let { Rect2D(Vec2.fromMat4Translation(it.model * relModel), it.scale * size, it.rotation * rotation) }
+    val box: Rect2D get() = (parent?.transform ?: Transform2D.origin).let { Rect2D(Vec2.fromMat4Translation(it.model * relModel), it.scale * size, it.rotation + rotation) }
 
     val width; get() = worldScale.x
     val height; get() = worldScale.y
