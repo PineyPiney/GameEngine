@@ -31,7 +31,7 @@ class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle
 
     infix fun overlapVector(other: Rect2D): Vec2{
         val lengths = normals(other).associateWith { overlap1D(it, other) }
-        return lengths.minBy { it.key.length() }.run { key * value }
+        return lengths.minBy { it.value }.run { key * value }
     }
 
     // https://gamedev.stackexchange.com/questions/25397/obb-vs-obb-collision-detection
