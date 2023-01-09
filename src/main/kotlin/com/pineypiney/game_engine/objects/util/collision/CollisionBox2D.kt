@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.util.collision
 
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.GameObject2D
+import com.pineypiney.game_engine.objects.game_objects.transforms.Transform2D
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.extension_functions.fromMat4Translation
@@ -10,16 +11,16 @@ import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-abstract class CollisionBox2D(var parent: GameObject2D?, val box: Rect2D): Copyable<CollisionBox2D> {
+abstract class CollisionBox2D(var parent: GameObject2D?, val origin: Vec2, val size: Vec2, val rotation: Float = 0f): Copyable<CollisionBox2D> {
 
-    constructor(parent: GameObject2D?, origin: Vec2, size: Vec2): this(parent, Rect2D(origin, size))
+//    constructor(parent: GameObject2D?, origin: Vec2, size: Vec2): this(parent, Rect2D(origin, size))
 
     var active: Boolean = true
 
-    val origin: Vec2 get() = box.origin
-    val size: Vec2 get() = box.size
-    val relModel = I.translate(Vec3(origin)).scale(Vec3(size)).rotate(box.angle, normal)
+    val relModel = I.translate(Vec3(origin)).scale(Vec3(size)).rotate(rotation, normal)
     val worldScale: Vec2; get() = ((parent?.scale ?: Vec2(1)) * size)
+
+    val box: Rect2D get() = (parent?.transform ?: Transform2D.origin).let { Rect2D(Vec2.fromMat4Translation(it.model * relModel), it.scale * size, it.rotation * rotation) }
 
     val width; get() = worldScale.x
     val height; get() = worldScale.y
