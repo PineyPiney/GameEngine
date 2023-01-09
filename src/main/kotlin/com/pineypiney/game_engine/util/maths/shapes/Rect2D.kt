@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.util.extension_functions.angle
 import com.pineypiney.game_engine.util.extension_functions.normal
 import com.pineypiney.game_engine.util.extension_functions.projectOn
 import com.pineypiney.game_engine.util.extension_functions.reduceA
+import glm_.f
 import glm_.func.common.abs
 import glm_.vec2.Vec2
 import kotlin.math.*
@@ -26,7 +27,7 @@ class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle
         val range2 = other projectTo normal
 
         return if (range1.x > range2.y || range2.x > range1.y) 0f
-                else floatArrayOf(range2.y - range1.x, range1.y - range2.x).minBy { it.abs }
+                else floatArrayOf(range2.y - range1.x, range1.y - range2.x).minBy { it.abs } * normal.x.sign
     }
 
     infix fun overlapVector(other: Rect2D): Vec2{
@@ -47,7 +48,9 @@ class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle
         }
     }
 
-    infix fun normals(other: Rect2D) = arrayOf(normal1, normal2, other.normal1, other.normal2)
+    infix fun normals(other: Rect2D) =
+            if(angle.mod(PI.f / 2) == other.angle.mod(PI.f / 2)) arrayOf(normal1, normal2)
+            else arrayOf(normal1, normal2, other.normal1, other.normal2)
 
     override fun toString(): String {
         return "Rect2D[$origin]"
