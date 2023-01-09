@@ -11,7 +11,7 @@ import kotlin.math.*
 class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle: Float = 0f){
 
     constructor(origin: Vec2, size: Vec2, angle: Float = 0f): this(origin, size.x, size.y, angle)
-
+    val size: Vec2 get() = Vec2(length1, length2)
     val side1: Vec2 get() = Vec2(length1 * cos(angle), length1 * -sin(angle))
     val side2: Vec2 get() = Vec2(length2 * sin(angle), length2 * cos(angle))
 
