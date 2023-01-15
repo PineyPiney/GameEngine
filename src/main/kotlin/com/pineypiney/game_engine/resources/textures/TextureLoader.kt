@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.AbstractResourceLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import glm_.vec3.Vec3i
 import kool.toBuffer
 import org.lwjgl.opengl.GL32C.*
 import org.lwjgl.stb.STBImage
@@ -92,6 +93,21 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
 
         private fun loadImageFromFile(buffer: ByteBuffer, flip: Boolean = true): Boolean {
 
+            val (data, vec) = loadImageFromMemory(buffer, flip)
+            if (data != null) {
+
+                val format = channelsToFormat(vec.z)
+                loadImageFromData(data, vec.x, vec.y, format, format, GL_UNSIGNED_BYTE)
+
+                STBImage.stbi_image_free(data)
+                return true
+            }
+
+            buffer.clear()
+            return false
+        }
+
+        fun loadImageFromMemory(buffer: ByteBuffer, flip: Boolean = true): Pair<ByteBuffer?, Vec3i>{
             // Arrays are Java equivalent for pointers
             val widthA = IntArray(1)
             val heightA = IntArray(1)
@@ -101,21 +117,7 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
             STBImage.stbi_set_flip_vertically_on_load(flip)
             // Load texture data from file
             val data: ByteBuffer? = STBImage.stbi_load_from_memory(buffer, widthA, heightA, numChannelsA, 0)
-            if (data != null) {
-
-                val width = widthA[0]
-                val height = heightA[0]
-
-                val format = channelsToFormat(numChannelsA[0])
-
-                loadImageFromData(data, width, height, format, format, GL_UNSIGNED_BYTE)
-
-                STBImage.stbi_image_free(data)
-                return true
-            }
-
-            buffer.clear()
-            return false
+            return data to Vec3i(widthA[0], heightA[0], numChannelsA[0])
         }
 
         fun loadImageFromData(data: ByteBuffer?, width: Int, height: Int, format: Int, internalFormat: Int, type: Int){

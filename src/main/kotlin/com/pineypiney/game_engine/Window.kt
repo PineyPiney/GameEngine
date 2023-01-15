@@ -3,6 +3,7 @@ package com.pineypiney.game_engine
 import com.pineypiney.game_engine.audio.AudioDevice
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.input.Inputs
 import glm_.f
 import glm_.i
@@ -228,19 +229,16 @@ abstract class Window(title: String, width: Int, height: Int, vSync: Boolean, va
      * @param icon The input stream for the data for the new icon
      */
     fun setIcon(icon: InputStream){
-        var iconByteBuffer = ResourcesLoader.ioResourceToByteBuffer(icon, 1024)
-        val width = IntArray(1)
-        val height = IntArray(1)
-        val channel = IntArray(1)
-        STBImage.stbi_set_flip_vertically_on_load(false)
-        iconByteBuffer = STBImage.stbi_load_from_memory(iconByteBuffer, width, height, channel, 0) ?: return
+        val iconByteBuffer = ResourcesLoader.ioResourceToByteBuffer(icon, 1024)
+        val (loadedBuffer, v) = TextureLoader.loadImageFromMemory(iconByteBuffer, false)
+        if(loadedBuffer == null) return
 
         val iconBuffer = GLFWImage.create(1)
-        val iconImage = GLFWImage.create().set(width[0], height[0], iconByteBuffer)
+        val iconImage = GLFWImage.create().set(v.x, v.y, loadedBuffer)
         iconBuffer.put(0, iconImage)
         setIcon(iconBuffer)
 
-        STBImage.stbi_image_free(iconByteBuffer)
+        STBImage.stbi_image_free(loadedBuffer)
     }
 
     fun setResizeCallback(callback: (Window) -> Unit){

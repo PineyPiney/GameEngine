@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.textures
 import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.util.extension_functions.repeat
+import glm_.L
 import glm_.f
 import glm_.vec2.Vec2i
 import kool.Buffer
@@ -18,6 +19,7 @@ class Texture(val fileName: String, val texturePointer: Int, val target: Int = G
     val height: Int get() = parameter(GL_TEXTURE_HEIGHT)
     val format: Int get() = parameter(GL_TEXTURE_INTERNAL_FORMAT)
     val numChannels: Int get() = TextureLoader.formatToChannels(format)
+    val bytes: Int get() = width * height * numChannels
 
     val size get() = Vec2i(width, height)
     val aspectRatio get() = width.f/height
@@ -45,7 +47,7 @@ class Texture(val fileName: String, val texturePointer: Int, val target: Int = G
     fun getData(): ByteBuffer{
 
         bind()
-        val buffer = ByteBuffer(width * height * numChannels)
+        val buffer = ByteBuffer(bytes)
         glGetTexImage(target, 0, format, GL_UNSIGNED_BYTE, buffer)
         return buffer
     }

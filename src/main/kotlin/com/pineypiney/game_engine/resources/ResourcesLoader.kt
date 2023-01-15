@@ -63,9 +63,7 @@ abstract class ResourcesLoader {
             return timeAction(action) / 1e6
         }
 
-        fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int) = ioResourceToByteBuffer(stream, bufferSize, true)
-
-        fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int, resize: Boolean = true): ByteBuffer {
+        fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int = 1024, resize: Boolean = true): ByteBuffer {
 
             val rbc: ReadableByteChannel = Channels.newChannel(stream)
             var buffer: ByteBuffer = BufferUtils.createByteBuffer(bufferSize)
