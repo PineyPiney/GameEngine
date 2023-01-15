@@ -146,7 +146,6 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
                 gameEngine.resourcesLoader.getStream("textures/cursor.png")?.let {
                     window.setCursor(it, Vec2i(34, 10))
                 }
-
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.util.extension_functions
 
+import com.pineypiney.game_engine.util.maths.normal
 import glm_.f
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -18,6 +19,10 @@ fun Vec2.dist(other: Vec2): Float = (this - other).length()
 fun Vec2.angle(): Float {
     return if (y == 0f) (if (x > 0) PI / 2 else PI * 3 / 2).f
             else (atan(x / y) + (if (y < 0) PI.f else 0f)).wrap(0f, PI.f * 2)
+}
+
+fun Vec2.angleBetween(other: Vec2): Float{
+    return (angle() - other.angle()).wrap(-PI.f, PI.f)
 }
 
 /**
@@ -111,3 +116,10 @@ fun Vec3.Companion.fromMat4Translation(matrix: Mat4): Vec3{
     return Vec3(matrix[3, 0], matrix[3, 1], matrix[3, 2])
 }
 
+fun Vec3.Companion.fromHex(num: Int): Vec3{
+    return Vec3((num shr 16) and 255, (num shr 8) and 255, num and 255) / 255
+}
+
+fun Mat4.translate(vec2: Vec2) = translate(Vec3(vec2, 0))
+fun Mat4.rotate(angle: Float) = rotate(angle, normal)
+fun Mat4.scale(vec2: Vec2) = scale(Vec3(vec2, 1))

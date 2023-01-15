@@ -49,8 +49,8 @@ class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle
         }
     }
 
-    infix fun normals(other: Rect2D) =
-            if(angle.mod(PI.f / 2) == other.angle.mod(PI.f / 2)) arrayOf(normal1, normal2)
+    fun normals(other: Rect2D? = null) =
+            if(other == null || angle.mod(PI.f / 2) == other.angle.mod(PI.f / 2)) arrayOf(normal1, normal2)
             else arrayOf(normal1, normal2, other.normal1, other.normal2)
 
     override fun toString(): String {
