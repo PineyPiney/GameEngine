@@ -26,7 +26,6 @@ import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.video.VideoLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.angle
@@ -144,7 +143,10 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
                 val a = (model1.rotation - pA).wrap(-PI.f, PI.f)
                 model1.rotate(a.sign * 0.05f)
 
-                window.setCursor(TextureLoader[ResourceKey("cursor")], Vec2i(34, 10))
+                gameEngine.resourcesLoader.getStream("textures/cursor.png")?.let {
+                    window.setCursor(it, Vec2i(34, 10))
+                }
+
             }
         }
     }

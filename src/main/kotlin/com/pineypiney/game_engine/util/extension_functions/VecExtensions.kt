@@ -16,7 +16,7 @@ fun Vec2.dist(other: Vec2): Float = (this - other).length()
  * Angle of Vec2, in radians, going clockwise starting at (0, 1)
  */
 fun Vec2.angle(): Float {
-    return  if (y == 0f) (if (x > 0) PI / 2 else PI * 3 / 2).f
+    return if (y == 0f) (if (x > 0) PI / 2 else PI * 3 / 2).f
             else (atan(x / y) + (if (y < 0) PI.f else 0f)).wrap(0f, PI.f * 2)
 }
 

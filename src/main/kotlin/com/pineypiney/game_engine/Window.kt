@@ -2,15 +2,13 @@ package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.audio.AudioDevice
 import com.pineypiney.game_engine.resources.ResourcesLoader
-import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.input.Inputs
 import glm_.f
 import glm_.i
-import glm_.vec2.Vec2
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
-import kool.lib.toByteArray
+import kool.lib.toList
 import kool.toBuffer
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -188,26 +186,17 @@ abstract class Window(title: String, width: Int, height: Int, vSync: Boolean, va
      * Set the cursor to a custom cursor
      *
      * @param texture The new texture for the cursor
-     * @param point The relative offset of the texture, where (0, 0) is the top left and (1, 1) is the bottom right
-     */
-    fun setCursor(texture: Texture, point: Vec2){
-        setCursor(texture, Vec2i(point * texture.size))
-    }
-
-    /**
-     * Set the cursor to a custom cursor
-     *
-     * @param texture The new texture for the cursor
      * @param point The pixel offset of the texture, where (0, 0) is the top left
      */
-    fun setCursor(texture: Texture, point: Vec2i){
+    fun setCursor(texture: InputStream, point: Vec2i){
         // The data must be in RGBA 32-bit format
-        val data = texture.getData().toByteArray().toList()
-        val pixels = data.chunked(texture.numChannels)
-        val flipped = pixels.chunked(texture.width).reversed().flatten()
+        val bytes = ResourcesLoader.ioResourceToByteBuffer(texture, 2048)
+        val (data, info) = TextureLoader.loadImageFromMemory(bytes)
+        val pixels = data?.toList()?.chunked(info.z) ?: return
+        val flipped = pixels.chunked(info.x).reversed().flatten()
         val rgba = flipped.flatMap { p -> List(4){ p.getOrElse(it){-1} } }
 
-        val image = GLFWImage.create().set(texture.width, texture.height, rgba.toByteArray().toBuffer())
+        val image = GLFWImage.create().set(info.x, info.y, rgba.toByteArray().toBuffer())
         val handle = GLFW.glfwCreateCursor(image, point.x, point.y)
         setCursor(handle)
     }
