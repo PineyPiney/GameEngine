@@ -14,5 +14,10 @@ abstract class StretchyText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
     // dimensions is Vec4(0, min y, pixel width, max y). min y and max y are used so that all letters are lined up vertically
     private var dimensions = Vec4()
 
-    override val quads: Array<TextQuad> = font.getQuads(text, 0)
+    override var quads: Array<TextQuad> = arrayOf()
+
+    override fun init() {
+        super.init()
+        quads = font.getQuads(text, 0)
+    }
 }

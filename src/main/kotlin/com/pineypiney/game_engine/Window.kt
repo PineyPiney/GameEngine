@@ -62,10 +62,17 @@ abstract class Window(title: String, width: Int, height: Int, vSync: Boolean, va
         get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_DECORATED) == 0
         set(value) {
 
-            if(value) GLFW.glfwMaximizeWindow(windowHandle)
-            else GLFW.glfwRestoreWindow(windowHandle)
-
-            GLFW.glfwSetWindowAttrib(windowHandle, GLFW.GLFW_DECORATED, if(value) 0  else 1)
+            if(value) {
+                // Must be done in this order so that it fills the whole screen
+                // and does not leave a bar at the top where the decoration was
+                GLFW.glfwSetWindowAttrib(windowHandle, GLFW.GLFW_DECORATED, 0)
+                GLFW.glfwMaximizeWindow(windowHandle)
+            }
+            else {
+                // Must be done in reverse order so that the window does not shrink
+                GLFW.glfwRestoreWindow(windowHandle)
+                GLFW.glfwSetWindowAttrib(windowHandle, GLFW.GLFW_DECORATED, 1)
+            }
         }
 
     var shouldClose: Boolean
