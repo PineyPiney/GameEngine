@@ -27,8 +27,7 @@ class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle
         val range2 = other projectTo normal
 
         return if (range1.x > range2.y || range2.x > range1.y) 0f
-                else floatArrayOf(range2.y - range1.x, range1.y - range2.x).minBy { it.abs } *
-                if(normal.x.abs > 0) normal.x.sign else normal.y.sign
+                else floatArrayOf(range2.x - range1.y, range2.y - range1.x).minBy { it.abs }
     }
 
     infix fun overlapVector(other: Rect2D): Vec2{
