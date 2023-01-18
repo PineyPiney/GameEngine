@@ -169,6 +169,8 @@ fun Int.wrap(min: Int, max: Int): Int{
     return min + rem
 }
 
+infix fun Int.getRGBAValue(shift: Int) = ((this shr (shift * 8)) and 255).f / 255f
+
 /**
  * Return the value with the smallest absolute value
  */

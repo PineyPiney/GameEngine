@@ -117,7 +117,15 @@ fun Vec3.Companion.fromMat4Translation(matrix: Mat4): Vec3{
 }
 
 fun Vec3.Companion.fromHex(num: Int): Vec3{
-    return Vec3((num shr 16) and 255, (num shr 8) and 255, num and 255) / 255
+    return Vec3(num getRGBAValue 2, num getRGBAValue 1, num getRGBAValue 0)
+}
+
+fun Vec4.Companion.fromHex(num: Int, alpha: Float = 1f): Vec4{
+    return Vec4(num getRGBAValue 2, num getRGBAValue 1, num getRGBAValue 0, alpha)
+}
+
+fun Vec4.Companion.fromHex(num: Int, alpha: Int): Vec4{
+    return Vec4(num getRGBAValue 2, num getRGBAValue 1, num getRGBAValue 0, alpha.f / 255)
 }
 
 fun Mat4.translate(vec2: Vec2) = translate(Vec3(vec2, 0))

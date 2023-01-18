@@ -23,7 +23,6 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
 
     override val transform: Transform2D = Transform2D()
 
-
     init {
         setDefaults(fontSize.f / 100)
     }

@@ -26,13 +26,12 @@ open class SizedStaticText(text: String, final override val window: Window, font
                 shader: Shader = Font.fontShader):
             this(text, window, 100, colour, bounds.x, bounds.y, separation, font, shader)
 
-    override var origin: Vec2 = Vec2()
-    final override var size: Vec2 = getScreenSize()
-
     init{
-        setDefaults(fontSize.f / 100)
         updateAspectRatio(window)
     }
+
+    override var origin: Vec2 = Vec2()
+    final override var size: Vec2 = getScreenSize()
 
     final override fun setDefaults(height: Float){
         defaultCharHeight = height
