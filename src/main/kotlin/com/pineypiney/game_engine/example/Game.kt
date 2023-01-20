@@ -72,11 +72,11 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
     }
     private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
 
-    private val texture = SimpleTexturedGameObject2D(ResourceKey("texture"), Texture.broke)
+    private val texture = SimpleTexturedGameObject2D(Texture.broke)
     private val model1 = ModelledGameObject2D(ModelLoader.getModel(ResourceKey("goblin")), Model.DEBUG_COLLIDER)
     private val model2 = ModelledGameObject2D(ModelLoader.getModel(ResourceKey("goblin")), Model.DEBUG_COLLIDER)
 
-    private val object3D = SimpleTexturedGameObject3D(ResourceKey("3d"), ResourceKey("broke"))
+    private val object3D = SimpleTexturedGameObject3D(ResourceKey("broke"))
 
     private val text = SizedStaticText("X Part: 0.00 \nY Part: 0.00", window, 16, Vec2(0.5, 0.2))
     private val gameText = StretchyGameText("This is some Stretchy Game Text", Vec2(8.88, 10), Vec4(0.0, 1.0, 1.0, 1.0))
@@ -223,6 +223,11 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
 
     override fun update(interval: Float, input: Inputs) {
         super.update(interval, input)
+
+        text.run {
+            underlineThickness = 0.1f
+            underlineAmount = (underlineAmount + Timer.delta.f).mod(1f)
+        }
 
         object3D.rotate(Vec3(0.5, 1, 1.5) * interval)
     }

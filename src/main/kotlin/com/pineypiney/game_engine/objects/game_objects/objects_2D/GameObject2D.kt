@@ -64,6 +64,4 @@ abstract class GameObject2D : GameObject() {
 
         return vec.isWithin(Vec2(-(0.5f * scale.x), 0), scale)
     }
-
-    abstract override fun copy(): GameObject2D
 }

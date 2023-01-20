@@ -4,12 +4,8 @@ import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.game_objects.transforms.Transform
-import com.pineypiney.game_engine.util.Copyable
-import com.pineypiney.game_engine.util.ResourceKey
 
-abstract class GameObject : Initialisable, Storable, Copyable<GameObject> {
-
-    abstract val id: ResourceKey
+abstract class GameObject : Initialisable, Storable {
 
     override val objects: MutableSet<ObjectCollection> = mutableSetOf()
 

@@ -61,6 +61,14 @@ abstract class SizedText(text: String, override val fontSize: Int = 100, colour:
         return lines.toTypedArray()
     }
 
+    fun getUnderlineOf(line: Int): Float{
+        val underlineStart = lengths.copyOf(line).sum() / lengths.sum()
+        val underlineEnd = underlineStart + (lengths[line] / lengths.sum())
+        if(underlineAmount <= underlineStart) return 0f
+        if(underlineAmount >= underlineEnd) return 1f
+        return (underlineAmount - underlineStart) / (underlineEnd - underlineStart)
+    }
+
     fun getAlignment(line: String, totalWidth: Float): Float{
         return when(alignment){
             ALIGN_CENTER -> (totalWidth - getWidth(line.trim())) * 0.5f

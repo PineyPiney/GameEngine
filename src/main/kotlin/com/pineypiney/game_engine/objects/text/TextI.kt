@@ -19,6 +19,7 @@ interface TextI: Initialisable, Shaded {
     var italic: Float
     var underlineThickness: Float
     var underlineOffset: Float
+    var underlineAmount: Float
 
     var defaultCharHeight: Float
     val quads: Array<TextQuad>

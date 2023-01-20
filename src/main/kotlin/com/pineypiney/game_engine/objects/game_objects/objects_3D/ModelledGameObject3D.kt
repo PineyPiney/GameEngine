@@ -10,9 +10,9 @@ import glm_.i
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
-open class ModelledGameObject3D(final override val id: ResourceKey, val debug: Int = 0): RenderedGameObject3D(if(debug and Model.DEBUG_MESH > 0) debugShader else defaultShader) {
+open class ModelledGameObject3D(val model: Model, val debug: Int = 0): RenderedGameObject3D(if(debug and Model.DEBUG_MESH > 0) debugShader else defaultShader) {
 
-    val model: Model = ModelLoader.getModel(id)
+    constructor(id: ResourceKey, debug: Int = 0): this(ModelLoader.getModel(id), debug)
 
     protected var animation: Animation? = null
     private var animationStartTime: Double = 0.0
@@ -82,10 +82,6 @@ open class ModelledGameObject3D(final override val id: ResourceKey, val debug: I
             initAnimation(newAnimation, loop)
             this.animation != null
         }
-    }
-
-    override fun copy(): ModelledGameObject3D {
-        return ModelledGameObject3D(id, debug)
     }
 
     companion object{

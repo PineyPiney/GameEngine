@@ -2,10 +2,9 @@ package com.pineypiney.game_engine.objects.game_objects.objects_3D
 
 import com.pineypiney.game_engine.objects.Animatable
 import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.util.ResourceKey
 import glm_.mat4x4.Mat4
 
-abstract class AnimatedObject3D(id: ResourceKey): SimpleTexturedGameObject3D(id, Texture.broke), Animatable {
+abstract class AnimatedObject3D(): SimpleTexturedGameObject3D(Texture.broke), Animatable {
 
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
 

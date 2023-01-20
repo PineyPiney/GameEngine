@@ -47,6 +47,4 @@ abstract class GameObject3D : GameObject() {
     fun scale(mult: Vec3){
         transform.scale(mult)
     }
-
-    abstract override fun copy(): GameObject3D
 }

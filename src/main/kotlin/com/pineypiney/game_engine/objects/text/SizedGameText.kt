@@ -60,8 +60,17 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
                 quad.draw()
             }
 
-            if(underlineThickness > 0){
-                renderUnderline(lineModel.translate(Vec3(quads[firstIndex].offset, 0)).scale(getWidth(displayLine) / defaultCharHeight, underlineThickness, 0f).translate(0f, underlineOffset, 0f), view, projection)
+            if(underlineThickness > 0 && underlineAmount > 0){
+                val length = if(underlineAmount == 1f) 1f
+                else getUnderlineOf(lines.indexOf(line))
+
+                if(length > 0) {
+                    renderUnderline(
+                        lineModel.translate(Vec3(quads[firstIndex].offset, 0))
+                            .scale(getWidth(displayLine) * length / defaultCharHeight, underlineThickness, 0f)
+                            .translate(0f, underlineOffset, 0f), view, projection
+                    )
+                }
             }
 
             i += line.length

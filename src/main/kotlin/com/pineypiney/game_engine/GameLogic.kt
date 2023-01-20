@@ -18,9 +18,6 @@ abstract class GameLogic : IGameLogic {
 
     override val input get() = gameEngine.window.input
 
-    override val window: Window
-        get() = super.window
-
     override fun init() {
         camera.init()
         renderer.init()

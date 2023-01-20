@@ -58,7 +58,7 @@ open class StretchyStaticText(text: String, final override val window: Window, c
 
 
         if(underlineThickness > 0){
-            drawUnderline(lineModel.translate(Vec3(quads[0].offset, 0)).scale(getWidth(text) * window.aspectRatio / defaultCharHeight, underlineThickness, 0f).translate(0f, underlineOffset, 0f))
+            drawUnderline(lineModel.translate(Vec3(quads[0].offset, 0)).scale(getWidth(text) * underlineAmount * window.aspectRatio / defaultCharHeight, underlineThickness, 0f).translate(0f, underlineOffset, 0f))
         }
     }
 

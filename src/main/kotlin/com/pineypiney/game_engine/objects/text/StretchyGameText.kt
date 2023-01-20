@@ -57,7 +57,7 @@ open class StretchyGameText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
         }
 
         if(underlineThickness > 0){
-            renderUnderline(lineModel.translate(Vec3(quads[0].offset, 0)).scale(getWidth(text) / defaultCharHeight, underlineThickness, 0f).translate(0f, underlineOffset, 0f), view, projection)
+            renderUnderline(lineModel.translate(Vec3(quads[0].offset, 0)).scale(getWidth(text) * underlineAmount / defaultCharHeight, underlineThickness, 0f).translate(0f, underlineOffset, 0f), view, projection)
         }
     }
 }

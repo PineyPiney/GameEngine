@@ -73,8 +73,13 @@ open class SizedStaticText(text: String, final override val window: Window, font
                 quad.draw()
             }
 
-            if(underlineThickness > 0){
-                drawUnderline(lineModel.translate(Vec3(quads[firstIndex].offset, 0)).scale(getWidth(displayLine) * window.aspectRatio / defaultCharHeight, underlineThickness, 0f).translate(0f, underlineOffset, 0f))
+            if(underlineThickness > 0 && underlineAmount > 0){
+                val length = if(underlineAmount == 1f) 1f
+                else getUnderlineOf(lines.indexOf(line))
+
+                if(length > 0){
+                    drawUnderline(lineModel.translate(Vec3(quads[firstIndex].offset, 0)).scale(getWidth(displayLine) * length * window.aspectRatio / defaultCharHeight, underlineThickness, 0f).translate(0f, underlineOffset, 0f))
+                }
             }
 
             i += line.length
