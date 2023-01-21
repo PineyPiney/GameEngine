@@ -25,8 +25,7 @@ class CollisionBoxRenderer(val collider: CollisionBox2D, val parent: GameObject,
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double){
         super.render(view, projection, tickDelta)
 
-        shape.bind()
-        shape.draw()
+        shape.bindAndDraw()
     }
 
     companion object{

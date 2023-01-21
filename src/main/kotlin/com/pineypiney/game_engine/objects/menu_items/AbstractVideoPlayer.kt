@@ -24,8 +24,7 @@ abstract class AbstractVideoPlayer: Initialisable, Drawable {
         shader.use()
         shader.setUniforms(uniforms)
 
-        shape.bind()
-        shape.draw()
+        shape.bindAndDraw()
     }
 
     fun play() = video.play()

@@ -43,21 +43,21 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
             super.render(view, projection, tickDelta)
 
             val displayLine = line.trim()
+            val firstIndex = i + line.indexOfFirst { it != ' ' }
+
             val alignmentOffset = getAlignment(displayLine, totalWidth)
             val lineModel = originModel.translate(alignmentOffset, 0f, 0f).scale(defaultCharHeight, defaultCharHeight, 1f)
 
-            val firstIndex = i + line.indexOfFirst { it != ' ' }
             for(j in displayLine.indices){
 
                 val quad = quads[firstIndex + j]
                 setIndividualUniforms(shader, quad)
 
-                quad.bind()
 
                 val model = lineModel.translate(Vec3(quad.offset, 0))
                 shader.setMat4("model", model)
 
-                quad.draw()
+                quad.bindAndDraw()
             }
 
             if(underlineThickness > 0 && underlineAmount > 0){
@@ -65,11 +65,7 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
                 else getUnderlineOf(lines.indexOf(line))
 
                 if(length > 0) {
-                    renderUnderline(
-                        lineModel.translate(Vec3(quads[firstIndex].offset, 0))
-                            .scale(getWidth(displayLine) * length / defaultCharHeight, underlineThickness, 0f)
-                            .translate(0f, underlineOffset, 0f), view, projection
-                    )
+                    renderUnderline(lineModel.translate(Vec3(quads[firstIndex].offset, 0)), view, projection, displayLine, length)
                 }
             }
 

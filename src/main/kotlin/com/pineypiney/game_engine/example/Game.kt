@@ -38,7 +38,6 @@ import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Rect3D
 import glm_.f
-import glm_.pow
 import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -46,7 +45,9 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11C
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sign
 
 class Game(override val gameEngine: GameEngine<*>): GameLogic() {
 
@@ -186,10 +187,12 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
 
         cursorSquare.origin = cursorPos
 
-        val r = window.aspectRatio
-        val l1 = 0.1f * r / sqrt((r * cos(cursorSquare.rotation)).pow(2) + sin(cursorSquare.rotation).pow(2))
-        val l2 = 0.1f * r / sqrt((r * sin(cursorSquare.rotation)).pow(2) + cos(cursorSquare.rotation).pow(2))
-        val cursorRect = Rect2D(cursorSquare.origin - (Vec2(0.05f).rotate(-cursorSquare.rotation) * Vec2(1, window.aspectRatio)), l1, l2, cursorSquare.rotation)
+        val a = window.aspectRatio
+        val r = cursorSquare.rotation
+        val m = cursorSquare.model
+        val l1 = m[0, 0] / cos(r)
+        val l2 = m[1, 1] / cos(r)
+        val cursorRect = Rect2D(cursorSquare.origin - (Vec2(0.05f).rotate(-r) * Vec2(1, a)), l1, l2, r)
         cursorSquare.colour = if(cursorRect intersects bc) Vec4(0, 1, 0, 0.5) else Vec4(0, 0, 1, 0.5)
 
 //        val cursorRect = Rect2D(camera.screenToWorld(cursorSquare.origin), 0.5f, 0.5f, cursorSquare.rotation)
@@ -224,9 +227,11 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
     override fun update(interval: Float, input: Inputs) {
         super.update(interval, input)
 
-        text.run {
-            underlineThickness = 0.1f
-            underlineAmount = (underlineAmount + Timer.delta.f).mod(1f)
+        for (t in listOf(text, gameText, siGameText, *(list.items.map { it.text }.toTypedArray()))) {
+            t.run {
+                underlineThickness = 0.06f
+                underlineAmount = (underlineAmount + 0.3f * Timer.delta.f).mod(1f)
+            }
         }
 
         object3D.rotate(Vec3(0.5, 1, 1.5) * interval)

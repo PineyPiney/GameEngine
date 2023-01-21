@@ -18,7 +18,6 @@ open class SimpleTexturedGameObject3D(override var texture: Texture, val shape: 
 
         texture.bind()
 
-        shape.bind()
-        shape.draw()
+        shape.bindAndDraw()
     }
 }

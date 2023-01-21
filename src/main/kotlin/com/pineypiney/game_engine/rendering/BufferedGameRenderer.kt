@@ -21,10 +21,9 @@ abstract class BufferedGameRenderer<E: IGameLogic>: GameRenderer<E>() {
 
     protected fun drawBufferTexture(buffer: FrameBuffer = this.buffer){
         val shape = Shape.screenQuadShape
-        shape.bind()
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, buffer.TCB)
-        shape.draw()
+        shape.bindAndDraw()
     }
 
     override fun updateAspectRatio(window: Window, objects: ObjectCollection) {

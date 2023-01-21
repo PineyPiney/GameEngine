@@ -28,7 +28,7 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
 
         for(mesh in meshes) {
             shader.setFloat("alpha", mesh.alpha)
-            mesh.draw()
+            mesh.bindAndDraw()
         }
 
         if(debug and DEBUG_BONES > 0) renderBones(parent, view, projection)

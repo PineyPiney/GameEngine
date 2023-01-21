@@ -42,8 +42,7 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
         shader.use()
         shader.setUniforms(uniforms)
 
-        shape.bind()
-        shape.draw()
+        shape.bindAndDraw()
     }
 
     fun relative(x: Number, y: Number) = origin + (size * Vec2(x, y))

@@ -20,10 +20,10 @@ class ScrollerText(text: String, window: Window, bounds: Vec2 = Vec2(2, 2),
         uniforms.setVec2Uniform("limits"){ (limits + Vec2(1)) * (window.height / 2f) }
     }
 
-    override fun drawUnderline(model: Mat4) {
+    override fun drawUnderline(model: Mat4, line: String, amount: Float) {
         val pos = origin.y + defaultCharHeight * underlineThickness * underlineOffset
         if(pos > limits.x && pos < limits.y){
-            super.drawUnderline(model)
+            super.drawUnderline(model, line, amount)
         }
     }
 }

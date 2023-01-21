@@ -65,12 +65,11 @@ open class SizedStaticText(text: String, final override val window: Window, font
                 val quad = quads[firstIndex + j]
                 setIndividualUniforms(shader, quad)
 
-                quad.bind()
 
                 val model = lineModel.translate(Vec3(quad.offset, 0))
                 shader.setMat4("model", model)
 
-                quad.draw()
+                quad.bindAndDraw()
             }
 
             if(underlineThickness > 0 && underlineAmount > 0){
@@ -78,7 +77,7 @@ open class SizedStaticText(text: String, final override val window: Window, font
                 else getUnderlineOf(lines.indexOf(line))
 
                 if(length > 0){
-                    drawUnderline(lineModel.translate(Vec3(quads[firstIndex].offset, 0)).scale(getWidth(displayLine) * length * window.aspectRatio / defaultCharHeight, underlineThickness, 0f).translate(0f, underlineOffset, 0f))
+                    drawUnderline(lineModel.translate(Vec3(quads[firstIndex].offset, 0)), displayLine, length)
                 }
             }
 

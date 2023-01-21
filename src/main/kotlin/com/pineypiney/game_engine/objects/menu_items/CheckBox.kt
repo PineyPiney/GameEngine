@@ -22,8 +22,7 @@ class CheckBox(override var size: Vec2, val action: (Boolean) -> Unit): Interact
         shader.setUniforms(uniforms)
 
         background.bind()
-        shape.bind()
-        shape.draw()
+        shape.bindAndDraw()
 
         if(ticked){
             check.bind()

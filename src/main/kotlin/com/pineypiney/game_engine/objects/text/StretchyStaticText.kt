@@ -48,17 +48,16 @@ open class StretchyStaticText(text: String, final override val window: Window, c
             val quad = quads[i]
             setIndividualUniforms(shader, quad)
 
-            quad.bind()
 
             val model = lineModel.translate(Vec3(quad.offset, 0))
             shader.setMat4("model", model)
 
-            quad.draw()
+            quad.bindAndDraw()
         }
 
 
         if(underlineThickness > 0){
-            drawUnderline(lineModel.translate(Vec3(quads[0].offset, 0)).scale(getWidth(text) * underlineAmount * window.aspectRatio / defaultCharHeight, underlineThickness, 0f).translate(0f, underlineOffset, 0f))
+            drawUnderline(lineModel.translate(Vec3(quads[0].offset, 0)), text, underlineAmount)
         }
     }
 

@@ -49,13 +49,11 @@ class Mesh(var id: String, val vertices: Array<MeshVertex>, val indices: IntArra
 
     override fun draw(mode: Int) {
         setTextures()
-        bind()
         glDrawElements(mode, indices.size, GL_UNSIGNED_INT, 0)
     }
 
     override fun drawInstanced(amount: Int, mode: Int) {
         setTextures()
-        bind()
         glDrawElementsInstanced(mode, indices.size, GL_UNSIGNED_INT, 0, amount)
     }
 

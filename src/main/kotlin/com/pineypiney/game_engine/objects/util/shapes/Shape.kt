@@ -16,6 +16,12 @@ abstract class Shape: Deleteable {
     }
 
     abstract fun draw(mode: Int = GL_TRIANGLES)
+
+    fun bindAndDraw(mode: Int = GL_TRIANGLES){
+        bind()
+        draw(mode)
+    }
+
     abstract fun drawInstanced(amount: Int, mode: Int = GL_TRIANGLES)
 
     fun setAttribs(data: Array<Vec2i>, type: Int){

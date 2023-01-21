@@ -19,13 +19,14 @@ interface StaticTextI: TextI, MovableDrawable {
     fun getScreenSize(): Vec2
     fun getScreenSize(text: String): Vec2 = Vec2(getWidth(text), defaultCharHeight)
 
-    fun drawUnderline(model: Mat4){
+    fun drawUnderline(model: Mat4, line: String = text, amount: Float = underlineAmount){
         val shader = MenuItem.translucentColourShader
+        val newModel = model.scale(getWidth(line) * amount * window.aspectRatio / defaultCharHeight, underlineThickness, 0f).translate(0f, underlineOffset, 0f)
+
         shader.use()
-        shader.setMat4("model", model)
+        shader.setMat4("model", newModel)
         shader.setVec4("colour", colour)
-        Shape.cornerSquareShape2D.bind()
-        Shape.cornerSquareShape2D.draw()
+        Shape.cornerSquareShape2D.bindAndDraw()
     }
 
     override fun drawCentered(p: Vec2){

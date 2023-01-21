@@ -15,14 +15,17 @@ interface GameTextI: TextI, Renderable {
         return size.x * defaultCharHeight
     }
 
-    fun renderUnderline(model: Mat4, view: Mat4, projection: Mat4){
+    fun renderUnderline(model: Mat4, view: Mat4, projection: Mat4, line: String = text, amount: Float = underlineAmount){
         val shader = RenderedGameObject2D.colourShader
+        val newModel = model
+            .scale(getWidth(line) * amount / defaultCharHeight, underlineThickness, 0f)
+            .translate(0f, underlineOffset, 0f)
+
         shader.use()
-        shader.setMat4("model", model)
+        shader.setMat4("model", newModel)
         shader.setMat4("view", view)
         shader.setMat4("projection", projection)
         shader.setVec4("colour", colour)
-        Shape.cornerSquareShape2D.bind()
-        Shape.cornerSquareShape2D.draw()
+        Shape.cornerSquareShape2D.bindAndDraw()
     }
 }

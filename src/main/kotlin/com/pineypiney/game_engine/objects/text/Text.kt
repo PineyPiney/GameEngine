@@ -36,7 +36,7 @@ abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
 
     override var italic: Float = 0f
     override var underlineThickness: Float = 0f
-    override var underlineOffset: Float = -2f
+    override var underlineOffset: Float = -0.2f
     override var underlineAmount: Float = 1f
     final override var defaultCharHeight: Float = 0f
 
