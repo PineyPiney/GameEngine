@@ -4,8 +4,10 @@ import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.AbstractResourceLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.removeNullValues
 import glm_.vec3.Vec3i
 import kool.toBuffer
+import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL32C.*
 import org.lwjgl.stb.STBImage
 import java.io.InputStream
@@ -16,33 +18,32 @@ class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
     override val missing: Texture get() = Texture.broke
 
     fun loadTextures(loader: ResourcesLoader, textures: List<String>) {
-        for(fileName in textures){
-
-            val end = fileName.split('.').getOrNull(1)
-            if (!fileTypes.contains(end)) continue
-
-            val stream  = loader.getStream("textures/$fileName") ?: continue
-            loadTexture(fileName, stream)
+        val streams = textures.filter { fileTypes.contains(it.split('.').getOrNull(1)) }.associateWith { loader.getStream("textures/$it") }.removeNullValues()
+        val pointers = IntArray(streams.size)
+        GL11C.glGenTextures(pointers)
+        val pList = pointers.toMutableList()
+        for((fileName, stream) in streams){
+            val p = pList.firstOrNull() ?: GL11C.glGenTextures()
+            loadTexture(fileName, stream, p)
+            pList.remove(p)
             stream.close()
         }
     }
 
-    private fun loadTexture(name: String, stream: InputStream){
+    private fun loadTexture(name: String, stream: InputStream, pointer: Int){
 
         map[ResourceKey(name.substringBefore('.'))] =
-            loadTexture(name, ResourcesLoader.ioResourceToByteBuffer(stream, 1024))
+            loadTexture(name, ResourcesLoader.ioResourceToByteBuffer(stream, 1024), pointer)
     }
 
-    private fun loadTexture(name: String, buffer: ByteBuffer): Texture{
+    private fun loadTexture(name: String, buffer: ByteBuffer, pointer: Int): Texture{
         if(!buffer.hasRemaining()){
             GameEngine.logger.warn("Buffer for texture $name is empty")
         }
         else {
-            val pointer = createPointer()
+            loadIndividualSettings(pointer)
 
             // Load the image from file
-            loadImageFromFile(buffer)
-
             if(loadImageFromFile(buffer)){
                 return Texture(name.substringAfterLast('\\').substringBefore('.'), pointer)
             }
