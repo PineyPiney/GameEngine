@@ -1,15 +1,25 @@
 package com.pineypiney.game_engine
 
-import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import glm_.vec2.Vec2
+import com.pineypiney.game_engine.example.ExampleWindow
+import com.pineypiney.game_engine.resources.FileResourcesLoader
+import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.util.directory
+import org.lwjgl.glfw.GLFW
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 
 fun main(){
     val copy = Toolkit.getDefaultToolkit().systemClipboard.getData(DataFlavor.stringFlavor)
 
-    val rect1 = Rect2D(Vec2(36.5, -3.2), 1.26f, 2.88f, 0f)
-    val rect2 = Rect2D(Vec2(37.5, -5), 1f, 10f, 0f)
-    val o = rect1.overlap1D(Vec2(1, 0), rect2)
-    println("Done with o $o")
+    timeResourceLoading()
+}
+
+fun timeResourceLoading(){
+    val window = ExampleWindow("")
+    val resources = FileResourcesLoader("$directory/src/main/resources")
+    val times = DoubleArray(25){ ResourcesLoader.timeActionM { TextureLoader.INSTANCE.loadTextures(resources, resources.streamList.filter { it.startsWith(resources.textureLocation) }.map { it.removePrefix(resources.textureLocation) }) }}
+    println("Average time is ${times.average()}ms")
+    window.shouldClose = true
+    GLFW.glfwTerminate()
 }

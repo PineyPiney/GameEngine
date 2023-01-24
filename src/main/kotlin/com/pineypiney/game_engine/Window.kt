@@ -142,12 +142,16 @@ abstract class Window(title: String, width: Int, height: Int, vSync: Boolean, va
         GL.createCapabilities()
     }
 
-    fun loadAL(){
-        //val devices = ALUtil.getStringList(0L, ALC10.ALC_DEVICE_SPECIFIER)
-        audioDevice = AudioDevice()
+    fun loadAL(name: String? = null){
+        setAudioOutput(name)
 
         val cCaps = ALC.getCapabilities()
         AL.createCapabilities(cCaps)
+    }
+
+    fun setAudioOutput(name: String? = null){
+        audioDevice?.close()
+        audioDevice = AudioDevice(name)
     }
 
     fun getVec2i(func: (Long, IntArray, IntArray) -> Unit): Vec2i{

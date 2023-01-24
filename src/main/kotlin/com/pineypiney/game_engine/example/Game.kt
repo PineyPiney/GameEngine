@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.audio.AudioSource
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.ColourSquare
@@ -55,9 +56,13 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
     override val renderer: Renderer = Renderer(window)
 
     private val pressedKeys = mutableSetOf<Short>()
-    private val audio = AudioLoader[(ResourceKey("clair_de_lune"))]
+    private val audio get() = AudioLoader[(ResourceKey("clair_de_lune"))]
 
-    private val b = TextButton("Button", Vec2(-0.3, 0.6), Vec2(0.6, 0.2), window){}
+    private val b = TextButton("Button", Vec2(-0.3, 0.6), Vec2(0.6, 0.2), window){
+        val device = AudioEngine.getAllOutputDevices()[(0..1).random()]
+        window.setAudioOutput(device)
+        GameEngine.logger.info("Setting audio out device to $device")
+    }
     private val bc = Rect2D(b.origin, 0.6f, 0.2f)
     private val cursorSquare = ColourSquare(size = Vec2(0.1f, 0.1f * window.aspectRatio))
 

@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
-import com.pineypiney.game_engine.resources.AbstractResourceLoader
+import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.models.animations.*
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.Copyable
@@ -32,7 +32,7 @@ import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.math.PI
 
-class ModelLoader private constructor(): AbstractResourceLoader<Model>() {
+class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
 
     override val missing: Model = Model.brokeModel
 

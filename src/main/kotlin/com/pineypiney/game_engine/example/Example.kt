@@ -11,7 +11,7 @@ import org.lwjgl.opengl.GL13C.GL_MULTISAMPLE
 
 fun main() {
 
-    val window = ExampleWindow("Example Window", 960, 540, false)
+    val window = ExampleWindow()
 
     val fileResources = FileResourcesLoader("$directory/src/main/resources")
 

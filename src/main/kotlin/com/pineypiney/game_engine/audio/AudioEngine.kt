@@ -2,6 +2,8 @@ package com.pineypiney.game_engine.audio
 
 import glm_.vec3.Vec3
 import org.lwjgl.openal.AL10
+import org.lwjgl.openal.ALC11
+import org.lwjgl.openal.ALUtil
 
 open class AudioEngine {
 
@@ -40,5 +42,7 @@ open class AudioEngine {
         fun setVec3(paramName: Int, value: Vec3){
             AL10.alListener3f(paramName, value.x, value.y, value.z)
         }
+
+        fun getAllOutputDevices(): List<String> = ALUtil.getStringList(0L, ALC11.ALC_ALL_DEVICES_SPECIFIER) ?: listOf()
     }
 }

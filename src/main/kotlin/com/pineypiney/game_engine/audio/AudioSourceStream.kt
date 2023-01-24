@@ -3,7 +3,6 @@ package com.pineypiney.game_engine.audio
 import com.pineypiney.game_engine.resources.audio.Audio
 import com.pineypiney.game_engine.util.extension_functions.delete
 import org.lwjgl.openal.AL10
-import org.lwjgl.openal.AL11
 
 class AudioSourceStream(val buffers: MutableList<Audio>): AbstractAudioSource() {
 
@@ -15,7 +14,7 @@ class AudioSourceStream(val buffers: MutableList<Audio>): AbstractAudioSource() 
 
     fun updateQueue(index: Int, audio: Audio){
         // Remove old Buffer
-        AL11.alSourceUnqueueBuffers(ptr, intArrayOf(buffers[index].buf))
+        AL10.alSourceUnqueueBuffers(ptr, intArrayOf(buffers[index].buf))
         buffers[index].delete()
 
         // Add new buffer

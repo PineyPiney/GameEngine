@@ -20,7 +20,7 @@ class VideoAudio(override val video: Video): VideoData<Audio>() {
 
     override fun loadNextBuffer(buffer: ByteBuffer){
         val index = nextUpdate % audio.buffers.size
-        audio.updateQueue(index, AudioLoader.loadAudio(buffer, AL10.AL_FORMAT_STEREO16, video.sampleRate))
+        audio.updateQueue(index, AudioLoader.bufferAudio(buffer, AL10.AL_FORMAT_STEREO16, video.sampleRate))
         nextUpdate++
     }
 

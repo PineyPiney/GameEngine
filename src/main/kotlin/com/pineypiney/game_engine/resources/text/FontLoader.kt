@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.resources.AbstractResourceLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -21,9 +22,9 @@ import javax.imageio.ImageIO
 import kotlin.math.floor
 import java.awt.Font as JavaFont
 
-class FontLoader private constructor() {
+class FontLoader private constructor(): AbstractResourceLoader<Font>() {
 
-    private val fonts = mutableMapOf<ResourceKey, Font>()
+    override val missing: Font = BitMapFont(Texture.broke, mapOf())
     /**
      * Load and save a BitMap font from an image file
      *
@@ -94,7 +95,7 @@ class FontLoader private constructor() {
 
         val key = ResourceKey(fontName.substringBefore('.'))
         val texture = TextureLoader[ResourceKey("fonts/${key.key}")]
-        fonts[key] = BitMapFont(texture, charMap.toMap(), letterWidth, letterHeight, charSpacing, rows, columns, shader)
+        map[key] = BitMapFont(texture, charMap.toMap(), letterWidth, letterHeight, charSpacing, rows, columns, shader)
     }
 
     /**
@@ -135,18 +136,12 @@ class FontLoader private constructor() {
             Texture("", TextureLoader.createTexture(array, size.x, size.y, GL11C.GL_RGBA, wrapping = GL12C.GL_CLAMP_TO_EDGE)).apply { setSamples(4) }
         }
 
-        fonts[ResourceKey(fontName.substringBefore('.'))] = TrueTypeFont(font, map, ctx, shader)
-    }
-
-    fun getFont(key: ResourceKey): Font {
-        val f = fonts[key]
-        return f ?: brokeFont
+        this.map[ResourceKey(fontName.substringBefore('.'))] = TrueTypeFont(font, map, ctx, shader)
     }
 
     companion object{
         val INSTANCE = FontLoader()
-        val brokeFont = BitMapFont(Texture.broke, mapOf())
 
-        operator fun get(key: ResourceKey) = INSTANCE.getFont(key)
+        operator fun get(key: ResourceKey) = INSTANCE[key]
     }
 }

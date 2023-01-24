@@ -16,7 +16,7 @@ class Video(val name: String, val attributes: VideoAttributes, val images: Array
         }
 
     val textureData = VideoImages(this)
-    val audio = VideoAudio(this)
+    val audio get() = VideoAudio(this)
 
     val length: Double get() = attributes.length
     val frameRate: Double get() = attributes.frameRate

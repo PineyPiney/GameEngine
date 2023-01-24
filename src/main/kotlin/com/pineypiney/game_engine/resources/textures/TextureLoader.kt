@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.GameEngine
-import com.pineypiney.game_engine.resources.AbstractResourceLoader
+import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.removeNullValues
@@ -13,7 +13,7 @@ import org.lwjgl.stb.STBImage
 import java.io.InputStream
 import java.nio.ByteBuffer
 
-class TextureLoader private constructor() : AbstractResourceLoader<Texture>() {
+class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() {
 
     override val missing: Texture get() = Texture.broke
 
