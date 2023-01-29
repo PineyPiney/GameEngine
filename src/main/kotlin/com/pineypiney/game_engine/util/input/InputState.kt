@@ -6,6 +6,7 @@ import org.lwjgl.glfw.GLFW.*
 class InputState(val key: Short, val controlType: ControlType = ControlType.KEYBOARD, val mods: Byte = 0) {
 
     constructor(key: Number, controlType: ControlType = ControlType.KEYBOARD, mods: Number = 0) : this(key.s, controlType, mods.b)
+    constructor(key: Char, mods: Number = 0, controlType: ControlType = ControlType.KEYBOARD): this(key.s, controlType, mods)
 
     val c; get() = key.c
     val i; get() = key.i
