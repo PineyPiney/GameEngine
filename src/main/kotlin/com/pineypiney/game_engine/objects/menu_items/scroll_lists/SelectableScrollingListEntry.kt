@@ -1,12 +1,12 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
-import com.pineypiney.game_engine.IGameLogic
+import com.pineypiney.game_engine.GameLogicI
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
 
 open class SelectableScrollingListEntry<E: SelectableScrollingListItem>(parent: E, number: Int): InteractableScrollingListEntry<E>(parent, number) {
 
-    override fun onPrimary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int {
+    override fun onPrimary(game: GameLogicI, action: Int, mods: Byte, cursorPos: Vec2): Int {
 
         val p = super.onPrimary(game, action, mods, cursorPos)
 

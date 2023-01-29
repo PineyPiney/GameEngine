@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
-import com.pineypiney.game_engine.IGameLogic
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.GameLogicI
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.Interactable
@@ -92,12 +92,12 @@ abstract class ScrollingListItem : StaticInteractableMenuItem() {  //, Iterable<
         return false
     }
 
-    override fun onScroll(game: IGameLogic, scrollDelta: Vec2): Int {
+    override fun onScroll(game: GameLogicI, scrollDelta: Vec2): Int {
         scroll += (scrollDelta.y * -0.05f)
         return super.onScroll(game, scrollDelta)
     }
 
-    override fun onPrimary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int {
+    override fun onPrimary(game: GameLogicI, action: Int, mods: Byte, cursorPos: Vec2): Int {
         items.forEachInstance<Interactable> { item ->
             if (item.shouldUpdate()) item.onPrimary(game, action, mods, cursorPos)
         }
@@ -111,7 +111,7 @@ abstract class ScrollingListItem : StaticInteractableMenuItem() {  //, Iterable<
         scrollBar.update(interval, time)
     }
 
-    override fun updateAspectRatio(window: Window) {
+    override fun updateAspectRatio(window: WindowI) {
         super.updateAspectRatio(window)
         for(item in items) item.updateAspectRatio(window)
     }

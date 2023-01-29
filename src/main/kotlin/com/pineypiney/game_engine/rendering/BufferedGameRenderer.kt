@@ -1,17 +1,17 @@
 package com.pineypiney.game_engine.rendering
 
-import com.pineypiney.game_engine.IGameLogic
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.GameLogicI
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.util.shapes.Shape
 import org.lwjgl.opengl.GL13.*
 
-abstract class BufferedGameRenderer<E: IGameLogic>: GameRenderer<E>() {
+abstract class BufferedGameRenderer<E: GameLogicI>: GameRenderer<E>() {
 
     val buffer = FrameBuffer(0, 0)
 
     override fun init() {
-        buffer.setSize(window.size)
+        buffer.setSize(window.frameSize)
     }
 
     open fun clearFrameBuffer(buffer: FrameBuffer = this.buffer){
@@ -26,8 +26,8 @@ abstract class BufferedGameRenderer<E: IGameLogic>: GameRenderer<E>() {
         shape.bindAndDraw()
     }
 
-    override fun updateAspectRatio(window: Window, objects: ObjectCollection) {
-        buffer.setSize(window.size)
+    override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
+        buffer.setSize(window.frameSize)
     }
 
     open fun deleteFrameBuffers(){

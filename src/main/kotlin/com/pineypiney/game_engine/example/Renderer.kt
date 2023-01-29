@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.example
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.Renderable
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
 import com.pineypiney.game_engine.rendering.FrameBuffer
@@ -10,7 +10,7 @@ import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 import com.pineypiney.game_engine.util.maths.I
 import org.lwjgl.opengl.GL11.*
 
-class Renderer(override val window: Window): BufferedGameRenderer<Game>() {
+class Renderer(override val window: WindowI): BufferedGameRenderer<Game>() {
 
     var view = I
     var projection = I
@@ -25,7 +25,7 @@ class Renderer(override val window: Window): BufferedGameRenderer<Game>() {
         screenUniforms.setIntUniform("effects") { 0 }
     }
 
-    override fun render(window: Window, game: Game, tickDelta: Double) {
+    override fun render(window: WindowI, game: Game, tickDelta: Double) {
 
         view = game.camera.getView()
         projection = game.camera.getProjection()

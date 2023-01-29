@@ -16,8 +16,7 @@ void main(){
 
 	if(y < limits[0] || y > limits[1]) discard;
 
-	vec4 texture = texture(ourTexture, texCoords);
-	if(texture.r + texture.g + texture.b < 0.05) discard;
-
-	FragColour = vec4(texture.r * colour.r, texture.g * colour.g, texture.b * colour.b, texture.a * colour.a);
+    vec4 texture = texture(ourTexture, texCoords);
+    if(texture.r < 0.02) discard;
+    else FragColour = vec4(colour.r, colour.g, colour.b, colour.a * texture.r);
 }

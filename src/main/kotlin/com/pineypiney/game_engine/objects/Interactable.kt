@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects
 
-import com.pineypiney.game_engine.IGameLogic
+import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.raycasting.Ray
@@ -34,7 +34,7 @@ interface Interactable: Updateable {
 
     fun checkHover(ray: Ray, screenPos: Vec2): Boolean
 
-    fun onCursorMove(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2){
+    fun onCursorMove(game: GameLogicI, cursorPos: Vec2, cursorDelta: Vec2){
         if(pressed) onDrag(game, cursorPos, cursorDelta)
 
         val ray = game.camera.getRay()
@@ -44,9 +44,9 @@ interface Interactable: Updateable {
         }
     }
 
-    fun onDrag(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2) {}
+    fun onDrag(game: GameLogicI, cursorPos: Vec2, cursorDelta: Vec2) {}
 
-    fun onScroll(game: IGameLogic, scrollDelta: Vec2): Int{
+    fun onScroll(game: GameLogicI, scrollDelta: Vec2): Int{
         for (child in children.sortedByDescending { it.importance }) {
             if(child.shouldUpdate()) {
                 if(child.onScroll(game, scrollDelta) == INTERRUPT) return INTERRUPT
@@ -55,7 +55,7 @@ interface Interactable: Updateable {
         return 0
     }
 
-    fun onInput(game: IGameLogic, input: InputState, action: Int, cursorPos: Vec2): Int {
+    fun onInput(game: GameLogicI, input: InputState, action: Int, cursorPos: Vec2): Int {
         for(child in children.sortedByDescending { it.importance }){
             if(child.shouldUpdate()){
                 if(child.onInput(game, input, action, cursorPos) == INTERRUPT) return INTERRUPT
@@ -68,7 +68,7 @@ interface Interactable: Updateable {
         }
     }
 
-    fun onType(game: IGameLogic, char: Char): Int{
+    fun onType(game: GameLogicI, char: Char): Int{
         for (child in children.sortedByDescending { it.importance }) {
             if(child.shouldUpdate()) {
                 if(child.onType(game, char) == INTERRUPT) return INTERRUPT
@@ -78,13 +78,13 @@ interface Interactable: Updateable {
     }
 
     // This is the default action when an item is clicked
-    fun onPrimary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int {
+    fun onPrimary(game: GameLogicI, action: Int, mods: Byte, cursorPos: Vec2): Int {
         // Continue pressing if already pressed, or start pressing on first click
         pressed = (pressed && action == GLFW.GLFW_REPEAT) || action == GLFW.GLFW_PRESS
         return action
     }
 
-    fun onSecondary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int = 0
+    fun onSecondary(game: GameLogicI, action: Int, mods: Byte, cursorPos: Vec2): Int = 0
 
     override fun shouldUpdate(): Boolean {
         return this.hover || this.pressed || this.forceUpdate || this.children.any { child -> child.shouldUpdate() }

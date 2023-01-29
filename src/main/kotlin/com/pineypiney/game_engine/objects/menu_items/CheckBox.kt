@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.IGameLogic
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.GameLogicI
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -30,12 +30,12 @@ class CheckBox(override var size: Vec2, val action: (Boolean) -> Unit): Interact
         }
     }
 
-    override fun onPrimary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int {
+    override fun onPrimary(game: GameLogicI, action: Int, mods: Byte, cursorPos: Vec2): Int {
         if(action == 1) toggle()
         return super.onPrimary(game, action, mods, cursorPos)
     }
 
-    override fun updateAspectRatio(window: Window) {
+    override fun updateAspectRatio(window: WindowI) {
         super.updateAspectRatio(window)
         size = Vec2(0.1, 0.1 * window.aspectRatio)
     }

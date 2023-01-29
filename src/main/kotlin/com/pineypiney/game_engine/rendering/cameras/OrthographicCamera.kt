@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.rendering.cameras
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.glm
 import glm_.mat4x4.Mat4
@@ -8,7 +8,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import kotlin.math.max
 
-open class OrthographicCamera(window: Window, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), height: Float = 10f): Camera(window, pos, up) {
+open class OrthographicCamera(window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), height: Float = 10f): Camera(window, pos, up) {
 
     var height: Float = height
         set(value) { field = max(value, 0.001f) }

@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources
 
-import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -34,11 +34,11 @@ abstract class ResourcesLoader {
     fun loadResources(){
         val streamMap = getStreams()
 
-        GameEngine.logger.info("Loaded Shaders in ${timeActionM{ ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) }) }.round(2)} ms")
-        GameEngine.logger.info("Loaded Textures in ${timeActionM{ TextureLoader.INSTANCE.loadTextures(this, streamList.filter { it.startsWith(textureLocation) }.map { it.removePrefix(textureLocation) }) }.round(2)} ms")
-        GameEngine.logger.info("Loaded Audio in ${timeActionM{ AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }.mapKeys { it.key.removePrefix(audioLocation) }) }.round(2)} ms")
-        GameEngine.logger.info("Loaded Videos in ${timeActionM{ VideoLoader.INSTANCE.loadVideos(this, streamList.filter { it.startsWith(videoLocation) }.map { it.removePrefix(videoLocation) }) }.round(2)} ms")
-        GameEngine.logger.info("Loaded Models in ${timeActionM{ ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) }) }.round(2)} ms")
+        GameEngineI.logger.info("Loaded Shaders in ${timeActionM{ ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) }) }.round(2)} ms")
+        GameEngineI.logger.info("Loaded Textures in ${timeActionM{ TextureLoader.INSTANCE.loadTextures(this, streamList.filter { it.startsWith(textureLocation) }.map { it.removePrefix(textureLocation) }) }.round(2)} ms")
+        GameEngineI.logger.info("Loaded Audio in ${timeActionM{ AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }.mapKeys { it.key.removePrefix(audioLocation) }) }.round(2)} ms")
+        GameEngineI.logger.info("Loaded Videos in ${timeActionM{ VideoLoader.INSTANCE.loadVideos(this, streamList.filter { it.startsWith(videoLocation) }.map { it.removePrefix(videoLocation) }) }.round(2)} ms")
+        GameEngineI.logger.info("Loaded Models in ${timeActionM{ ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) }) }.round(2)} ms")
     }
 
     fun cleanUp(){

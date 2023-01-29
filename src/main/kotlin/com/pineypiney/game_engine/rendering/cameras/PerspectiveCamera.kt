@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.rendering.cameras
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.func.rad
 import glm_.glm
@@ -11,7 +11,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
 
-open class PerspectiveCamera(window: Window, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0),  yaw: Double = -90.0, pitch: Double = 0.0, fov: Float = 90f): Camera(window, pos, up) {
+open class PerspectiveCamera(window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), yaw: Double = -90.0, pitch: Double = 0.0, fov: Float = 90f): Camera(window, pos, up) {
 
     // CameraFront is now a var
     override var cameraFront: Vec3 = super.cameraFront

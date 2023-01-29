@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.IGameLogic
+import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.resources.shaders.Shader
@@ -18,9 +18,11 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
+import java.awt.Toolkit
+import java.awt.datatransfer.DataFlavor
 import kotlin.math.abs
 
-open class TextField(final override var origin: Vec2, final override val size: Vec2, window: Window, textOffset: Float = 0f, textSize: Int = 100): StaticInteractableMenuItem() {
+open class TextField(final override var origin: Vec2, final override val size: Vec2, window: WindowI, textOffset: Float = 0f, textSize: Int = 100): StaticInteractableMenuItem() {
 
     open var allowed = all.map { it.c }
 
@@ -83,7 +85,7 @@ open class TextField(final override var origin: Vec2, final override val size: V
         textBox.drawBottomLeft(textPos)
     }
 
-    override fun onPrimary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int {
+    override fun onPrimary(game: GameLogicI, action: Int, mods: Byte, cursorPos: Vec2): Int {
         super.onPrimary(game, action, mods, cursorPos)
         if(!this.hover){
             this.forceUpdate = false
@@ -95,7 +97,7 @@ open class TextField(final override var origin: Vec2, final override val size: V
         return action
     }
 
-    override fun onInput(game: IGameLogic, input: InputState, action: Int, cursorPos: Vec2): Int {
+    override fun onInput(game: GameLogicI, input: InputState, action: Int, cursorPos: Vec2): Int {
         super.onInput(game, input, action, cursorPos)
 
         if(input.controlType == ControlType.KEYBOARD && this.forceUpdate){
@@ -106,12 +108,18 @@ open class TextField(final override var origin: Vec2, final override val size: V
         return action
     }
 
-    override fun onType(game: IGameLogic, char: Char): Int {
+    override fun onType(game: GameLogicI, char: Char): Int {
         if(this.forceUpdate){
             if(allowed.contains(char)) type(char)
             return Interactable.INTERRUPT
         }
         return 0
+    }
+
+    fun paste(){
+        val copy = (Toolkit.getDefaultToolkit().systemClipboard.getData(DataFlavor.stringFlavor) as String).filter { allowed.contains(it) }
+        text = text.substring(0, caret) + copy + text.substring(caret)
+        caret += copy.length
     }
 
     open fun type(char: Char){
@@ -121,6 +129,9 @@ open class TextField(final override var origin: Vec2, final override val size: V
 
     open fun specialCharacter(bind: InputState){
         when(bind.i){
+            GLFW_KEY_V -> {
+                if(bind.control) paste()
+            }
             GLFW_KEY_ESCAPE -> {
                 this.forceUpdate = false
             }
@@ -192,12 +203,12 @@ open class TextField(final override var origin: Vec2, final override val size: V
         else caret + 1
     }
 
-    override fun updateAspectRatio(window: Window) {
+    override fun updateAspectRatio(window: WindowI) {
         super.updateAspectRatio(window)
         textBox.updateAspectRatio(window)
     }
 
-    class TextFieldText(text: String, window: Window, fontSize: Number, private var limits: Vec2,
+    class TextFieldText(text: String, window: WindowI, fontSize: Number, private var limits: Vec2,
                         bounds: Vec2 = Vec2(Float.MAX_VALUE),
                         colour: Vec4 = Vec4(1, 1, 1, 1),
                         font: Font = Font.defaultFont,
@@ -218,7 +229,7 @@ open class TextField(final override var origin: Vec2, final override val size: V
         // Just override or set the 'allowed' variable
         val standard = listOf(GLFW_KEY_ESCAPE, GLFW_KEY_BACKSPACE, GLFW_KEY_DELETE, GLFW_KEY_LEFT, GLFW_KEY_RIGHT)
         val all = ((32..254) - 127) + standard
-        val integers = (48..57) + standard
+        val integers = (48..57) + standard + '-'.i
         val numbers = integers + '.'.i
         val upperAlphabet = (65..90) + standard
         val lowerAlphabet = (97..122) + standard

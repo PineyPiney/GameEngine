@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.rendering
 
-import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import glm_.i
@@ -17,9 +17,11 @@ class FrameBuffer(var width: Int, var height: Int): Deleteable {
     val RBO = glGenRenderbuffers()
 
     fun setSize(width: Int, height: Int){
-        this.width = width
-        this.height = height
-        generate()
+        if(width > 0 && height > 0 && (width != this.width || height != this.height)){
+            this.width = width
+            this.height = height
+            generate()
+        }
     }
 
     fun setSize(size: Vec2t<*>){
@@ -38,8 +40,10 @@ class FrameBuffer(var width: Int, var height: Int): Deleteable {
         glBindRenderbuffer(GL_RENDERBUFFER, RBO)
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height) // use a single renderbuffer object for both a depth AND stencil buffer.
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO) // now actually attach it
+        glBindRenderbuffer(GL_RENDERBUFFER, 0)
 
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) GameEngine.logger.error("Framebuffer could not be completed in ${this::class}")
+        val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+        if (status != GL_FRAMEBUFFER_COMPLETE) GameEngineI.logger.error("Framebuffer could not be completed, status was $status")
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
     }
 

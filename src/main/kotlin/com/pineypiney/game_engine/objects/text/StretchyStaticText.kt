@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.maths.I
@@ -8,13 +8,13 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-open class StretchyStaticText(text: String, final override val window: Window, colour: Vec4 = Vec4(1, 1, 1, 1),
+open class StretchyStaticText(text: String, final override val window: WindowI, colour: Vec4 = Vec4(1, 1, 1, 1),
                               textMaxWidth: Float = 2f, textMaxHeight: Float = 2f,
                               font: Font = Font.defaultFont,
                               shader: Shader = font.shader):
     StretchyText(text, colour, textMaxWidth, textMaxHeight, font, shader), StaticTextI {
 
-    constructor(text: String, window: Window, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
+    constructor(text: String, window: WindowI, bounds: Vec2 = Vec2(2, 2), colour: Vec4 = Vec4(1, 1, 1, 1),
                 font: Font = Font.defaultFont,
                 shader: Shader = Font.fontShader):
             this(text, window, colour, bounds.x, bounds.y, font, shader)
@@ -61,7 +61,7 @@ open class StretchyStaticText(text: String, final override val window: Window, c
         }
     }
 
-    final override fun updateAspectRatio(window: Window) {
+    final override fun updateAspectRatio(window: WindowI) {
 
         // First scale the text so it touches the vertical bounds
         setDefaults(maxHeight)

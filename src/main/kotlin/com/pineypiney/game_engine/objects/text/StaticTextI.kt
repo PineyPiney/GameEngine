@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.MovableDrawable
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.util.shapes.Shape
@@ -9,7 +9,7 @@ import glm_.vec2.Vec2
 
 interface StaticTextI: TextI, MovableDrawable {
 
-    val window: Window
+    val window: WindowI
 
     override fun getWidth(text: String): Float {
         val size = font.getSize(text)

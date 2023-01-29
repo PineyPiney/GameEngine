@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources.models
 
-import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.models.animations.*
@@ -276,7 +276,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
             val bStates = loadBoneStates(modelName, id, boneIDs.toTypedArray(), animRoot, doc, path)
             val mStates = loadMeshStates(modelName, id, meshIDs.toTypedArray(), animRoot, animMeshes, doc, path)
             if(bStates.isEmpty() && mStates.isEmpty()){
-                GameEngine.logger.warn("There were no states loaded for animation $id for model $modelName")
+                GameEngineI.logger.warn("There were no states loaded for animation $id for model $modelName")
                 continue
             }
 
@@ -440,7 +440,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
                 return ModelMaterial(name, textures, baseColour)
             }
             else{
-                GameEngine.logger.warn("This is not a valid material file")
+                GameEngineI.logger.warn("This is not a valid material file")
             }
             return null
         }

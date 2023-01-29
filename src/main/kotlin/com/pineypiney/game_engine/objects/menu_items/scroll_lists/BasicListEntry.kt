@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import glm_.vec2.Vec2
 
-class BasicListEntry(val name: String, parent: BasicScrollList, override val index: Int, window: Window): ScrollingListEntry<BasicScrollList>(parent) {
+class BasicListEntry(val name: String, parent: BasicScrollList, override val index: Int, window: WindowI): ScrollingListEntry<BasicScrollList>(parent) {
 
     val text: ScrollerText = ScrollerText(name, window, size, limits)
 
@@ -17,7 +17,7 @@ class BasicListEntry(val name: String, parent: BasicScrollList, override val ind
         text.drawCenteredLeft(origin + Vec2(0, size.y / 2))
     }
 
-    override fun updateAspectRatio(window: Window) {
+    override fun updateAspectRatio(window: WindowI) {
         super.updateAspectRatio(window)
         text.updateAspectRatio(window)
     }

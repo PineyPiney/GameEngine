@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.util.input
 
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import glm_.b
 import glm_.f
 import glm_.s
@@ -20,7 +20,7 @@ open class MouseInput(val input: Inputs) {
     private val buttonStates = mutableMapOf<Short, Float>()
 
     private val cursorPosCallback = { handle: Long, xpos: Double, ypos: Double ->
-        val size = Window.getSize(handle)
+        val size = WindowI.getSize(handle)
         val screenPos = Vec2((xpos * 2/size.x) - 1, -((ypos * 2/size.y) - 1))
         processCursorPos(screenPos)
         input.mouseMoveCallback(screenPos, cursorOffset)

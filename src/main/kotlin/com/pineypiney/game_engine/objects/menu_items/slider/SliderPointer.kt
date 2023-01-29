@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
-import com.pineypiney.game_engine.IGameLogic
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.GameLogicI
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.MovableDrawable
 import com.pineypiney.game_engine.objects.menu_items.InteractableMenuItem
 import com.pineypiney.game_engine.resources.shaders.Shader
@@ -31,7 +31,7 @@ abstract class SliderPointer: InteractableMenuItem(), MovableDrawable {
         super.draw()
     }
 
-    override fun onDrag(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2) {
+    override fun onDrag(game: GameLogicI, cursorPos: Vec2, cursorDelta: Vec2) {
         super.onDrag(game, cursorPos, cursorDelta)
 
         parent.moveSliderTo(cursorPos.x)
@@ -39,7 +39,7 @@ abstract class SliderPointer: InteractableMenuItem(), MovableDrawable {
 
     fun calculateSize() = Vec2(pointerTexture.aspectRatio / parent.window.aspectRatio, 1) * height * parent.size.y
 
-    override fun updateAspectRatio(window: Window) {
+    override fun updateAspectRatio(window: WindowI) {
         super<InteractableMenuItem>.updateAspectRatio(window)
         size = calculateSize()
     }

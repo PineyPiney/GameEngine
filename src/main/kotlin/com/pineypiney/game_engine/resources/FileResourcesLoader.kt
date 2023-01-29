@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources
 
-import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.util.s
 import java.io.File
 import java.io.FileNotFoundException
@@ -24,7 +24,7 @@ open class FileResourcesLoader(val file: File) : ResourcesLoader(){
             file.inputStream()
         }
         catch (e: FileNotFoundException){
-            GameEngine.logger.warn("Could not find resources file at $path")
+            GameEngineI.logger.warn("Could not find resources file at $path")
             e.printStackTrace()
             null
         }

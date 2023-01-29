@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -9,7 +9,7 @@ import glm_.i
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
-class ColourSlider(override val size: Vec2, override val window: Window, override var shader: Shader, val action: (Int) -> Unit) : Slider() {
+class ColourSlider(override val size: Vec2, override val window: WindowI, override var shader: Shader, val action: (Int) -> Unit) : Slider() {
 
     override val low: Float = 0f
     override val high: Float = 255f

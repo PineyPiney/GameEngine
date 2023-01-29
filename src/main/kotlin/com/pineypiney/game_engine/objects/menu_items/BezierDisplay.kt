@@ -1,13 +1,13 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2t
 import glm_.vec4.Vec4
 
-class BezierDisplay(val points: Array<Vec2t<*>>, val window: Window,
+class BezierDisplay(val points: Array<Vec2t<*>>, val window: WindowI,
                     override val origin: Vec2 = Vec2(0),
                     override val size: Vec2 = Vec2(1)): MenuItem() {
 

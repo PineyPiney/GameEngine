@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.util.input
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 
-class DefaultInput(window: Window): Inputs(window) {
+class DefaultInput(window: WindowI): Inputs(window) {
 
     override val keyboard: KeyboardInput = KeyboardInput(this)
     override val mouse: MouseInput = MouseInput(this)

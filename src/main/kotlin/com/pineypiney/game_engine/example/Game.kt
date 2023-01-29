@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine.example
 
-import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.audio.AudioSource
 import com.pineypiney.game_engine.objects.Interactable
@@ -50,7 +50,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sign
 
-class Game(override val gameEngine: GameEngine<*>): GameLogic() {
+class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
 
     override val camera: OrthographicCamera = OrthographicCamera(window)
     override val renderer: Renderer = Renderer(window)
@@ -61,7 +61,7 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
     private val b = TextButton("Button", Vec2(-0.3, 0.6), Vec2(0.6, 0.2), window){
         val device = AudioEngine.getAllOutputDevices()[(0..1).random()]
         window.setAudioOutput(device)
-        GameEngine.logger.info("Setting audio out device to $device")
+        GameEngineI.logger.info("Setting audio out device to $device")
     }
     private val bc = Rect2D(b.origin, 0.6f, 0.2f)
     private val cursorSquare = ColourSquare(size = Vec2(0.1f, 0.1f * window.aspectRatio))
@@ -173,7 +173,7 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         //bezier.draw()
     }
 
-    override fun render(window: Window, tickDelta: Double) {
+    override fun render(window: WindowI, tickDelta: Double) {
         renderer.render(window, this, tickDelta)
 
         drawScene(tickDelta)
@@ -209,22 +209,24 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
     override fun onInput(state: InputState, action: Int): Int {
         if(super.onInput(state, action) == Interactable.INTERRUPT) return Interactable.INTERRUPT
 
-        if(state.c == 'F' && action == 1){
-            toggleFullscreen()
+        if(action == 1){
+            if(state.i == GLFW_KEY_ESCAPE){
+                window.shouldClose = true
+            }
+            else when(state.c){
+                'F' -> toggleFullscreen()
+                'C' -> input.mouse.setCursorAt(Vec2(0.75))
+                'Z' -> window.size = Vec2i(window.videoMode.width(), window.videoMode.height())
+            }
         }
-        if(state.c == 'C' && action == 1){
-            input.mouse.setCursorAt(Vec2(0.75))
-        }
-        if(state.i == GLFW_KEY_ESCAPE && action == 1){
-            window.shouldClose = true
-        }
+
 
         if(action == 0) pressedKeys.remove(state.key)
         else pressedKeys.add(state.key)
         return action
     }
 
-    override fun onSecondary(window: Window, action: Int, mods: Byte) {
+    override fun onSecondary(window: WindowI, action: Int, mods: Byte) {
         super.onSecondary(window, action, mods)
         if(action == 1) cursorSquare.rotation += PI.f / 16
     }
@@ -242,7 +244,7 @@ class Game(override val gameEngine: GameEngine<*>): GameLogic() {
         object3D.rotate(Vec3(0.5, 1, 1.5) * interval)
     }
 
-    override fun updateAspectRatio(window: Window) {
+    override fun updateAspectRatio(window: WindowI) {
         super.updateAspectRatio(window)
         GL11C.glViewport(0, 0, window.width, window.height)
         text.updateAspectRatio(window)

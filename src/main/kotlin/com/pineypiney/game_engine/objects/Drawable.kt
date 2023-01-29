@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.util.maths.I
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -13,5 +13,5 @@ interface Drawable: Visual {
 
     fun draw()
 
-    fun updateAspectRatio(window: Window) {}
+    fun updateAspectRatio(window: WindowI) {}
 }

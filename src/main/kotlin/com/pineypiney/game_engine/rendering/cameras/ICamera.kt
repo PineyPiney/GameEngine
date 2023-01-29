@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.rendering.cameras
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.mat4x4.Mat4
@@ -9,7 +9,7 @@ import glm_.vec3.Vec3
 
 interface ICamera: Initialisable {
 
-    val window: Window
+    val window: WindowI
 
     val cameraPos: Vec3
     val cameraUp: Vec3

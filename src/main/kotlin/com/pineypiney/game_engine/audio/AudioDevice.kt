@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.audio
 
-import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.GameEngineI
 import org.lwjgl.openal.ALC10
 import org.lwjgl.openal.ALC11
 import org.lwjgl.openal.ALUtil
@@ -24,8 +24,8 @@ class AudioDevice(val ptr: Long, attrList: IntArray? = null) {
         error
         ALC10.alcDestroyContext(context)
         val e = error
-        if(e != 0) GameEngine.logger.warn("Error after destroying context for audio device $name: $e")
-        if(!ALC10.alcCloseDevice(ptr)) GameEngine.logger.warn("Failed to close audio device $name")
+        if(e != 0) GameEngineI.logger.warn("Error after destroying context for audio device $name: $e")
+        if(!ALC10.alcCloseDevice(ptr)) GameEngineI.logger.warn("Failed to close audio device $name")
     }
 
     override fun toString(): String {

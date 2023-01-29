@@ -12,7 +12,7 @@ import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import glm_.vec2.Vec2
 
-abstract class GameLogic : IGameLogic {
+abstract class GameLogic : GameLogicI {
 
     override val gameObjects: ObjectCollection = ObjectCollection()
 
@@ -78,22 +78,22 @@ abstract class GameLogic : IGameLogic {
         return 0
     }
 
-    open fun onPrimary(window: Window, action: Int, mods: Byte){}
-    open fun onSecondary(window: Window, action: Int, mods: Byte){}
+    open fun onPrimary(window: WindowI, action: Int, mods: Byte){}
+    open fun onSecondary(window: WindowI, action: Int, mods: Byte){}
 
-    open fun setFullscreen(state: Boolean){
-        window.fullScreen = state
+    open fun setFullscreen(monitor: Monitor?){
+        window.monitor = monitor
     }
 
     open fun toggleFullscreen(){
-        setFullscreen(!window.fullScreen)
+        setFullscreen(if(window.fullScreen) null else Monitor.primary)
     }
 
     override fun update(interval: Float, input: Inputs) {
         gameObjects.update(interval)
     }
 
-    override fun updateAspectRatio(window: Window) {
+    override fun updateAspectRatio(window: WindowI) {
         renderer.updateAspectRatio(window, gameObjects)
         camera.updateAspectRatio()
         gameObjects.getAllObjects().forEachInstance<Drawable> {

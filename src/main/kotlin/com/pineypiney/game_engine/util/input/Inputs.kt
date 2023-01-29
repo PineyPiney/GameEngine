@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.util.input
 
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import glm_.and
 import glm_.b
 import glm_.i
@@ -9,7 +9,7 @@ import glm_.pow
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW.*
 
-abstract class Inputs(val window: Window) {
+abstract class Inputs(val window: WindowI) {
 
     abstract val keyboard: KeyboardInput
     abstract val mouse: MouseInput

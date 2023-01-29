@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources.models
 
-import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
 import glm_.d
 import glm_.f
@@ -56,7 +56,7 @@ fun getSource(errorMsg: String, source: String, ex: String, doc: Document, path:
         return null
     }
     val sourcePair = getAttributeIdentifier(sourceId) ?: run{
-        GameEngine.logger.warn { "$errorMsg because $source source $sourceId could be parsed" }
+        GameEngineI.logger.warn { "$errorMsg because $source source $sourceId could be parsed" }
         return null
     }
     return sourcePair
@@ -82,7 +82,7 @@ inline fun <reified T> convertString(string: String, default: T): T{
         })
     }
     catch(e: ClassCastException){
-        GameEngine.logger.warn("Could not cast $string to ${T::class.simpleName}")
+        GameEngineI.logger.warn("Could not cast $string to ${T::class.simpleName}")
         default
     }
 }

@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.text.StretchyStaticText
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
@@ -8,7 +8,7 @@ import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
-class ScrollerText(text: String, window: Window, bounds: Vec2 = Vec2(2, 2),
+class ScrollerText(text: String, window: WindowI, bounds: Vec2 = Vec2(2, 2),
                    private var limits: Vec2, colour: Vec4 = Vec4(1, 1, 1, 1),
                    font: Font = Font.defaultFont,
                    shader: Shader = ScrollingListEntry.entryTextShader

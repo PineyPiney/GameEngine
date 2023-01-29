@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.Drawable
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.Interactable
@@ -32,7 +32,7 @@ abstract class InteractableMenuItem : MenuItem(), Interactable {
         if(!hover) pressed = false
     }
 
-    override fun updateAspectRatio(window: Window) {
+    override fun updateAspectRatio(window: WindowI) {
         super.updateAspectRatio(window)
 
         children.filterIsInstance<Drawable>().forEach { it.updateAspectRatio(window) }

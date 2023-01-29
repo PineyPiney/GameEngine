@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
-import com.pineypiney.game_engine.IGameLogic
+import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.objects.menu_items.InteractableMenuItem
 import com.pineypiney.game_engine.resources.shaders.Shader
 import glm_.vec2.Vec2
@@ -24,7 +24,7 @@ open class ScrollBarItem(val parent: ScrollingListItem, override var origin: Vec
 
     }
 
-    override fun onDrag(game: IGameLogic, cursorPos: Vec2, cursorDelta: Vec2) {
+    override fun onDrag(game: GameLogicI, cursorPos: Vec2, cursorDelta: Vec2) {
         super.onDrag(game, cursorPos, cursorDelta)
         forceUpdate = true
 
@@ -33,7 +33,7 @@ open class ScrollBarItem(val parent: ScrollingListItem, override var origin: Vec
         parent.scroll -= (cursorDelta.y / (parent.size.y))
     }
 
-    override fun onPrimary(game: IGameLogic, action: Int, mods: Byte, cursorPos: Vec2): Int {
+    override fun onPrimary(game: GameLogicI, action: Int, mods: Byte, cursorPos: Vec2): Int {
         val p = super.onPrimary(game, action, mods, cursorPos)
 
         if(!pressed) forceUpdate = false

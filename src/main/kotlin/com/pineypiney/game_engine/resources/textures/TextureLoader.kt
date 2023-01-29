@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources.textures
 
-import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -38,7 +38,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 
     private fun loadTexture(name: String, buffer: ByteBuffer, pointer: Int): Texture{
         if(!buffer.hasRemaining()){
-            GameEngine.logger.warn("Buffer for texture $name is empty")
+            GameEngineI.logger.warn("Buffer for texture $name is empty")
         }
         else {
             loadIndividualSettings(pointer)
@@ -49,7 +49,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             }
 
             else {
-                GameEngine.logger.warn("\nFailed to load texture $name")
+                GameEngineI.logger.warn("\nFailed to load texture $name")
             }
         }
 

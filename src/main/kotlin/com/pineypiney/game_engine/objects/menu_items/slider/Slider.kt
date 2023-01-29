@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
-import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.menu_items.InteractableMenuItem
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
@@ -12,7 +12,7 @@ abstract class Slider: InteractableMenuItem() {
     protected abstract val low: Float
     protected abstract val high: Float
     abstract var value: Float
-    abstract val window: Window
+    abstract val window: WindowI
 
     private val range: Float; get() = high - low
     val scale: Float; get() = (high - low) / size.x
@@ -52,7 +52,7 @@ abstract class Slider: InteractableMenuItem() {
         value = (low + (relative * range)).coerceIn(low, high)
     }
 
-    override fun updateAspectRatio(window: Window) {
+    override fun updateAspectRatio(window: WindowI) {
         super.updateAspectRatio(window)
     }
 }

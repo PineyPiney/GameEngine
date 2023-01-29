@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources.shaders
 
-import com.pineypiney.game_engine.GameEngine
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.delete
@@ -41,16 +41,16 @@ class ShaderLoader private constructor(): Deleteable{
 
     fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): Shader{
         val vertex: SubShader = shaderMap.getOrElse(vertexKey){
-            GameEngine.logger.warn("Could not find vertex shader ${vertexKey.key}")
+            GameEngineI.logger.warn("Could not find vertex shader ${vertexKey.key}")
             return Shader.brokeShader
         }
         val fragment: SubShader = shaderMap.getOrElse(fragmentKey){
-            GameEngine.logger.warn("Could not find fragment shader ${fragmentKey.key}")
+            GameEngineI.logger.warn("Could not find fragment shader ${fragmentKey.key}")
             return Shader.brokeShader
         }
         val geometry: SubShader? = geometryKey?.let{
             shaderMap.getOrElse(it){
-                GameEngine.logger.warn("Could not find geometry shader ${it.key}")
+                GameEngineI.logger.warn("Could not find geometry shader ${it.key}")
                 return Shader.brokeShader
             }
         }
@@ -138,7 +138,7 @@ class ShaderLoader private constructor(): Deleteable{
                 success = glGetProgrami(shader, GL_LINK_STATUS).bool
                 if (!success) {
                     infoLog = glGetProgramInfoLog(shader)
-                    GameEngine.logger.warn("Could not link shaders $shaderName \n$infoLog")
+                    GameEngineI.logger.warn("Could not link shaders $shaderName \n$infoLog")
                 }
             }
 
@@ -155,7 +155,7 @@ class ShaderLoader private constructor(): Deleteable{
                 success = glGetShaderi(shader, GL_COMPILE_STATUS).bool
                 if (!success) {
                     infoLog = glGetShaderInfoLog(shader)
-                    GameEngine.logger.warn("Could not compile $type shader $shaderName \n$infoLog")
+                    GameEngineI.logger.warn("Could not compile $type shader $shaderName \n$infoLog")
                 }
             }
         }
