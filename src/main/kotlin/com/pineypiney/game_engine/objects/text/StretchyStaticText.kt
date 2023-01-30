@@ -31,10 +31,6 @@ open class StretchyStaticText(text: String, final override val window: WindowI, 
         updateAspectRatio(window)
     }
 
-    final override fun setDefaults(height: Float){
-        defaultCharHeight = height
-    }
-
     final override fun getScreenSize(): Vec2 = getScreenSize(text)
 
     override fun draw() {

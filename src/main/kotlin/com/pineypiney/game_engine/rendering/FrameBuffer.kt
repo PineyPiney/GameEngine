@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import glm_.i
 import glm_.vec2.Vec2t
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL30C.*
 import java.nio.ByteBuffer
 
 class FrameBuffer(var width: Int, var height: Int): Deleteable {

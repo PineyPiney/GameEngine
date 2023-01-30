@@ -34,12 +34,19 @@ abstract class ResourcesLoader {
     fun loadResources(){
         val streamMap = getStreams()
 
-        GameEngineI.logger.info("Loaded Shaders in ${timeActionM{ ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) }) }.round(2)} ms")
-        GameEngineI.logger.info("Loaded Textures in ${timeActionM{ TextureLoader.INSTANCE.loadTextures(this, streamList.filter { it.startsWith(textureLocation) }.map { it.removePrefix(textureLocation) }) }.round(2)} ms")
-        GameEngineI.logger.info("Loaded Audio in ${timeActionM{ AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }.mapKeys { it.key.removePrefix(audioLocation) }) }.round(2)} ms")
-        GameEngineI.logger.info("Loaded Videos in ${timeActionM{ VideoLoader.INSTANCE.loadVideos(this, streamList.filter { it.startsWith(videoLocation) }.map { it.removePrefix(videoLocation) }) }.round(2)} ms")
-        GameEngineI.logger.info("Loaded Models in ${timeActionM{ ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) }) }.round(2)} ms")
+        GameEngineI.logger.info("Loaded Shaders in ${timeActionM{ loadShaders(streamMap) }.round(2)} ms")
+        GameEngineI.logger.info("Loaded Textures in ${timeActionM{ loadTextures(streamMap) }.round(2)} ms")
+        GameEngineI.logger.info("Loaded Audio in ${timeActionM{ loadAudio(streamMap) }.round(2)} ms")
+        GameEngineI.logger.info("Loaded Videos in ${timeActionM{ loadVideos() }.round(2)} ms")
+        GameEngineI.logger.info("Loaded Models in ${timeActionM{ loadModels(streamMap) }.round(2)} ms")
     }
+
+    fun loadShaders(streamMap: Map<String, InputStream>){ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) }) }
+    fun loadTextures(streamMap: Map<String, InputStream>){TextureLoader.INSTANCE.loadTextures(streamMap.filter { it.key.startsWith(textureLocation) && TextureLoader.fileTypes.contains(it.key.split('.').last()) }.mapKeys { it.key.removePrefix(textureLocation) }) }
+    fun loadAudio(streamMap: Map<String, InputStream>){AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }.mapKeys { it.key.removePrefix(audioLocation) }) }
+    fun loadVideos(){VideoLoader.INSTANCE.loadVideos(streamList.filter { it.startsWith(videoLocation) }.map { it.removePrefix(videoLocation) }) }
+    fun loadModels(streamMap: Map<String, InputStream>){ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) }) }
+
 
     fun cleanUp(){
         ShaderLoader.INSTANCE.delete()

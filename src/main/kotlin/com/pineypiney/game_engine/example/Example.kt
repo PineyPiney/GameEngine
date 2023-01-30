@@ -6,10 +6,9 @@ import com.pineypiney.game_engine.LibrarySetUp
 import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.directory
-import org.lwjgl.opengl.GL11C.glClearColor
-import org.lwjgl.opengl.GL11C.glEnable
-import org.lwjgl.opengl.GL13C.GL_MULTISAMPLE
+import glm_.vec4.Vec4
 
 fun main() {
 
@@ -29,13 +28,13 @@ fun main() {
 
             // Create all the fonts
             FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", resourcesLoader, 128, 256, 0.0625f)
-            FontLoader.INSTANCE.loadFontFromTTF("LightSlab.ttf", resourcesLoader, res = 200)
+            FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader, res = 200)
         }
 
         override fun init() {
             super.init()
-            glEnable(GL_MULTISAMPLE)
-            glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
+            GLFunc.multiSample = true
+            GLFunc.clearColour = Vec4(1.0f, 0.0f, 0.0f, 1.0f)
         }
 
         override var activeScreen: Game = Game(this)

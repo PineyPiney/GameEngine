@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.util.shapes
 
-import org.lwjgl.opengl.GL31.*
+import org.lwjgl.opengl.GL31C.*
 
 open class ArrayShape(vertices: FloatArray, parts: IntArray): Shape() {
 

@@ -28,6 +28,7 @@ import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.video.VideoLoader
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.angle
 import com.pineypiney.game_engine.util.extension_functions.fromAngle
@@ -44,8 +45,8 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
+import glm_.vec4.Vec4i
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.opengl.GL11C
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sign
@@ -86,7 +87,7 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
 
     private val text = SizedStaticText("X Part: 0.00 \nY Part: 0.00", window, 16, Vec2(0.5, 0.2))
     private val gameText = StretchyGameText("This is some Stretchy Game Text", Vec2(8.88, 10), Vec4(0.0, 1.0, 1.0, 1.0))
-    private val siGameText = SizedGameText("This is some Sized Game Text", 300, Vec2(13, 10), Vec4(0.0, 1.0, 1.0, 1.0)).apply { alignment = SizedText.ALIGN_CENTER }
+    private val siGameText = SizedGameText("This is some Sized Game Text", 100, Vec2(7, 10), Vec4(0.0, 1.0, 1.0, 1.0)).apply { alignment = SizedText.ALIGN_CENTER }
 
     private val list = BasicScrollList(Vec2(-1, 0.4), Vec2(0.6), 1f, 0.05f, arrayOf("Hello", "World"), window)
 
@@ -246,7 +247,7 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
 
     override fun updateAspectRatio(window: WindowI) {
         super.updateAspectRatio(window)
-        GL11C.glViewport(0, 0, window.width, window.height)
+        GLFunc.viewport = Vec4i(0, 0, window.width, window.height)
         text.updateAspectRatio(window)
         textField.updateAspectRatio(window)
     }

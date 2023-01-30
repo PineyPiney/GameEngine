@@ -6,7 +6,7 @@ import glm_.vec3.Vec3i
 import kool.cap
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.javacv.FFmpegFrameGrabber
-import org.lwjgl.opengl.GL12.*
+import org.lwjgl.opengl.GL12C.*
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 
@@ -14,7 +14,7 @@ class VideoLoader private constructor() {
 
     val videos = mutableMapOf<ResourceKey, String>()
 
-    fun loadVideos(loader: ResourcesLoader, files: List<String>) {
+    fun loadVideos(files: List<String>) {
         videos.putAll(files.filter { it.lastIndexOf('.') > 0 }.associateBy { ResourceKey(it.substringBefore('.')) })
     }
 

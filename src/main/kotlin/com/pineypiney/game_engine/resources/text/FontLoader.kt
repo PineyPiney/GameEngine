@@ -14,7 +14,6 @@ import glm_.i
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL12C
 import java.awt.font.FontRenderContext
 import java.io.InputStream
@@ -133,7 +132,7 @@ class FontLoader private constructor(): AbstractResourceLoader<Font>() {
                 else listOf(0.b, 0.b, 0.b, 255.b)
             }
             val array = pixels.flatten().toByteArray()
-            Texture("", TextureLoader.createTexture(array, size.x, size.y, GL11C.GL_RGBA, wrapping = GL12C.GL_CLAMP_TO_EDGE)).apply { setSamples(4) }
+            Texture("", TextureLoader.createTexture(array, size.x, size.y, GL12C.GL_RGBA, wrapping = GL12C.GL_CLAMP_TO_EDGE)).apply { setSamples(4) }
         }
 
         this.map[ResourceKey(fontName.substringBefore('.'))] = TrueTypeFont(font, map, ctx, shader)

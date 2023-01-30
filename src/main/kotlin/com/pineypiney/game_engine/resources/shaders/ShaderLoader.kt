@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.delete
 import glm_.bool
-import org.lwjgl.opengl.GL32.*
+import org.lwjgl.opengl.GL32C.*
 import java.io.InputStream
 
 class ShaderLoader private constructor(): Deleteable{

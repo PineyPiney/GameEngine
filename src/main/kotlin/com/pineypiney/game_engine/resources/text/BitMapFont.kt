@@ -54,7 +54,7 @@ class BitMapFont(val texture: Texture, private val charDimensions: Map<Char, Vec
                 yOffset--
                 continue
             }
-            val quad = TextQuad(createTextVertices(char, dimensions.y, dimensions.w), texture, Vec2(xOffset, yOffset))
+            val quad = TextQuad(createTextVertices(char, dimensions.w, dimensions.y), texture, Vec2(xOffset, yOffset))
             xOffset += getCharWidth(char) + characterSpacing
             quads.add(quad)
         }
@@ -66,19 +66,20 @@ class BitMapFont(val texture: Texture, private val charDimensions: Map<Char, Vec
 
         val letterIndex = char.i - 32
         val letterPoint = Vec2i((letterIndex%columns) * letterWidth, texture.height - ((letterIndex/columns) * letterHeight))
-        val letterSize = Vec2(getCharWidth(char).f / columns, -pixelHeight/ texture.height)
-        val texturePos = Vec2(letterPoint.x.f / texture.width, (letterPoint.y - bottom) / texture.height)
+        val letterSize = Vec2(getCharWidth(char).f / columns, pixelHeight/ texture.height)
+        val texturePos = Vec2(letterPoint.x.f / texture.width, (letterPoint.y - top) / texture.height)
 
-        return createTextVertices(texturePos, texturePos + letterSize, getCharWidth(char).f)
+        val height = pixelHeight / letterWidth
+        return createTextVertices(texturePos, texturePos + letterSize, getCharWidth(char), height)
     }
 
-    fun createTextVertices(topLeft: Vec2, bottomRight: Vec2, width: Float) : FloatArray {
+    fun createTextVertices(topLeft: Vec2, bottomRight: Vec2, width: Float, height: Float) : FloatArray {
         return Shape.floatArrayOf(
             // Positions    Texture
             0.0f, 0.0f, topLeft.x, topLeft.y,
             width, 0.0f, bottomRight.x, topLeft.y,
-            width, 1.0f, bottomRight.x, bottomRight.y,
-            0.0f, 1.0f, topLeft.x, bottomRight.y,
+            width, height, bottomRight.x, bottomRight.y,
+            0.0f, height, topLeft.x, bottomRight.y,
         )
     }
 

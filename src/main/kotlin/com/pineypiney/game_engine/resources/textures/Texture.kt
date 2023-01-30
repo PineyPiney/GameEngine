@@ -8,8 +8,7 @@ import glm_.vec2.Vec2i
 import kool.Buffer
 import kool.ByteBuffer
 import kool.lim
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.GL32C.*
 import java.nio.ByteBuffer
 
 class Texture(val fileName: String, val texturePointer: Int, val target: Int = GL_TEXTURE_2D) : Resource() {
@@ -27,7 +26,6 @@ class Texture(val fileName: String, val texturePointer: Int, val target: Int = G
     fun bind(){
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(target, texturePointer)
-        GL11.GL_TEXTURE_2D
     }
 
     fun unbind(){

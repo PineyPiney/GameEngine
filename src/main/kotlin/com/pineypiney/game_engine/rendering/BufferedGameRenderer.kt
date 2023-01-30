@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.util.shapes.Shape
-import org.lwjgl.opengl.GL13.*
+import org.lwjgl.opengl.GL13C.*
 
 abstract class BufferedGameRenderer<E: GameLogicI>: GameRenderer<E>() {
 

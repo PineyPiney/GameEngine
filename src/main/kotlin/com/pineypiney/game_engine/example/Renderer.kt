@@ -5,10 +5,13 @@ import com.pineypiney.game_engine.objects.Renderable
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
 import com.pineypiney.game_engine.rendering.FrameBuffer
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 import com.pineypiney.game_engine.util.maths.I
-import org.lwjgl.opengl.GL11.*
+import glm_.vec2.Vec2i
+import org.lwjgl.opengl.GL11C.GL_ONE_MINUS_SRC_ALPHA
+import org.lwjgl.opengl.GL11C.GL_SRC_ALPHA
 
 class Renderer(override val window: WindowI): BufferedGameRenderer<Game>() {
 
@@ -18,9 +21,9 @@ class Renderer(override val window: WindowI): BufferedGameRenderer<Game>() {
     override fun init() {
         super.init()
 
-        glDisable(GL_DEPTH_TEST)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        GLFunc.depthTest = false
+        GLFunc.blend = true
+        GLFunc.blendFunc = Vec2i(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         screenUniforms.setIntUniform("effects") { 0 }
     }

@@ -9,7 +9,7 @@ import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.extension_functions.expand
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
-import org.lwjgl.opengl.GL31.*
+import org.lwjgl.opengl.GL31C.*
 
 // Meshes are made up of faces, which are in turn made up of MeshVertices.
 // Mesh vertices are each associated with a position, normal and texMap,

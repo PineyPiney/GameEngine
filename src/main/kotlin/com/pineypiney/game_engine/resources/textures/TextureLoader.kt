@@ -4,11 +4,10 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.removeNullValues
 import glm_.vec3.Vec3i
 import kool.toBuffer
 import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL32C.*
+import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.stb.STBImage
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -17,8 +16,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 
     override val missing: Texture get() = Texture.broke
 
-    fun loadTextures(loader: ResourcesLoader, textures: List<String>) {
-        val streams = textures.filter { fileTypes.contains(it.split('.').getOrNull(1)) }.associateWith { loader.getStream("textures/$it") }.removeNullValues()
+    fun loadTextures(streams: Map<String, InputStream>) {
         val pointers = IntArray(streams.size)
         GL11C.glGenTextures(pointers)
         val pList = pointers.toMutableList()

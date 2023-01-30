@@ -31,7 +31,6 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
 
     override fun init() {
         uniforms = shader.compileUniforms()
-
     }
 
     override fun setUniforms(){

@@ -14,10 +14,10 @@ import glm_.vec3.Vec3t
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4i
 import glm_.vec4.Vec4t
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL30
-import org.lwjgl.opengl.GL40
-import org.lwjgl.opengl.GL40.*
+import org.lwjgl.opengl.GL20C
+import org.lwjgl.opengl.GL20C.*
+import org.lwjgl.opengl.GL30C
+import org.lwjgl.opengl.GL40C
 
 class Shader(private var ID: Int, val vName: String, val fName: String, val gName: String? = null, val uniforms: Map<String, String>) : Deleteable {
 
@@ -33,52 +33,52 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
 
     // Functions to set uniforms within shaders
 
-    fun setBool(name: String, value: Boolean) = set1(name, value.i, GL20::glUniform1i)
-    fun setBools(name: String, values: BooleanArray) = set1(name, values.map { it.i }.toIntArray(), GL20::glUniform1iv)
+    fun setBool(name: String, value: Boolean) = set1(name, value.i, GL20C::glUniform1i)
+    fun setBools(name: String, values: BooleanArray) = set1(name, values.map { it.i }.toIntArray(), GL20C::glUniform1iv)
 
-    fun setInt(name: String, value: Int) = set1(name, value, GL20::glUniform1i)
-    fun setInts(name: String, values: IntArray) = set1(name, values, GL20::glUniform1iv)
+    fun setInt(name: String, value: Int) = set1(name, value, GL20C::glUniform1i)
+    fun setInts(name: String, values: IntArray) = set1(name, values, GL20C::glUniform1iv)
 
-    fun setUInt(name: String, value: UInt) = set1(name, value.toInt(), GL30::glUniform1ui)
-    fun setUInts(name: String, values: IntArray) = set1(name, values, GL30::glUniform1uiv)
+    fun setUInt(name: String, value: UInt) = set1(name, value.toInt(), GL30C::glUniform1ui)
+    fun setUInts(name: String, values: IntArray) = set1(name, values, GL30C::glUniform1uiv)
 
-    fun setFloat(name: String, value: Float) = set1(name, value, GL30::glUniform1f)
-    fun setFloats(name: String, values: FloatArray) = set1(name, values, GL30::glUniform1fv)
+    fun setFloat(name: String, value: Float) = set1(name, value, GL30C::glUniform1f)
+    fun setFloats(name: String, values: FloatArray) = set1(name, values, GL30C::glUniform1fv)
 
-    fun setDouble(name: String, value: Double) = set1(name, value, GL40::glUniform1d)
-    fun setDoubles(name: String, values: DoubleArray) = set1(name, values, GL40::glUniform1dv)
+    fun setDouble(name: String, value: Double) = set1(name, value, GL40C::glUniform1d)
+    fun setDoubles(name: String, values: DoubleArray) = set1(name, values, GL40C::glUniform1dv)
 
-    fun setVec2(name: String, v: Vec2t<*>) = set2(name, Vec2(v), GL20::glUniform2f)
-    fun setVec2(name: String, x: Number, y: Number) = set2(name, Vec2(x, y), GL20::glUniform2f)
-    fun setVec2i(name: String, v: Vec2t<*>) = set2(name, Vec2i(v), GL20::glUniform2i)
-    fun setVec2i(name: String, x: Number, y: Number) = set2(name, Vec2i(x, y), GL20::glUniform2i)
+    fun setVec2(name: String, v: Vec2t<*>) = set2(name, Vec2(v), GL20C::glUniform2f)
+    fun setVec2(name: String, x: Number, y: Number) = set2(name, Vec2(x, y), GL20C::glUniform2f)
+    fun setVec2i(name: String, v: Vec2t<*>) = set2(name, Vec2i(v), GL20C::glUniform2i)
+    fun setVec2i(name: String, x: Number, y: Number) = set2(name, Vec2i(x, y), GL20C::glUniform2i)
 
-    fun setVec3(name: String, v: Vec3t<*>) = set3(name, Vec3(v), GL20::glUniform3f)
-    fun setVec3(name: String, r: Number, g: Number, b: Number) = set3(name, Vec3(r, g, b), GL20::glUniform3f)
-    fun setVec3i(name: String, v: Vec3t<*>) = set3(name, Vec3i(v), GL20::glUniform3i)
-    fun setVec3i(name: String, r: Number, g: Number, b: Number) = set3(name, Vec3i(r, g, b), GL20::glUniform3i)
+    fun setVec3(name: String, v: Vec3t<*>) = set3(name, Vec3(v), GL20C::glUniform3f)
+    fun setVec3(name: String, r: Number, g: Number, b: Number) = set3(name, Vec3(r, g, b), GL20C::glUniform3f)
+    fun setVec3i(name: String, v: Vec3t<*>) = set3(name, Vec3i(v), GL20C::glUniform3i)
+    fun setVec3i(name: String, r: Number, g: Number, b: Number) = set3(name, Vec3i(r, g, b), GL20C::glUniform3i)
 
-    fun setVec4(name: String, v: Vec4t<*>) = set4(name, Vec4(v), GL20::glUniform4f)
-    fun setVec4(name: String, r: Number, g: Number, b: Number, a: Number) = set4(name, Vec4(r, g, b, a), GL20::glUniform4f)
-    fun setVec4i(name: String, v: Vec4t<*>) = set4(name, Vec4i(v), GL20::glUniform4i)
-    fun setVec4i(name: String, r: Number, g: Number, b: Number, a: Number) = set4(name, Vec4i(r, g, b, a), GL20::glUniform4i)
+    fun setVec4(name: String, v: Vec4t<*>) = set4(name, Vec4(v), GL20C::glUniform4f)
+    fun setVec4(name: String, r: Number, g: Number, b: Number, a: Number) = set4(name, Vec4(r, g, b, a), GL20C::glUniform4f)
+    fun setVec4i(name: String, v: Vec4t<*>) = set4(name, Vec4i(v), GL20C::glUniform4i)
+    fun setVec4i(name: String, r: Number, g: Number, b: Number, a: Number) = set4(name, Vec4i(r, g, b, a), GL20C::glUniform4i)
 
-    fun <E: Vec2t<*>> setVec2s(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f) }.toFloatArray(), GL20::glUniform2fv)
-    fun <E: Vec2t<*>> setVec2is(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i) }.toIntArray(), GL20::glUniform2iv)
-    fun <E: Vec3t<*>> setVec3s(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f) }.toFloatArray(), GL20::glUniform3fv)
-    fun <E: Vec3t<*>> setVec3is(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i) }.toIntArray(), GL20::glUniform3iv)
-    fun <E: Vec4t<*>> setVec4s(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f, it.w.f) }.toFloatArray(), GL20::glUniform4fv)
-    fun <E: Vec4t<*>> setVec4is(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i, it.w.i) }.toIntArray(), GL20::glUniform4iv)
+    fun <E: Vec2t<*>> setVec2s(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f) }.toFloatArray(), GL20C::glUniform2fv)
+    fun <E: Vec2t<*>> setVec2is(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i) }.toIntArray(), GL20C::glUniform2iv)
+    fun <E: Vec3t<*>> setVec3s(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f) }.toFloatArray(), GL20C::glUniform3fv)
+    fun <E: Vec3t<*>> setVec3is(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i) }.toIntArray(), GL20C::glUniform3iv)
+    fun <E: Vec4t<*>> setVec4s(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f, it.w.f) }.toFloatArray(), GL20C::glUniform4fv)
+    fun <E: Vec4t<*>> setVec4is(name: String, values: Array<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i, it.w.i) }.toIntArray(), GL20C::glUniform4iv)
 
-    fun <E: Vec2t<*>> setVec2s(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f) }.toFloatArray(), GL20::glUniform2fv)
-    fun <E: Vec2t<*>> setVec2is(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i) }.toIntArray(), GL20::glUniform2iv)
-    fun <E: Vec3t<*>> setVec3s(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f) }.toFloatArray(), GL20::glUniform3fv)
-    fun <E: Vec3t<*>> setVec3is(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i) }.toIntArray(), GL20::glUniform3iv)
-    fun <E: Vec4t<*>> setVec4s(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f, it.w.f) }.toFloatArray(), GL20::glUniform4fv)
-    fun <E: Vec4t<*>> setVec4is(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i, it.w.i) }.toIntArray(), GL20::glUniform4iv)
+    fun <E: Vec2t<*>> setVec2s(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f) }.toFloatArray(), GL20C::glUniform2fv)
+    fun <E: Vec2t<*>> setVec2is(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i) }.toIntArray(), GL20C::glUniform2iv)
+    fun <E: Vec3t<*>> setVec3s(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f) }.toFloatArray(), GL20C::glUniform3fv)
+    fun <E: Vec3t<*>> setVec3is(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i) }.toIntArray(), GL20C::glUniform3iv)
+    fun <E: Vec4t<*>> setVec4s(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.f, it.y.f, it.z.f, it.w.f) }.toFloatArray(), GL20C::glUniform4fv)
+    fun <E: Vec4t<*>> setVec4is(name: String, values: List<E>) = set1(name, values.flatMap { listOf(it.x.i, it.y.i, it.z.i, it.w.i) }.toIntArray(), GL20C::glUniform4iv)
 
-    fun setMat4(name: String, value: Mat4) = setMatrix(name, value.array, GL20::glUniformMatrix4fv)
-    fun setMat4s(name: String, value: Array<Mat4>) = setMatrix(name, value.flatMap { it.array.toList() }.toFloatArray(), GL20::glUniformMatrix4fv)
+    fun setMat4(name: String, value: Mat4) = setMatrix(name, value.array, GL20C::glUniformMatrix4fv)
+    fun setMat4s(name: String, value: Array<Mat4>) = setMatrix(name, value.flatMap { it.array.toList() }.toFloatArray(), GL20C::glUniformMatrix4fv)
 
     fun <E> set1(name: String, v: E, func: (Int, E) -> Unit) {
         val varLocation = getVar(name)

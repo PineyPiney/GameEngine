@@ -5,7 +5,7 @@ import glm_.vec2.Vec2
 
 class BasicListEntry(val name: String, parent: BasicScrollList, override val index: Int, window: WindowI): ScrollingListEntry<BasicScrollList>(parent) {
 
-    val text: ScrollerText = ScrollerText(name, window, size, limits)
+    val text: ScrollerText = ScrollerText(name, window, limits, size)
 
     override fun init() {
         super.init()

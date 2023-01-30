@@ -44,6 +44,10 @@ abstract class Text(text: String, override var colour: Vec4 = Vec4(1, 1, 1, 1),
         uniforms = shader.compileUniforms()
     }
 
+    override fun setDefaults(height: Float) {
+        defaultCharHeight = height
+    }
+
     override fun setUniforms() {
         uniforms.setVec4Uniform("colour"){ colour }
         uniforms.setFloatUniform("italic"){ italic }

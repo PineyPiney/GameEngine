@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.ObjectCollection
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11C.*
 
 abstract class GameRenderer<E: GameLogicI>: Initialisable {
 

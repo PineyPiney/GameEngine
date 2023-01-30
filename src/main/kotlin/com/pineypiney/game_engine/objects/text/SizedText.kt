@@ -21,10 +21,16 @@ abstract class SizedText(text: String, override val fontSize: Int = 100, colour:
     override fun init() {
         super.init()
         updateLines()
-        quads = lines.mapIndexed { i, l -> font.getQuads(l, i).toList() }.flatten().toTypedArray()
     }
 
-    abstract fun updateLines()
+    final override fun setDefaults(height: Float){
+        super.setDefaults(height)
+        updateLines()
+    }
+
+    open fun updateLines(){
+        quads = lines.mapIndexed { i, l -> font.getQuads(l, i).toList() }.flatten().toTypedArray()
+    }
 
     final override fun generateLines(): Array<String>{
         val lines = mutableListOf<String>()

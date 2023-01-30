@@ -27,11 +27,6 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
         setDefaults(fontSize.f / 100)
     }
 
-    final override fun setDefaults(height: Float) {
-        defaultCharHeight = height * 0.5f
-        updateLines()
-    }
-
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
         if(lines.isEmpty()) return
 
@@ -76,5 +71,6 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
     override fun updateLines() {
         lines = generateLines()
         lengths = lines.map { font.getSize(it).x / 100f }.toFloatArray()
+        super.updateLines()
     }
 }

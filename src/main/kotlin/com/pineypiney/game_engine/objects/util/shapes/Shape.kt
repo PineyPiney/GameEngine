@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.Deleteable
 import glm_.f
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL30C.*
 
 abstract class Shape: Deleteable {
 

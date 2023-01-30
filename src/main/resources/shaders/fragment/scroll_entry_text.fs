@@ -3,7 +3,6 @@
 
 in vec2 texCoords;
 
-uniform mat4 model;
 uniform sampler2D ourTexture;
 uniform vec4 colour;
 uniform vec2 limits;

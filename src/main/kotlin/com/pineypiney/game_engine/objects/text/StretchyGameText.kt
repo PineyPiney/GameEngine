@@ -35,10 +35,6 @@ open class StretchyGameText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
         }
     }
 
-    final override fun setDefaults(height: Float){
-        defaultCharHeight = height
-    }
-
     override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
         super.render(view, projection, tickDelta)
         val lineModel = transform.model.scale(defaultCharHeight, defaultCharHeight, 1f)

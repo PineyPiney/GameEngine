@@ -32,7 +32,7 @@ abstract class ScrollingListEntry<E: ScrollingListItem>(val parent: E): MenuItem
     override fun delete() {}
 
     companion object{
-        val entryShader = ShaderLoader.getShader(ResourceKey("vertex/scroll_entry"), ResourceKey("fragment/scroll_entry"))
-        val entryTextShader = ShaderLoader.getShader(ResourceKey("vertex/scroll_entry"), ResourceKey("fragment/scroll_entry_text"))
+        val entryShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/scroll_entry"))
+        val entryTextShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/scroll_entry_text"))
     }
 }

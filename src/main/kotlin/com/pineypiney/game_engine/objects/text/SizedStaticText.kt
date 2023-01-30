@@ -33,10 +33,6 @@ open class SizedStaticText(text: String, final override val window: WindowI, fon
     override var origin: Vec2 = Vec2()
     final override var size: Vec2 = getScreenSize()
 
-    final override fun setDefaults(height: Float){
-        defaultCharHeight = height
-    }
-
     final override fun getScreenSize(): Vec2 {
         if(lengths.isEmpty()) return Vec2()
         val maxWidth = lengths.maxOf { it }
@@ -88,6 +84,7 @@ open class SizedStaticText(text: String, final override val window: WindowI, fon
     override fun updateLines() {
         lines = generateLines()
         lengths = lines.map { getScreenSize(it).x }.toFloatArray()
+        super.updateLines()
     }
 
     final override fun updateAspectRatio(window: WindowI) {
