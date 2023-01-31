@@ -20,7 +20,6 @@ open class StretchyStaticText(text: String, final override val window: WindowI, 
             this(text, window, colour, bounds.x, bounds.y, font, shader)
 
     override var origin: Vec2 = Vec2()
-    override var size: Vec2 = getScreenSize()
 
     init {
         defaultCharHeight = textMaxHeight

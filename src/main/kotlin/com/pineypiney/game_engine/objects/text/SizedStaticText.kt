@@ -31,7 +31,6 @@ open class SizedStaticText(text: String, final override val window: WindowI, fon
     }
 
     override var origin: Vec2 = Vec2()
-    final override var size: Vec2 = getScreenSize()
 
     final override fun getScreenSize(): Vec2 {
         if(lengths.isEmpty()) return Vec2()

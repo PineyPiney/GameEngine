@@ -5,8 +5,10 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4i
+import kool.ByteBuffer
 import org.lwjgl.opengl.ARBImaging.GL_BLEND_COLOR
 import org.lwjgl.opengl.GL30C.*
+import java.nio.ByteBuffer
 
 class GLFunc {
 
@@ -69,18 +71,36 @@ class GLFunc {
             get() = glGetFloat(GL_POINT_SIZE)
             set(value) = glPointSize(value)
         val sampleBuffers: Int get() = glGetInteger(GL_SAMPLE_BUFFERS)
+
+        // Stencil Buffer
         var stencilClear: Int
             get() = glGetInteger(GL_STENCIL_CLEAR_VALUE)
             set(value) = glClearStencil(value)
         val stencilFunc: Int get() = glGetInteger(GL_STENCIL_FUNC)
         val stencilRef: Int get() = glGetInteger(GL_STENCIL_REF)
         val stencilMask: Int get() = glGetInteger(GL_STENCIL_VALUE_MASK)
+        var stencilWriteMask: Int
+            get() = glGetInteger(GL_STENCIL_WRITEMASK)
+            set(value) = glStencilMask(value)
         var stencilFRM: Vec3i
             get() = Vec3i(stencilFunc, stencilRef, stencilMask)
             set(value) = glStencilFunc(value.x, value.y, value.z)
-        var stencilTest
+        val stencilOpFail: Int get() = glGetInteger(GL_STENCIL_FAIL)
+        val stencilOpPassFail: Int get() = glGetInteger(GL_STENCIL_PASS_DEPTH_FAIL)
+        val stencilOpPass: Int get() = glGetInteger(GL_STENCIL_PASS_DEPTH_PASS)
+        var stencilOp: Vec3i
+            get() = Vec3i(stencilOpFail, stencilOpPassFail, stencilOpPass)
+            set(value) { glStencilOp(value.x, value.y, value.z) }
+        var stencilTest: Boolean
             get() = glGetBoolean(GL_STENCIL_TEST)
             set(value) = setBool(GL_STENCIL_TEST, value)
+        val stencilBuffer: ByteBuffer get(){
+            val viewport = viewport
+            val buffer = ByteBuffer(viewport.z * viewport.w)
+            glReadPixels(viewport.x, viewport.y, viewport.z, viewport.w, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, buffer)
+            return buffer
+        }
+
         val stereo: Boolean get() = glGetBoolean(GL_STEREO)
         val version: Vec2i get() = Vec2i(glGetInteger(GL_MAJOR_VERSION), glGetInteger(GL_MINOR_VERSION))
         var viewport

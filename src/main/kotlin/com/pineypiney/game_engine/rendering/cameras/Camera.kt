@@ -29,8 +29,14 @@ abstract class Camera(override val window: WindowI, pos: Vec3 = Vec3(0, 0, 5), u
     }
 
     open fun setPos(pos: Vec3){
-        this.cameraPos = pos.coerceIn(cameraMinPos, cameraMaxPos)
+        cameraPos = pos.coerceIn(cameraMinPos, cameraMaxPos)
     }
+
+    open fun translate(vec: Vec3){
+        cameraPos = (cameraPos + vec).coerceIn(cameraMinPos, cameraMaxPos)
+    }
+
+    open fun translate(vec: Vec2) = translate(Vec3(vec))
 
     open fun updateCameraVectors() {
         cameraRight = glm.cross(cameraFront, cameraUp).normalize()

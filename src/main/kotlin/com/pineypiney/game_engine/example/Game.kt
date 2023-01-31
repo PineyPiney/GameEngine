@@ -16,7 +16,7 @@ import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.objects.menu_items.VideoPlayer
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
-import com.pineypiney.game_engine.objects.menu_items.slider.BasicSlider
+import com.pineypiney.game_engine.objects.menu_items.slider.ColourSlider
 import com.pineypiney.game_engine.objects.text.SizedGameText
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.SizedText
@@ -63,6 +63,9 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
         val device = AudioEngine.getAllOutputDevices()[(0..1).random()]
         window.setAudioOutput(device)
         GameEngineI.logger.info("Setting audio out device to $device")
+
+        window.vSync = !window.vSync
+        println("Window vSync: ${window.vSync}")
     }
     private val bc = Rect2D(b.origin, 0.6f, 0.2f)
     private val cursorSquare = ColourSquare(size = Vec2(0.1f, 0.1f * window.aspectRatio))
@@ -70,14 +73,14 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
     private val button = TextButton("button", Vec2(0.6, 0.8), Vec2(0.4, 0.2), window){
         println("Pressed!")
         AudioSource(audio).play()
-        window.setCursor(intArrayOf(GLFW_HRESIZE_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).random())
+        window.setCursor(intArrayOf(GLFW_RESIZE_EW_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).random())
     }
     private val textField = ActionTextField(Vec2(-1), Vec2(1, 0.2), window){ _, char, _ ->
         println("Typing $char")
         AudioSource(audio).play()
         window.setCursor(0L)
     }
-    private val slider = BasicSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), 0f, 10f, 5f, window)
+    private val slider = ColourSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), window, ColourSlider.redShader, mutableMapOf("green" to 0.5f, "blue" to 0.5f))
 
     private val texture = SimpleTexturedGameObject2D(Texture.broke)
     private val model1 = ModelledGameObject2D(ModelLoader.getModel(ResourceKey("goblin")), Model.DEBUG_COLLIDER)
@@ -179,17 +182,23 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
 
         drawScene(tickDelta)
 
-        val speed = 10
-        if(pressedKeys.contains('W'.s)) this.camera.setPos(this.camera.cameraPos + Vec3(0, 1, 0) * Timer.frameDelta * speed)
-        if(pressedKeys.contains('S'.s)) this.camera.setPos(this.camera.cameraPos - Vec3(0, 1, 0) * Timer.frameDelta * speed)
-        if(pressedKeys.contains('A'.s)) this.camera.setPos(this.camera.cameraPos - Vec3(1, 0, 0) * Timer.frameDelta * speed)
-        if(pressedKeys.contains('D'.s)) this.camera.setPos(this.camera.cameraPos + Vec3(1, 0, 0) * Timer.frameDelta * speed)
+        val speed = 10 * Timer.frameDelta
+        val travel = Vec2()
+
+        if(pressedKeys.contains('W'.s)) travel += Vec2(0, speed)
+        if(pressedKeys.contains('S'.s)) travel -= Vec2(0, speed)
+        if(pressedKeys.contains('A'.s)) travel -= Vec2(speed, 0)
+        if(pressedKeys.contains('D'.s)) travel += Vec2(speed, 0)
+
+        if(travel != Vec2(0)){
+            camera.translate(travel)
+            updateText(input.mouse.lastPos)
+        }
     }
 
     override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
         super.onCursorMove(cursorPos, cursorDelta)
-        val wp = camera.screenToWorld(cursorPos)
-        text.text = wp.roundedString(2).let { "X Part: ${it[0]}\nY Part: ${it[1]}" }
+        updateText(cursorPos)
 
         cursorSquare.origin = cursorPos
 
@@ -235,6 +244,11 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
     override fun update(interval: Float, input: Inputs) {
         super.update(interval, input)
 
+        slider.run {
+            this["green"] = (this["green"] + interval).wrap(0f, 1f)
+            this["blue"] = this["green"]
+        }
+
         for (t in listOf(text, gameText, siGameText, *(list.items.map { it.text }.toTypedArray()))) {
             t.run {
                 underlineThickness = 0.06f
@@ -243,6 +257,11 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
         }
 
         object3D.rotate(Vec3(0.5, 1, 1.5) * interval)
+    }
+
+    fun updateText(cursorPos: Vec2){
+        val wp = camera.screenToWorld(cursorPos)
+        text.text = wp.roundedString(2).let { "X Part: ${it[0]}\nY Part: ${it[1]}" }
     }
 
     override fun updateAspectRatio(window: WindowI) {

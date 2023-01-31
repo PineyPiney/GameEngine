@@ -120,6 +120,18 @@ fun List<Int>.expand(size: Int, entry: Int = 0): List<Int>{
 }
 
 /**
+ * Returns a list containing all elements that are both instances of specified type parameter [R] and satisfy [predicate].
+ *
+ */
+inline fun<E, reified R> Iterable<E>.filterIsInstance(predicate: (E) -> Boolean): List<R>{
+    val a = ArrayList<R>()
+    for(e in this){
+        if(e is R && predicate(e)) a.add(e)
+    }
+    return a
+}
+
+/**
  * Returns a list containing all elements that are not instances of specified type parameter R.
  *
  * @return A new list with no elements of type R

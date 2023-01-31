@@ -10,6 +10,7 @@ import glm_.vec2.Vec2
 interface StaticTextI: TextI, MovableDrawable {
 
     val window: WindowI
+    override val size: Vec2 get() = getScreenSize()
 
     override fun getWidth(text: String): Float {
         val size = font.getSize(text)
@@ -27,58 +28,5 @@ interface StaticTextI: TextI, MovableDrawable {
         shader.setMat4("model", newModel)
         shader.setVec4("colour", colour)
         Shape.cornerSquareShape2D.bindAndDraw()
-    }
-
-    override fun drawCentered(p: Vec2){
-        val size = getScreenSize()
-        origin = p - (size/2)
-        draw()
-    }
-
-    override fun drawCenteredLeft(p: Vec2) {
-        val size = getScreenSize()
-        origin = p - Vec2(0f, size.y * 0.5f)
-        draw()
-    }
-
-    override fun drawCenteredTop(p: Vec2) {
-        val size = getScreenSize()
-        origin = p - Vec2(size.x * 0.5f, size.y)
-        draw()
-    }
-
-    override fun drawCenteredRight(p: Vec2) {
-        val size = getScreenSize()
-        origin = p - Vec2(size.x, size.y * 0.5f)
-        draw()
-    }
-
-    override fun drawCenteredBottom(p: Vec2) {
-        val size = getScreenSize()
-        origin = p - Vec2(size.x * 0.5f, 0f)
-        draw()
-    }
-
-    override fun drawTopLeft(p: Vec2) {
-        val size = getScreenSize()
-        origin = p - Vec2(0, size.y)
-        draw()
-    }
-
-    override fun drawTopRight(p: Vec2) {
-        val size = getScreenSize()
-        origin = p - size
-        draw()
-    }
-
-    override fun drawBottomLeft(p: Vec2) {
-        origin = p
-        draw()
-    }
-
-    override fun drawBottomRight(p: Vec2) {
-        val size = getScreenSize()
-        origin = p - Vec2(size.x, 0)
-        draw()
     }
 }

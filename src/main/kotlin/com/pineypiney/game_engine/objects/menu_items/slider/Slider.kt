@@ -14,8 +14,8 @@ abstract class Slider: InteractableMenuItem() {
     abstract var value: Float
     abstract val window: WindowI
 
-    private val range: Float; get() = high - low
-    val scale: Float; get() = (high - low) / size.x
+    private val range: Float get() = high - low
+    val scale: Float get() = range / size.x
 
     @Throws(IllegalArgumentException::class)
     override fun init() {
@@ -25,7 +25,11 @@ abstract class Slider: InteractableMenuItem() {
             throw(IllegalArgumentException("Set Slider with low value $low and high value $high, high must be greater than low"))
         }
 
-        pointer.origin = this.origin + Vec2(value/scale, 0)
+        pointer.origin = origin + Vec2(value/scale, 0)
+    }
+
+    override fun setChildren() {
+        addChild(pointer)
     }
 
     override fun setUniforms() {
@@ -34,12 +38,12 @@ abstract class Slider: InteractableMenuItem() {
         uniforms.setFloatUniform("aspect"){ window.aspectRatio }
     }
 
-    override fun setChildren() {
-        addChild(pointer)
-    }
-
     override fun draw() {
         super.draw()
+        drawPointer()
+    }
+
+    open fun drawPointer(){
         pointer.drawCenteredBottom(origin + Vec2(value / scale, size.y * 0.2))
     }
 
@@ -50,9 +54,5 @@ abstract class Slider: InteractableMenuItem() {
     open fun moveSliderTo(move: Float){
         val relative = (move - origin.x) / size.x
         value = (low + (relative * range)).coerceIn(low, high)
-    }
-
-    override fun updateAspectRatio(window: WindowI) {
-        super.updateAspectRatio(window)
     }
 }
