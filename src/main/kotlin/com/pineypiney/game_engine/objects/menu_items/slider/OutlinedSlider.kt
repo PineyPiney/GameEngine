@@ -8,7 +8,6 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
-import kool.ByteBuffer
 import org.lwjgl.opengl.GL11C
 
 abstract class OutlinedSlider(): Slider() {
@@ -34,9 +33,6 @@ abstract class OutlinedSlider(): Slider() {
         GLFunc.stencilFRM = Vec3i(GL11C.GL_ALWAYS, 1, 0xFF)
         GLFunc.stencilWriteMask = 0xFF
         shape.bindAndDraw()
-
-        val array = ByteBuffer(GLFunc.viewport.z * GLFunc.viewport.w)
-        GL11C.glReadPixels(0, 0, GLFunc.viewport.z, GLFunc.viewport.w, GL11C.GL_STENCIL_INDEX, GL11C.GL_UNSIGNED_BYTE, array)
 
         GLFunc.stencilFRM = Vec3i(GL11C.GL_NOTEQUAL, 1, 0xFF)
         GLFunc.stencilWriteMask = 0

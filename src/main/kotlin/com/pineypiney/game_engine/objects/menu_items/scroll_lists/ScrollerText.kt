@@ -19,7 +19,7 @@ class ScrollerText(text: String, window: WindowI,
     override fun setUniforms() {
         super.setUniforms()
         // Limit is in 0 to Window#height space so must be transformed
-        uniforms.setVec2Uniform("limits"){ (limits + Vec2(1)) * (GLFunc.viewport.w / 2f) }
+        uniforms.setVec2Uniform("limits"){ (limits + Vec2(1)) * (GLFunc.viewportO.y / 2f) }
     }
 
     override fun drawUnderline(model: Mat4, line: String, amount: Float) {

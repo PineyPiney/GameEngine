@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec2.Vec2
 
-open class BasicSliderPointer(override val parent: Slider, override val height: Float): SliderPointer() {
+open class BasicSliderPointer(override val parent: Slider, val height: Float): SliderPointer() {
 
     // Make size a variable to that it can be scaled when the aspect ratio is changed
     override var size: Vec2 = super.size

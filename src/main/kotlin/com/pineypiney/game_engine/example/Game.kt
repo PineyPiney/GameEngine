@@ -45,7 +45,6 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import glm_.vec4.Vec4i
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.PI
 import kotlin.math.cos
@@ -148,7 +147,6 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
             val passes = model1Rect containsPoint point
             val dt = Timer.getCurrentTime() - t
             if(passes){
-                println("Calc Time is $dt")
                 val pA = (Vec2(point) - model1.position).angle()
                 val a = (model1.rotation - pA).wrap(-PI.f, PI.f)
                 model1.rotate(a.sign * 0.05f)
@@ -266,9 +264,8 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
 
     override fun updateAspectRatio(window: WindowI) {
         super.updateAspectRatio(window)
-        GLFunc.viewport = Vec4i(0, 0, window.width, window.height)
+        GLFunc.viewportO = Vec2i(window.width, window.height)
         text.updateAspectRatio(window)
-        textField.updateAspectRatio(window)
     }
 
     override fun cleanUp() {
@@ -276,6 +273,5 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
         text.delete()
         gameText.delete()
         siGameText.delete()
-        textField.delete()
     }
 }

@@ -20,7 +20,7 @@ abstract class SizedText(text: String, override val fontSize: Int = 100, colour:
 
     override fun init() {
         super.init()
-        updateLines()
+        setDefaults(fontSize / 100f)
     }
 
     final override fun setDefaults(height: Float){

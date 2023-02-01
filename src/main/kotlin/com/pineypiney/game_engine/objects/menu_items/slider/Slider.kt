@@ -14,7 +14,7 @@ abstract class Slider: InteractableMenuItem() {
     abstract var value: Float
     abstract val window: WindowI
 
-    private val range: Float get() = high - low
+    protected val range: Float get() = high - low
     val scale: Float get() = range / size.x
 
     @Throws(IllegalArgumentException::class)

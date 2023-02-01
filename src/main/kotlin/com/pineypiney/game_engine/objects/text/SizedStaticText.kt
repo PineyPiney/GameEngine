@@ -26,10 +26,6 @@ open class SizedStaticText(text: String, final override val window: WindowI, fon
                 shader: Shader = Font.fontShader):
             this(text, window, 100, colour, bounds.x, bounds.y, separation, font, shader)
 
-    init{
-        updateAspectRatio(window)
-    }
-
     override var origin: Vec2 = Vec2()
 
     final override fun getScreenSize(): Vec2 {
@@ -88,6 +84,5 @@ open class SizedStaticText(text: String, final override val window: WindowI, fon
 
     final override fun updateAspectRatio(window: WindowI) {
         setDefaults(fontSize.f / 100)
-        updateLines()
     }
 }

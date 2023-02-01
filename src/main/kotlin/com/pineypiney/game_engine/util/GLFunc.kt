@@ -106,6 +106,9 @@ class GLFunc {
         var viewport
             get() = Vec4i(0, getInts(GL_VIEWPORT, 4))
             set(value) = glViewport(value.x, value.y, value.z, value.w)
+        var viewportO: Vec2i
+            get() = Vec2i(2, getInts(GL_VIEWPORT, 4))
+            set(value) = glViewport(0, 0, value.x, value.y)
 
         val maxViewPort: Vec2i get() = Vec2i(0, getInts(GL_MAX_VIEWPORT_DIMS, 0))
 
