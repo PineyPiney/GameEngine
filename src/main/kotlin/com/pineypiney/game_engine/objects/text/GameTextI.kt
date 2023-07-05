@@ -11,8 +11,8 @@ interface GameTextI: TextI, Renderable {
     val transform: Transform2D
 
     override fun getWidth(text: String): Float {
-        val size = font.getSize(text)
-        return size.x * defaultCharHeight
+        val size = font.getWidth(text)
+        return size * defaultCharHeight
     }
 
     fun renderUnderline(model: Mat4, view: Mat4, projection: Mat4, line: String = text, amount: Float = underlineAmount){

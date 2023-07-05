@@ -30,7 +30,13 @@ interface GameEngineI<E: GameLogicI> : Runnable {
     fun cleanUp()
 
     companion object {
-        val logger = KotlinLogging.logger("Game Engine")
         var defaultFont = ""
+        val logger = KotlinLogging.logger("Game Engine")
+
+        fun info(msg: String, obj: Any? = null) = logger.info(msg, obj)
+        fun debug(msg: String, obj: Any? = null) = logger.debug(msg, obj)
+        fun warn(msg: String, obj: Any? = null) = logger.warn(msg, obj)
+        fun error(msg: String, obj: Any? = null) = logger.error(msg, obj)
+        fun trace(msg: String, obj: Any? = null) = logger.trace(msg, obj)
     }
 }

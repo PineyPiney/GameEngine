@@ -41,16 +41,16 @@ class ShaderLoader private constructor(): Deleteable{
 
     fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): Shader{
         val vertex: SubShader = shaderMap.getOrElse(vertexKey){
-            GameEngineI.logger.warn("Could not find vertex shader ${vertexKey.key}")
+            GameEngineI.warn("Could not find vertex shader ${vertexKey.key}")
             return Shader.brokeShader
         }
         val fragment: SubShader = shaderMap.getOrElse(fragmentKey){
-            GameEngineI.logger.warn("Could not find fragment shader ${fragmentKey.key}")
+            GameEngineI.warn("Could not find fragment shader ${fragmentKey.key}")
             return Shader.brokeShader
         }
         val geometry: SubShader? = geometryKey?.let{
             shaderMap.getOrElse(it){
-                GameEngineI.logger.warn("Could not find geometry shader ${it.key}")
+                GameEngineI.warn("Could not find geometry shader ${it.key}")
                 return Shader.brokeShader
             }
         }
@@ -138,7 +138,7 @@ class ShaderLoader private constructor(): Deleteable{
                 success = glGetProgrami(shader, GL_LINK_STATUS).bool
                 if (!success) {
                     infoLog = glGetProgramInfoLog(shader)
-                    GameEngineI.logger.warn("Could not link shaders $shaderName \n$infoLog")
+                    GameEngineI.warn("Could not link shaders $shaderName \n$infoLog")
                 }
             }
 
@@ -155,7 +155,7 @@ class ShaderLoader private constructor(): Deleteable{
                 success = glGetShaderi(shader, GL_COMPILE_STATUS).bool
                 if (!success) {
                     infoLog = glGetShaderInfoLog(shader)
-                    GameEngineI.logger.warn("Could not compile $type shader $shaderName \n$infoLog")
+                    GameEngineI.warn("Could not compile $type shader $shaderName \n$infoLog")
                 }
             }
         }

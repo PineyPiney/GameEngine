@@ -2,9 +2,12 @@ package com.pineypiney.game_engine.util.extension_functions
 
 import com.pineypiney.game_engine.util.maths.normal
 import glm_.f
+import glm_.i
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import kotlin.math.*
 
@@ -32,18 +35,21 @@ fun Vec2.normal(): Vec2 {
     return Vec2(y, -x)
 }
 
+fun Vec2i.length() = sqrt((x * x).f + (y * y))
+fun Vec3i.length() = sqrt((x * x).f + (y * y) + (z * z))
+
 /**
  * Coerce the x and y values of [this] between the x and y values of [low] and [high]
  *
  * @param low The minimum x and y values
  * @param high The maximum x and y values
  */
-fun Vec2.coerceIn(low: Vec2, high: Vec2): Vec2 = Vec2(this.x.coerceIn(low.x, high.x), this.y.coerceIn(low.y, high.y))
+fun Vec2.coerceIn(low: Vec2, high: Vec2): Vec2 = Vec2(x.coerceIn(low.x, high.x), y.coerceIn(low.y, high.y))
 
 /**
  * coerce [this] between -[mag] and [mag]
  */
-fun Vec2.coerceIn(mag: Vec2): Vec2 = this.coerceIn(-mag, mag)
+fun Vec2.coerceIn(mag: Vec2): Vec2 = coerceIn(-mag, mag)
 
 /**
  * Coerce the xyz values of [this] between the xyz values of [low] and [high]
@@ -51,32 +57,32 @@ fun Vec2.coerceIn(mag: Vec2): Vec2 = this.coerceIn(-mag, mag)
  * @param low The minimum xyz values
  * @param high The maximum xyz values
  */
-fun Vec3.coerceIn(low: Vec3, high: Vec3): Vec3 = Vec3(this.x.coerceIn(min(low.x, high.x), max(low.x, high.x)), this.y.coerceIn(min(low.y, high.y), max(low.y, high.y)), this.z.coerceIn(min(low.z, high.z), max(low.z, high.z)))
+fun Vec3.coerceIn(low: Vec3, high: Vec3): Vec3 = Vec3(x.coerceIn(min(low.x, high.x), max(low.x, high.x)), y.coerceIn(min(low.y, high.y), max(low.y, high.y)), z.coerceIn(min(low.z, high.z), max(low.z, high.z)))
 
 /**
  * Check if [this] is within a box of dimensions [size] starting at [origin]
  */
 fun Vec2.isWithin(origin: Vec2, size: Vec2): Boolean{
-    return this.x.isWithin(origin.x, size.x) &&
-            this.y.isWithin(origin.y, size.y)
+    return x.isWithin(origin.x, size.x) &&
+            y.isWithin(origin.y, size.y)
 }
 
 /**
  * Check if the xy values of [this] are larger than those of [bl] and smaller than those of [tr]
  */
 fun Vec2.isBetween(bl: Vec2, tr: Vec2): Boolean{
-    return this.x.isBetween(bl.x, tr.x) &&
-            this.y.isBetween(bl.y, tr.y)
+    return x.isBetween(bl.x, tr.x) &&
+            y.isBetween(bl.y, tr.y)
 }
 
 
 fun Vec2.round(round: Float): Vec2 {
-    this.x =
-        if(this.x >= 0) this.x - this.x.mod(round)
-        else this.x + round - this.x.mod(round)
-    this.y =
-        if(this.y >= 0 ) this.y - this.y.mod(round)
-        else this.y + round - this.y.mod(round)
+    x =
+        if(x >= 0) x - x.mod(round)
+        else x + round - x.mod(round)
+    y =
+        if(y >= 0 ) y - y.mod(round)
+        else y + round - y.mod(round)
 
     return this
 }
@@ -89,11 +95,11 @@ infix fun Vec3.projectOn(other: Vec3): Vec3{
     return other * (this dot other) / (other dot other)
 }
 
-fun Vec2.lerp(next: Vec2, delta: Float) = Vec2(this.x.lerp(next.x, delta), this.y.lerp(next.y, delta))
-fun Vec2.serp(next: Vec2, delta: Float) = Vec2(this.x.serp(next.x, delta), this.y.serp(next.y, delta))
-fun Vec2.eerp(next: Vec2, delta: Float, exponent: Int) = Vec2(this.x.eerp(next.x, delta, exponent), this.y.eerp(next.y, delta, exponent))
-fun Vec2.querp(next: Vec2, delta: Float) = Vec2(this.x.querp(next.x, delta), this.y.querp(next.y, delta))
-fun Vec2.cerp(next: Vec2, delta: Float) = Vec2(this.x.cerp(next.x, delta), this.y.cerp(next.y, delta))
+fun Vec2.lerp(next: Vec2, delta: Float) = Vec2(x.lerp(next.x, delta), y.lerp(next.y, delta))
+fun Vec2.serp(next: Vec2, delta: Float) = Vec2(x.serp(next.x, delta), y.serp(next.y, delta))
+fun Vec2.eerp(next: Vec2, delta: Float, exponent: Int) = Vec2(x.eerp(next.x, delta, exponent), y.eerp(next.y, delta, exponent))
+fun Vec2.querp(next: Vec2, delta: Float) = Vec2(x.querp(next.x, delta), y.querp(next.y, delta))
+fun Vec2.cerp(next: Vec2, delta: Float) = Vec2(x.cerp(next.x, delta), y.cerp(next.y, delta))
 
 
 fun Vec3.transform(m: Mat4): Vec3 {
@@ -102,6 +108,9 @@ fun Vec3.transform(m: Mat4): Vec3 {
 
 fun Vec2.roundedString(places: Int) = arrayOf("${x.round(places)}", "${y.round(places)}")
 fun Vec3.roundedString(places: Int) = arrayOf("${x.round(places)}", "${y.round(places)}", "${z.round(places)}")
+
+fun Vec3.toHex(): Int = (x * 255).i shl 16 + (y * 255).i shl 8 + (z * 255).i
+fun Vec4.toHex(): Int = (x * 255).i shl 24 + (y * 255).i shl 16 + (z * 255).i shl 8 + (w * 255).i
 
 fun Vec2.copy() = Vec2(0, floatArrayOf(x, y))
 fun Vec3.copy() = Vec3(0, floatArrayOf(x, y, z))

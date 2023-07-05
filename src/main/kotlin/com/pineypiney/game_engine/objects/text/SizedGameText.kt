@@ -65,7 +65,7 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
 
     override fun updateLines() {
         lines = generateLines()
-        lengths = lines.map { font.getSize(it).x / 100f }.toFloatArray()
+        lengths = lines.map { font.getWidth(it) / 100f }.toFloatArray()
         super.updateLines()
     }
 }

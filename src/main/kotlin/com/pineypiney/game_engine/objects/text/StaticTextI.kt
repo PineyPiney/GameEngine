@@ -13,8 +13,8 @@ interface StaticTextI: TextI, MovableDrawable {
     override val size: Vec2 get() = getScreenSize()
 
     override fun getWidth(text: String): Float {
-        val size = font.getSize(text)
-        return size.x * defaultCharHeight / window.aspectRatio
+        val size = font.getWidth(text)
+        return size * defaultCharHeight / window.aspectRatio
     }
 
     fun getScreenSize(): Vec2

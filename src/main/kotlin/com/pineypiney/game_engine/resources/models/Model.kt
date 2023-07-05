@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.objects.util.collision.CollisionBoxRenderer
 import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
 import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.resources.Resource
-import com.pineypiney.game_engine.resources.models.animations.Animation
+import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.models.animations.State
 import com.pineypiney.game_engine.resources.shaders.Shader
 import glm_.mat4x4.Mat4
@@ -20,7 +20,7 @@ import org.lwjgl.assimp.Assimp.aiProcess_Triangulate
 
 // Materials are also stored in the model, and accessed by the meshes through IDs
 
-class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<Animation>, val name: String = "broke", val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource() {
+class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<ModelAnimation>, val name: String = "broke", val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource() {
 
     var collisionBox: CollisionBox2D = SoftCollisionBox(null, Vec2(), Vec2(1))
 

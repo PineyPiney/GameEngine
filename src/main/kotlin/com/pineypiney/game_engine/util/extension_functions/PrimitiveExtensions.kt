@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.util.extension_functions
 
 import glm_.f
 import glm_.pow
+import unsigned.Ubyte
 import kotlin.math.*
 
 /**
@@ -202,3 +203,6 @@ fun <E> CharSequence.reduce(initial: E, operation: (acc: E, it: Char) -> E): E{
     }
     return accumulator
 }
+
+operator fun UByte.compareTo(other: Ubyte) = toInt() compareTo other.toInt()
+operator fun Ubyte.compareTo(other: UByte) = toInt() compareTo other.toInt()

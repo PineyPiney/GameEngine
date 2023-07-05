@@ -35,7 +35,7 @@ class Texture(val fileName: String, val texturePointer: Int, val target: Int = G
     fun setData(data: ByteBuffer, x: Int = 0, y: Int = 0, width: Int = this.width, height: Int = this.height, format: Int = this.format){
         bind()
         if(data.lim != width * height * numChannels){
-            GameEngineI.logger.warn("Buffer is not the right size to set texture data")
+            GameEngineI.warn("Buffer is not the right size to set texture data")
         }
         val buf = Buffer(data.lim){ data.get(it) }
         glTexSubImage2D(target, 0, x, y, width, height, format, GL_UNSIGNED_BYTE, buf)

@@ -18,6 +18,6 @@ abstract class StretchyText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
 
     override fun init() {
         super.init()
-        quads = font.getQuads(text, 0)
+        quads = font.getQuads(text).toTypedArray()
     }
 }

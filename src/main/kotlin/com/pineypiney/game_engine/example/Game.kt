@@ -7,9 +7,12 @@ import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.audio.AudioSource
 import com.pineypiney.game_engine.objects.Interactable
+import com.pineypiney.game_engine.objects.game_objects.objects_2D.AnimatedObject2D
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.ColourSquare
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.ModelledGameObject2D
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.SimpleTexturedGameObject2D
+import com.pineypiney.game_engine.objects.game_objects.objects_2D.texture_animation.FrameSelector
+import com.pineypiney.game_engine.objects.game_objects.objects_2D.texture_animation.TextureAnimation
 import com.pineypiney.game_engine.objects.game_objects.objects_3D.SimpleTexturedGameObject3D
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
@@ -27,6 +30,7 @@ import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.video.VideoLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
@@ -46,6 +50,7 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.openal.AL10
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sign
@@ -61,7 +66,7 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
     private val b = TextButton("Button", Vec2(-0.3, 0.6), Vec2(0.6, 0.2), window){
         val device = AudioEngine.getAllOutputDevices()[(0..1).random()]
         window.setAudioOutput(device)
-        GameEngineI.logger.info("Setting audio out device to $device")
+        GameEngineI.info("Setting audio out device to $device")
 
         window.vSync = !window.vSync
         println("Window vSync: ${window.vSync}")
@@ -75,10 +80,16 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
         window.setCursor(intArrayOf(GLFW_RESIZE_EW_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).random())
     }
     private val textField = ActionTextField(Vec2(-1), Vec2(1, 0.2), window){ _, char, _ ->
-        println("Typing $char")
-        AudioSource(audio).play()
+//        AudioSource(audio).play()
         window.setCursor(0L)
+
+        window.audioInputDevice?.let {
+            val input = it.sample()
+            val a = AudioLoader.bufferAudio(input, AL10.AL_FORMAT_MONO8, 44100)
+            AudioSource(a).play()
+        }
     }
+
     private val slider = ColourSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), window, ColourSlider.redShader, mutableMapOf("green" to 0.5f, "blue" to 0.5f))
 
     private val texture = SimpleTexturedGameObject2D(Texture.broke)
@@ -90,14 +101,26 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
     private val text = SizedStaticText("X Part: 0.00 \nY Part: 0.00", window, 16, Vec2(0.5, 0.2))
     private val gameText = StretchyGameText("This is some Stretchy Game Text", Vec2(8.88, 10), Vec4(0.0, 1.0, 1.0, 1.0))
     private val siGameText = SizedGameText("This is some Sized Game Text", 100, Vec2(7, 10), Vec4(0.0, 1.0, 1.0, 1.0)).apply { alignment = SizedText.ALIGN_CENTER }
+    private val testText = SizedStaticText("[ [", window, 20, Vec2(0.01, 2))
 
     private val list = BasicScrollList(Vec2(-1, 0.4), Vec2(0.6), 1f, 0.05f, arrayOf("Hello", "World"), window)
 
     val video = VideoPlayer(VideoLoader[ResourceKey("ghost"), gameEngine.resourcesLoader], Vec2(0.5, -0.15), Vec2(0.5, 0.3))
 
+    val snake = object: AnimatedObject2D(defaultShader){
+        override val frameSelector: FrameSelector = TextureAnimation(Array(5){ TextureLoader[ResourceKey("snake/snake_$it")] }, 0.7f)
+        override val animationOffset: Float = 0f
+
+        override fun init() {
+            super.init()
+            scale = Vec2(4)
+        }
+    }
+
     override fun init() {
         super.init()
         text.init()
+        testText.init()
 
         gameText.transform.position = Vec2(0, 2)
 
@@ -111,12 +134,14 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
         model2.setAnimation("Magic Trick")
         model1.translate(Vec2(2, -3))
         model2.translate(Vec2(3, -4))
+        snake.translate(Vec2(-2, -5))
     }
 
     override fun addObjects() {
         add(texture)
         add(model1)
         add(model2)
+        add(snake)
 
         add(object3D.apply { translate(Vec3(-2, 0, 0)) })
 
@@ -160,6 +185,7 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
 
     fun drawHUD(){
         text.drawCenteredLeft(Vec2(-1f, 0f))
+        testText.drawCenteredLeft(Vec2(-1f, -0.3f))
         button.draw()
         textField.draw()
         slider.draw()
@@ -266,11 +292,13 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
         super.updateAspectRatio(window)
         GLFunc.viewportO = Vec2i(window.width, window.height)
         text.updateAspectRatio(window)
+        testText.updateAspectRatio(window)
     }
 
     override fun cleanUp() {
         super.cleanUp()
         text.delete()
+        testText.delete()
         gameText.delete()
         siGameText.delete()
     }

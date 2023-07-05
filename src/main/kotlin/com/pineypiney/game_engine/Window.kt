@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine
 
-import com.pineypiney.game_engine.audio.AudioDevice
+import com.pineypiney.game_engine.audio.AudioInputDevice
+import com.pineypiney.game_engine.audio.AudioOutputDevice
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import glm_.bool
@@ -10,8 +11,8 @@ import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import kool.DoubleBuffer
 import kool.IntBuffer
-import kool.lib.toList
 import kool.toBuffer
+import kool.toByteArray
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.glfw.GLFWVidMode
@@ -32,7 +33,8 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
         }
 
     final override val windowHandle: Long = loadGL(title, width, height, fullScreen, samples)
-    final override var audioDevice: AudioDevice? = null
+    final override var audioOutputDevice: AudioOutputDevice? = null
+    final override var audioInputDevice: AudioInputDevice? = null
 
     override var title: String = title
         set(value) {
@@ -107,7 +109,7 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
         GLFW.glfwSetWindowCloseCallback(windowHandle, ::close)
     }
 
-    private fun loadGL(title: String, width: Int, height: Int, fullScreen: Boolean, samples: Int): Long{
+    protected open fun loadGL(title: String, width: Int, height: Int, fullScreen: Boolean, samples: Int): Long{
 
         GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
 
@@ -145,16 +147,23 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
         return windowHandle
     }
 
-    private fun loadAL(name: String? = null){
-        setAudioOutput(name)
+    protected open fun loadAL(){
+        setAudioOutput(null)
 
         val cCaps = ALC.getCapabilities()
         AL.createCapabilities(cCaps)
     }
 
     override fun setAudioOutput(name: String?){
-        audioDevice?.close()
-        audioDevice = AudioDevice(name)
+        audioOutputDevice?.close()
+        audioOutputDevice = AudioOutputDevice(name)
+    }
+
+    override fun setAudioInput(name: String?, freq: Int, format: Int, samples: Int) {
+        audioInputDevice?.stop()
+        audioInputDevice?.close()
+        audioInputDevice = AudioInputDevice(name, freq, format, samples)
+        audioInputDevice?.start()
     }
 
     override fun focus() {
@@ -220,7 +229,7 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
         // The data must be in RGBA 32-bit format
         val bytes = ResourcesLoader.ioResourceToByteBuffer(texture, 2048)
         val (data, info) = TextureLoader.loadImageFromMemory(bytes)
-        val pixels = data?.toList()?.chunked(info.z) ?: return
+        val pixels = data?.toByteArray()?.toList()?.chunked(info.z) ?: return
         val flipped = pixels.chunked(info.x).reversed().flatten()
         val rgba = flipped.flatMap { p -> List(4){ p.getOrElse(it){-1} } }
 
@@ -301,6 +310,6 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
     }
 
     override fun close(handle: Long){
-        audioDevice?.close()
+        audioOutputDevice?.close()
     }
 }

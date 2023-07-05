@@ -15,6 +15,7 @@ import java.nio.ByteBuffer
 class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() {
 
     override val missing: Texture get() = Texture.broke
+    val flags = mutableMapOf<String, Pair<Boolean, Int>>()
 
     fun loadTextures(streams: Map<String, InputStream>) {
         val pointers = IntArray(streams.size)
@@ -36,18 +37,19 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 
     private fun loadTexture(name: String, buffer: ByteBuffer, pointer: Int): Texture{
         if(!buffer.hasRemaining()){
-            GameEngineI.logger.warn("Buffer for texture $name is empty")
+            GameEngineI.warn("Buffer for texture $name is empty")
         }
         else {
+            val (flip, numChan) = flags[name] ?: (true to 0)
             loadIndividualSettings(pointer)
 
             // Load the image from file
-            if(loadImageFromFile(buffer)){
+            if(loadImageFromFile(buffer, flip, numChan)){
                 return Texture(name.substringAfterLast('\\').substringBefore('.'), pointer)
             }
 
             else {
-                GameEngineI.logger.warn("\nFailed to load texture $name")
+                GameEngineI.warn("\nFailed to load texture $name")
             }
         }
 
@@ -90,9 +92,9 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filtering)
         }
 
-        private fun loadImageFromFile(buffer: ByteBuffer, flip: Boolean = true): Boolean {
+        private fun loadImageFromFile(buffer: ByteBuffer, flip: Boolean = true, numChan: Int = 0): Boolean {
 
-            val (data, vec) = loadImageFromMemory(buffer, flip)
+            val (data, vec) = loadImageFromMemory(buffer, flip, numChan)
             if (data != null) {
 
                 val format = channelsToFormat(vec.z)
@@ -106,7 +108,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             return false
         }
 
-        fun loadImageFromMemory(buffer: ByteBuffer, flip: Boolean = true): Pair<ByteBuffer?, Vec3i>{
+        fun loadImageFromMemory(buffer: ByteBuffer, flip: Boolean = true, numChan: Int = 0): Pair<ByteBuffer?, Vec3i>{
             // Arrays are Java equivalent for pointers
             val widthA = IntArray(1)
             val heightA = IntArray(1)
@@ -115,8 +117,8 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             // Set the flip state of the image (default to true)
             STBImage.stbi_set_flip_vertically_on_load(flip)
             // Load texture data from file
-            val data: ByteBuffer? = STBImage.stbi_load_from_memory(buffer, widthA, heightA, numChannelsA, 0)
-            return data to Vec3i(widthA[0], heightA[0], numChannelsA[0])
+            val data: ByteBuffer? = STBImage.stbi_load_from_memory(buffer, widthA, heightA, numChannelsA, numChan)
+            return data to Vec3i(widthA[0], heightA[0], if(numChan == 0) numChannelsA[0] else numChan)
         }
 
         fun loadImageFromData(data: ByteBuffer?, width: Int, height: Int, format: Int, internalFormat: Int, type: Int){
@@ -162,6 +164,13 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             3 -> GL_RGB
             1 -> GL_RED
             else -> GL_RGB
+        }
+
+        fun setFlags(name: String, flip: Boolean, numChannels: Int = 0){
+            INSTANCE.flags[name] = flip to numChannels
+        }
+        fun setFlags(name: String, numChan: Int){
+            INSTANCE.flags[name] = true to numChan
         }
     }
 }

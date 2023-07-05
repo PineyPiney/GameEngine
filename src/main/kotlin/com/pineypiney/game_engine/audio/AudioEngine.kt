@@ -44,5 +44,6 @@ open class AudioEngine {
         }
 
         fun getAllOutputDevices(): List<String> = ALUtil.getStringList(0L, ALC11.ALC_ALL_DEVICES_SPECIFIER) ?: listOf()
+        fun getAllInputDevices(): List<String> = ALUtil.getStringList(0L, ALC11.ALC_CAPTURE_DEVICE_SPECIFIER) ?: listOf()
     }
 }

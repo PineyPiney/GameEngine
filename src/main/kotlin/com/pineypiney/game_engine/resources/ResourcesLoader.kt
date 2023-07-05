@@ -34,11 +34,11 @@ abstract class ResourcesLoader {
     fun loadResources(){
         val streamMap = getStreams()
 
-        GameEngineI.logger.info("Loaded Shaders in ${timeActionM{ loadShaders(streamMap) }.round(2)} ms")
-        GameEngineI.logger.info("Loaded Textures in ${timeActionM{ loadTextures(streamMap) }.round(2)} ms")
-        GameEngineI.logger.info("Loaded Audio in ${timeActionM{ loadAudio(streamMap) }.round(2)} ms")
-        GameEngineI.logger.info("Loaded Videos in ${timeActionM{ loadVideos() }.round(2)} ms")
-        GameEngineI.logger.info("Loaded Models in ${timeActionM{ loadModels(streamMap) }.round(2)} ms")
+        GameEngineI.info("Loaded Shaders in ${timeActionM{ loadShaders(streamMap) }.round(2)} ms", this)
+        GameEngineI.info("Loaded Textures in ${timeActionM{ loadTextures(streamMap) }.round(2)} ms")
+        GameEngineI.info("Loaded Audio in ${timeActionM{ loadAudio(streamMap) }.round(2)} ms")
+        GameEngineI.info("Loaded Videos in ${timeActionM{ loadVideos() }.round(2)} ms")
+        GameEngineI.info("Loaded Models in ${timeActionM{ loadModels(streamMap) }.round(2)} ms")
     }
 
     fun loadShaders(streamMap: Map<String, InputStream>){ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) }) }

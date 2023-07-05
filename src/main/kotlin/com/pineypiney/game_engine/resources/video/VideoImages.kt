@@ -46,8 +46,8 @@ class VideoImages(override val video: Video): VideoData<Texture>() {
         loadNextBuffer(frame)
         val d1 = t2 - t1
         val d2 = Timer.getCurrentTime() - t2
-        GameEngineI.logger.debug("Stage times are $d1 and $d2")
-        GameEngineI.logger.debug("Frame Time is ${(nextUpdate + 4) * video.frameRate}")
+        GameEngineI.debug("Stage times are $d1 and $d2")
+        GameEngineI.debug("Frame Time is ${(nextUpdate + 4) * video.frameRate}")
     }
 
     override fun delete() {

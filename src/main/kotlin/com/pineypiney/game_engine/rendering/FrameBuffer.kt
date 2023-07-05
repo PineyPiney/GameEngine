@@ -43,7 +43,7 @@ class FrameBuffer(var width: Int, var height: Int): Deleteable {
         glBindRenderbuffer(GL_RENDERBUFFER, 0)
 
         val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
-        if (status != GL_FRAMEBUFFER_COMPLETE) GameEngineI.logger.error("Framebuffer could not be completed, status was $status")
+        if (status != GL_FRAMEBUFFER_COMPLETE) GameEngineI.error("Framebuffer could not be completed, status was $status")
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
     }
 

@@ -5,6 +5,7 @@ import org.lwjgl.openal.AL10
 
 class Audio(val buf: Int): Resource() {
 
+
     val frequency get() = AL10.alGetBufferf(buf, AL10.AL_FREQUENCY)
     val bits get() = AL10.alGetBufferf(buf, AL10.AL_BITS)
     val channels get() = AL10.alGetBufferf(buf, AL10.AL_CHANNELS)

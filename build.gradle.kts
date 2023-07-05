@@ -1,5 +1,5 @@
+import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 
 
 plugins {
@@ -13,24 +13,24 @@ plugins {
 group = "com.pineypiney.game_engine"
 version = "1.0-SNAPSHOT"
 
-val lwjglVersion = "3.3.1"
-// Use https://www.lwjgl.org/customize to set natives
-val lwjglNatives = Pair(
-        System.getProperty("os.name")!!.toLowerCaseAsciiOnly(),
-        System.getProperty("os.arch")!!.toLowerCaseAsciiOnly()
-).let { (name, arch) ->
-    println("Running GameEngine on OS $name arch $arch")
-    when {
-        arrayOf("mac os x", "darwin").any { name.startsWith(it) } -> {
-            "natives-macos${if (arch.startsWith("aarch64")) "-arm64" else ""}"
-        }
+val lwjglVersion = "3.3.2"
 
-        arrayOf("windows", "linux").any { name.startsWith(it) } -> {
-            "natives-windows"
-        }
-
-        else -> throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
+val osArch: String = System.getProperty("os.arch")
+var a64 = osArch.startsWith("aarch64")
+var lwjglNatives = when (OperatingSystem.current()) {
+    OperatingSystem.LINUX -> {
+        if(osArch.startsWith("arm") || a64) "natives-linux-${if(osArch.contains("64") || osArch.startsWith("armv8")) "arm64" else "arm32"}"
+        else "natives-linux"
     }
+
+    OperatingSystem.MAC_OS -> {
+        if(a64) "natives-macos-arm64" else "natives-macos"
+    }
+    OperatingSystem.WINDOWS -> {
+        if(osArch.contains("64")) "natives-windows${if(a64) "-arm64" else ""}"
+        else "natives-windows-x86"
+    }
+    else -> ""
 }
 
 val javacv = "1.5.7"
@@ -38,6 +38,8 @@ val javacv = "1.5.7"
 repositories {
     mavenCentral()
     maven("https://jitpack.io")
+    // Mary is used by GLM because they say that Jitpack is cringe
+    maven("https://raw.githubusercontent.com/kotlin-graphics/mary/master")
 }
 
 dependencies {
@@ -48,8 +50,9 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.11")
 
     // GLM
-    implementation("com.github.kotlin-graphics.glm:glm:375708cf1c0942b0df9d624acddb1c9993f6d92d")
-
+    implementation("kotlin.graphics:kool:0.9.75")
+    implementation("kotlin.graphics:unsigned:3.3.32")
+    implementation("kotlin.graphics:glm:0.9.9.1-11")
 
     // LWJGL
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))

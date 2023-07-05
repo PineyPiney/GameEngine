@@ -30,10 +30,13 @@ open class SizedStaticText(text: String, final override val window: WindowI, fon
 
     final override fun getScreenSize(): Vec2 {
         if(lengths.isEmpty()) return Vec2()
-        val maxWidth = lengths.maxOf { it }
-        val height = defaultCharHeight * (1 + (separation * (lengths.size - 1)))
+        val maxWidth = lengths.max()
+        val height = getScreenHeight()
         return Vec2(maxWidth, height)
     }
+
+    fun getScreenWidth(): Float = if(lengths.isEmpty()) 0f else lengths.max()
+    fun getScreenHeight(): Float = if(lengths.isEmpty()) 0f else defaultCharHeight * font.getHeight(text)
 
     override fun draw() {
         if(lines.isEmpty()) return

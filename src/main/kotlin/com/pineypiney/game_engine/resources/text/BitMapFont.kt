@@ -4,7 +4,6 @@ import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.util.extension_functions.reduce
 import com.pineypiney.game_engine.util.extension_functions.sumOf
 import glm_.f
 import glm_.i
@@ -15,15 +14,15 @@ import glm_.vec4.Vec4i
 import kotlin.math.max
 import kotlin.math.min
 
-class BitMapFont(val texture: Texture, private val charDimensions: Map<Char, Vec4i>, val letterWidth: Int = 32, val letterHeight: Int = 64, val characterSpacing: Float = 0.0625f, val rows: Int = 16, val columns: Int = 16, override val shader: Shader = fontShader): Font() {
+class BitMapFont(val texture: Texture, val boldTexture: Texture? = null, private val charDimensions: Map<Char, Vec4i>, private val boldCharDimensions: Map<Char, Vec4i>?, val letterWidth: Int = 32, val letterHeight: Int = 64, val characterSpacing: Float = 0.0625f, val lineSpacing: Float = 0.6f, val firstLetter: Int = 32, override val shader: Shader = fontShader): Font() {
 
-    val letterRatio = letterWidth.f / letterHeight.f
+    val columns = texture.width / letterWidth
 
     // The dimension of each character is defined as Vec4(min x, min y, max x, max y)
     // Given that (0, 0) is the top left of each letter's box
-    fun getDimensions(char: Char): Vec4i? = charDimensions[char]
+    fun getDimensions(char: Char): Vec4i? = (boldCharDimensions ?: charDimensions)[char]
 
-    override fun getCharWidth(char: Char): Float = (getDimensions(char)?.z ?: 0).f / letterWidth
+    override fun getCharWidth(char: Char): Float = (getDimensions(char)?.run { z - x }?.f ?: 0f) / letterWidth
     override fun getCharHeight(char: Char): Vec2 = getDimensions(char)?.let { Vec2(it.y, it.w) / letterHeight } ?: Vec2(0.5f)
 
     // Get the width of a string on the scale of 1 being the width of an entire column
@@ -33,40 +32,37 @@ class BitMapFont(val texture: Texture, private val charDimensions: Map<Char, Vec
 
     // Get the height of a string on the scale of 1 being the width of an entire column
     override fun getHeight(text: String): Float {
-        val bounds = text.reduce(Vec2(1f, 0f)){ acc, char ->
-            val height = getCharHeight(char)
-            if(height.x < acc.x) acc.x = height.x
-            if(height.y > acc.y) acc.y = height.y
-            acc
-        }
-        // Divide by the aspect ratio of a letter to put it on the same scale as getWidth
-        return (bounds.y - bounds.x) / letterRatio
+        return 1 + lineSpacing * (text.count { it == '\n' })
     }
 
-    override fun getQuads(text: String, line: Int): Array<TextQuad> {
+    override fun getQuads(text: String): Collection<TextQuad> {
         val dimensions = getPixelSize(text)
         var xOffset = characterSpacing
-        var yOffset = -line
+        var yOffset = 0f
         val quads = mutableSetOf<TextQuad>()
         for(char in text){
             if(char == '\n'){
                 xOffset = characterSpacing
-                yOffset--
+                yOffset -= lineSpacing
                 continue
             }
-            val quad = TextQuad(createTextVertices(char, dimensions.w, dimensions.y), texture, Vec2(xOffset, yOffset))
+            val quad = TextQuad(createTextVertices(char, dimensions.w, dimensions.y), boldTexture ?: texture, Vec2(xOffset, yOffset))
             xOffset += getCharWidth(char) + characterSpacing
             quads.add(quad)
         }
-        return quads.toTypedArray()
+        return quads
     }
 
     fun createTextVertices(char: Char, top: Float, bottom: Float) : FloatArray {
         val pixelHeight = top - bottom
 
-        val letterIndex = char.i - 32
+        // Index of letter within bitmap, where 0 is the letter in the top left, counting along the rows
+        val letterIndex = char.i - firstLetter
+        // The top left corner of the quad containing this letter in the texture in pixels
         val letterPoint = Vec2i((letterIndex%columns) * letterWidth, texture.height - ((letterIndex/columns) * letterHeight))
+        // Size of this letter relative to the whole texture
         val letterSize = Vec2(getCharWidth(char).f / columns, pixelHeight/ texture.height)
+
         val texturePos = Vec2(letterPoint.x.f / texture.width, (letterPoint.y - top) / texture.height)
 
         val height = pixelHeight / letterWidth

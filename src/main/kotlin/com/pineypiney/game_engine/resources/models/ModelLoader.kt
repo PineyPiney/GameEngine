@@ -50,7 +50,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
             val geometryMap: Map<String, Geometry> = loadGeometries(fileName, doc, path)
             val bones: Array<Bone> = loadNodes(doc, path)
             val physics: Physics = loadPhysics(doc, path)
-            val animations: Array<Animation> = loadAnimations(fileName, doc, path, geometryMap.values)
+            val animations: Array<ModelAnimation> = loadAnimations(fileName, doc, path, geometryMap.values)
 
             stream.close()
 
@@ -247,10 +247,10 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
         return Physics(collider)
     }
 
-    private fun loadAnimations(modelName: String, doc: Document, path: XPath = xPath, meshes: Iterable<Geometry>): Array<Animation>{
+    private fun loadAnimations(modelName: String, doc: Document, path: XPath = xPath, meshes: Iterable<Geometry>): Array<ModelAnimation>{
 
         val animationRoot = "/PGM/animations/animation"
-        val animationMap: MutableList<Animation> = mutableListOf()
+        val animationMap: MutableList<ModelAnimation> = mutableListOf()
 
         val animations = path.evaluate(animationRoot, doc, XPathConstants.NODESET) as NodeList
         val animationsIDs = getAttributes(animations)
@@ -276,13 +276,13 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
             val bStates = loadBoneStates(modelName, id, boneIDs.toTypedArray(), animRoot, doc, path)
             val mStates = loadMeshStates(modelName, id, meshIDs.toTypedArray(), animRoot, animMeshes, doc, path)
             if(bStates.isEmpty() && mStates.isEmpty()){
-                GameEngineI.logger.warn("There were no states loaded for animation $id for model $modelName")
+                GameEngineI.warn("There were no states loaded for animation $id for model $modelName")
                 continue
             }
 
             val stateMap = bStates.combineLists(mStates)
             val frames: Array<KeyFrame> = stateMap.map { (time, states) -> KeyFrame(time, states) }.sorted().toTypedArray()
-            animationMap.add(Animation(id, frames))
+            animationMap.add(ModelAnimation(id, frames))
         }
         return animationMap.toTypedArray()
     }
@@ -440,7 +440,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
                 return ModelMaterial(name, textures, baseColour)
             }
             else{
-                GameEngineI.logger.warn("This is not a valid material file")
+                GameEngineI.warn("This is not a valid material file")
             }
             return null
         }

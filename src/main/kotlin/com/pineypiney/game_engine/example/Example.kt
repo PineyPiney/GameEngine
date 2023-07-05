@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.LibrarySetUp
 import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
+import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.directory
 import glm_.vec4.Vec4
@@ -17,6 +18,7 @@ fun main() {
     val window = ExampleWindow()
 
     val fileResources = FileResourcesLoader("$directory/src/main/resources")
+    TextureLoader.setFlags("fonts/Large Font.png", 1)
 
     val engine = object : GameEngine<Game>(fileResources) {
         override val window: WindowI = window
@@ -27,7 +29,7 @@ fun main() {
             defaultFont = "Large Font"
 
             // Create all the fonts
-            FontLoader.INSTANCE.loadFontWithTexture("Large Font.bmp", resourcesLoader, 128, 256, 0.0625f)
+            FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)
             FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader, res = 200)
         }
 

@@ -18,7 +18,7 @@ abstract class Font {
     abstract fun getHeight(text: String): Float
     fun getSize(text: String): Vec2 = Vec2(getWidth(text), getHeight(text))
 
-    abstract fun getQuads(text: String, line: Int): Array<TextQuad>
+    abstract fun getQuads(text: String): Collection<TextQuad>
 
     companion object{
         val fontShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/text"))

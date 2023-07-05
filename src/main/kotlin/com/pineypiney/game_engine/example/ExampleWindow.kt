@@ -1,8 +1,10 @@
 package com.pineypiney.game_engine.example
 
 import com.pineypiney.game_engine.Window
+import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.util.input.DefaultInput
 import glm_.vec2.Vec2i
+import org.lwjgl.openal.AL10
 import java.io.File
 
 class ExampleWindow(width: Int = 960, height: Int = 540): Window("Example Window", width, height, false, true, Vec2i(3, 3), 4) {
@@ -16,5 +18,10 @@ class ExampleWindow(width: Int = 960, height: Int = 540): Window("Example Window
         autoIconify = true
 
         center()
+    }
+
+    override fun loadAL() {
+        super.loadAL()
+        setAudioInput(AudioEngine.getAllInputDevices().firstOrNull(), 44100, AL10.AL_FORMAT_MONO8, 4096)
     }
 }

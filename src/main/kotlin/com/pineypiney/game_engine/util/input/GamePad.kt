@@ -4,7 +4,7 @@ import glm_.bool
 import glm_.i
 import glm_.s
 import kool.ByteBuffer
-import kool.lib.forEachIndexed
+import kool.forEachIndexed
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWGamepadState
 

@@ -43,15 +43,15 @@ class TrueTypeFont(val font: JavaFont, val textures: Map<Char, Texture>, val ctx
         return bounds.height.f
     }
 
-    override fun getQuads(text: String, line: Int): Array<TextQuad> {
+    override fun getQuads(text: String): Collection<TextQuad> {
         val list = mutableListOf<TextQuad>()
         val glyph = font.createGlyphVector(ctx, text)
         for(i in text.indices){
             val shape = glyph.getGlyphOutline(i)
-            list.add(createQuad(text[i], shape, line))
+            list.add(createQuad(text[i], shape))
         }
 
-        return list.toTypedArray()
+        return list
     }
 
     fun getOutline(string: String): Shape{
@@ -60,8 +60,8 @@ class TrueTypeFont(val font: JavaFont, val textures: Map<Char, Texture>, val ctx
 
     fun getOutline(char: Char) = getOutline(char.toString())
 
-    fun createQuad(char: Char, shape: Shape, line: Int): TextQuad{
-        return TextQuad(createVertices(shape), getTexture(char), Vec2(shape.bounds2D.x, -(line + shape.bounds2D.y + shape.bounds2D.height)))
+    fun createQuad(char: Char, shape: Shape): TextQuad{
+        return TextQuad(createVertices(shape), getTexture(char), Vec2(shape.bounds2D.x, -(shape.bounds2D.y + shape.bounds2D.height)))
     }
 
     fun createVertices(shape: Shape): FloatArray{

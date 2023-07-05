@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects.game_objects.objects_3D
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
-import com.pineypiney.game_engine.resources.models.animations.Animation
+import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.i
@@ -14,7 +14,7 @@ open class ModelledGameObject3D(val model: Model, val debug: Int = 0): RenderedG
 
     constructor(id: ResourceKey, debug: Int = 0): this(ModelLoader.getModel(id), debug)
 
-    protected var animation: Animation? = null
+    protected var animation: ModelAnimation? = null
     private var animationStartTime: Double = 0.0
     private var animationEndTime: Double = 0.0
     protected var loopAnimation: Boolean = true
@@ -38,7 +38,7 @@ open class ModelledGameObject3D(val model: Model, val debug: Int = 0): RenderedG
         model.Draw(this, view, projection, tickDelta, shader, debug)
     }
 
-    fun initAnimation(animation: Animation, loop: Boolean = true){
+    fun initAnimation(animation: ModelAnimation, loop: Boolean = true){
         this.model.reset()
         this.animation = animation
         this.animationStartTime = Timer.frameTime
@@ -73,7 +73,7 @@ open class ModelledGameObject3D(val model: Model, val debug: Int = 0): RenderedG
         return setAnimation(newAnimation, loop)
     }
 
-    fun setAnimation(newAnimation: Animation, loop: Boolean = true): Boolean{
+    fun setAnimation(newAnimation: ModelAnimation, loop: Boolean = true): Boolean{
         this.loopAnimation = loop
         return if(newAnimation == this.animation) {
             true

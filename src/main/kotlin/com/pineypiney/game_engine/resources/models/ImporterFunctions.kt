@@ -56,7 +56,7 @@ fun getSource(errorMsg: String, source: String, ex: String, doc: Document, path:
         return null
     }
     val sourcePair = getAttributeIdentifier(sourceId) ?: run{
-        GameEngineI.logger.warn { "$errorMsg because $source source $sourceId could be parsed" }
+        GameEngineI.warn("$errorMsg because $source source $sourceId could be parsed")
         return null
     }
     return sourcePair
@@ -82,7 +82,7 @@ inline fun <reified T> convertString(string: String, default: T): T{
         })
     }
     catch(e: ClassCastException){
-        GameEngineI.logger.warn("Could not cast $string to ${T::class.simpleName}")
+        GameEngineI.warn("Could not cast $string to ${T::class.simpleName}")
         default
     }
 }

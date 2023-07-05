@@ -29,7 +29,7 @@ abstract class SizedText(text: String, override val fontSize: Int = 100, colour:
     }
 
     open fun updateLines(){
-        quads = lines.mapIndexed { i, l -> font.getQuads(l, i).toList() }.flatten().toTypedArray()
+        quads = font.getQuads(lines.joinToString("\n")).toTypedArray()
     }
 
     final override fun generateLines(): Array<String>{

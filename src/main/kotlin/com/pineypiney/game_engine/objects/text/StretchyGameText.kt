@@ -24,8 +24,8 @@ open class StretchyGameText(text: String, colour: Vec4 = Vec4(1, 1, 1, 1),
     override fun init() {
         super.init()
 
-        val size = font.getSize(text)
-        val widthRatio = size.x * (maxHeight / maxWidth)
+        val width = font.getWidth(text)
+        val widthRatio = width * (maxHeight / maxWidth)
 
         if(widthRatio > 1){
             setDefaults(maxHeight/widthRatio)

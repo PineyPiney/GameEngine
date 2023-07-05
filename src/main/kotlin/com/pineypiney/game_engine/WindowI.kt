@@ -1,12 +1,14 @@
 package com.pineypiney.game_engine
 
-import com.pineypiney.game_engine.audio.AudioDevice
+import com.pineypiney.game_engine.audio.AudioInputDevice
+import com.pineypiney.game_engine.audio.AudioOutputDevice
 import com.pineypiney.game_engine.util.input.Inputs
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.glfw.GLFWVidMode
+import org.lwjgl.openal.AL10
 import java.io.InputStream
 
 
@@ -14,7 +16,8 @@ interface WindowI {
 
     val input: Inputs
     val windowHandle: Long
-    var audioDevice: AudioDevice?
+    val audioOutputDevice: AudioOutputDevice?
+    val audioInputDevice: AudioInputDevice?
 
     /**
      * Window Attributes
@@ -60,6 +63,7 @@ interface WindowI {
     val videoMode: GLFWVidMode
 
     fun setAudioOutput(name: String? = null)
+    fun setAudioInput(name: String? = null, freq: Int = 44100, format: Int = AL10.AL_FORMAT_STEREO16, samples: Int = 1024)
 
     fun focus()
 
