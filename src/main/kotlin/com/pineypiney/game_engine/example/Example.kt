@@ -3,7 +3,6 @@ package com.pineypiney.game_engine.example
 import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.GameEngineI.Companion.defaultFont
 import com.pineypiney.game_engine.LibrarySetUp
-import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -21,7 +20,7 @@ fun main() {
     TextureLoader.setFlags("fonts/Large Font.png", 1)
 
     val engine = object : GameEngine<Game>(fileResources) {
-        override val window: WindowI = window
+        override val window: ExampleWindow = window
         override var TARGET_FPS: Int = 1000
         override val TARGET_UPS: Int = 20
 

@@ -2,6 +2,7 @@ package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.audio.AudioInputDevice
 import com.pineypiney.game_engine.audio.AudioOutputDevice
+import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.input.Inputs
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
@@ -77,20 +78,11 @@ interface WindowI {
     fun setCursor(cursor: Long)
 
     /**
-     * Set the cursor to a standard cursor defined by GLFW
-     *
-     * @param cursor One of the standard GLFW cursors. One of:
-     * <br><table><tr><td>[GLFW.GLFW_ARROW_CURSOR]</td><td>[GLFW.GLFW_IBEAM_CURSOR]</td><td>[GLFW.GLFW_CROSSHAIR_CURSOR]</td><td>[GLFW.GLFW_POINTING_HAND_CURSOR]</td><td>[GLFW.GLFW_RESIZE_EW_CURSOR]</td><td>[GLFW.GLFW_RESIZE_NS_CURSOR]</td><td>[GLFW.GLFW_RESIZE_NWSE_CURSOR]</td><td>[GLFW.GLFW_RESIZE_NESW_CURSOR]</td><td>[GLFW.GLFW_RESIZE_ALL_CURSOR]</td><td>[GLFW.GLFW_NOT_ALLOWED_CURSOR]</td></tr></table>
-     */
-    fun setCursor(cursor: Int)
-
-    /**
      * Set the cursor to a custom cursor
      *
-     * @param texture The new texture for the cursor
-     * @param point The pixel offset of the texture, where (0, 0) is the top left
+     * @param cursor The cursor to be set
      */
-    fun setCursor(texture: InputStream, point: Vec2i)
+    fun setCursor(cursor: Cursor)
 
     /**
      * Set the window icon

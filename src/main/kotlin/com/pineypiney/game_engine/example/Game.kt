@@ -32,12 +32,10 @@ import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.video.VideoLoader
+import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.angle
-import com.pineypiney.game_engine.util.extension_functions.fromAngle
-import com.pineypiney.game_engine.util.extension_functions.roundedString
-import com.pineypiney.game_engine.util.extension_functions.wrap
+import com.pineypiney.game_engine.util.extension_functions.*
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.maths.I
@@ -61,6 +59,10 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
     override val renderer: Renderer = Renderer(window)
 
     private val pressedKeys = mutableSetOf<Short>()
+
+    val standardCursors = intArrayOf(GLFW_RESIZE_EW_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).map { Cursor(it) }
+    val customCursor = Cursor(gameEngine, "textures/cursor.png", Vec2i(34, 10))
+
     private val audio get() = AudioLoader[(ResourceKey("clair_de_lune"))]
 
     private val b = TextButton("Button", Vec2(-0.3, 0.6), Vec2(0.6, 0.2), window){
@@ -77,7 +79,7 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
     private val button = TextButton("button", Vec2(0.6, 0.8), Vec2(0.4, 0.2), window){
         println("Pressed!")
         AudioSource(audio).play()
-        window.setCursor(intArrayOf(GLFW_RESIZE_EW_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).random())
+        window.setCursor(standardCursors.random())
     }
     private val textField = ActionTextField(Vec2(-1), Vec2(1, 0.2), window){ _, char, _ ->
 //        AudioSource(audio).play()
@@ -176,9 +178,7 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
                 val a = (model1.rotation - pA).wrap(-PI.f, PI.f)
                 model1.rotate(a.sign * 0.05f)
 
-                gameEngine.resourcesLoader.getStream("textures/cursor.png")?.let {
-                    window.setCursor(it, Vec2i(34, 10))
-                }
+                window.setCursor(customCursor)
             }
         }
     }
@@ -301,5 +301,8 @@ class Game(override val gameEngine: GameEngineI<*>): GameLogic() {
         testText.delete()
         gameText.delete()
         siGameText.delete()
+
+        standardCursors.delete()
+        customCursor.delete()
     }
 }
