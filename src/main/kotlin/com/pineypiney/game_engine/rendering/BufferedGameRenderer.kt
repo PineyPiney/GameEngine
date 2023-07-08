@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.rendering
 import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.objects.util.shapes.Shape
+import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import org.lwjgl.opengl.GL13C.*
 
 abstract class BufferedGameRenderer<E: GameLogicI>: GameRenderer<E>() {
@@ -20,7 +20,7 @@ abstract class BufferedGameRenderer<E: GameLogicI>: GameRenderer<E>() {
     }
 
     protected fun drawBufferTexture(buffer: FrameBuffer = this.buffer){
-        val shape = Shape.screenQuadShape
+        val shape = VertexShape.screenQuadShape
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, buffer.TCB)
         shape.bindAndDraw()

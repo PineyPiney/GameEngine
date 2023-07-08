@@ -6,7 +6,7 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL30C.*
 
-abstract class Shape: Deleteable {
+abstract class VertexShape: Deleteable {
 
     val VAO = glGenVertexArrays()
     abstract val size: Int

@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.objects.Deleteable
-import com.pineypiney.game_engine.objects.util.shapes.Shape
+import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.Copyable
@@ -19,7 +19,7 @@ import org.lwjgl.opengl.GL31C.*
 class Mesh(var id: String, val vertices: Array<MeshVertex>, val indices: IntArray,
            val texture: Texture = Texture.broke, val defaultAlpha: Float = 1f,
            val defaultOrder: Int = 0, val material: ModelMaterial = Model.brokeMaterial
-): Shape() {
+): VertexShape() {
 
     constructor(id: String, vertices: Array<MeshVertex>, indices: IntArray, texture: String, defaultAlpha: Float = 0f, defaultOrder: Int = 0, material: ModelMaterial = Model.brokeMaterial):
             this(id, vertices, indices, TextureLoader.findTexture(texture), defaultAlpha, defaultOrder, material)

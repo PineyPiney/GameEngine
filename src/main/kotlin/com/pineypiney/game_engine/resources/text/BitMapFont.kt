@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.text
 
-import com.pineypiney.game_engine.objects.util.shapes.Shape
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
+import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.sumOf
@@ -70,7 +70,7 @@ class BitMapFont(val texture: Texture, val boldTexture: Texture? = null, private
     }
 
     fun createTextVertices(topLeft: Vec2, bottomRight: Vec2, width: Float, height: Float) : FloatArray {
-        return Shape.floatArrayOf(
+        return VertexShape.floatArrayOf(
             // Positions    Texture
             0.0f, 0.0f, topLeft.x, topLeft.y,
             width, 0.0f, bottomRight.x, topLeft.y,

@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.util.shapes
 
 import org.lwjgl.opengl.GL31C.*
 
-open class IndicesShape(vertices: FloatArray, parts: IntArray, indices: IntArray): Shape() {
+open class IndicesShape(vertices: FloatArray, parts: IntArray, indices: IntArray): VertexShape() {
 
     private val VBO = glGenBuffers()
     private val EBO = glGenBuffers()

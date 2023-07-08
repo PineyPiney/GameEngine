@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.util.extension_functions
 
+import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.normal
 import glm_.f
 import glm_.i
@@ -137,6 +138,19 @@ fun Vec4.Companion.fromHex(num: Int, alpha: Int): Vec4{
     return Vec4(num getRGBAValue 2, num getRGBAValue 1, num getRGBAValue 0, alpha.f / 255)
 }
 
+fun Vec3.rotate(rotation: Vec3): Vec3{
+    return Vec3(I.rotate(rotation) * Vec4(this))
+}
+
+infix fun Vec3.transformedBy(m: Mat4) = Vec3(m * Vec4(this))
+
 fun Mat4.translate(vec2: Vec2) = translate(Vec3(vec2, 0))
 fun Mat4.rotate(angle: Float) = rotate(angle, normal)
+
+fun Mat4.rotate(rotation: Vec3) = rotate(rotation.x, rotation.y, rotation.z)
+fun Mat4.rotate(angleX: Float, angleY: Float, angleZ: Float): Mat4{
+    return rotate(angleX, Vec3(1, 0, 0))
+        .rotate(angleY, Vec3(0, 1, 0))
+        .rotate(angleZ, Vec3(0, 0, 1))
+}
 fun Mat4.scale(vec2: Vec2) = scale(Vec3(vec2, 1))

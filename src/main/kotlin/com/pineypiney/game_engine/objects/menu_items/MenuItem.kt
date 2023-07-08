@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.menu_items
 
 import com.pineypiney.game_engine.objects.*
-import com.pineypiney.game_engine.objects.util.shapes.Shape
+import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
@@ -17,7 +17,7 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
     override val origin: Vec2 = Vec2()
     override val size: Vec2 = Vec2(1)
 
-    open val shape: Shape = menuShape
+    open val shape: VertexShape = menuShape
     override var shader: Shader = opaqueColourShader
         set(value) {
             field = value
@@ -64,6 +64,6 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
         val transparentTextureShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/texture"))
         val opaqueColourShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/colour_opaque"))
         val translucentColourShader: Shader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/colour"))
-        val menuShape: Shape = Shape.cornerSquareShape2D
+        val menuShape: VertexShape = VertexShape.cornerSquareShape2D
     }
 }

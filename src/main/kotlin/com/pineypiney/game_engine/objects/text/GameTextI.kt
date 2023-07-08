@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects.text
 import com.pineypiney.game_engine.objects.Renderable
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.RenderedGameObject2D
 import com.pineypiney.game_engine.objects.game_objects.transforms.Transform2D
-import com.pineypiney.game_engine.objects.util.shapes.Shape
+import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import glm_.mat4x4.Mat4
 
 interface GameTextI: TextI, Renderable {
@@ -26,6 +26,6 @@ interface GameTextI: TextI, Renderable {
         shader.setMat4("view", view)
         shader.setMat4("projection", projection)
         shader.setVec4("colour", colour)
-        Shape.cornerSquareShape2D.bindAndDraw()
+        VertexShape.cornerSquareShape2D.bindAndDraw()
     }
 }

@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.game_objects.GameObject
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox2D
 import com.pineypiney.game_engine.objects.util.collision.CollisionBoxRenderer
 import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
-import com.pineypiney.game_engine.objects.util.shapes.Shape
+import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.models.animations.State
@@ -48,7 +48,7 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
 
     fun renderBones(parent: GameObject, view: Mat4, projection: Mat4){
         // Render Bones
-        Shape.centerSquareShape2D.bind()
+        VertexShape.centerSquareShape2D.bind()
         val boneShader = Bone.boneShader
 
         boneShader.use()

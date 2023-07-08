@@ -2,6 +2,7 @@ package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.audio.AudioInputDevice
 import com.pineypiney.game_engine.audio.AudioOutputDevice
+import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.Cursor
@@ -23,7 +24,7 @@ import java.io.InputStream
 import java.nio.DoubleBuffer
 import java.nio.IntBuffer
 
-abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolean, vSync: Boolean, val version: Vec2i = Vec2i(4, 6), samples: Int = 1): WindowI {
+abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolean, vSync: Boolean, hints: Map<Int, Int> = defaultHints): WindowI, Initialisable {
 
     override var vSync: Boolean = vSync
         set(value) {
@@ -31,7 +32,7 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
             GLFW.glfwSwapInterval(field.i)
         }
 
-    final override val windowHandle: Long = loadGL(title, width, height, fullScreen, samples)
+    final override val windowHandle: Long = createWindow(title, width, height, fullScreen, hints)
     final override var audioOutputDevice: AudioOutputDevice? = null
     final override var audioInputDevice: AudioInputDevice? = null
 
@@ -103,25 +104,19 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
     override val videoMode: GLFWVidMode get() = (monitor ?: Monitor.primary).videoMode
 
     init{
-        loadAL()
-
         GLFW.glfwSetWindowCloseCallback(windowHandle, ::close)
     }
 
-    protected open fun loadGL(title: String, width: Int, height: Int, fullScreen: Boolean, samples: Int): Long{
+    override fun init() {
+        configureGL()
+        configureAl()
+    }
+
+    private fun createWindow(title: String, width: Int, height: Int, fullScreen: Boolean, hints: Map<Int, Int>): Long{
 
         GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
 
-        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, 0) // the window will stay hidden after creation
-
-        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, 1) // the window will be resizable
-
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, version.x)
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, version.y)
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, 1)
-
-        if(samples > 1) GLFW.glfwWindowHint(GLFW.GLFW_SAMPLES, samples)
+        hints.forEach(GLFW::glfwWindowHint)
 
         // Create the window
         val monitor = if(fullScreen) GLFW.glfwGetPrimaryMonitor() else 0L
@@ -131,6 +126,10 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
             throw RuntimeException("Failed to create the GLFW window")
         }
 
+        return windowHandle
+    }
+
+    protected open fun configureGL(){
         // Make the OpenGL context current
         GLFW.glfwMakeContextCurrent(windowHandle)
         // Make the window visible
@@ -142,11 +141,9 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
             // Enable v-sync
             GLFW.glfwSwapInterval(1)
         }
-
-        return windowHandle
     }
 
-    protected open fun loadAL(){
+    protected open fun configureAl(){
         setAudioOutput(null)
 
         val cCaps = ALC.getCapabilities()
@@ -289,6 +286,21 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
     }
 
     override fun close(handle: Long){
+        delete()
+    }
+
+    override fun delete() {
         audioOutputDevice?.close()
+    }
+
+    companion object{
+        val defaultHints = mapOf(
+            GLFW.GLFW_VISIBLE to 0, // the window will stay hidden after creation
+            GLFW.GLFW_RESIZABLE to 1, // the window will be resizable
+            GLFW.GLFW_CONTEXT_VERSION_MAJOR to 4,
+            GLFW.GLFW_CONTEXT_VERSION_MINOR to 6,
+            GLFW.GLFW_OPENGL_PROFILE to GLFW.GLFW_OPENGL_CORE_PROFILE,
+            GLFW.GLFW_OPENGL_FORWARD_COMPAT to 1,
+        )
     }
 }

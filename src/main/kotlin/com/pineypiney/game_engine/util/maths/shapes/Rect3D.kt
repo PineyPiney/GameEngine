@@ -1,20 +1,25 @@
 package com.pineypiney.game_engine.util.maths.shapes
 
 import com.pineypiney.game_engine.util.extension_functions.projectOn
+import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Rect3D(origin: Vec3, val side1: Vec3, val side2: Vec3): Plane(origin, (side1 cross side2).normalizeAssign()) {
+class Rect3D(val origin: Vec3, val side1: Vec3, val side2: Vec3): Shape() {
 
     constructor(origin: Vec2, size: Vec2): this(Vec3(origin, 0), Vec3(size.x, 0, 0), Vec3(0, size.y, 0))
     constructor(origin: Vec2, size: Vec2, angle: Float): this(Vec3(origin, 0), Vec3(size.x * cos(angle), size.y * sin(angle), 0), Vec3(size.x * sin(angle), size.y * cos(angle), 0))
 
-    infix fun containsPoint(point: Vec3): Boolean{
+    val normal = (side1 cross side2).normalizeAssign()
+
+    override infix fun containsPoint(point: Vec3): Boolean{
+
+        // https://stackoverflow.com/a/8862483
 
         // P0P is the vector from the origin on the plane to the intersection
-        val P0P = point - this.point
+        val P0P = point - this.origin
 
         // That vector is then projected onto the sides of the rect, if those projections are shorter than both sides
         // then the point is inside the rect
@@ -26,5 +31,11 @@ class Rect3D(origin: Vec3, val side1: Vec3, val side2: Vec3): Plane(origin, (sid
         val q2b = ((q2.x != 0f && side2.x / q2.x >= 1) || side2.x == 0f) && ((q2.y != 0f && side2.y / q2.y >= 1) || side2.y == 0f)
 
         return q1b && q2b
+    }
+
+    override fun intersectedBy(ray: Ray): Array<Vec3> {
+        val intersection = Plane(origin, normal).intersectedBy(ray).getOrNull(0) ?: return arrayOf()
+        return if(containsPoint(intersection)) arrayOf(intersection)
+        else arrayOf()
     }
 }
