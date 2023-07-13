@@ -139,10 +139,10 @@ fun Vec4.Companion.fromHex(num: Int, alpha: Int): Vec4{
 }
 
 fun Vec3.rotate(rotation: Vec3): Vec3{
-    return Vec3(I.rotate(rotation) * Vec4(this))
+    return Vec3(I.rotate(rotation) * Vec4(this, 1))
 }
 
-infix fun Vec3.transformedBy(m: Mat4) = Vec3(m * Vec4(this))
+infix fun Vec3.transformedBy(m: Mat4) = Vec3(m * Vec4(this, 1))
 
 fun Mat4.translate(vec2: Vec2) = translate(Vec3(vec2, 0))
 fun Mat4.rotate(angle: Float) = rotate(angle, normal)
