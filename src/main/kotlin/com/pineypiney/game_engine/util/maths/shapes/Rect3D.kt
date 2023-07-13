@@ -27,8 +27,8 @@ class Rect3D(val origin: Vec3, val side1: Vec3, val side2: Vec3): Shape() {
         val q2 = P0P projectOn side2
 
         // For both projections check that the projection is a shorter version of the rectangle side
-        val q1b = ((q1.x != 0f && side1.x / q1.x >= 1) || side1.x == 0f) && ((q1.y != 0f && side1.y / q1.y >= 1) || side1.y == 0f)
-        val q2b = ((q2.x != 0f && side2.x / q2.x >= 1) || side2.x == 0f) && ((q2.y != 0f && side2.y / q2.y >= 1) || side2.y == 0f)
+        val q1b = ((q1.x != 0f && side1.x / q1.x >= 1) || side1.x == 0f) && ((q1.y != 0f && side1.y / q1.y >= 1) || side1.y == 0f) && ((q1.z != 0f && side1.z / q1.z >= 1) || side1.z == 0f)
+        val q2b = ((q2.x != 0f && side2.x / q2.x >= 1) || side2.x == 0f) && ((q2.y != 0f && side2.y / q2.y >= 1) || side2.y == 0f) && ((q2.z != 0f && side2.z / q2.z >= 1) || side2.z == 0f)
 
         return q1b && q2b
     }

@@ -23,7 +23,7 @@ open class PerspectiveCamera(window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec
             field = glm.clamp(value, 0.1f, 180f)
         }
 
-    fun screenToWorld(screenPos: Vec2, distance: Float): Vec3 {
+    fun screenToWorld(screenPos: Vec2): Vec3 {
         val pv = getProjection() * getView()
         val invPV = pv.inverse()
         val pos = Vec4(screenPos * pv[3, 3], pv[3, 2], pv[3, 3])
@@ -31,7 +31,7 @@ open class PerspectiveCamera(window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec
         return Vec3(worldPos)
     }
 
-    fun worldToScreen(worldPos: Vec3, distance: Float): Vec2 {
+    fun worldToScreen(worldPos: Vec3): Vec2 {
         val pv = getProjection() * getView()
         val pos = pv * Vec4(worldPos, 1)
         return Vec2(pos / pos.w)
@@ -46,7 +46,7 @@ open class PerspectiveCamera(window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec
     }
 
     override fun getRay(point: Vec2): Ray {
-        val worldPos = screenToWorld(point, 1f)
+        val worldPos = screenToWorld(point)
         val dir = (worldPos - cameraPos).normalize()
         return Ray(cameraPos, dir)
     }
