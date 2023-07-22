@@ -8,7 +8,7 @@ import glm_.vec2.Vec2t
 import org.lwjgl.opengl.GL30C.*
 import java.nio.ByteBuffer
 
-class FrameBuffer(var width: Int, var height: Int): Deleteable {
+open class FrameBuffer(var width: Int, var height: Int, var internalFormat: Int = GL_RGB, var format: Int = GL_RGB): Deleteable {
 
     constructor(size: Vec2t<*>): this(size.x.i, size.y.i)
 
@@ -16,7 +16,7 @@ class FrameBuffer(var width: Int, var height: Int): Deleteable {
     val TCB = glGenTextures()
     val RBO = glGenRenderbuffers()
 
-    fun setSize(width: Int, height: Int){
+    open fun setSize(width: Int, height: Int){
         if(width > 0 && height > 0 && (width != this.width || height != this.height)){
             this.width = width
             this.height = height
@@ -28,11 +28,11 @@ class FrameBuffer(var width: Int, var height: Int): Deleteable {
         setSize(size.x.i, size.y.i)
     }
 
-    fun generate(){
+    open fun generate(){
         glBindFramebuffer(GL_FRAMEBUFFER, FBO)
         glBindTexture(GL_TEXTURE_2D, TCB)
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, null as ByteBuffer?)
         TextureLoader.loadIndividualSettings(TCB)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TCB, 0)
 
@@ -47,7 +47,7 @@ class FrameBuffer(var width: Int, var height: Int): Deleteable {
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
     }
 
-    fun bind(){
+    open fun bind(){
         glBindFramebuffer(GL_FRAMEBUFFER, FBO)
     }
 
