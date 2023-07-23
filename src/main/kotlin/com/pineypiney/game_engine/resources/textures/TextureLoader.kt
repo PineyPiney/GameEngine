@@ -6,8 +6,8 @@ import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec3.Vec3i
 import kool.toBuffer
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL32C
 import org.lwjgl.stb.STBImage
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -19,10 +19,10 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 
     fun loadTextures(streams: Map<String, InputStream>) {
         val pointers = IntArray(streams.size)
-        GL11C.glGenTextures(pointers)
+        glGenTextures(pointers)
         val pList = pointers.toMutableList()
         for((fileName, stream) in streams){
-            val p = pList.firstOrNull() ?: GL11C.glGenTextures()
+            val p = pList.firstOrNull() ?: glGenTextures()
             loadTexture(fileName, stream, p)
             pList.remove(p)
             stream.close()
@@ -72,11 +72,11 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
         fun findTexture(name: String): Texture = INSTANCE.findTexture(name)
 
 
-        fun createPointer(wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_NEAREST): Int{
+        fun createPointer(wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_NEAREST, target: Int = GL_TEXTURE_2D): Int{
             // Create a handle for the texture
             val texturePointer = glGenTextures()
             // Settings
-            loadIndividualSettings(texturePointer, wrapping, filtering)
+            loadIndividualSettings(texturePointer, wrapping, filtering, target)
 
             return texturePointer
         }
@@ -127,14 +127,22 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             glGenerateMipmap(GL_TEXTURE_2D)
         }
 
-        fun createTexture(data: ByteArray, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_NEAREST): Int{
-            val pointer = createPointer(wrapping, filtering)
+        fun createTexture(data: ByteArray, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_NEAREST, target: Int = GL_TEXTURE_2D): Int{
+            val pointer = createPointer(wrapping, filtering, target)
             loadImageFromData(data.toBuffer(), width, height, format, internalFormat, type)
             return pointer
         }
 
-        fun createTexture(data: ByteBuffer?, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_NEAREST): Int{
-            val pointer = createPointer(wrapping, filtering)
+        fun createMultisampleTexture(data: ByteArray, width: Int, height: Int, samples: Int = 4, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, target: Int = GL32C.GL_TEXTURE_2D_MULTISAMPLE, fixedSample: Boolean = true): Int{
+            val pointer = glGenTextures()
+            glBindTexture(target, pointer)
+            GL32C.glTexImage2DMultisample(GL32C.GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, fixedSample)
+            loadImageFromData(data.toBuffer(), width, height, format, internalFormat, type)
+            return pointer
+        }
+
+        fun createTexture(data: ByteBuffer?, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_NEAREST, target: Int = GL_TEXTURE_2D): Int{
+            val pointer = createPointer(wrapping, filtering, target)
             loadImageFromData(data, width, height, format, internalFormat, type)
             return pointer
         }

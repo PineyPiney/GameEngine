@@ -9,7 +9,7 @@ interface Drawable: Visual {
 
     val origin: Vec2
     val size: Vec2
-    val model; get() = I.translate(Vec3(origin)).scale(Vec3(size))
+    val model; get() = I.translate(Vec3(origin)).scale(Vec3(size.x, size.y, 1f))
 
     fun draw()
 
