@@ -3,7 +3,6 @@
 /build/
 gradle
 src/main/kotlin/com/pineypiney/game_engine/Test.kt
-src/test
 
 gradle.properties
 resources.zip
