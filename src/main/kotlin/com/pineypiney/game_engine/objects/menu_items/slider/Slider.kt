@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
-import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.menu_items.InteractableMenuItem
 import com.pineypiney.game_engine.util.raycasting.Ray
+import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 
 abstract class Slider: InteractableMenuItem() {

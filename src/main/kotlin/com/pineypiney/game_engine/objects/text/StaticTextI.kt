@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.MovableDrawable
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
+import com.pineypiney.game_engine.window.WindowI
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 

@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine
+package com.pineypiney.game_engine.window
 
 import com.pineypiney.game_engine.audio.AudioInputDevice
 import com.pineypiney.game_engine.audio.AudioOutputDevice
@@ -6,13 +6,18 @@ import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.Cursor
+import com.pineypiney.game_engine.util.GLFunc.Companion.getVec2
+import com.pineypiney.game_engine.util.GLFunc.Companion.getVec2d
+import com.pineypiney.game_engine.util.GLFunc.Companion.getVec2i
+import com.pineypiney.game_engine.util.GLFunc.Companion.setVec2d
+import com.pineypiney.game_engine.util.GLFunc.Companion.setVec2i
 import glm_.bool
 import glm_.f
 import glm_.i
+import glm_.vec2.Vec2
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
-import kool.DoubleBuffer
-import kool.IntBuffer
+import glm_.vec4.Vec4i
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.glfw.GLFWVidMode
@@ -21,8 +26,6 @@ import org.lwjgl.openal.ALC
 import org.lwjgl.opengl.GL
 import org.lwjgl.stb.STBImage
 import java.io.InputStream
-import java.nio.DoubleBuffer
-import java.nio.IntBuffer
 
 abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolean, vSync: Boolean, hints: Map<Int, Int> = defaultHints): WindowI, Initialisable {
 
@@ -43,19 +46,28 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
         }
 
     override var pos: Vec2i
-        get() = getVec2i(GLFW::glfwGetWindowPos)
-        set(value) = setVec2i(GLFW::glfwSetWindowPos, value)
+        get() = getVec2i(windowHandle, GLFW::glfwGetWindowPos)
+        set(value) = setVec2i(windowHandle, GLFW::glfwSetWindowPos, value)
 
     override var size: Vec2i
-        get() = getVec2i(GLFW::glfwGetWindowSize)
-        set(value) = setVec2i(GLFW::glfwSetWindowSize, value)
+        get() = getVec2i(windowHandle, GLFW::glfwGetWindowSize)
+        set(value) = setVec2i(windowHandle, GLFW::glfwSetWindowSize, value)
 
-    override val frameSize: Vec2i
-        get() = getVec2i(GLFW::glfwGetFramebufferSize)
+    override val framebufferSize: Vec2i
+        get() = getVec2i(windowHandle, GLFW::glfwGetFramebufferSize)
+
+    override val frameSize: Vec4i
+        get() = TODO("Not yet implemented")
+
+    override val contentScale: Vec2
+        get() = getVec2(windowHandle, GLFW::glfwGetWindowContentScale)
+
+    override val opacity: Float
+        get() = GLFW.glfwGetWindowOpacity(windowHandle)
 
     override var cursorPos: Vec2d
-        get() = getVec2d(GLFW::glfwGetCursorPos)
-        set(value) = setVec2d(GLFW::glfwSetCursorPos, value)
+        get() = getVec2d(windowHandle, GLFW::glfwGetCursorPos)
+        set(value) = setVec2d(windowHandle, GLFW::glfwSetCursorPos, value)
 
     override var width: Int
         get() = size.x
@@ -65,7 +77,7 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
         get() = size.y
         set(value) { size = Vec2i(size.x, value) }
 
-    override val aspectRatio get() = width.f/height
+    override val aspectRatio get() = size.run { x.f / y }
 
     override val focused: Boolean
         get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_FOCUSED).bool
@@ -168,26 +180,6 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
 
     override fun iconify() {
         GLFW.glfwIconifyWindow(windowHandle)
-    }
-
-    fun getVec2i(func: (Long, IntBuffer, IntBuffer) -> Unit): Vec2i{
-        val (wa, ha) = arrayOf(IntBuffer(1), IntBuffer(1))
-        func(windowHandle, wa, ha)
-        return Vec2i(wa[0], ha[0])
-    }
-
-    fun setVec2i(func: (Long, Int, Int) -> Unit, value: Vec2i){
-        func(windowHandle, value.x, value.y)
-    }
-
-    fun getVec2d(func: (Long, DoubleBuffer, DoubleBuffer) -> Unit): Vec2d {
-        val (wa, ha) = arrayOf(DoubleBuffer(1), DoubleBuffer(1))
-        func(windowHandle, wa, ha)
-        return Vec2d(wa[0], ha[0])
-    }
-
-    fun setVec2d(func: (Long, Double, Double) -> Unit, value: Vec2d){
-        func(windowHandle, value.x, value.y)
     }
 
     fun center(){

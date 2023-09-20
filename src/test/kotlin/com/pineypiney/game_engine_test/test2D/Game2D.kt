@@ -1,9 +1,7 @@
 package com.pineypiney.game_engine_test.test2D
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.audio.AudioSource
 import com.pineypiney.game_engine.objects.Interactable
@@ -38,6 +36,9 @@ import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Rect3D
+import com.pineypiney.game_engine.window.WindowGameLogic
+import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.WindowedGameEngineI
 import com.pineypiney.game_engine_test.Renderer
 import glm_.f
 import glm_.s
@@ -51,10 +52,10 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sign
 
-class Game2D(override val gameEngine: GameEngineI<*>): GameLogic() {
+class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
 
-    override val camera: OrthographicCamera = OrthographicCamera(window)
-    override val renderer: Renderer = Renderer(window)
+    override val renderer = Renderer(window, OrthographicCamera(window))
+    val camera get() = renderer.camera
 
     private val pressedKeys = mutableSetOf<Short>()
 
@@ -196,8 +197,8 @@ class Game2D(override val gameEngine: GameEngineI<*>): GameLogic() {
         //bezier.draw()
     }
 
-    override fun render(window: WindowI, tickDelta: Double) {
-        renderer.render(window, this, tickDelta)
+    override fun render(tickDelta: Double) {
+        renderer.render(this, tickDelta)
 
         drawScene(tickDelta)
 

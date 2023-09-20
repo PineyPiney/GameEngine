@@ -1,0 +1,56 @@
+{
+  "actions": [
+    {
+      "name" : "/actions/default/in/left_trigger",
+      "type": "vector1"
+    },
+    {
+      "name" : "/actions/default/in/left_gripanalog",
+      "type": "vector1"
+    },
+    {
+      "name" : "/actions/default/in/left_gripbinary",
+      "type": "boolean"
+    },
+    {
+      "name" : "/actions/default/in/left_thumbstick",
+      "type": "vector2"
+    },
+    {
+      "name" : "/actions/default/in/left_thumbsticktouch",
+      "type": "boolean"
+    },
+    {
+      "name" : "/actions/default/in/left_secondarybutton",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/mixedreality/in/ExternalCamera",
+      "type": "pose",
+      "requirement": "optional"
+    }
+  ],
+  "action_sets": [
+    {
+      "name": "/actions/default",
+      "usage": "leftright"
+    },
+    {
+      "name": "/actions/mixedreality",
+      "usage": "single"
+    }
+  ],
+  "default_bindings": [
+    {
+      "controller_type": "oculus_touch",
+      "binding_url": "bindings_oculus_touch.json"
+    }
+  ],
+  "localization": [
+    {
+      "language_tag": "en_US",
+      "/actions/default/in/left_trigger": "Left Trigger",
+      "/actions/default/in/left_gripbinary": "Left Grip"
+    }
+  ]
+}

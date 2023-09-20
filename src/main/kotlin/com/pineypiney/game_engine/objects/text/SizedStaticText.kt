@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.window.WindowI
 import glm_.f
 import glm_.i
 import glm_.vec2.Vec2

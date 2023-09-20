@@ -1,12 +1,12 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.Drawable
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.raycasting.Ray
+import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 
 abstract class InteractableMenuItem : MenuItem(), Interactable {

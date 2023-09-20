@@ -1,17 +1,18 @@
 package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.GameLogicI
-import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.objects.util.shapes.VertexShape
-import org.lwjgl.opengl.GL13C.*
+import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.window.WindowI
 
-abstract class BufferedGameRenderer<E: GameLogicI>: GameRenderer<E>() {
+abstract class BufferedGameRenderer<E: GameLogicI>: WindowRendererI<E> {
 
     val buffer = FrameBuffer(0, 0)
 
     override fun init() {
-        buffer.setSize(window.frameSize)
+        camera.init()
+        buffer.setSize(window.framebufferSize)
     }
 
     open fun clearFrameBuffer(buffer: FrameBuffer = this.buffer){
@@ -19,15 +20,9 @@ abstract class BufferedGameRenderer<E: GameLogicI>: GameRenderer<E>() {
         clear()
     }
 
-    protected fun drawBufferTexture(buffer: FrameBuffer = this.buffer){
-        val shape = VertexShape.screenQuadShape
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, buffer.TCB)
-        shape.bindAndDraw()
-    }
-
     override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
-        buffer.setSize(window.frameSize)
+        camera.updateAspectRatio()
+        buffer.setSize(window.framebufferSize)
     }
 
     open fun deleteFrameBuffers(){
@@ -36,5 +31,10 @@ abstract class BufferedGameRenderer<E: GameLogicI>: GameRenderer<E>() {
 
     override fun delete() {
         deleteFrameBuffers()
+    }
+
+    companion object{
+        val screenShader = ShaderLoader.getShader(ResourceKey("vertex/frame_buffer"), ResourceKey("fragment/frame_buffer"))
+        val screenUniforms = screenShader.compileUniforms()
     }
 }

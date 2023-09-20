@@ -1,9 +1,6 @@
 package com.pineypiney.game_engine_test.test3D
 
-import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.RenderedGameObject2D
 import com.pineypiney.game_engine.objects.game_objects.objects_3D.RenderedGameObject3D
@@ -21,6 +18,9 @@ import com.pineypiney.game_engine.util.maths.shapes.AxisAlignedCuboid
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.vectorToEuler
 import com.pineypiney.game_engine.util.raycasting.Ray
+import com.pineypiney.game_engine.window.WindowGameLogic
+import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.WindowedGameEngineI
 import com.pineypiney.game_engine_test.Renderer
 import glm_.mat4x4.Mat4
 import glm_.s
@@ -30,10 +30,10 @@ import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.PI
 
-class Game3D(override val gameEngine: GameEngineI<*>): GameLogic() {
+class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
 
-    override val camera: PerspectiveCamera = PerspectiveCamera(window)
-    override val renderer: Renderer = Renderer(window)
+    override val renderer = Renderer(window, PerspectiveCamera(window))
+    val camera get() = renderer.camera
 
     private val pressedKeys = mutableSetOf<Short>()
     private var moveMouse = false
@@ -110,8 +110,8 @@ class Game3D(override val gameEngine: GameEngineI<*>): GameLogic() {
         add(cursorRay)
     }
 
-    override fun render(window: WindowI, tickDelta: Double) {
-        renderer.render(window, this, tickDelta)
+    override fun render(tickDelta: Double) {
+        renderer.render(this, tickDelta)
 
         val speed = 10 * Timer.frameDelta
         val travel = Vec3()

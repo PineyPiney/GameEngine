@@ -2,9 +2,11 @@ package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import glm_.i
 import glm_.vec2.Vec2t
+import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL30C.*
 import java.nio.ByteBuffer
 
@@ -49,6 +51,12 @@ open class FrameBuffer(var width: Int, var height: Int, var internalFormat: Int 
 
     open fun bind(){
         glBindFramebuffer(GL_FRAMEBUFFER, FBO)
+    }
+
+    open fun draw(shape: VertexShape = VertexShape.screenQuadShape){
+        GL13C.glActiveTexture(GL13C.GL_TEXTURE0)
+        GL13C.glBindTexture(GL13C.GL_TEXTURE_2D, TCB)
+        shape.bindAndDraw()
     }
 
     override fun delete() {

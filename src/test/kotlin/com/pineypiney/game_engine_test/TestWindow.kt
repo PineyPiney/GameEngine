@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine_test
 
-import com.pineypiney.game_engine.Window
 import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.util.input.DefaultInput
+import com.pineypiney.game_engine.window.Window
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.openal.AL10
 import java.io.File

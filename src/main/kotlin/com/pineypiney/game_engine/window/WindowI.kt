@@ -1,11 +1,13 @@
-package com.pineypiney.game_engine
+package com.pineypiney.game_engine.window
 
 import com.pineypiney.game_engine.audio.AudioInputDevice
 import com.pineypiney.game_engine.audio.AudioOutputDevice
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.input.Inputs
+import glm_.vec2.Vec2
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
+import glm_.vec4.Vec4i
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.glfw.GLFWVidMode
@@ -26,7 +28,10 @@ interface WindowI {
      * - [title]: The title of the window
      * - [pos]: The position of the window in pixels from the top left of the screen
      * - [size]: The size of the screen in pixels
-     * - [frameSize]: The size of the FrameBuffer for this window
+     * - [framebufferSize]: The size of the FrameBuffer for this window
+     * - [frameSize]: The size of each edge of the window
+     * - [contentScale]: The content scale of the window
+     * - [opacity]: The opacity of the window
      * - [cursorPos]: The position of the cursor in pixels from the top left of the content area of the window
      * - [width]: The width of the window in pixels
      * - [height]: The height of the window in pixels
@@ -47,7 +52,10 @@ interface WindowI {
     var title: String
     var pos: Vec2i
     var size: Vec2i
-    val frameSize: Vec2i
+    val framebufferSize: Vec2i
+    val frameSize: Vec4i
+    val contentScale: Vec2
+    val opacity: Float
     var cursorPos: Vec2d
     var width: Int
     var height: Int

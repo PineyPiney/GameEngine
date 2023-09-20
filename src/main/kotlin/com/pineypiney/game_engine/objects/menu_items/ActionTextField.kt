@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.window.WindowI
 import glm_.i
 import glm_.vec2.Vec2
 

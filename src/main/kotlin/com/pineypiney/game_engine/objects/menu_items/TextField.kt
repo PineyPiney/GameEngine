@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.objects.menu_items
 
 import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.resources.shaders.Shader
@@ -12,6 +11,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.window.WindowI
 import glm_.c
 import glm_.i
 import glm_.vec2.Vec2

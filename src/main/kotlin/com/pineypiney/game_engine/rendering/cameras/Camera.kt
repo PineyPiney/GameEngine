@@ -1,13 +1,13 @@
 package com.pineypiney.game_engine.rendering.cameras
 
-import com.pineypiney.game_engine.WindowI
 import com.pineypiney.game_engine.util.extension_functions.coerceIn
+import com.pineypiney.game_engine.window.WindowI
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-abstract class Camera(override val window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0)): ICamera {
+abstract class Camera(override val window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0)): CameraI {
 
     override var cameraPos = Vec3(); protected set
     override var cameraUp = up

@@ -1,18 +1,14 @@
 package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.resources.ResourcesLoader
-import glm_.c
-import glm_.f
-import org.lwjgl.glfw.GLFW
 
 abstract class GameEngine<E: GameLogicI>(final override val resourcesLoader: ResourcesLoader): GameEngineI<E> {
 
     override val timer: Timer = Timer()
 
-    private var nextUpdateTime: Double = Timer.getCurrentTime()
-    private var FPSCounter: Int = 0
-    private val FPSInterval: Float = 1f
-    override var FPS: Float = 0f
+    private var frameTime: Double = 0.0
+    private var accumulator = 0.0
+    protected var interval: Float = 1f
 
     init {
         // Load the resources for the game
@@ -21,84 +17,39 @@ abstract class GameEngine<E: GameLogicI>(final override val resourcesLoader: Res
 
     override fun run() {
         init()
-        gameLoop()
+        while (shouldRun()) gameLoop()
         cleanUp()
     }
 
     override fun init(){
-
         timer.init()
         activeScreen.init()
-
-        window.setFrameBufferResizeCallback { activeScreen.updateAspectRatio(window) }
-        setInputCallbacks()
+        interval = 1f / TARGET_UPS
     }
 
     override fun gameLoop(){
+        // elapsed time is the time since this function was last called
+        frameTime = timer.tickFrame()
 
-        var frameTime: Double
-        var accumulator = 0.0
-        val interval: Float = 1f / TARGET_UPS
+        // accumulator adds up elapsed time
+        accumulator += frameTime
 
-        while (!window.shouldClose) {
-            // elapsed time is the time since this function was last called
-            frameTime = timer.tickFrame()
-
-            // accumulator adds up elapsed time
-            accumulator += frameTime
-
-            // Once the accumulator exceeds the interval, the game is updated
-            // and the accumulator reduces by interval amount.
-            // Advantage of doing it this way is that if there is lag, then the game will catch up with itself
-            while (accumulator >= interval) {
-                update(interval)
-                accumulator -= interval
-            }
-
-            input()
-
-            // Render screen regardless of the accumulator
-            render(accumulator / interval)
-
-            FPSCounter++
-            if(Timer.frameTime > nextUpdateTime){
-                updateFPS()
-            }
-
-            if (!window.vSync) {
-                // sync means that the game only runs game loops at the intended FPS
-                sync()
-            }
+        // Once the accumulator exceeds the interval, the game is updated
+        // and the accumulator reduces by interval amount.
+        // Advantage of doing it this way is that if there is lag, then the game will catch up with itself
+        while (accumulator >= interval) {
+            update(interval)
+            accumulator -= interval
         }
-    }
 
-    override fun setInputCallbacks(){
-        input.mouseMoveCallback = { screenPos, cursorOffset ->
-            activeScreen.onCursorMove(screenPos, cursorOffset)
-        }
-        input.mouseScrollCallback = { scrollOffset ->
-            activeScreen.onScroll(scrollOffset)
-        }
-        input.keyPressCallback = { bind, action ->
-            activeScreen.onInput(bind, action)
-        }
-        input.keyboardCharCallback = { codepoint ->
-            activeScreen.onType(codepoint.c)
-        }
+        input()
+
+        // Render screen regardless of the accumulator
+        render(accumulator / interval)
     }
 
     override fun update(interval: Float) {
         timer.tick()
-        activeScreen.update(interval, input)
-    }
-
-    override fun render(tickDelta: Double) {
-        activeScreen.render(window, tickDelta)
-        window.update()
-    }
-
-    override fun input(){
-        input.input()
     }
 
     override fun sync() {
@@ -113,15 +64,8 @@ abstract class GameEngine<E: GameLogicI>(final override val resourcesLoader: Res
         }
     }
 
-    fun updateFPS(){
-        FPS = FPSCounter.f / FPSInterval
-        FPSCounter = 0
-        nextUpdateTime = Timer.frameTime + FPSInterval
-    }
-
     override fun cleanUp() {
         resourcesLoader.cleanUp()
         activeScreen.cleanUp()
-        GLFW.glfwTerminate()
     }
 }

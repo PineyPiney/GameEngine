@@ -126,6 +126,24 @@ fun Vec3.Companion.fromMat4Translation(matrix: Mat4): Vec3{
     return Vec3(matrix[3, 0], matrix[3, 1], matrix[3, 2])
 }
 
+// https://en.wikipedia.org/wiki/Rotation_matrix
+fun Vec3.Companion.fromMat4Rotation(matrix: Mat4, extrinsic: Boolean = false): Vec3{
+    val b = asin(-matrix[0, 2])
+    val cosb = cos(b)
+    val a = asin(matrix[0, 1] / cosb)
+    val c = asin(matrix[1, 2] / cosb)
+    return if(extrinsic) Vec3(c, b, a)
+    else Vec3(a, b, c)
+}
+
+fun Vec3.Companion.fromMat4Scale(matrix: Mat4): Vec3{
+    val (a, b, c) = fromMat4Rotation(matrix)
+    val x = matrix[0, 0] / (cos(b) * cos(c))
+    val y = matrix[1, 1] / ((sin(a) * sin(b) * sin(c)) + (cos(a) * cos(c)))
+    val z = matrix[2, 2] / (cos(a) * cos(b))
+    return Vec3(x, y, z)
+}
+
 fun Vec3.Companion.fromHex(num: Int): Vec3{
     return Vec3(num getRGBAValue 2, num getRGBAValue 1, num getRGBAValue 0)
 }
@@ -154,3 +172,13 @@ fun Mat4.rotate(angleX: Float, angleY: Float, angleZ: Float): Mat4{
         .rotate(angleZ, Vec3(0, 0, 1))
 }
 fun Mat4.scale(vec2: Vec2) = scale(Vec3(vec2, 1))
+
+fun Mat4.translationComponent(): Mat4{
+    return I.also { it[3] = this[3] }
+}
+
+fun Mat4.rotationComponent(): Mat4{
+    return this.apply {
+        this[3] = Vec4(0f, 0f, 0f, 1f)
+    }
+}

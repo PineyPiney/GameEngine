@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.util.input
 
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.WindowI
+import com.pineypiney.game_engine.window.WindowI
 import glm_.and
 import glm_.b
 import glm_.i

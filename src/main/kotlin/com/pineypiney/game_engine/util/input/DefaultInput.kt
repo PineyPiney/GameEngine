@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.util.input
 
-import com.pineypiney.game_engine.WindowI
+import com.pineypiney.game_engine.window.WindowI
 
 class DefaultInput(window: WindowI): Inputs(window) {
 

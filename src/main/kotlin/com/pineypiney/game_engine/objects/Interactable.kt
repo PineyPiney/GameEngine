@@ -34,13 +34,12 @@ interface Interactable: Updateable {
 
     fun checkHover(ray: Ray, screenPos: Vec2): Boolean
 
-    fun onCursorMove(game: GameLogicI, cursorPos: Vec2, cursorDelta: Vec2){
+    fun onCursorMove(game: GameLogicI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray){
         if(pressed) onDrag(game, cursorPos, cursorDelta)
 
-        val ray = game.camera.getRay()
         for (child in children) {
             child.hover = child.checkHover(ray, cursorPos)
-            if(child.shouldUpdate()) child.onCursorMove(game, cursorPos, cursorDelta)
+            if(child.shouldUpdate()) child.onCursorMove(game, cursorPos, cursorDelta, ray)
         }
     }
 
