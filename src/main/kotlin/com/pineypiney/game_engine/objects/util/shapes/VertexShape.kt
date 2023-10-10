@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine.objects.util.shapes
 
 import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.util.extension_functions.associateIndexed
 import glm_.f
 import glm_.vec2.Vec2
-import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL30C.*
 
 abstract class VertexShape: Deleteable {
@@ -24,16 +24,15 @@ abstract class VertexShape: Deleteable {
 
     abstract fun drawInstanced(amount: Int, mode: Int = GL_TRIANGLES)
 
-    fun setAttribs(data: Array<Vec2i>, type: Int){
+    fun setAttribs(data: Map<Int, Pair<Int, Int>>){
 
         // How to read non-indices array
-        val bytes = 4 //Float.BYTES
-        val stride = data.sumOf { it.y } * bytes
+        val stride = data.values.sumOf { 4 * it.second }
 
         var step = 0L
-        for(attrib in data){
-            val index = attrib.x
-            val size = attrib.y
+        for((index, d) in data){
+            val (type, size) = d
+
 
             glEnableVertexAttribArray(index)
             when(type){
@@ -41,12 +40,12 @@ abstract class VertexShape: Deleteable {
                 GL_INT -> glVertexAttribIPointer(index, size, type, stride, step)
             }
 
-            step += size * bytes
+            step += size * 4
         }
     }
 
-    fun setAttribs(parts: IntArray){
-        setAttribs(parts.mapIndexed{ i, p -> Vec2i(i, p) }.toTypedArray(), GL_FLOAT)
+    fun setAttribs(parts: IntArray, type: Int = GL_FLOAT){
+        setAttribs(parts.toList().associateIndexed { i, p -> Pair(i, Pair(type, p)) })
     }
 
     override fun delete() {

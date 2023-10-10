@@ -8,6 +8,7 @@ import glm_.vec2.Vec2i
 import kool.Buffer
 import kool.ByteBuffer
 import kool.lim
+import kool.toBuffer
 import org.lwjgl.opengl.GL32C.*
 import java.nio.ByteBuffer
 
@@ -78,7 +79,7 @@ class Texture(val fileName: String, val texturePointer: Int, val target: Int = G
     }
 
     companion object {
-        val broke: Texture = Texture("missing", TextureLoader.createTexture(createArray(), 32, 32))
+        val broke: Texture = Texture("missing", TextureLoader.createTexture(createArray().toBuffer(), 32, 32))
 
         fun createArray(): ByteArray{
             val b = byteArrayOf(0, 0, 0)

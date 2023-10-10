@@ -3,14 +3,12 @@ package com.pineypiney.game_engine.window
 import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.objects.Drawable
 import com.pineypiney.game_engine.objects.Interactable
-import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
-import com.pineypiney.game_engine.util.input.Inputs
 import glm_.vec2.Vec2
 
 abstract class WindowGameLogic : GameLogic() {
@@ -88,27 +86,10 @@ abstract class WindowGameLogic : GameLogic() {
         setFullscreen(if(window.fullScreen) null else Monitor.primary)
     }
 
-    override fun update(interval: Float, input: Inputs) {
-        gameObjects.update(interval)
-    }
-
-    override fun updateAspectRatio(window: WindowI) {
+    open fun updateAspectRatio(window: WindowI) {
         renderer.updateAspectRatio(window, gameObjects)
         gameObjects.getAllObjects().forEachInstance<Drawable> {
             it.updateAspectRatio(window)
         }
-    }
-
-    override fun add(o: Storable?){
-        gameObjects.addObject(o)
-    }
-
-    override fun remove(o: Storable?){
-        gameObjects.removeObject(o)
-    }
-
-    override fun cleanUp() {
-        gameObjects.delete()
-        renderer.delete()
     }
 }

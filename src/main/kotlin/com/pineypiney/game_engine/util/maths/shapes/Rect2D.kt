@@ -37,12 +37,12 @@ class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle
 
     // https://gamedev.stackexchange.com/questions/25397/obb-vs-obb-collision-detection
     infix fun intersects(other: Rect2D): Boolean{
-        return !normals(other).any { overlap1D(it, other) == 0f }
+        return normals(other).all { overlap1D(it, other) != 0f }
     }
 
     infix fun projectTo(normal: Vec2): Vec2{
-        return points.reduceA(Vec2(Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY)) { acc, vec3 ->
-            val pp = vec3.projectOn(normal)
+        return points.reduceA(Vec2(Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY)) { acc, vec2 ->
+            val pp = vec2.projectOn(normal)
             val p = pp.length() * if (pp.angle() >= PI) -1 else 1
             Vec2(min(acc.x, p), max(acc.y, p))
         }

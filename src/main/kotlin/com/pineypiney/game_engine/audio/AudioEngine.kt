@@ -10,8 +10,8 @@ open class AudioEngine {
     val audio: MutableSet<AudioSource> = mutableSetOf()
 
     var gain: Float
-        get() = AL10.alGetListenerf(AL10.AL_PITCH)
-        set(value) = AL10.alListenerf(AL10.AL_PITCH, value)
+        get() = AL10.alGetListenerf(AL10.AL_GAIN)
+        set(value) = AL10.alListenerf(AL10.AL_GAIN, value)
     var position: Vec3
         get() = getVec3(AL10.AL_POSITION)
         set(value) = setVec3(AL10.AL_POSITION, value)

@@ -110,8 +110,8 @@ fun Vec3.transform(m: Mat4): Vec3 {
 fun Vec2.roundedString(places: Int) = arrayOf("${x.round(places)}", "${y.round(places)}")
 fun Vec3.roundedString(places: Int) = arrayOf("${x.round(places)}", "${y.round(places)}", "${z.round(places)}")
 
-fun Vec3.toHex(): Int = (x * 255).i shl 16 + (y * 255).i shl 8 + (z * 255).i
-fun Vec4.toHex(): Int = (x * 255).i shl 24 + (y * 255).i shl 16 + (z * 255).i shl 8 + (w * 255).i
+fun Vec3.toHex(): Int = ((x * 255).i shl 16) and ((y * 255).i shl 8) and ((z * 255).i)
+fun Vec4.toHex(): Int = ((x * 255).i shl 24) and ((y * 255).i shl 16) and ((z * 255).i shl 8) and ((w * 255).i)
 
 fun Vec2.copy() = Vec2(0, floatArrayOf(x, y))
 fun Vec3.copy() = Vec3(0, floatArrayOf(x, y, z))

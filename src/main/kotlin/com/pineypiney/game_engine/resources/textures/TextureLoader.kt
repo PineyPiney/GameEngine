@@ -127,9 +127,9 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             glGenerateMipmap(GL_TEXTURE_2D)
         }
 
-        fun createTexture(data: ByteArray, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_NEAREST, target: Int = GL_TEXTURE_2D): Int{
+        fun createTexture(data: ByteBuffer?, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_NEAREST, target: Int = GL_TEXTURE_2D): Int{
             val pointer = createPointer(wrapping, filtering, target)
-            loadImageFromData(data.toBuffer(), width, height, format, internalFormat, type)
+            loadImageFromData(data, width, height, format, internalFormat, type)
             return pointer
         }
 
@@ -138,12 +138,6 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             glBindTexture(target, pointer)
             GL32C.glTexImage2DMultisample(GL32C.GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, fixedSample)
             loadImageFromData(data.toBuffer(), width, height, format, internalFormat, type)
-            return pointer
-        }
-
-        fun createTexture(data: ByteBuffer?, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_NEAREST, target: Int = GL_TEXTURE_2D): Int{
-            val pointer = createPointer(wrapping, filtering, target)
-            loadImageFromData(data, width, height, format, internalFormat, type)
             return pointer
         }
 

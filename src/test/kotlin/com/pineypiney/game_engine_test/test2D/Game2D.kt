@@ -94,8 +94,8 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     private val slider = ColourSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), window, ColourSlider.redShader, mutableMapOf("green" to 0.5f, "blue" to 0.5f))
 
     private val texture = SimpleTexturedGameObject2D(Texture.broke)
-    private val model1 = ModelledGameObject2D(ModelLoader.getModel(ResourceKey("goblin")), Model.DEBUG_COLLIDER)
-    private val model2 = ModelledGameObject2D(ModelLoader.getModel(ResourceKey("goblin")), Model.DEBUG_COLLIDER)
+    private val model1 = ModelledGameObject2D(ModelLoader.getModel(ResourceKey("goblin")), Model.DEBUG_COLLIDER + Model.DEBUG_BONES + Model.DEBUG_MESH)
+    private val model2 = ModelledGameObject2D(ModelLoader.getModel(ResourceKey("missing")), Model.DEBUG_COLLIDER)
 
     private val text = SizedStaticText("X Part: 0.00 \nY Part: 0.00", window, 16, Vec2(0.5, 0.2))
     private val gameText = StretchyGameText("This is some Stretchy Game Text", Vec2(8.88, 10), Vec4(0.0, 1.0, 1.0, 1.0))

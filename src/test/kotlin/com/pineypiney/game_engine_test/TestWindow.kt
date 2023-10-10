@@ -20,8 +20,8 @@ class TestWindow(width: Int = 960, height: Int = 540): Window("Example Window", 
         center()
     }
 
-    override fun configureAl() {
-        super.configureAl()
+    override fun configureAL() {
+        super.configureAL()
         setAudioInput(AudioEngine.getAllInputDevices().firstOrNull(), 44100, AL10.AL_FORMAT_MONO8, 4096)
     }
 

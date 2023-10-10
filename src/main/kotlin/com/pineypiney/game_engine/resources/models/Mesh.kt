@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.extension_functions.expand
 import glm_.vec2.Vec2
-import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL31C.*
 
 // Meshes are made up of faces, which are in turn made up of MeshVertices.
@@ -64,6 +63,7 @@ class Mesh(var id: String, val vertices: Array<MeshVertex>, val indices: IntArra
 
         setupFloats()
         setupInts()
+
         setupElements()
 
         // Clean up
@@ -76,12 +76,13 @@ class Mesh(var id: String, val vertices: Array<MeshVertex>, val indices: IntArra
         // Buffer floats
         glBindBuffer(GL_ARRAY_BUFFER, floatVBO)
 
+
+        setAttribs(mapOf(0 to Pair(GL_FLOAT, 2), 1 to Pair(GL_FLOAT, 2), 3 to Pair(GL_FLOAT, 4)))
+
         // Get data from each vertex and put it in one long array
         val floatArray = vertices.flatMap(MeshVertex::getFloatData).toFloatArray()
         // Send the data to the buffers
         glBufferData(GL_ARRAY_BUFFER, floatArray, GL_STATIC_DRAW)
-
-        setAttribs(arrayOf(Vec2i(0, 2), Vec2i(1, 2), Vec2i(3, 4)), GL_FLOAT)
     }
 
     fun setupInts(){
@@ -89,12 +90,12 @@ class Mesh(var id: String, val vertices: Array<MeshVertex>, val indices: IntArra
         // Buffer ints
         glBindBuffer(GL_ARRAY_BUFFER, intVBO)
 
+        setAttribs(mapOf(2 to Pair(GL_INT, 4)))
+
         // Get data from each vertex and put it in one long array
         val intArray = vertices.flatMap(MeshVertex::getIntData).toIntArray()
         // Send the data to the buffers
         glBufferData(GL_ARRAY_BUFFER, intArray, GL_STATIC_DRAW)
-
-        setAttribs(arrayOf(Vec2i(2, 4)), GL_INT)
     }
 
     fun setupElements(){

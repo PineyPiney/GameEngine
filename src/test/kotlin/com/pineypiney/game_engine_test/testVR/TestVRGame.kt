@@ -10,7 +10,6 @@ import com.pineypiney.game_engine.util.extension_functions.fromMat4Translation
 import com.pineypiney.game_engine.util.extension_functions.rotationComponent
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.vr.VRGameEngine
-import com.pineypiney.game_engine.window.WindowI
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
@@ -57,10 +56,6 @@ class TestVRGame(override val gameEngine: TestVREngine) : GameLogic() {
             val vec = Vec3.fromMat4Translation(hmdMat).run { Vec3(x, y, -z) }
             renderer.viewOffset += vec * Timer.frameDelta
         }
-
-    }
-
-    override fun updateAspectRatio(window: WindowI) {
 
     }
 

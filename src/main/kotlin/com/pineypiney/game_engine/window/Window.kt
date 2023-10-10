@@ -121,7 +121,7 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
 
     override fun init() {
         configureGL()
-        configureAl()
+        configureAL()
     }
 
     private fun createWindow(title: String, width: Int, height: Int, fullScreen: Boolean, hints: Map<Int, Int>): Long{
@@ -155,7 +155,7 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
         }
     }
 
-    protected open fun configureAl(){
+    protected open fun configureAL(){
         setAudioOutput(null)
 
         val cCaps = ALC.getCapabilities()

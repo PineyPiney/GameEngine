@@ -30,7 +30,6 @@ fun <E: Initialisable> Iterable<E?>?.init(){
     this?.forEach {
         it?.init()
     }
-
 }
 
 /**
@@ -69,6 +68,17 @@ fun <T> Iterable<T>.sumOf(selector: (T) -> Float): Float{
         sum += selector(element)
     }
     return sum
+}
+
+fun <E, K, V> Iterable<E>.associateIndexed(transform: (Int, E) -> Pair<K, V>): Map<K, V>{
+    val it = iterator()
+    var i = 0;
+    val map = mutableMapOf<K, V>()
+    while(it.hasNext()){
+        val pair = transform(i++, it.next());
+        map[pair.first] = pair.second
+    }
+    return map;
 }
 
 /**

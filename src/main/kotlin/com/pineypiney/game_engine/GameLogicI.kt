@@ -4,7 +4,6 @@ import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.util.input.Inputs
-import com.pineypiney.game_engine.window.WindowI
 
 interface GameLogicI {
 
@@ -18,8 +17,6 @@ interface GameLogicI {
     fun open()
 
     fun update(interval: Float, input: Inputs)
-
-    fun updateAspectRatio(window: WindowI)
 
     fun render(tickDelta: Double)
 

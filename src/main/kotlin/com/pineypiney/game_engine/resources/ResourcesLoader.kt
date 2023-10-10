@@ -28,7 +28,7 @@ abstract class ResourcesLoader {
     abstract fun getStream(name: String): InputStream?
 
     fun getStreams(): Map<String, InputStream> {
-        return streamList.associateWith { entry -> getStream(entry) }.removeNullValues()
+        return streamList.associateWith(this::getStream).removeNullValues()
     }
 
     fun loadResources(){
@@ -39,6 +39,10 @@ abstract class ResourcesLoader {
         GameEngineI.info("Loaded Audio in ${timeActionM{ loadAudio(streamMap) }.round(2)} ms")
         GameEngineI.info("Loaded Videos in ${timeActionM{ loadVideos() }.round(2)} ms")
         GameEngineI.info("Loaded Models in ${timeActionM{ loadModels(streamMap) }.round(2)} ms")
+
+        for((_, stream) in streamMap){
+            stream.close()
+        }
     }
 
     fun loadShaders(streamMap: Map<String, InputStream>){ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) }) }
