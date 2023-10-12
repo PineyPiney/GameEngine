@@ -5,7 +5,6 @@ import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.LibrarySetUp
 import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
-import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.directory
 import com.pineypiney.game_engine_test.test2D.Game2D
 import com.pineypiney.game_engine_test.test3D.Game3D
@@ -36,7 +35,6 @@ class Test{
         TestWindow.INSTANCE.init()
 
         val fileResources = FileResourcesLoader("$directory/src/main/resources")
-        TextureLoader.setFlags("fonts/Large Font.png", 1)
 
         val e = engine(fileResources, screen)
         e.run()

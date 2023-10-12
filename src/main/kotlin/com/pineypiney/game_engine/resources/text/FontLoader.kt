@@ -142,7 +142,7 @@ class FontLoader private constructor(): AbstractResourceLoader<Font>() {
                 else listOf(0.b, 0.b, 0.b, 255.b)
             }
             val array = pixels.flatten().toByteArray()
-            Texture("", TextureLoader.createTexture(array.toBuffer(), size.x, size.y, GL12C.GL_RGBA, wrapping = GL12C.GL_CLAMP_TO_EDGE))
+            Texture("", TextureLoader.createTexture(array.toBuffer(), size.x, size.y, GL12C.GL_RGBA))
         }
 
         this.map[ResourceKey(fontName.substringBefore('.'))] = TrueTypeFont(font, map, ctx, shader)

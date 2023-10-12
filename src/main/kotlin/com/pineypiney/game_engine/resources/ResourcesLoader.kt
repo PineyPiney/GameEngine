@@ -46,7 +46,11 @@ abstract class ResourcesLoader {
     }
 
     fun loadShaders(streamMap: Map<String, InputStream>){ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }.mapKeys { it.key.removePrefix(shaderLocation) }) }
-    fun loadTextures(streamMap: Map<String, InputStream>){TextureLoader.INSTANCE.loadTextures(streamMap.filter { it.key.startsWith(textureLocation) && TextureLoader.fileTypes.contains(it.key.split('.').last()) }.mapKeys { it.key.removePrefix(textureLocation) }) }
+    fun loadTextures(streamMap: Map<String, InputStream>){
+        val inFolder = streamMap.filter { it.key.startsWith(textureLocation)}.mapKeys { it.key.removePrefix(textureLocation) }
+        TextureLoader.INSTANCE.loadParameters(inFolder.filter { it.key.split('.').last() == "params" })
+        TextureLoader.INSTANCE.loadTextures(inFolder.filter { TextureLoader.fileTypes.contains(it.key.split('.').last()) })
+    }
     fun loadAudio(streamMap: Map<String, InputStream>){AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }.mapKeys { it.key.removePrefix(audioLocation) }) }
     fun loadVideos(){VideoLoader.INSTANCE.loadVideos(streamList.filter { it.startsWith(videoLocation) }.map { it.removePrefix(videoLocation) }) }
     fun loadModels(streamMap: Map<String, InputStream>){ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) }) }

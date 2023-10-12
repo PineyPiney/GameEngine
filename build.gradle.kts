@@ -10,8 +10,9 @@ plugins {
     `maven-publish`
 }
 
+val ver: String = "1.0-SNAPSHOT"
 group = "com.pineypiney.game_engine"
-version = "1.0-SNAPSHOT"
+version = ver
 
 val lwjglVersion = "3.3.2"
 
@@ -86,7 +87,8 @@ publishing{
         register<MavenPublication>("gpr"){
             group = "com.github.PineyPiney"
             artifactId = "GameEngine"
-            version = version
+            version = ver
+
 
             from(components["java"])
         }

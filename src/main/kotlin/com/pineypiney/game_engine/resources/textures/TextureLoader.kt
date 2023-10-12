@@ -4,10 +4,11 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import glm_.bool
 import glm_.vec3.Vec3i
 import kool.toBuffer
-import org.lwjgl.opengl.GL30C.*
-import org.lwjgl.opengl.GL32C
+import org.lwjgl.opengl.GL32C.*
+import org.lwjgl.opengl.GL44.GL_MIRROR_CLAMP_TO_EDGE
 import org.lwjgl.stb.STBImage
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -15,7 +16,7 @@ import java.nio.ByteBuffer
 class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() {
 
     override val missing: Texture get() = Texture.broke
-    val flags = mutableMapOf<String, Pair<Boolean, Int>>()
+    val flags = mutableMapOf<String, TextureParameters>()
 
     fun loadTextures(streams: Map<String, InputStream>) {
         val pointers = IntArray(streams.size)
@@ -40,12 +41,13 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             GameEngineI.warn("Buffer for texture $name is empty")
         }
         else {
-            val (flip, numChan) = flags[name] ?: (true to 0)
-            loadIndividualSettings(pointer)
+            val keyName = name.substringBefore('.')
+            val params = flags[keyName] ?: TextureParameters.default
+            loadIndividualSettings(pointer, params)
 
             // Load the image from file
-            if(loadImageFromFile(buffer, flip, numChan)){
-                return Texture(name.substringAfterLast('\\').substringBefore('.'), pointer)
+            if(loadImageFromFile(buffer, params.flip, params.numChannels)){
+                return Texture(keyName.substringAfterLast('\\'), pointer)
             }
 
             else {
@@ -54,6 +56,44 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
         }
 
         return Texture.broke
+    }
+
+    fun loadParameters(streams: Map<String, InputStream>){
+        for((fileName, stream) in streams){
+            var currentEdit: TextureParameters? = null
+            val dir = fileName.removeSuffix(".params")
+            val lines = stream.readBytes().toString(Charsets.UTF_8).split('\n')
+
+            for(line in lines){
+                if(line.startsWith('"')){
+                    val name = dir + line.substring(line.indexOf('"') + 1, line.lastIndexOf('"'))
+                    if(!flags.containsKey(name)) flags[name] = TextureParameters()
+                    currentEdit = flags[name] ?: return
+                }
+                else if(line.startsWith(' ')){
+                    val (param, value) = line.split(':').map(String::trim)
+                    val intValue = parameters.getOrElse(value) {
+                        try { Integer.parseInt(value) }
+                        catch (e: NumberFormatException){
+                            GameEngineI.warn("Couldn't parse texture parameter $param with value $value in .params file $fileName")
+                            0
+                        }
+                    }
+                    when(param){
+                        "target" -> currentEdit?.target = intValue
+                        "flip" -> currentEdit?.flip = intValue.bool
+                        "channels" -> currentEdit?.numChannels = intValue
+                        "wrap" -> currentEdit?.setWrapping(intValue)
+                        "wrapS" -> currentEdit?.wrapS = intValue
+                        "wrapT" -> currentEdit?.wrapT = intValue
+                        "wrapR" -> currentEdit?.wrapR = intValue
+                        "filter" -> currentEdit?.setFilter(intValue)
+                        "minFilter" -> currentEdit?.minFilter = intValue
+                        "magFilter" -> currentEdit?.magFilter = intValue
+                    }
+                }
+            }
+        }
     }
 
     fun findTexture(name: String): Texture{
@@ -72,24 +112,24 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
         fun findTexture(name: String): Texture = INSTANCE.findTexture(name)
 
 
-        fun createPointer(wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_NEAREST, target: Int = GL_TEXTURE_2D): Int{
+        fun createPointer(params: TextureParameters): Int{
             // Create a handle for the texture
             val texturePointer = glGenTextures()
             // Settings
-            loadIndividualSettings(texturePointer, wrapping, filtering, target)
+            loadIndividualSettings(texturePointer, params)
 
             return texturePointer
         }
 
-        fun loadIndividualSettings(pointer: Int, wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_LINEAR, target: Int = GL_TEXTURE_2D) {
+        fun loadIndividualSettings(pointer: Int, params: TextureParameters = TextureParameters.default) {
 
-            glBindTexture(target, pointer)
+            glBindTexture(params.target, pointer)
             // Set wrapping and filtering options
-            glTexParameteri(target, GL_TEXTURE_WRAP_S, wrapping)
-            glTexParameteri(target, GL_TEXTURE_WRAP_T, wrapping)
-            glTexParameteri(target, GL_TEXTURE_WRAP_R, wrapping)
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering)
-            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filtering)
+            glTexParameteri(params.target, GL_TEXTURE_WRAP_S, params.wrapS)
+            glTexParameteri(params.target, GL_TEXTURE_WRAP_T, params.wrapT)
+            glTexParameteri(params.target, GL_TEXTURE_WRAP_R, params.wrapR)
+            glTexParameteri(params.target, GL_TEXTURE_MIN_FILTER, params.minFilter)
+            glTexParameteri(params.target, GL_TEXTURE_MAG_FILTER, params.magFilter)
         }
 
         private fun loadImageFromFile(buffer: ByteBuffer, flip: Boolean = true, numChan: Int = 0): Boolean {
@@ -127,16 +167,16 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             glGenerateMipmap(GL_TEXTURE_2D)
         }
 
-        fun createTexture(data: ByteBuffer?, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, wrapping: Int = GL_CLAMP_TO_EDGE, filtering: Int = GL_NEAREST, target: Int = GL_TEXTURE_2D): Int{
-            val pointer = createPointer(wrapping, filtering, target)
+        fun createTexture(data: ByteBuffer?, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, params: TextureParameters = TextureParameters.default): Int{
+            val pointer = createPointer(params)
             loadImageFromData(data, width, height, format, internalFormat, type)
             return pointer
         }
 
-        fun createMultisampleTexture(data: ByteArray, width: Int, height: Int, samples: Int = 4, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, target: Int = GL32C.GL_TEXTURE_2D_MULTISAMPLE, fixedSample: Boolean = true): Int{
+        fun createMultisampleTexture(data: ByteArray, width: Int, height: Int, samples: Int = 4, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, target: Int = GL_TEXTURE_2D_MULTISAMPLE, fixedSample: Boolean = true): Int{
             val pointer = glGenTextures()
             glBindTexture(target, pointer)
-            GL32C.glTexImage2DMultisample(GL32C.GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, fixedSample)
+            glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, fixedSample)
             loadImageFromData(data.toBuffer(), width, height, format, internalFormat, type)
             return pointer
         }
@@ -169,10 +209,30 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
         }
 
         fun setFlags(name: String, flip: Boolean, numChannels: Int = 0){
-            INSTANCE.flags[name] = flip to numChannels
+            INSTANCE.flags[name] = TextureParameters(flip = flip, numChannels = numChannels)
         }
         fun setFlags(name: String, numChan: Int){
-            INSTANCE.flags[name] = true to numChan
+            INSTANCE.flags[name] = TextureParameters(numChannels = numChan)
         }
+
+        fun setFlags(name: String, params: TextureParameters){
+            INSTANCE.flags[name] = params
+        }
+
+        val parameters = mapOf(
+            Pair("NEAREST", GL_NEAREST),
+            Pair("LINEAR", GL_LINEAR),
+            Pair("RED", GL_RED),
+            Pair("GREEN", GL_GREEN),
+            Pair("BLUE", GL_BLUE),
+            Pair("ALPHA", GL_ALPHA),
+            Pair("ZERO", GL_ZERO),
+            Pair("ONE", GL_ONE),
+            Pair("CLAMP_TO_EDGE", GL_CLAMP_TO_EDGE),
+            Pair("CLAMP_TO_BORDER", GL_CLAMP_TO_BORDER),
+            Pair("MIRRORED_REPEAT", GL_MIRRORED_REPEAT),
+            Pair("REPEAT", GL_REPEAT),
+            Pair("MIRROR_CLAMP_TO_EDGE", GL_MIRROR_CLAMP_TO_EDGE),
+        )
     }
 }
