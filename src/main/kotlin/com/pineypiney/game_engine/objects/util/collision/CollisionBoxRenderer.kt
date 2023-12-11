@@ -18,7 +18,7 @@ class CollisionBoxRenderer(val collider: CollisionBox2D, val parent: GameObject,
     override val uniforms: Uniforms = shader.compileUniforms()
 
     override fun setUniforms() {
-        uniforms.setMat4Uniform("model"){ parent.transform.model * collider.relModel }
+        uniforms.setMat4Uniform("model"){ parent.worldModel * collider.relModel }
         uniforms.setVec4Uniform("colour"){ Vec4(1) }
     }
 

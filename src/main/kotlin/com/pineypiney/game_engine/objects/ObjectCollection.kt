@@ -17,14 +17,14 @@ open class ObjectCollection {
         o?.addTo(this)
 
         // Add this to the object
-        o?.objects?.add(this)
+        o?.objects = this
     }
     open fun removeObject(o: Storable?){
         // Remove the object from this
         o?.removeFrom(this)
 
         // Remove this from the object
-        o?.objects?.remove(this)
+        o?.objects = this
     }
 
 

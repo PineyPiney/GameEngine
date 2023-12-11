@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine_test
 
+import com.pineypiney.game_engine.objects.Drawable
 import com.pineypiney.game_engine.objects.Renderable
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
 import com.pineypiney.game_engine.rendering.FrameBuffer
@@ -34,6 +35,7 @@ class Renderer<R: CameraI>(override val window: WindowI, override val camera: R)
 
         clearFrameBuffer()
         game.gameObjects.gameItems.forEachInstance<Renderable> { it.render(view, projection, tickDelta) }
+        game.gameObjects.guiItems.forEachInstance<Drawable> { it.draw() }
 
         // This draws the buffer onto the screen
         FrameBuffer.unbind()

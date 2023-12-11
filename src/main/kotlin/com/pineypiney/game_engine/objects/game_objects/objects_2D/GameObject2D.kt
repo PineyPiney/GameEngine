@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.objects.game_objects.objects_2D
 
-import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.game_objects.GameObject
 import com.pineypiney.game_engine.objects.game_objects.transforms.Transform2D
 import com.pineypiney.game_engine.util.extension_functions.isWithin
@@ -12,8 +11,6 @@ import glm_.vec3.Vec3
 import glm_.vec3.Vec3t
 
 abstract class GameObject2D : GameObject() {
-
-    override val objects: MutableSet<ObjectCollection> = mutableSetOf()
 
     override val transform: Transform2D = Transform2D.origin
 

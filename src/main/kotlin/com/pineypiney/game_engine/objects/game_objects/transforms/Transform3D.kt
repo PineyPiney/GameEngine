@@ -2,16 +2,17 @@ package com.pineypiney.game_engine.objects.game_objects.transforms
 
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.maths.I
+import glm_.quat.Quat
 import glm_.vec3.Vec3
 
-class Transform3D(position: Vec3 = Vec3(), rotation: Vec3 = Vec3(), scale: Vec3 = Vec3(1)): Transform<Vec3, Vec3, Vec3>() {
+class Transform3D(position: Vec3 = Vec3(), rotation: Quat = Quat(), scale: Vec3 = Vec3(1)): Transform<Vec3, Quat, Vec3>() {
 
     override var position: Vec3 = position
         set(value) {
             field = value
             recalculateModel()
         }
-    override var rotation: Vec3 = rotation
+    override var rotation: Quat = rotation
         set(value) {
             field = value
             recalculateModel()
@@ -31,10 +32,12 @@ class Transform3D(position: Vec3 = Vec3(), rotation: Vec3 = Vec3(), scale: Vec3 
         recalculateModel()
     }
 
-    override fun rotate(angle: Vec3){
-        rotation plusAssign angle
+    override fun rotate(angle: Quat){
+        rotation timesAssign angle
         recalculateModel()
     }
+
+    fun rotate(euler: Vec3) = rotate(Quat(euler))
 
     override fun scale(mult: Vec3){
         scale timesAssign mult
@@ -42,14 +45,10 @@ class Transform3D(position: Vec3 = Vec3(), rotation: Vec3 = Vec3(), scale: Vec3 
     }
 
     override fun recalculateModel(){
-        model = I.translate(position)
-            .rotate(rotation.x, Vec3(1, 0, 0))
-            .rotate(rotation.y, Vec3(0, 1, 0))
-            .rotate(rotation.z, Vec3(0, 0, 1))
-            .scale(scale)
+        model = (I.translate(position) * rotation.toMat4()).scale(scale)
     }
 
-    override fun copy(): Transform3D = Transform3D(position.copy(), rotation.copy(), scale.copy()).apply { recalculateModel() }
+    override fun copy(): Transform3D = Transform3D(position.copy(), Quat(rotation), scale.copy()).apply { recalculateModel() }
 
     companion object{
         val origin; get() = Transform3D()

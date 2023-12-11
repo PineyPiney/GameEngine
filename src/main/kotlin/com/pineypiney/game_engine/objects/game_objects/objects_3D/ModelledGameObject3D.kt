@@ -1,18 +1,20 @@
 package com.pineypiney.game_engine.objects.game_objects.objects_3D
 
 import com.pineypiney.game_engine.Timer
+import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
+import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.i
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
-open class ModelledGameObject3D(val model: Model, val debug: Int = 0): RenderedGameObject3D(if(debug and Model.DEBUG_MESH > 0) debugShader else defaultShader) {
+open class ModelledGameObject3D(val model: Model, val camera: CameraI, shader: Shader = defaultLitShader, val debug: Int = 0): RenderedGameObject3D(if(debug and Model.DEBUG_MESH > 0) debugShader else shader) {
 
-    constructor(id: ResourceKey, debug: Int = 0): this(ModelLoader.getModel(id), debug)
+    constructor(id: ResourceKey, camera: CameraI, shader: Shader = defaultLitShader, debug: Int = 0): this(ModelLoader.getModel(id), camera, shader, debug)
 
     protected var animation: ModelAnimation? = null
     private var animationStartTime: Double = 0.0
@@ -35,7 +37,7 @@ open class ModelledGameObject3D(val model: Model, val debug: Int = 0): RenderedG
         updateAnimation()
         super.render(view, projection, tickDelta)
 
-        model.Draw(this, view, projection, tickDelta, shader, debug)
+        model.Draw(this, camera.cameraPos, worldModel, view, projection, tickDelta, shader, debug)
     }
 
     fun initAnimation(animation: ModelAnimation, loop: Boolean = true){
@@ -86,7 +88,8 @@ open class ModelledGameObject3D(val model: Model, val debug: Int = 0): RenderedG
 
     companion object{
 
-        val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/translucent_texture"))
+        val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/texture"))
+        val defaultLitShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/lit_model"))
         val debugShader = ShaderLoader.getShader(ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights"))
 
     }

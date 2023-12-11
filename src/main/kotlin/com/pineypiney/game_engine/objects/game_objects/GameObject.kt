@@ -4,12 +4,18 @@ import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.objects.game_objects.transforms.Transform
+import glm_.mat4x4.Mat4
 
 abstract class GameObject : Initialisable, Storable {
 
-    override val objects: MutableSet<ObjectCollection> = mutableSetOf()
+    override var objects: ObjectCollection? = null
 
+    var name: String = "GameObject"
     abstract val transform: Transform<*, *, *>
+    var parent: GameObject? = null
+
+    val relativeModel: Mat4 get() = transform.model
+    val worldModel: Mat4 get() = parent?.let { it.worldModel * relativeModel } ?: relativeModel
 
     override fun init() {}
 
@@ -22,6 +28,6 @@ abstract class GameObject : Initialisable, Storable {
     }
 
     override fun delete() {
-        for(o in objects) { o.gameItems.remove(this) }
+        objects?.gameItems?.remove(this)
     }
 }

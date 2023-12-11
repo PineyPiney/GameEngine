@@ -20,14 +20,19 @@ import org.lwjgl.assimp.Assimp.aiProcess_Triangulate
 
 // Materials are also stored in the model, and accessed by the meshes through IDs
 
-class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<ModelAnimation>, val name: String = "broke", val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource() {
+class Model(val name: String, val meshes: Array<Mesh> = arrayOf(Mesh.default), val rootBone: Bone? = null, val animations: Array<ModelAnimation> = arrayOf(), val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource() {
 
     var collisionBox: CollisionBox2D = SoftCollisionBox(null, Vec2(), Vec2(1))
 
-    fun Draw(parent: GameObject, view: Mat4, projection: Mat4, tickDelta: Double, shader: Shader, debug: Int = 0) {
+    fun Draw(parent: GameObject, viewPos: Vec3, model: Mat4, view: Mat4, projection: Mat4, tickDelta: Double, shader: Shader, debug: Int = 0) {
 
         for(mesh in meshes) {
-            shader.setFloat("alpha", mesh.alpha)
+            mesh.setMaterial(shader)
+            mesh.setLights(shader)
+            val newModel = model * mesh.transform.model
+            shader.setMat4("model", newModel)
+            shader.setVec3("viewPos", viewPos)
+
             mesh.bindAndDraw()
         }
 
@@ -56,7 +61,7 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
         boneShader.setMat4("projection", projection)
 
         val bones: List<Bone> = rootBone?.getAllChildren() ?: listOf()
-        for(it in bones) { it.render(boneShader, parent.transform.model) }
+        for(it in bones) { it.render(boneShader, parent.worldModel) }
     }
 
     fun renderCollider(parent: GameObject, view: Mat4, projection: Mat4, tickDelta: Double){
@@ -100,11 +105,6 @@ class Model(val meshes: Array<Mesh>, val rootBone: Bone?, val animations: Array<
 
         val brokeMaterial = ModelMaterial("broke", mapOf(), Vec3(1))
 
-        private val v1 = Mesh.MeshVertex(ModelLoader.VertexPosition(0, Vec2(0, 0)), Vec2(0, 0))
-        private val v2 = Mesh.MeshVertex(ModelLoader.VertexPosition(1, Vec2(1, 0)), Vec2(1, 0))
-        private val v3 = Mesh.MeshVertex(ModelLoader.VertexPosition(2, Vec2(1, 1)), Vec2(1, 1))
-        private val v4 = Mesh.MeshVertex(ModelLoader.VertexPosition(3, Vec2(0, 1)), Vec2(0, 1))
-
-        val brokeModel = Model(arrayOf(Mesh("brokeMesh", arrayOf(v1, v2, v3, v4), intArrayOf(0, 3, 2, 2, 1, 0))), null, arrayOf())
+        val brokeModel = Model("broke")
     }
 }

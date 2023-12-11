@@ -31,7 +31,7 @@ class Cursor(val handle: Long): Deleteable {
         fun createCursor(texture: InputStream, point: Vec2i): Long{
             // The data must be in RGBA 32-bit format
             val bytes = ResourcesLoader.ioResourceToByteBuffer(texture, 2048)
-            val (data, info) = TextureLoader.loadImageFromMemory(bytes)
+            val (data, info) = TextureLoader.loadTextureData(bytes)
             val pixels = data?.toByteArray()?.toList()?.chunked(info.z) ?: return 0L
             val flipped = pixels.chunked(info.x).reversed().flatten()
             val rgba = flipped.flatMap { p -> List(4){ p.getOrElse(it){-1} } }

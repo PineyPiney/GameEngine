@@ -28,7 +28,7 @@ abstract class RenderedGameObject2D(shader: Shader): GameObject2D(), Renderable,
     }
 
     override fun setUniforms() {
-        uniforms.setMat4Uniform("model"){ transform.model }
+        uniforms.setMat4Uniform("model"){ worldModel }
     }
 
     companion object{

@@ -1,0 +1,10 @@
+# Exported from Nomad Sculpt
+
+newmtl Sphere
+ map_Kd Sphere_color.png
+ map_roughness Sphere_roughness.png
+ map_metallic Sphere_metalness.png
+
+newmtl Box
+
+newmtl Cylinder

@@ -53,7 +53,8 @@ abstract class ResourcesLoader {
     }
     fun loadAudio(streamMap: Map<String, InputStream>){AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }.mapKeys { it.key.removePrefix(audioLocation) }) }
     fun loadVideos(){VideoLoader.INSTANCE.loadVideos(streamList.filter { it.startsWith(videoLocation) }.map { it.removePrefix(videoLocation) }) }
-    fun loadModels(streamMap: Map<String, InputStream>){ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) }) }
+    fun loadModels(streamMap: Map<String, InputStream>){
+        ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }.mapKeys { it.key.removePrefix(modelLocation) }) }
 
 
     fun cleanUp(){

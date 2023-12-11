@@ -4,11 +4,10 @@ import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.rotate
 import com.pineypiney.game_engine.util.maths.I
-import com.pineypiney.game_engine.util.maths.normal
 import glm_.i
 import glm_.mat4x4.Mat4
-import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
@@ -20,13 +19,13 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 
     private val children: MutableList<Bone> = mutableListOf()
 
-    var translation: Vec2 = Vec2()
+    var translation: Vec3 = Vec3()
         set(value) {
             field = value
             updateModel()
         }
 
-    var rotation: Float = 0f
+    var rotation: Vec3 = Vec3()
         set(value) {
             field = value
             updateModel()
@@ -42,29 +41,29 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 
     fun getChild(name: String) = getAllChildren().firstOrNull { it.name == name }
 
-    fun getRoot(): Bone{
+    fun getRoot(): Bone {
         return this.parent ?: this
     }
 
     fun reset(){
         for(b in getAllChildren()){
-            if(b.rotation != 0f) b.rotation = 0f
-            if(b.translation.let { it.x != 0f || it.y != 0f}) b.translation = Vec2()
+            if(b.rotation != Vec3()) b.rotation = Vec3()
+            if(b.translation.let { it.x != 0f || it.y != 0f || it.z != 0f}) b.translation = Vec3()
         }
     }
 
     private fun updateModel(){
-        transform = I.translate(Vec3(translation)).rotate(rotation, normal)
+        transform = I.translate(translation).rotate(rotation)
         modelSpaceTransform = (parent?.modelSpaceTransform ?: I) * (parent?.transform ?: I) * parentTransform
         for(it in children) { it.updateModel() }
     }
 
-    fun translate(vector: Vec2){
+    fun translate(vector: Vec3){
         translation = translation + vector
     }
 
-    fun rotate(angle: Float){
-        rotation += angle
+    fun rotate(angles: Vec3){
+        rotation plusAssign angles
     }
 
     fun render(shader: Shader, model: Mat4) {
@@ -79,7 +78,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 
     fun getMeshTransform() = modelSpaceTransform * transform * defaultModelSpace.inverse()
 
-    fun copy(copyParent: Bone? = null): Bone{
+    fun copy(copyParent: Bone? = null): Bone {
         val b = Bone(copyParent, id, name, sid, Mat4(parentTransform))
         for(child in children) { b.addChild(child.copy(b)) }
         return b

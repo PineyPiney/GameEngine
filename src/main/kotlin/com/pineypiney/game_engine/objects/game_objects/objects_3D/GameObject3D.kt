@@ -1,14 +1,12 @@
 package com.pineypiney.game_engine.objects.game_objects.objects_3D
 
-import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.game_objects.GameObject
 import com.pineypiney.game_engine.objects.game_objects.transforms.Transform3D
+import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
 abstract class GameObject3D : GameObject() {
-
-    override val objects: MutableSet<ObjectCollection> = mutableSetOf()
 
     override val transform: Transform3D = Transform3D.origin
 
@@ -19,7 +17,7 @@ abstract class GameObject3D : GameObject() {
         set(value){
             transform.position = value
         }
-    open var rotation: Vec3
+    open var rotation: Quat
         get() = transform.rotation
         set(value){
             transform.rotation = value
@@ -40,8 +38,12 @@ abstract class GameObject3D : GameObject() {
         transform.translate(move)
     }
 
-    fun rotate(angle: Vec3){
-        transform.rotate(angle)
+    fun rotate(quat: Quat){
+        transform.rotate(quat)
+    }
+
+    fun rotate(euler: Vec3){
+        transform.rotate(euler)
     }
 
     fun scale(mult: Vec3){

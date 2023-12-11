@@ -1,21 +1,20 @@
 package com.pineypiney.game_engine.util.maths.shapes
 
-import com.pineypiney.game_engine.util.extension_functions.rotate
 import com.pineypiney.game_engine.util.extension_functions.transformedBy
-import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.raycasting.Ray
+import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec3.operators.div
 
-class Cuboid(val center: Vec3, val rotation: Vec3, val size: Vec3): Shape() {
+class Cuboid(val center: Vec3, val rotation: Quat, val size: Vec3): Shape() {
 
     val min = center - (size / 2)
     val max = min + size
 
     override fun intersectedBy(ray: Ray): Array<Vec3> {
 
-        val rotationMatrix = I.rotate(rotation).inverse()
+        val rotationMatrix = rotation.toMat4().inverse()
         val rotatedOrigin = ray.rayOrigin transformedBy rotationMatrix
         val rotatedDir = ray.direction transformedBy rotationMatrix
 

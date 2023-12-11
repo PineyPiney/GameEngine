@@ -3,11 +3,15 @@ package com.pineypiney.game_engine_test.test3D
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.RenderedGameObject2D
+import com.pineypiney.game_engine.objects.game_objects.objects_3D.ModelledGameObject3D
 import com.pineypiney.game_engine.objects.game_objects.objects_3D.RenderedGameObject3D
 import com.pineypiney.game_engine.objects.game_objects.objects_3D.SimpleTexturedGameObject3D
+import com.pineypiney.game_engine.objects.menu_items.slider.*
 import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
+import com.pineypiney.game_engine.resources.models.Mesh
+import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -23,6 +27,7 @@ import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import com.pineypiney.game_engine_test.Renderer
 import glm_.mat4x4.Mat4
+import glm_.quat.Quat
 import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -33,12 +38,28 @@ import kotlin.math.PI
 class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
 
     override val renderer = Renderer(window, PerspectiveCamera(window))
-    val camera get() = renderer.camera
+    private val camera get() = renderer.camera
 
     private val pressedKeys = mutableSetOf<Short>()
     private var moveMouse = false
 
     private var updateRay = true
+
+    private val indexSlider = object : OutlinedSlider(){
+        override val pointer: SliderPointer = BasicSliderPointer(this, 1f)
+        override val low: Float = 0.98f
+        override val high: Float = 1f
+        override var value: Float = 1f
+        override val window: WindowI = gameEngine.window
+
+        override val origin: Vec2 = Vec2(-1f)
+        override val size: Vec2 = Vec2(1f, 0.3f)
+
+        override fun moveSliderTo(move: Float) {
+            super.moveSliderTo(move)
+            Mesh.indicesMult = value
+        }
+    }
 
     private val crosshair = object : RenderedGameObject2D(ShaderLoader[ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")]){
 
@@ -75,7 +96,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         override fun init() {
             super.init()
 
-            rotation = Vec3(0.4, PI/4, 1.2)
+            rotation = Quat(Vec3(0.4, PI/4, 1.2))
         }
     }
 
@@ -98,6 +119,9 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         }
     }
 
+    private val doughnut = ModelledGameObject3D(ModelLoader[ResourceKey("broke")], camera, ModelledGameObject3D.defaultShader).apply { translate(Vec3(0f, 2f, 0f)) }
+    private val gltf = ModelledGameObject3D(ModelLoader[ResourceKey("gltf/Beating Heart 2")], camera).apply { translate(Vec3(2f, 2f, 0f)); scale(Vec3(0.002f)) }
+
     override fun init() {
         super.init()
         glfwSetInputMode(window.windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
@@ -108,9 +132,13 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         add(block)
         add(crosshair)
         add(cursorRay)
+        add(doughnut.apply { setAnimation("TorusAction") })
+        add(gltf)
+        add(indexSlider)
     }
 
     override fun render(tickDelta: Double) {
+        doughnut.shader.setVec3("viewPos", camera.cameraPos)
         renderer.render(this, tickDelta)
 
         val speed = 10 * Timer.frameDelta
@@ -136,7 +164,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         if(updateRay){
             cursorRay.position = ray.rayOrigin + (ray.direction * cursorRay.scale.x * 0.5)
             val (p, y) = vectorToEuler(ray.direction)
-            cursorRay.rotation = Vec3(0, y, p)
+            cursorRay.rotation = Quat(Vec3(0, y, p))
         }
     }
 
@@ -157,6 +185,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
                 'C' -> input.mouse.setCursorAt(Vec2(0.75))
                 'Z' -> window.size = Vec2i(window.videoMode.width(), window.videoMode.height())
                 'M' -> toggleMouse()
+                'X' -> glfwSetInputMode(window.windowHandle, GLFW_CURSOR, when(glfwGetInputMode(window.windowHandle, GLFW_CURSOR)){ GLFW_CURSOR_NORMAL -> GLFW_CURSOR_DISABLED; else -> GLFW_CURSOR_NORMAL })
             }
         }
 
@@ -185,7 +214,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         GLFunc.viewportO = Vec2i(window.width, window.height)
     }
 
-    fun toggleMouse(){
+    private fun toggleMouse(){
         moveMouse = !moveMouse
         glfwSetInputMode(window.windowHandle, GLFW_CURSOR, if(moveMouse) GLFW_CURSOR_CAPTURED else GLFW_CURSOR_DISABLED)
     }

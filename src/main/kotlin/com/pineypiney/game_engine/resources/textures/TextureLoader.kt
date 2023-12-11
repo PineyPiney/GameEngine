@@ -21,41 +21,17 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
     fun loadTextures(streams: Map<String, InputStream>) {
         val pointers = IntArray(streams.size)
         glGenTextures(pointers)
-        val pList = pointers.toMutableList()
+        val pList = pointers.toMutableSet()
+
         for((fileName, stream) in streams){
             val p = pList.firstOrNull() ?: glGenTextures()
-            loadTexture(fileName, stream, p)
+            val keyName = fileName.substringBefore('.')
+            val params = flags[keyName] ?: TextureParameters.default
+            loadIndividualSettings(p, params)
+            map[ResourceKey(keyName)] = Texture(keyName.substringAfterLast('\\'), loadTextureFromStream(fileName, stream, params, p))
             pList.remove(p)
             stream.close()
         }
-    }
-
-    private fun loadTexture(name: String, stream: InputStream, pointer: Int){
-
-        map[ResourceKey(name.substringBefore('.'))] =
-            loadTexture(name, ResourcesLoader.ioResourceToByteBuffer(stream, 1024), pointer)
-    }
-
-    private fun loadTexture(name: String, buffer: ByteBuffer, pointer: Int): Texture{
-        if(!buffer.hasRemaining()){
-            GameEngineI.warn("Buffer for texture $name is empty")
-        }
-        else {
-            val keyName = name.substringBefore('.')
-            val params = flags[keyName] ?: TextureParameters.default
-            loadIndividualSettings(pointer, params)
-
-            // Load the image from file
-            if(loadImageFromFile(buffer, params.flip, params.numChannels)){
-                return Texture(keyName.substringAfterLast('\\'), pointer)
-            }
-
-            else {
-                GameEngineI.warn("\nFailed to load texture $name")
-            }
-        }
-
-        return Texture.broke
     }
 
     fun loadParameters(streams: Map<String, InputStream>){
@@ -132,23 +108,30 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             glTexParameteri(params.target, GL_TEXTURE_MAG_FILTER, params.magFilter)
         }
 
-        private fun loadImageFromFile(buffer: ByteBuffer, flip: Boolean = true, numChan: Int = 0): Boolean {
+        fun loadTextureFromStream(name: String, texture: InputStream, params: TextureParameters = TextureParameters.default, pointer: Int = createPointer(params)): Int{
+            return loadTextureFromBuffer(name, ResourcesLoader.ioResourceToByteBuffer(texture, 1024), params, pointer)
+        }
 
-            val (data, vec) = loadImageFromMemory(buffer, flip, numChan)
+        private fun loadTextureFromBuffer(name: String, buffer: ByteBuffer, params: TextureParameters = TextureParameters.default, pointer: Int = createPointer(params)): Int {
+            if(!buffer.hasRemaining()){
+                GameEngineI.warn("Buffer for texture $name is empty")
+            }
+            val (data, vec) = loadTextureData(buffer, params.flip, params.numChannels)
             if (data != null) {
 
                 val format = channelsToFormat(vec.z)
-                loadImageFromData(data, vec.x, vec.y, format, format, GL_UNSIGNED_BYTE)
+                writeTextureToPointer(data, vec.x, vec.y, format, format, GL_UNSIGNED_BYTE)
 
                 STBImage.stbi_image_free(data)
-                return true
+                return pointer
             }
 
+            GameEngineI.warn("\nFailed to load texture $name")
             buffer.clear()
-            return false
+            return 0
         }
 
-        fun loadImageFromMemory(buffer: ByteBuffer, flip: Boolean = true, numChan: Int = 0): Pair<ByteBuffer?, Vec3i>{
+        fun loadTextureData(buffer: ByteBuffer, flip: Boolean = true, numChan: Int = 0): Pair<ByteBuffer?, Vec3i>{
             // Arrays are Java equivalent for pointers
             val widthA = IntArray(1)
             val heightA = IntArray(1)
@@ -161,7 +144,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             return data to Vec3i(widthA[0], heightA[0], if(numChan == 0) numChannelsA[0] else numChan)
         }
 
-        fun loadImageFromData(data: ByteBuffer?, width: Int, height: Int, format: Int, internalFormat: Int, type: Int){
+        private fun writeTextureToPointer(data: ByteBuffer?, width: Int, height: Int, format: Int, internalFormat: Int, type: Int){
             glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data)
 
             glGenerateMipmap(GL_TEXTURE_2D)
@@ -169,7 +152,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 
         fun createTexture(data: ByteBuffer?, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, params: TextureParameters = TextureParameters.default): Int{
             val pointer = createPointer(params)
-            loadImageFromData(data, width, height, format, internalFormat, type)
+            writeTextureToPointer(data, width, height, format, internalFormat, type)
             return pointer
         }
 
@@ -177,7 +160,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             val pointer = glGenTextures()
             glBindTexture(target, pointer)
             glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, fixedSample)
-            loadImageFromData(data.toBuffer(), width, height, format, internalFormat, type)
+            writeTextureToPointer(data.toBuffer(), width, height, format, internalFormat, type)
             return pointer
         }
 

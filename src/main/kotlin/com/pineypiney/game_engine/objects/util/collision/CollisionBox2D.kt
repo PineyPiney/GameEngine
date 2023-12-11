@@ -29,7 +29,8 @@ abstract class CollisionBox2D(var parent: GameObject2D?, val origin: Vec2, val s
         return this.parent != other.parent && this.active && other.active && box intersects other.box
     }
 
-    fun isColliding(collisions: Collection<CollisionBox2D> = parent?.objects?.flatMap { it.getAllCollisions() } ?: emptySet()): Boolean{
+    fun isColliding(collisions: Collection<CollisionBox2D>? = parent?.objects?.getAllCollisions()): Boolean{
+        if(collisions.isNullOrEmpty()) return false
         for(c in collisions.toSet()) if(this collidesWith c) return true
         return false
     }
@@ -48,7 +49,7 @@ abstract class CollisionBox2D(var parent: GameObject2D?, val origin: Vec2, val s
 
         // Iterate over all collision boxes sharing object collections and
         // eject this collision boxes object if the collision boxes collide
-        for(box in obj.objects.flatMap { it.getAllCollisions() }){
+        for(box in obj.objects?.getAllCollisions() ?: emptySet()){
             if(box != this) collidedMove plusAssign newCollision.getEjectionVector(box)
         }
 

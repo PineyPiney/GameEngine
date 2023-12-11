@@ -9,6 +9,7 @@ import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.GLFunc.Companion.getVec2
 import com.pineypiney.game_engine.util.GLFunc.Companion.getVec2d
 import com.pineypiney.game_engine.util.GLFunc.Companion.getVec2i
+import com.pineypiney.game_engine.util.GLFunc.Companion.getVec4i
 import com.pineypiney.game_engine.util.GLFunc.Companion.setVec2d
 import com.pineypiney.game_engine.util.GLFunc.Companion.setVec2i
 import glm_.bool
@@ -57,7 +58,7 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
         get() = getVec2i(windowHandle, GLFW::glfwGetFramebufferSize)
 
     override val frameSize: Vec4i
-        get() = TODO("Not yet implemented")
+        get() = getVec4i(windowHandle, GLFW::glfwGetWindowFrameSize)
 
     override val contentScale: Vec2
         get() = getVec2(windowHandle, GLFW::glfwGetWindowContentScale)
@@ -224,7 +225,7 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
      */
     override fun setIcon(icon: InputStream){
         val iconByteBuffer = ResourcesLoader.ioResourceToByteBuffer(icon, 1024)
-        val (loadedBuffer, v) = TextureLoader.loadImageFromMemory(iconByteBuffer, false)
+        val (loadedBuffer, v) = TextureLoader.loadTextureData(iconByteBuffer, false)
         if(loadedBuffer == null) return
 
         val iconBuffer = GLFWImage.create(1)

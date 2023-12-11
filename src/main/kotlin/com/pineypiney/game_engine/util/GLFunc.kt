@@ -174,5 +174,11 @@ class GLFunc {
             func(handle, wa, ha)
             return Vec2(wa[0], ha[0])
         }
+
+        fun getVec4i(handle: Long, func: (Long, IntBuffer, IntBuffer, IntBuffer, IntBuffer) -> Unit): Vec4i {
+            val a = Array(4){ IntBuffer(1)}
+            func(handle, a[0], a[1], a[2], a[3])
+            return Vec4i(a[0][0], a[1][0], a[2][0], a[3][0])
+        }
     }
 }

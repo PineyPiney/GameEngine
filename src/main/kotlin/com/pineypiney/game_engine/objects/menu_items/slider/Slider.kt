@@ -25,7 +25,7 @@ abstract class Slider: InteractableMenuItem() {
             throw(IllegalArgumentException("Set Slider with low value $low and high value $high, high must be greater than low"))
         }
 
-        pointer.origin = origin + Vec2(value/scale, 0)
+        pointer.origin = origin + Vec2((value - low)/scale, 0)
     }
 
     override fun setChildren() {
@@ -44,7 +44,7 @@ abstract class Slider: InteractableMenuItem() {
     }
 
     open fun drawPointer(){
-        pointer.drawCenteredBottom(origin + Vec2(value / scale, size.y * 0.2))
+        pointer.drawCenteredBottom(origin + Vec2((value - low) / scale, size.y * 0.2))
     }
 
     override fun checkHover(ray: Ray, screenPos: Vec2): Boolean {

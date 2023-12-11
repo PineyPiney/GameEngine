@@ -80,6 +80,9 @@ dependencies {
     implementation("org.bytedeco:javacpp:$javacv")
     implementation("org.bytedeco:opencv-platform-gpu:4.5.5-$javacv")
     implementation("org.bytedeco:ffmpeg-platform-gpl:5.0-$javacv")
+
+    // Gson for JSON parsing
+    implementation("org.json:json:20230227")
 }
 
 publishing{

@@ -12,7 +12,7 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
 
     override var visible: Boolean = true
 
-    override val objects: MutableSet<ObjectCollection> = mutableSetOf()
+    override var objects: ObjectCollection? = null
 
     override val origin: Vec2 = Vec2()
     override val size: Vec2 = Vec2(1)
@@ -56,7 +56,7 @@ abstract class MenuItem : Initialisable, Storable, Drawable, Shaded {
     }
 
     override fun delete() {
-        for(it in objects) { it.guiItems.remove(this)}
+        objects?.guiItems?.remove(this)
     }
 
     companion object{

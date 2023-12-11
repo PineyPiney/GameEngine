@@ -102,6 +102,17 @@ fun Vec2.eerp(next: Vec2, delta: Float, exponent: Int) = Vec2(x.eerp(next.x, del
 fun Vec2.querp(next: Vec2, delta: Float) = Vec2(x.querp(next.x, delta), y.querp(next.y, delta))
 fun Vec2.cerp(next: Vec2, delta: Float) = Vec2(x.cerp(next.x, delta), y.cerp(next.y, delta))
 
+fun Vec3.lerp(next: Vec3, delta: Float) = erp(next, delta, Float::lerp)
+fun Vec3.serp(next: Vec3, delta: Float) = erp(next, delta, Float::serp)
+fun Vec3.eerp(next: Vec3, delta: Float, exponent: Int) = erp(next, delta) { n, d -> eerp(n, d, exponent) }
+fun Vec3.querp(next: Vec3, delta: Float) = erp(next, delta, Float::querp)
+fun Vec3.cerp(next: Vec3, delta: Float) = erp(next, delta, Float::cerp)
+fun Vec3.lerpAngle(next: Vec3, delta: Float) = erp(next, delta, Float::lerpAngle)
+fun Vec3.serpAngle(next: Vec3, delta: Float) = erp(next, delta, Float::serpAngle)
+fun Vec3.eerpAngle(next: Vec3, delta: Float, exponent: Int) = erp(next, delta) { n, d -> eerpAngle(n, d, exponent) }
+fun Vec3.querpAngle(next: Vec3, delta: Float) = erp(next, delta, Float::querpAngle)
+fun Vec3.cerpAngle(next: Vec3, delta: Float) = erp(next, delta, Float::cerpAngle)
+fun Vec3.erp(next: Vec3, delta: Float, func: Float.(Float, Float) -> Float) = Vec3(x.func(next.x, delta), y.func(next.y, delta), z.func(next.z, delta))
 
 fun Vec3.transform(m: Mat4): Vec3 {
     return Vec3(m * Vec4(this))

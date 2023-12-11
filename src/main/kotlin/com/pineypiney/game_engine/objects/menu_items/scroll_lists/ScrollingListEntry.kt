@@ -25,7 +25,7 @@ abstract class ScrollingListEntry<E: ScrollingListItem>(val parent: E): MenuItem
     }
 
     override fun draw() {
-        TextureLoader.getTexture(ResourceKey("broke")).bind()
+        TextureLoader[ResourceKey("broke")].bind()
         super.draw()
     }
 

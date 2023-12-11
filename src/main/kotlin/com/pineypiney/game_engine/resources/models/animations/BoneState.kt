@@ -4,9 +4,9 @@ import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.util.extension_functions.lerp
 import com.pineypiney.game_engine.util.extension_functions.lerpAngle
 import glm_.f
-import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 
-class BoneState(boneId: String, val translation: Vec2, val rotation: Float): State(boneId){
+class BoneState(boneId: String, val translation: Vec3, val rotation: Vec3): State(boneId){
 
     override fun lerpWith(nextState: State, delta: Number): BoneState {
         return if(nextState is BoneState)

@@ -4,24 +4,23 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.models.animations.*
+import com.pineypiney.game_engine.resources.models.pgm.*
 import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.util.Copyable
+import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addToListOr
 import com.pineypiney.game_engine.util.extension_functions.combineLists
-import com.pineypiney.game_engine.util.extension_functions.copy
-import com.pineypiney.game_engine.util.s
+import com.pineypiney.game_engine.util.extension_functions.transform
 import glm_.f
 import glm_.i
 import glm_.mat4x4.Mat4
+import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
-import glm_.vec4.Vec4
 import org.w3c.dom.Document
 import org.w3c.dom.NodeList
 import java.io.InputStream
-import java.util.*
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPath
@@ -35,58 +34,161 @@ import kotlin.math.PI
 class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
 
     override val missing: Model = Model.brokeModel
+    var currentStreams = mapOf<String, InputStream>()
+
+    val gltfLoader = GLTFModelLoader(this)
 
     fun loadModels(streams: Map<String, InputStream>) {
 
-        streams.filter { it.key.endsWith(".pgm") }.forEach { (fileName, stream) ->
+        currentStreams = streams
+        streams.forEach { (fileName, stream) ->
 
-            // https://www.hameister.org/KotlinXml.html
-            val builder: DocumentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-            val doc: Document = builder.parse(stream)
-            val path: XPath = xPath
-
-            val meshes: MutableList<Mesh> = mutableListOf()
-
-            val geometryMap: Map<String, Geometry> = loadGeometries(fileName, doc, path)
-            val bones: Array<Bone> = loadNodes(doc, path)
-            val physics: Physics = loadPhysics(doc, path)
-            val animations: Array<ModelAnimation> = loadAnimations(fileName, doc, path, geometryMap.values)
-
-            stream.close()
-
-            for((id, geo) in geometryMap){
-                val controller: Controller? = loadController(fileName, id, doc, path)
-
-                // Construct Mesh Vertices
-                val vertices: MutableList<Mesh.MeshVertex> = mutableListOf()
-
-                geo.vertices.indices.forEach { i ->
-                    val texMap: Vec2 = geo.texMaps[i]
-
-                    val pos: VertexPosition
-                    val weights: Array<Controller.BoneWeight> = if(controller != null){
-                        pos = geo.vertices[i].transform(controller.matrix)
-                        val weightsMap = controller.weights[pos.id]
-                        weightsMap.map {
-                            val bone = bones.first { b -> b.sid == it.key }
-                            Controller.BoneWeight(bone.id, bone.name,  it.value)
-                        }.toTypedArray()
-                    }
-                    else {
-                        pos = geo.vertices[i]
-                        arrayOf()
-                    }
-
-                    vertices.add(Mesh.MeshVertex(pos, texMap, weights))
+            val fileType = fileName.substringAfterLast('.')
+            val newModel: (String, InputStream) -> Model = when(fileType){
+                "pgm" -> {
+                    this::loadPGMModel
                 }
-
-                meshes.add(Mesh(geo.name, vertices.toTypedArray(), geo.indices, geo.texture, geo.alpha, geo.order))
+                "obj" -> {
+                    this::loadObjModel
+                }
+                "gltf" -> {
+                    gltfLoader::loadModel
+                }
+                else -> return@forEach
             }
 
-            val newModel = Model(meshes.toTypedArray().reversedArray(), bones.getOrNull(0)?.getRoot(), animations, fileName)
-            newModel.collisionBox = physics.collision
-            map[ResourceKey(fileName.removeSuffix(".pgm"))] = newModel
+            map[ResourceKey(fileName.removeSuffix(".$fileType"))] = newModel(fileName, stream)
         }
+    }
+
+    private fun loadObjModel(fileName: String, stream: InputStream): Model{
+        val materials = mutableSetOf<ModelMaterial>()
+        val positions = mutableListOf<Vec3>()
+        val uv = mutableListOf<Vec2>()
+        val normals = mutableListOf<Vec3>()
+        val vertices = mutableListOf<Mesh.MeshVertex>()
+        val indices = mutableListOf<Int>()
+        val meshes = mutableListOf<Mesh>()
+        var name = ""
+        var material = ModelMaterial.default
+        for(line in stream.readAllBytes().toString(Charsets.UTF_8).split('\n')){
+            if(line.startsWith('#')) continue
+            val parts = line.split(' ')
+            when(parts[0]){
+                "mtllib" -> {
+                    materials.addAll(loadObjMaterials(fileName.substringBeforeLast('/') + "/", parts[1]))
+                }
+                "o" -> {
+                    if(vertices.isNotEmpty()){
+                        meshes.add(Mesh(name, vertices.toTypedArray(), indices.toIntArray(), material.diffuse, material = material))
+                    }
+                    name = parts[1]
+                }
+                "usemtl" -> {
+                    material = materials.firstOrNull { it.name == parts[1] } ?: ModelMaterial.default
+                }
+                "v" -> positions.add(Vec3(parts[1].f, parts[2].f, parts[3].f))
+                "vt" -> uv.add(Vec2(parts[1].f, parts[2].f))
+                "vn" -> normals.add(Vec3(parts[1].f, parts[2].f, parts[3].f))
+                "f" -> {
+                    when(parts.size){
+                        4 -> indices.addAll(listOf(vertices.size, vertices.size + 1, vertices.size + 2))
+                        5 -> indices.addAll(listOf(vertices.size, vertices.size + 1, vertices.size + 2, vertices.size + 2, vertices.size + 3, vertices.size))
+                    }
+                    for(i in 1..<parts.size){
+                        val vParts = parts[i].split('/')
+                        vertices.add(Mesh.MeshVertex(
+                            positions[vParts[0].i - 1],
+                            if(vParts.size >= 2 && vParts[1].isNotEmpty()) uv[vParts[1].i - 1] else Vec2(),
+                            if(vParts.size >= 3 && vParts[2].isNotEmpty()) normals[vParts[2].i - 1] else Vec3()
+                        ))
+                    }
+                }
+            }
+        }
+        meshes.add(Mesh(name, vertices.toTypedArray(), indices.toIntArray(), material.diffuse, material = material))
+
+        return Model(fileName, meshes.toTypedArray())
+    }
+
+    private fun loadObjMaterials(rootFile: String, fileName: String): Set<ModelMaterial>{
+        val materials = mutableSetOf<ModelMaterial>()
+        val stream = currentStreams[rootFile + fileName] ?: return materials
+        var name = ""
+        val textures = mutableMapOf<ModelMaterial.TextureType, Texture>()
+        for(line in stream.readAllBytes().toString(Charsets.UTF_8).split('\n')){
+            if(line.isEmpty() || line.trimStart().startsWith('#')) continue
+            val parts = line.trim().split(' ')
+            when(parts[0]) {
+                "newmtl" -> {
+                    if (textures.isNotEmpty()) {
+                        materials.add(ModelMaterial(name, textures))
+                    }
+                    name = parts[1]
+                }
+
+                "map_Ka" -> textures[ModelMaterial.TextureType.AMBIENT] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
+                "map_Kd" -> textures[ModelMaterial.TextureType.DIFFUSE] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
+                "map_Ks" -> textures[ModelMaterial.TextureType.SPECULAR] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
+                "bump", "map_bump", "map_Kn" -> textures[ModelMaterial.TextureType.NORMAL] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
+                "map_roughness" -> textures[ModelMaterial.TextureType.ROUGHNESS] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
+                "map_metallic" -> textures[ModelMaterial.TextureType.METALLIC] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
+
+            }
+        }
+        materials.add(ModelMaterial(name, textures))
+
+        return materials
+    }
+
+    private fun loadPGMModel(fileName: String, stream: InputStream): Model{
+        // https://www.hameister.org/KotlinXml.html
+        val builder: DocumentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        val doc: Document = builder.parse(stream)
+        val path: XPath = xPath
+
+        val meshes: MutableList<Mesh> = mutableListOf()
+
+        val geometryMap: Map<String, Geometry> = loadGeometries(fileName, doc, path)
+        val bones: Array<Bone> = loadNodes(doc, path)
+        val physics: Physics = loadPhysics(doc, path)
+        val animations: Array<ModelAnimation> = loadAnimations(fileName, doc, path, geometryMap.values)
+
+        stream.close()
+
+        for((id, geo) in geometryMap){
+            val controller: Controller? = loadController(fileName, id, doc, path)
+
+            // Construct Mesh Vertices
+            val vertices: MutableList<Mesh.MeshVertex> = mutableListOf()
+
+            geo.vertices.indices.forEach { i ->
+                val texMap: Vec2 = geo.texMaps.getOrElse(i) {Vec2()}
+                val normal: Vec3 = geo.normals.getOrElse(i) {Vec3()}
+
+                val pos: Vec3
+                val weights: Array<Controller.BoneWeight> = if(controller != null){
+                    pos = geo.vertices[i].transform(controller.matrix)
+                    val weightsMap = controller.weights[i]
+                    weightsMap.map {
+                        val bone = bones.first { b -> b.sid == it.key }
+                        Controller.BoneWeight(bone.id, bone.name, it.value)
+                    }.toTypedArray()
+                }
+                else {
+                    pos = geo.vertices[i]
+                    arrayOf()
+                }
+
+                vertices.add(Mesh.MeshVertex(pos, texMap, normal, weights))
+            }
+
+            meshes.add(Mesh(geo.name, vertices.toTypedArray(), geo.indices, geo.texture, geo.alpha, geo.order))
+        }
+
+        val newModel = Model(fileName, meshes.toTypedArray().reversedArray(), bones.getOrNull(0)?.getRoot(), animations)
+        newModel.collisionBox = physics.collision
+        return newModel
     }
 
     private fun loadGeometries(modelName: String, doc: Document, path: XPath = xPath): Map<String, Geometry>{
@@ -118,15 +220,9 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
 
             val verticesRoot = "$geometryRoot/triangles"
 
-            val verticesSourcePair = getSource(errorMsg, "vertex", "$verticesRoot/input[@semantic = 'POSITION']", doc, path) ?: return@geo
-            val texMapSourcePair = getSource(errorMsg, "texMap", "$verticesRoot/input[@semantic = 'TEXCOORD']", doc, path) ?: return@geo
-
-            val verticesSource = sources.firstOrNull { it pointedBy verticesSourcePair }
-            val texMapSource = sources.firstOrNull { it pointedBy texMapSourcePair }
-
-            val points = verticesSource?.createVec2Array() ?: arrayOf()
-            val verticesArray: Array<VertexPosition> = points.mapIndexed { i, v -> VertexPosition(i, v) }.toTypedArray()
-            val texMapsArray: Array<Vec2> = texMapSource?.createVec2Array("S-T") ?: arrayOf()
+            val verticesArray = getArray(sources, errorMsg, "vertex", "$verticesRoot/input[@semantic = 'POSITION']", doc, path, DataSource::createVec3Array) ?: return@geo
+            val texMapsArray = getArray(sources, errorMsg, "texMap", "$verticesRoot/input[@semantic = 'TEXCOORD']", doc, path) { i -> i.createVec2Array("S-T")} ?: arrayOf()
+            val normalsArray = getArray(sources, errorMsg, "normal", "$verticesRoot/input[@semantic = 'NORMAL']", doc, path, DataSource::createVec3Array) ?: arrayOf()
 
             // Read the indices
             val indices = (path.evaluate("$verticesRoot/p", doc, XPathConstants.STRING) as String)
@@ -141,7 +237,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
                 return@geo
             }
 
-            geoMap[id] = Geometry(name, verticesArray, texMapsArray, indicesArray, texture, alpha, order)
+            geoMap[id] = Geometry(name, verticesArray, texMapsArray, normalsArray, indicesArray, texture, alpha, order)
         }
         return geoMap.toMap()
     }
@@ -232,7 +328,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
 
     }
 
-    private fun loadPhysics(doc: Document, path: XPath = xPath): Physics{
+    private fun loadPhysics(doc: Document, path: XPath = xPath): Physics {
         val physicsRoot = "/PGM/physics"
         val colliderRoot = "$physicsRoot/collider"
         val collider = if(path.evaluate(colliderRoot, doc, XPathConstants.BOOLEAN) as Boolean){
@@ -335,13 +431,13 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
             val rotations = sources.firstOrNull { it pointedBy rotSourcePair } ?: DataSource.EMPTY
 
             val timesArray = times.createFloatArray("TIME")
-            val tranArray = translations.createVec2Array()
-            val rotArray = rotations.createFloatArray("ROTATION")
+            val tranArray = translations.createVec3Array()
+            val rotArray = rotations.createVec3Array("x-y-ROTATION")
 
             for(i in timesArray.indices){
                 val time = timesArray[i]
-                val translation = if(tranArray.size > i) tranArray[i] else Vec2()
-                val rotation = if(rotArray.size > i) rotArray[i] else 0f
+                val translation = if(tranArray.size > i) tranArray[i] else Vec3()
+                val rotation = if(rotArray.size > i) rotArray[i] else Vec3()
 
                 // Initialise list if it doesn't yet exist, and don't forget to convert degrees to radians
                 stateMap.addToListOr(time,
@@ -381,8 +477,8 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
             // -------- Compile into Animation -------
 
             val timesArray = times.createFloatArray("TIME")
-            val tranArray = translations.createVec2Array()
-            val rotArray = rotations.createFloatArray("ROTATION")
+            val tranArray = translations.createVec3Array()
+            val rotArray = rotations.createVec3Array("x-y-ROTATION")
             val alphaArray = alphas.createFloatArray("ALPHA")
             val orderArray = orders.createIntArray("ORDER")
 
@@ -390,14 +486,14 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
 
             for(i in timesArray.indices){
                 val time = timesArray[i]
-                val translation = if(tranArray.size > i) tranArray[i] else Vec2()
-                val rotation = if(rotArray.size > i) rotArray[i] else 0f
+                val translation = if(tranArray.size > i) tranArray[i] else Vec3()
+                val rotation = if(rotArray.size > i) rotArray[i] else Vec3()
                 val alpha = if(alphaArray.size > i) alphaArray[i] else geo?.alpha ?: 1f
                 val order = if(orderArray.size > i) orderArray[i] else geo?.order ?: 0
 
                 // Initialise list if it doesn't yet exist, and don't forget to convert degrees to radians
                 stateMap.addToListOr(time,
-                    MeshState(mesh.removePrefix("Animation_"), translation, rotation * -PI.f / 180f, alpha, order),
+                    MeshState(mesh.removePrefix("Animation_"), translation, Quat(rotation * -PI.f / 180f).inverse(), alpha, order),
                 ){ mutableListOf() }
             }
         }
@@ -412,52 +508,5 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
 
         fun getModel(key: ResourceKey) = INSTANCE[key]
         operator fun get(key: ResourceKey) = INSTANCE[key]
-
-        fun loadMaterial(stream: InputStream, materialTextures: Array<Texture>): ModelMaterial?{
-            val scanner = Scanner(stream)
-            var name: String? = null
-            var baseColour = Vec3(1)
-            val textures: MutableMap<String, Texture> = mutableMapOf()
-            while(scanner.hasNextLine()){
-                val ln = scanner.nextLine()
-
-                val split = ln.split(" ")
-                when(split[0]){
-                    "newmtl" -> name = split[1]
-                    "Kd" -> baseColour = Vec3(split[1].f, split[2].f, split[3].f)
-                    "map_Kd" -> {
-                        textures[split[0]] = try{
-                            materialTextures.toList().first { it.fileName.substringAfterLast(s) == (split[1]) }
-                        }
-                        catch (e: NoSuchElementException){
-                            Texture.broke
-                        }
-                    }
-                }
-            }
-
-            if(name != null){
-                return ModelMaterial(name, textures, baseColour)
-            }
-            else{
-                GameEngineI.warn("This is not a valid material file")
-            }
-            return null
-        }
-    }
-
-    data class VertexPosition(val id: Int, var pos: Vec2): Copyable<VertexPosition> {
-
-        fun transform(m: Mat4): VertexPosition{
-            return VertexPosition(this.id, Vec2(m * Vec4(this.pos)))
-        }
-
-        override fun copy(): VertexPosition{
-            return VertexPosition(id, pos.copy())
-        }
-
-        override fun toString(): String {
-            return "$pos[$id]"
-        }
     }
 }
