@@ -17,7 +17,6 @@ open class SelectableScrollingListEntry<E: SelectableScrollingListItem>(parent: 
                 parent.getSelectedEntry()?.unselect()
                 select()
             }
-
         }
 
         return p

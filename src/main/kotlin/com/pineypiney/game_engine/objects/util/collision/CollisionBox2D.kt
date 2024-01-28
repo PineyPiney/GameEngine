@@ -11,13 +11,13 @@ import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-abstract class CollisionBox2D(var parent: GameObject2D?, val origin: Vec2, val size: Vec2, val rotation: Float = 0f): Copyable<CollisionBox2D> {
+abstract class CollisionBox2D(var parent: GameObject2D?, var origin: Vec2, var size: Vec2, var rotation: Float = 0f): Copyable<CollisionBox2D> {
 
 //    constructor(parent: GameObject2D?, origin: Vec2, size: Vec2): this(parent, Rect2D(origin, size))
 
     var active: Boolean = true
 
-    val relModel = I.translate(Vec3(origin)).scale(Vec3(size)).rotate(rotation, normal)
+    val relModel get() = I.translate(Vec3(origin)).rotate(rotation, normal).scale(Vec3(size))
     val worldScale: Vec2; get() = ((parent?.scale ?: Vec2(1)) * size)
 
     val box: Rect2D get() = (parent?.transform ?: Transform2D.origin).let { Rect2D(Vec2.fromMat4Translation(it.model * relModel), it.scale * size, it.rotation + rotation) }
@@ -45,7 +45,7 @@ abstract class CollisionBox2D(var parent: GameObject2D?, val origin: Vec2, val s
 
         // Create a temporary collision box in the new position to calculate collisions
         val newCollision = copy()
-        newCollision.origin += (movement / obj.scale)
+        newCollision.origin plusAssign (movement / obj.scale)
 
         // Iterate over all collision boxes sharing object collections and
         // eject this collision boxes object if the collision boxes collide

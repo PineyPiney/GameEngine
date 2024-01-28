@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.objects.game_objects.objects_2D
 
 import com.pineypiney.game_engine.objects.game_objects.GameObject
 import com.pineypiney.game_engine.objects.game_objects.transforms.Transform2D
+import com.pineypiney.game_engine.objects.util.components.Transform2DComponent
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.normal
@@ -12,9 +13,12 @@ import glm_.vec3.Vec3t
 
 abstract class GameObject2D : GameObject() {
 
-    override val transform: Transform2D = Transform2D.origin
+    val transformComponent = Transform2DComponent(this)
+    override val transform: Transform2D get() = transformComponent.transform
 
-    open var velocity: Vec2 = Vec2()
+    open var velocity: Vec2
+        get() = transformComponent.velocity
+        set(value) { transformComponent.velocity = value }
 
     open var position: Vec2
         get() = transform.position
@@ -33,9 +37,13 @@ abstract class GameObject2D : GameObject() {
         }
 
     // Items are rendered in order of depth, from inf to -inf
-    open var depth: Int = 0
+    open var depth: Int
+        get() = transformComponent.depth
+        set(value) { transformComponent.depth = value }
 
-    override fun init() {}
+    override fun init() {
+        components.add(transformComponent)
+    }
 
     fun setPosition(pos: Vec3t<*>){
         position = Vec2(pos)

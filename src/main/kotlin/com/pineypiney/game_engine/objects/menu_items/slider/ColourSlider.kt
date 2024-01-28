@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
-class ColourSlider(override val origin: Vec2, override val size: Vec2, override val window: WindowI, override var shader: Shader, val colours: MutableMap<String, Float>) : Slider() {
+open class ColourSlider(override val origin: Vec2, override val size: Vec2, override val window: WindowI, override var shader: Shader, val colours: MutableMap<String, Float>) : Slider() {
 
     override val low: Float = 0f
     override val high: Float = 255f

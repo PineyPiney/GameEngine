@@ -13,31 +13,18 @@ interface Interactable: Updateable {
     var hover: Boolean
     var pressed: Boolean
 
-    val children: MutableSet<Interactable>
+    val interactableChildren: Set<Interactable> get() = (this as Storable).children.filterIsInstance<Interactable>().toSet()
 
     // Importance is used to set the order in which items are updated and interacted with
     // For example, in the level selection screen the buttons are clicked before the entries are
     val importance: Int
-
-    fun addChild(vararg child: Interactable){
-        this.children.addAll(child)
-    }
-    fun addChildren(children: Iterable<Interactable>){
-        this.children.addAll(children)
-    }
-    fun removeChild(vararg child: Interactable){
-        this.children.removeAll(child.toSet())
-    }
-    fun removeChildren(children: Iterable<Interactable>){
-        this.children.removeAll(children.toSet())
-    }
 
     fun checkHover(ray: Ray, screenPos: Vec2): Boolean
 
     fun onCursorMove(game: GameLogicI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray){
         if(pressed) onDrag(game, cursorPos, cursorDelta)
 
-        for (child in children) {
+        for (child in interactableChildren) {
             child.hover = child.checkHover(ray, cursorPos)
             if(child.shouldUpdate()) child.onCursorMove(game, cursorPos, cursorDelta, ray)
         }
@@ -46,7 +33,7 @@ interface Interactable: Updateable {
     fun onDrag(game: GameLogicI, cursorPos: Vec2, cursorDelta: Vec2) {}
 
     fun onScroll(game: GameLogicI, scrollDelta: Vec2): Int{
-        for (child in children.sortedByDescending { it.importance }) {
+        for (child in interactableChildren.sortedByDescending { it.importance }) {
             if(child.shouldUpdate()) {
                 if(child.onScroll(game, scrollDelta) == INTERRUPT) return INTERRUPT
             }
@@ -55,7 +42,7 @@ interface Interactable: Updateable {
     }
 
     fun onInput(game: GameLogicI, input: InputState, action: Int, cursorPos: Vec2): Int {
-        for(child in children.sortedByDescending { it.importance }){
+        for(child in interactableChildren.sortedByDescending { it.importance }){
             if(child.shouldUpdate()){
                 if(child.onInput(game, input, action, cursorPos) == INTERRUPT) return INTERRUPT
             }
@@ -68,7 +55,7 @@ interface Interactable: Updateable {
     }
 
     fun onType(game: GameLogicI, char: Char): Int{
-        for (child in children.sortedByDescending { it.importance }) {
+        for (child in interactableChildren.sortedByDescending { it.importance }) {
             if(child.shouldUpdate()) {
                 if(child.onType(game, char) == INTERRUPT) return INTERRUPT
             }
@@ -86,7 +73,7 @@ interface Interactable: Updateable {
     fun onSecondary(game: GameLogicI, action: Int, mods: Byte, cursorPos: Vec2): Int = 0
 
     override fun shouldUpdate(): Boolean {
-        return this.hover || this.pressed || this.forceUpdate || this.children.any { child -> child.shouldUpdate() }
+        return this.hover || this.pressed || this.forceUpdate || this.interactableChildren.any { child -> child.shouldUpdate() }
     }
 
     companion object{

@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11C
 
 abstract class OutlinedSlider(): Slider() {
 
-    override var shader: Shader = translucentColourShader
+    override var shader: Shader = sliderShader
 
     open var colour: Vec4 = Vec4(0.7)
     open var outlineThickness: Float = 0.01f

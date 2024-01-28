@@ -127,18 +127,22 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
                     name = parts[1]
                 }
 
-                "map_Ka" -> textures[ModelMaterial.TextureType.AMBIENT] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
-                "map_Kd" -> textures[ModelMaterial.TextureType.DIFFUSE] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
-                "map_Ks" -> textures[ModelMaterial.TextureType.SPECULAR] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
-                "bump", "map_bump", "map_Kn" -> textures[ModelMaterial.TextureType.NORMAL] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
-                "map_roughness" -> textures[ModelMaterial.TextureType.ROUGHNESS] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
-                "map_metallic" -> textures[ModelMaterial.TextureType.METALLIC] = Texture(parts[1], TextureLoader.loadTextureFromStream(rootFile + parts[1], currentStreams[rootFile + parts[1]] ?: continue))
+                "map_Ka" -> updateTextureType(textures, ModelMaterial.TextureType.AMBIENT, rootFile + parts[1])
+                "map_Kd" -> updateTextureType(textures, ModelMaterial.TextureType.DIFFUSE, rootFile + parts[1])
+                "map_Ks" -> updateTextureType(textures, ModelMaterial.TextureType.SPECULAR, rootFile + parts[1])
+                "bump", "map_bump", "map_Kn" -> updateTextureType(textures, ModelMaterial.TextureType.NORMAL, rootFile + parts[1])
+                "map_roughness" -> updateTextureType(textures, ModelMaterial.TextureType.ROUGHNESS, rootFile + parts[1])
+                "map_metallic" -> updateTextureType(textures, ModelMaterial.TextureType.METALLIC, rootFile + parts[1])
 
             }
         }
         materials.add(ModelMaterial(name, textures))
 
         return materials
+    }
+
+    private fun updateTextureType(textures: MutableMap<ModelMaterial.TextureType, Texture>, type: ModelMaterial.TextureType, location: String) {
+        textures[type] = Texture(location, TextureLoader.loadTextureFromStream(location, currentStreams[location] ?: return))
     }
 
     private fun loadPGMModel(fileName: String, stream: InputStream): Model{

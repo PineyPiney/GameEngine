@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.textures
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.util.Debug
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.bool
 import glm_.vec3.Vec3i
@@ -23,14 +24,22 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
         glGenTextures(pointers)
         val pList = pointers.toMutableSet()
 
+        val d = Debug()
         for((fileName, stream) in streams){
+            d.start()
             val p = pList.firstOrNull() ?: glGenTextures()
             val keyName = fileName.substringBefore('.')
             val params = flags[keyName] ?: TextureParameters.default
+
             loadIndividualSettings(p, params)
-            map[ResourceKey(keyName)] = Texture(keyName.substringAfterLast('\\'), loadTextureFromStream(fileName, stream, params, p))
+            val np = loadTextureFromStream(fileName, stream, params, p)
+            val texture = Texture(fileName, np)
+            map[ResourceKey(keyName)] = texture
+
             pList.remove(p)
             stream.close()
+
+            d.add()
         }
     }
 
@@ -109,7 +118,9 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
         }
 
         fun loadTextureFromStream(name: String, texture: InputStream, params: TextureParameters = TextureParameters.default, pointer: Int = createPointer(params)): Int{
-            return loadTextureFromBuffer(name, ResourcesLoader.ioResourceToByteBuffer(texture, 1024), params, pointer)
+            val bb = ResourcesLoader.ioResourceToByteBuffer(texture, 1024)
+            val p = loadTextureFromBuffer(name, bb, params, pointer)
+            return p
         }
 
         private fun loadTextureFromBuffer(name: String, buffer: ByteBuffer, params: TextureParameters = TextureParameters.default, pointer: Int = createPointer(params)): Int {
@@ -122,11 +133,12 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
                 val format = channelsToFormat(vec.z)
                 writeTextureToPointer(data, vec.x, vec.y, format, format, GL_UNSIGNED_BYTE)
 
+
                 STBImage.stbi_image_free(data)
                 return pointer
             }
 
-            GameEngineI.warn("\nFailed to load texture $name")
+            GameEngineI.warn("\nSTB failed to load texture $name")
             buffer.clear()
             return 0
         }
@@ -139,13 +151,18 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 
             // Set the flip state of the image (default to true)
             STBImage.stbi_set_flip_vertically_on_load(flip)
+
             // Load texture data from file
+            val d = Debug().start()
             val data: ByteBuffer? = STBImage.stbi_load_from_memory(buffer, widthA, heightA, numChannelsA, numChan)
+            d.add()
             return data to Vec3i(widthA[0], heightA[0], if(numChan == 0) numChannelsA[0] else numChan)
         }
 
         private fun writeTextureToPointer(data: ByteBuffer?, width: Int, height: Int, format: Int, internalFormat: Int, type: Int){
+            val d = Debug().start()
             glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data)
+            d.add()
 
             glGenerateMipmap(GL_TEXTURE_2D)
         }

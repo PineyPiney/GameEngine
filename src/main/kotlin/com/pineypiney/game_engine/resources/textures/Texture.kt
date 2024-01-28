@@ -12,7 +12,9 @@ import kool.toBuffer
 import org.lwjgl.opengl.GL32C.*
 import java.nio.ByteBuffer
 
-class Texture(val fileName: String, val texturePointer: Int, val target: Int = GL_TEXTURE_2D) : Resource() {
+class Texture(val fileLocation: String, val texturePointer: Int, val target: Int = GL_TEXTURE_2D) : Resource() {
+
+    val fileName = fileLocation.substringAfterLast('\\').substringBefore('.')
 
     val width: Int get() = parameter(GL_TEXTURE_WIDTH)
     val height: Int get() = parameter(GL_TEXTURE_HEIGHT)

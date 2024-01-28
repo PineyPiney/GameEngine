@@ -2,9 +2,9 @@ package com.pineypiney.game_engine.util.extension_functions
 
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.normal
-import glm_.f
-import glm_.i
+import glm_.*
 import glm_.mat4x4.Mat4
+import glm_.vec1.Vec1Vars
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -193,3 +193,40 @@ fun Mat4.rotationComponent(): Mat4{
         this[3] = Vec4(0f, 0f, 0f, 1f)
     }
 }
+
+
+fun Vec1Vars<Float>.toString(separator: String = ", ", serialise: Float.() -> String = Float::toString): String{
+    var s = this[0].serialise()
+    for(i in 1..3){
+        try {
+            s += separator + this[i].serialise()
+        }
+        catch (e: IndexOutOfBoundsException){
+            break
+        }
+    }
+    return s
+}
+fun Vec1Vars<Float>.toHexString(separator: String = ", "): String = toString(separator){ asIntBits.asHexString }
+
+
+fun Vec2.Companion.fromString(s: String, parse: String.() -> Float = java.lang.Float::parseFloat): Vec2{
+    val trim = s.trim().removePrefix("Vec2{").removeSuffix("}")
+    val (s1, s2) = trim.split(",")
+    val f1 = s1.trim().parse()
+    val f2 = s2.trim().parse()
+    return Vec2(f1, f2)
+}
+
+/**
+ *
+ * @throws NumberFormatException if the string doesn't contain an integer value
+ */
+fun Vec2.Companion.fromHexString(s: String) = fromString(s){ intValue(16).bitsAsFloat }
+
+fun Vec3.Companion.fromString(s: String, parse: String.() -> Float = java.lang.Float::parseFloat): Vec3{
+    val trim = s.trim().removePrefix("Vec3{").removeSuffix("}")
+    return trim.split(",").let { Vec3(it[0].trim().parse(), it[1].trim().parse(), it[2].trim().parse()) }
+}
+
+fun Vec3.Companion.fromHexString(s: String) = fromString(s){ intValue(16).bitsAsFloat }

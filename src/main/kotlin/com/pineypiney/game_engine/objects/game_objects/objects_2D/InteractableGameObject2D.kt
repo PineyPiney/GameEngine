@@ -8,11 +8,11 @@ import glm_.vec2.Vec2
 
 abstract class InteractableGameObject2D(shader: Shader): RenderedGameObject2D(shader), Interactable {
 
-    override val children: MutableSet<Interactable> = mutableSetOf()
     override var forceUpdate: Boolean = false
     override var hover: Boolean = false
     override var importance: Int = 0
     override var pressed: Boolean = false
+
 
     override fun checkHover(ray: Ray, screenPos: Vec2): Boolean {
         return Rect3D(position, scale).intersectedBy(ray).isNotEmpty()

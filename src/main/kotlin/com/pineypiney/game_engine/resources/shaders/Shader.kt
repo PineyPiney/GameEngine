@@ -31,6 +31,16 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
         }
     }
 
+    fun setUp(uniforms: Uniforms){
+        use()
+        setUniforms(uniforms)
+    }
+
+    fun setVP(view: Mat4, projection: Mat4){
+        setMat4("view", view)
+        setMat4("projection", projection)
+    }
+
     // Functions to set uniforms within shaders
 
     fun setBool(name: String, value: Boolean) = set1(name, value.i, GL20C::glUniform1i)

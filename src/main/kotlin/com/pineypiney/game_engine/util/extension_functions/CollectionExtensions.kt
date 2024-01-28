@@ -256,6 +256,22 @@ inline fun <reified K, reified V> Map<*, *>.asType(): Map<K, V>{
     return map.toMap()
 }
 
+inline fun <reified E, reified V> Map<*, V>.filterKeyIsInstance(): Map<E, V>{
+    val newMap = mutableMapOf<E, V>()
+    for((k, v) in this){
+        if(k is E) newMap[k] = v
+    }
+    return newMap
+}
+
+inline fun <reified K, reified E> Map<K, *>.filterValueIsInstance(): Map<K, E>{
+    val newMap = mutableMapOf<K, E>()
+    for((k, v) in this){
+        if(v is E) newMap[k] = v
+    }
+    return newMap
+}
+
 /**
  * Remove all the pairs with null keys from the map
  *

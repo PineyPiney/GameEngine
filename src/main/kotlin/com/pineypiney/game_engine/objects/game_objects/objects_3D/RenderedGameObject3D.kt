@@ -1,13 +1,12 @@
 package com.pineypiney.game_engine.objects.game_objects.objects_3D
 
 import com.pineypiney.game_engine.objects.Renderable
-import com.pineypiney.game_engine.objects.Shaded
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.util.ResourceKey
 
-abstract class RenderedGameObject3D(shader: Shader): GameObject3D(), Renderable, Shaded {
+abstract class RenderedGameObject3D(shader: Shader): GameObject3D(), Renderable {
 
     override var visible: Boolean = true
 

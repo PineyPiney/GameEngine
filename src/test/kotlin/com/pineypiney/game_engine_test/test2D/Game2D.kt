@@ -9,8 +9,7 @@ import com.pineypiney.game_engine.objects.game_objects.objects_2D.AnimatedObject
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.ColourSquare
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.ModelledGameObject2D
 import com.pineypiney.game_engine.objects.game_objects.objects_2D.SimpleTexturedGameObject2D
-import com.pineypiney.game_engine.objects.game_objects.objects_2D.texture_animation.FrameSelector
-import com.pineypiney.game_engine.objects.game_objects.objects_2D.texture_animation.TextureAnimation
+import com.pineypiney.game_engine.objects.game_objects.objects_2D.texture_animation.Animation
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton
@@ -20,13 +19,13 @@ import com.pineypiney.game_engine.objects.text.SizedGameText
 import com.pineypiney.game_engine.objects.text.SizedStaticText
 import com.pineypiney.game_engine.objects.text.SizedText
 import com.pineypiney.game_engine.objects.text.StretchyGameText
+import com.pineypiney.game_engine.objects.util.components.TextureComponent
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
@@ -41,6 +40,7 @@ import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import com.pineypiney.game_engine_test.Renderer
 import glm_.f
+import glm_.mat4x4.Mat4
 import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -80,7 +80,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         AudioSource(audio).play()
         window.setCursor(standardCursors.random())
     }
-    private val textField = ActionTextField(Vec2(-1), Vec2(1, 0.2), window){ _, _, _ ->
+    private val textField = ActionTextField<ActionTextField<*>>(Vec2(-1), Vec2(1, 0.2), window){ _, _, _ ->
 //        AudioSource(audio).play()
         window.setCursor(0L)
 
@@ -107,12 +107,20 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 //    val video = VideoPlayer(VideoLoader[ResourceKey("ghost"), gameEngine.resourcesLoader], Vec2(0.5, -0.15), Vec2(0.5, 0.3))
 
     val snake = object: AnimatedObject2D(defaultShader){
-        override val frameSelector: FrameSelector = TextureAnimation(Array(5){ TextureLoader[ResourceKey("snake/snake_$it")] }, 0.7f)
-        override val animationOffset: Float = 0f
+        override var animation: Animation = Animation("slither", 7f, "snake", (0..5).map { "snake_$it" })
+        override val animations: List<Animation> = listOf(animation)
 
         override fun init() {
             super.init()
             scale = Vec2(4)
+            components.add(TextureComponent(this))
+        }
+
+        override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
+            super.render(view, projection, tickDelta)
+
+            getComponent<TextureComponent>()?.texture?.bind()
+            VertexShape.centerSquareShape2D.bindAndDraw()
         }
     }
 

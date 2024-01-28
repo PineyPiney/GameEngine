@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec2.Vec2
 
-abstract class ScrollingListEntry<E: ScrollingListItem>(val parent: E): MenuItem() {
+abstract class ScrollingListEntry<E: ScrollingListItem>(final override val parent: E): MenuItem() {
 
     abstract val index: Int
 

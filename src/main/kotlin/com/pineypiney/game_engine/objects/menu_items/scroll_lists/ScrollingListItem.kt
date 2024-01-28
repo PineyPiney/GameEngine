@@ -2,12 +2,9 @@ package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.objects.Deleteable
-import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.menu_items.StaticInteractableMenuItem
-import com.pineypiney.game_engine.util.extension_functions.filterIsNotInstance
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
-import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
@@ -46,13 +43,12 @@ abstract class ScrollingListItem : StaticInteractableMenuItem() {  //, Iterable<
 
     override fun init() {
         super.init()
-        items.filterIsNotInstance<Interactable, Initialisable>().init()
         updateEntries()
     }
 
     override fun setChildren() {
         addChild(scrollBar)
-        addChildren(items.filterIsInstance<Interactable>())
+        addChildren(items)
     }
 
     override fun draw() {
@@ -93,7 +89,7 @@ abstract class ScrollingListItem : StaticInteractableMenuItem() {  //, Iterable<
     }
 
     override fun onScroll(game: GameLogicI, scrollDelta: Vec2): Int {
-        scroll += (scrollDelta.y * -0.05f)
+        if(hover) scroll += (scrollDelta.y * -0.05f)
         return super.onScroll(game, scrollDelta)
     }
 

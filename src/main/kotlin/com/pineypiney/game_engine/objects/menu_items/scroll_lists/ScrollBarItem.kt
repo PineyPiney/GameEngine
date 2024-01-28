@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
-open class ScrollBarItem(val parent: ScrollingListItem, override var origin: Vec2 = Vec2(), override var size: Vec2 = Vec2()): InteractableMenuItem() {
+open class ScrollBarItem(override val parent: ScrollingListItem, override var origin: Vec2 = Vec2(), override var size: Vec2 = Vec2()): InteractableMenuItem() {
 
     override var shader: Shader = translucentColourShader
 

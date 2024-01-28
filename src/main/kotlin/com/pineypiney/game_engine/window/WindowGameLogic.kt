@@ -6,7 +6,6 @@ import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
-import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
 import glm_.vec2.Vec2
@@ -18,12 +17,6 @@ abstract class WindowGameLogic : GameLogic() {
     val window get() = gameEngine.window
     val input get() = gameEngine.window.input
     abstract override val renderer: WindowRendererI<*>
-
-    override fun init() {
-        renderer.init()
-        addObjects()
-        gameObjects.getAllObjects().init()
-    }
 
     override fun open() {
         // Force update everything

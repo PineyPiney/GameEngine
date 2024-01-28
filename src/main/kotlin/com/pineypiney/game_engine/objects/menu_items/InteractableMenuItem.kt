@@ -15,15 +15,13 @@ abstract class InteractableMenuItem : MenuItem(), Interactable {
     override var hover: Boolean = false
     override var pressed: Boolean = false
 
-    override val children: MutableSet<Interactable> = mutableSetOf()
-
     override var importance: Int = 0
 
     override fun init() {
         super.init()
 
         setChildren()
-        children.filterIsInstance<Initialisable>().init()
+        interactableChildren.filterIsInstance<Initialisable>().init()
     }
 
     open fun setChildren(){}
@@ -35,7 +33,7 @@ abstract class InteractableMenuItem : MenuItem(), Interactable {
     override fun updateAspectRatio(window: WindowI) {
         super.updateAspectRatio(window)
 
-        children.filterIsInstance<Drawable>().forEach { it.updateAspectRatio(window) }
+        interactableChildren.filterIsInstance<Drawable>().forEach { it.updateAspectRatio(window) }
     }
 
     override fun checkHover(ray: Ray, screenPos: Vec2): Boolean {

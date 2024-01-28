@@ -35,8 +35,8 @@ open class ObjectCollection {
         }
     }
 
-    open fun getAllObjects(): Set<Initialisable>{
-        return guiItems + gameItems
+    open fun getAllObjects(): Set<Storable>{
+        return (guiItems + gameItems).flatMap { it.allDescendants() + it }.toSet()
     }
 
     fun getAllInteractables(sort: Boolean = true): Set<Interactable>{
@@ -49,6 +49,6 @@ open class ObjectCollection {
     }
 
     fun delete(){
-        getAllObjects().delete()
+        getAllObjects().filterIsInstance<Deleteable>().delete()
     }
 }

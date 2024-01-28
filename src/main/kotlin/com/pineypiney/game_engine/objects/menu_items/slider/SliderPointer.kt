@@ -7,7 +7,7 @@ import glm_.vec2.Vec2
 
 abstract class SliderPointer: InteractableMenuItem(), MovableDrawable {
 
-    abstract val parent: Slider
+    abstract override val parent: Slider
 
     // Make origin variable so that kotlin generates a setter function for it
     override var origin: Vec2 = super.origin
