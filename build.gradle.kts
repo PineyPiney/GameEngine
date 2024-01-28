@@ -47,8 +47,8 @@ dependencies {
     testImplementation(kotlin("test"))
 
     // Logback
-    implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
-    implementation("ch.qos.logback:logback-classic:1.2.11")
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+    implementation("ch.qos.logback:logback-classic:1.4.12")
 
     // GLM
     implementation("kotlin.graphics:kool:0.9.75")

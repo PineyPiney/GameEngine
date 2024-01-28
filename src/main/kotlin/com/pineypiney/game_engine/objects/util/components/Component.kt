@@ -65,13 +65,13 @@ abstract class Component(val id: String, val parent: Storable) {
     class BooleanField(id: String, getter: () -> Boolean, setter: (Boolean) -> Unit): Field<Boolean>(id, ::DefaultFieldEditor, getter, setter, { b -> b.i.toString() }, { _, s -> s.toBoolean() })
     class Vec2Field(id: String, getter: () -> Vec2, setter: (Vec2) -> Unit): Field<Vec2>(id, ::Vec2FieldEditor, getter, setter, { v -> v.toString(",", FloatField::float2String) }, { _, s ->
         try{
-            Vec2.fromString(s, FloatField::string2Float)
+            Vec2.fromString(s, false, FloatField::string2Float)
         }
         catch (e: NumberFormatException){
             Vec2()
         }
     })
-    class Vec3Field(id: String, getter: () -> Vec3, setter: (Vec3) -> Unit): Field<Vec3>(id, ::Vec3FieldEditor, getter, setter, { v -> v.toString(",", FloatField::float2String) }, { _, s -> Vec3.fromString(s, FloatField::string2Float) })
+    class Vec3Field(id: String, getter: () -> Vec3, setter: (Vec3) -> Unit): Field<Vec3>(id, ::Vec3FieldEditor, getter, setter, { v -> v.toString(",", FloatField::float2String) }, { _, s -> Vec3.fromString(s, false, FloatField::string2Float) })
     class StorableField<T: Storable?>(id: String, getter: () -> T, setter: (T) -> Unit): Field<T>(id, ::DefaultFieldEditor, getter, setter, ::serialise, ::parse){
         
         companion object{

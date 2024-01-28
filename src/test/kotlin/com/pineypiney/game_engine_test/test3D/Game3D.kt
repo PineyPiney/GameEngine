@@ -6,7 +6,9 @@ import com.pineypiney.game_engine.objects.game_objects.objects_2D.RenderedGameOb
 import com.pineypiney.game_engine.objects.game_objects.objects_3D.ModelledGameObject3D
 import com.pineypiney.game_engine.objects.game_objects.objects_3D.RenderedGameObject3D
 import com.pineypiney.game_engine.objects.game_objects.objects_3D.SimpleTexturedGameObject3D
-import com.pineypiney.game_engine.objects.menu_items.slider.*
+import com.pineypiney.game_engine.objects.menu_items.slider.BasicSliderPointer
+import com.pineypiney.game_engine.objects.menu_items.slider.OutlinedSlider
+import com.pineypiney.game_engine.objects.menu_items.slider.SliderPointer
 import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera

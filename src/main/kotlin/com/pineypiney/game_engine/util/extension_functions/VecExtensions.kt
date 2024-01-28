@@ -210,11 +210,11 @@ fun Vec1Vars<Float>.toString(separator: String = ", ", serialise: Float.() -> St
 fun Vec1Vars<Float>.toHexString(separator: String = ", "): String = toString(separator){ asIntBits.asHexString }
 
 
-fun Vec2.Companion.fromString(s: String, parse: String.() -> Float = java.lang.Float::parseFloat): Vec2{
-    val trim = s.trim().removePrefix("Vec2{").removeSuffix("}")
-    val (s1, s2) = trim.split(",")
-    val f1 = s1.trim().parse()
-    val f2 = s2.trim().parse()
+fun Vec2.Companion.fromString(s: String, trim: Boolean = true, parse: String.() -> Float = java.lang.Float::parseFloat): Vec2{
+    val trimmed = if(trim) s.trim().removePrefix("Vec2{").removeSuffix("}") else s
+    val (s1, s2) = trimmed.split(",")
+    val f1 = s1.parse()
+    val f2 = s2.parse()
     return Vec2(f1, f2)
 }
 
@@ -224,9 +224,9 @@ fun Vec2.Companion.fromString(s: String, parse: String.() -> Float = java.lang.F
  */
 fun Vec2.Companion.fromHexString(s: String) = fromString(s){ intValue(16).bitsAsFloat }
 
-fun Vec3.Companion.fromString(s: String, parse: String.() -> Float = java.lang.Float::parseFloat): Vec3{
-    val trim = s.trim().removePrefix("Vec3{").removeSuffix("}")
-    return trim.split(",").let { Vec3(it[0].trim().parse(), it[1].trim().parse(), it[2].trim().parse()) }
+fun Vec3.Companion.fromString(s: String, trim: Boolean = false, parse: String.() -> Float = java.lang.Float::parseFloat): Vec3{
+    val trimmed = if(trim) s.trim().removePrefix("Vec3{").removeSuffix("}") else s
+    return trimmed.split(",").let { Vec3(it[0].trim().parse(), it[1].trim().parse(), it[2].trim().parse()) }
 }
 
 fun Vec3.Companion.fromHexString(s: String) = fromString(s){ intValue(16).bitsAsFloat }
