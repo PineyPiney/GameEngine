@@ -1,16 +1,27 @@
 // FRAGMENT SHADER INFORMATION
 #version 400 core
 
+struct Material{
+	sampler2D ambient;
+	sampler2D diffuse;
+	sampler2D specular;
+	sampler2D normals;
+	uint textureMask;
+	bool ambDiff;
+	float shininess;
+	float alpha;
+};
+
 in vec2 texCoords;
 in vec4 boneTint;
 
-uniform sampler2D ourTexture;
+uniform Material material;
 
 out vec4 FragColour;
 
 void main(){
 	// Discard transparent pixels
-	vec4 texture = texture(ourTexture, texCoords);
+	vec4 texture = texture(material.ambient, texCoords);
 	if(texture.a == 0) discard;
 
 	// Make the image black and white

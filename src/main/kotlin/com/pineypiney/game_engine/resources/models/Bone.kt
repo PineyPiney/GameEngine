@@ -71,7 +71,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
         shader.setMat4("model", model * this.modelSpaceTransform * this.transform * boneMatrix)
         shader.setVec4("colour", Vec4((((this.id + 4) % 6) > 2).i, (((this.id + 2) % 6) > 2).i, (((this.id) % 6) > 2).i, 1))
 
-        VertexShape.centerSquareShape2D.draw()
+        VertexShape.centerSquareShape.draw()
 
         for(it in children) { it.render(shader, model) }
     }

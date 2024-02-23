@@ -2,14 +2,18 @@ package com.pineypiney.game_engine.objects.util.shapes
 
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.util.extension_functions.associateIndexed
+import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.f
 import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 import org.lwjgl.opengl.GL30C.*
 
 abstract class VertexShape: Deleteable {
 
     val VAO = glGenVertexArrays()
     abstract val size: Int
+
+    abstract val shape: Shape
 
     open fun bind(){
         glBindVertexArray(this.VAO)
@@ -48,17 +52,28 @@ abstract class VertexShape: Deleteable {
         setAttribs(parts.toList().associateIndexed { i, p -> Pair(i, Pair(type, p)) })
     }
 
+    abstract fun getVertices(): FloatArray
+
     override fun delete() {
         glDeleteVertexArrays(VAO)
     }
 
     companion object{
 
-        fun getBuffer(buffer: Int, target: Int = GL_ARRAY_BUFFER): FloatArray{
+        fun getFloatBuffer(buffer: Int, target: Int): FloatArray{
             glBindBuffer(target, buffer)
             // Size is the buffer size in bytes, to must be divided by four to get the number of floats
             val size = glGetBufferParameteri(target, GL_BUFFER_SIZE)
             val a = FloatArray(size / 4)
+            glGetBufferSubData(target, 0, a)
+            return a
+        }
+
+        fun getIntBuffer(buffer: Int, target: Int): IntArray{
+            glBindBuffer(target, buffer)
+            // Size is the buffer size in bytes, to must be divided by four to get the number of floats
+            val size = glGetBufferParameteri(target, GL_BUFFER_SIZE)
+            val a = IntArray(size / 4)
             glGetBufferSubData(target, 0, a)
             return a
         }
@@ -68,113 +83,12 @@ abstract class VertexShape: Deleteable {
         }
 
 
-        val cornerSquareShape2D = SquareShape(Vec2(0.5), Vec2(1))
-        val centerSquareShape2D = SquareShape(Vec2(), Vec2(1))
-        val screenQuadShape = SquareShape(Vec2(), Vec2(2))
-        val footSquare = SquareShape(Vec2(0, 0.5), Vec2(1))
+        val cornerSquareShape = SquareShape(Vec2(), Vec2(1f))
+        val centerSquareShape = SquareShape(Vec2(-0.5f), Vec2(0.5f))
+        val screenQuadShape = SquareShape(Vec2(-1f), Vec2(1f))
+        val footSquare = SquareShape(Vec2(-0.5f, 0f), Vec2(0.5f, 1f))
 
-        private val cornerCubeVertices = floatArrayOf(
-            // positions        // normals          // texture co-ords
-            // Back
-            1.0,  0.0,  0.0,    0.0,  0.0,  -1.0,    1.0, 0.0,
-            1.0,  1.0,  0.0,    0.0,  0.0,  -1.0,    1.0, 1.0,
-            0.0,  1.0,  0.0,    0.0,  0.0,  -1.0,    0.0, 1.0,
-            0.0,  1.0,  0.0,    0.0,  0.0,  -1.0,    0.0, 1.0,
-            0.0,  0.0,  0.0,    0.0,  0.0,  -1.0,    0.0, 0.0,
-            1.0,  0.0,  0.0,    0.0,  0.0,  -1.0,    1.0, 0.0,
-
-            // Front
-            0.0,  0.0,  1.0,    0.0,  0.0,  1.0,    0.0, 0.0,
-            0.0,  1.0,  1.0,    0.0,  0.0,  1.0,    0.0, 1.0,
-            1.0,  1.0,  1.0,    0.0,  0.0,  1.0,    1.0, 1.0,
-            1.0,  1.0,  1.0,    0.0,  0.0,  1.0,    1.0, 1.0,
-            1.0,  0.0,  1.0,    0.0,  0.0,  1.0,    1.0, 0.0,
-            0.0,  0.0,  1.0,    0.0,  0.0,  1.0,    0.0, 0.0,
-
-            // Left
-            0.0,  0.0,  0.0,    -1.0,  0.0,  0.0,    0.0, 0.0,
-            0.0,  1.0,  0.0,    -1.0,  0.0,  0.0,    0.0, 1.0,
-            0.0,  1.0,  1.0,    -1.0,  0.0,  0.0,    1.0, 1.0,
-            0.0,  1.0,  1.0,    -1.0,  0.0,  0.0,    1.0, 1.0,
-            0.0,  0.0,  1.0,    -1.0,  0.0,  0.0,    1.0, 0.0,
-            0.0,  0.0,  0.0,    -1.0,  0.0,  0.0,    0.0, 0.0,
-
-            // Right
-            1.0,  0.0,  1.0,    1.0,  0.0,  1.0,    0.0, 0.0,
-            1.0,  1.0,  1.0,    1.0,  0.0,  1.0,    0.0, 1.0,
-            1.0,  1.0,  0.0,    1.0,  0.0,  1.0,    1.0, 1.0,
-            1.0,  1.0,  0.0,    1.0,  0.0,  1.0,    1.0, 1.0,
-            1.0,  0.0,  0.0,    1.0,  0.0,  1.0,    1.0, 0.0,
-            1.0,  0.0,  1.0,    1.0,  0.0,  1.0,    0.0, 0.0,
-
-            // Bottom
-            0.0,  0.0,  0.0,    0.0,  -1.0,  0.0,    0.0, 0.0,
-            0.0,  0.0,  1.0,    0.0,  -1.0,  0.0,    0.0, 1.0,
-            1.0,  0.0,  1.0,    0.0,  -1.0,  0.0,    1.0, 1.0,
-            1.0,  0.0,  1.0,    0.0,  -1.0,  0.0,    1.0, 1.0,
-            1.0,  0.0,  0.0,    0.0,  -1.0,  0.0,    1.0, 0.0,
-            0.0,  0.0,  0.0,    0.0,  -1.0,  0.0,    0.0, 0.0,
-
-            // Top
-            0.0,  1.0,  1.0,    0.0,  1.0,  0.0,    0.0, 0.0,
-            0.0,  1.0,  0.0,    0.0,  1.0,  0.0,    0.0, 1.0,
-            1.0,  1.0,  0.0,    0.0,  1.0,  0.0,    1.0, 1.0,
-            1.0,  1.0,  0.0,    0.0,  1.0,  0.0,    1.0, 1.0,
-            1.0,  1.0,  1.0,    0.0,  1.0,  0.0,    1.0, 0.0,
-            0.0,  1.0,  1.0,    0.0,  1.0,  0.0,    0.0, 0.0,
-        )
-        private val centerCubeVertices = floatArrayOf(
-            // positions        // normals          // texture co-ords
-            // Back
-            0.5,  -0.5,  -0.5,    0.0,  0.0,  -1.0,    1.0, 0.0,
-            0.5,  0.5,  -0.5,    0.0,  0.0,  -1.0,    1.0, 1.0,
-            -0.5,  0.5,  -0.5,    0.0,  0.0,  -1.0,    0.0, 1.0,
-            -0.5,  0.5,  -0.5,    0.0,  0.0,  -1.0,    0.0, 1.0,
-            -0.5,  -0.5,  -0.5,    0.0,  0.0,  -1.0,    0.0, 0.0,
-            0.5,  -0.5,  -0.5,    0.0,  0.0,  -1.0,    1.0, 0.0,
-
-            // Front
-            -0.5,  -0.5,  0.5,    0.0,  0.0,  1.0,    0.0, 0.0,
-            -0.5,  0.5,  0.5,    0.0,  0.0,  1.0,    0.0, 1.0,
-            0.5,  0.5,  0.5,    0.0,  0.0,  1.0,    1.0, 1.0,
-            0.5,  0.5,  0.5,    0.0,  0.0,  1.0,    1.0, 1.0,
-            0.5,  -0.5,  0.5,    0.0,  0.0,  1.0,    1.0, 0.0,
-            -0.5,  -0.5,  0.5,    0.0,  0.0,  1.0,    0.0, 0.0,
-
-            // Left
-            -0.5,  -0.5,  -0.5,    -1.0,  0.0,  0.0,    0.0, 0.0,
-            -0.5,  0.5,  -0.5,    -1.0,  0.0,  0.0,    0.0, 1.0,
-            -0.5,  0.5,  0.5,    -1.0,  0.0,  0.0,    1.0, 1.0,
-            -0.5,  0.5,  0.5,    -1.0,  0.0,  0.0,    1.0, 1.0,
-            -0.5,  -0.5,  0.5,    -1.0,  0.0,  0.0,    1.0, 0.0,
-            -0.5,  -0.5,  -0.5,    -1.0,  0.0,  0.0,    0.0, 0.0,
-
-            // Right
-            0.5,  -0.5,  0.5,    1.0,  0.0,  1.0,    0.0, 0.0,
-            0.5,  0.5,  0.5,    1.0,  0.0,  1.0,    0.0, 1.0,
-            0.5,  0.5,  -0.5,    1.0,  0.0,  1.0,    1.0, 1.0,
-            0.5,  0.5,  -0.5,    1.0,  0.0,  1.0,    1.0, 1.0,
-            0.5,  -0.5,  -0.5,    1.0,  0.0,  1.0,    1.0, 0.0,
-            0.5,  -0.5,  0.5,    1.0,  0.0,  1.0,    0.0, 0.0,
-
-            // Bottom
-            -0.5,  -0.5,  -0.5,    0.0,  -1.0,  0.0,    0.0, 0.0,
-            -0.5,  -0.5,  0.5,    0.0,  -1.0,  0.0,    0.0, 1.0,
-            0.5,  -0.5,  0.5,    0.0,  -1.0,  0.0,    1.0, 1.0,
-            0.5,  -0.5,  0.5,    0.0,  -1.0,  0.0,    1.0, 1.0,
-            0.5,  -0.5,  -0.5,    0.0,  -1.0,  0.0,    1.0, 0.0,
-            -0.5,  -0.5,  -0.5,    0.0,  -1.0,  0.0,    0.0, 0.0,
-
-            // Top
-            -0.5,  0.5,  0.5,    0.0,  1.0,  0.0,    0.0, 0.0,
-            -0.5,  0.5,  -0.5,    0.0,  1.0,  0.0,    0.0, 1.0,
-            0.5,  0.5,  -0.5,    0.0,  1.0,  0.0,    1.0, 1.0,
-            0.5,  0.5,  -0.5,    0.0,  1.0,  0.0,    1.0, 1.0,
-            0.5,  0.5,  0.5,    0.0,  1.0,  0.0,    1.0, 0.0,
-            -0.5,  0.5,  0.5,    0.0,  1.0,  0.0,    0.0, 0.0,
-        )
-
-        val cornerCubeShape = ArrayShape(cornerCubeVertices, intArrayOf(3, 3, 2))
-        val centerCubeShape = ArrayShape(centerCubeVertices, intArrayOf(3, 3, 2))
+        val cornerCubeShape = CubeShape(Vec3(0f), Vec3(1f))
+        val centerCubeShape = CubeShape(Vec3(-.5f), Vec3(.5f))
     }
 }

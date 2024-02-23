@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.util.shapes
 
 import org.lwjgl.opengl.GL31C.*
 
-open class IndicesShape(vertices: FloatArray, parts: IntArray, indices: IntArray): VertexShape() {
+abstract class IndicesShape(vertices: FloatArray, parts: IntArray, indices: IntArray): VertexShape() {
 
     private val VBO = glGenBuffers()
     private val EBO = glGenBuffers()
@@ -38,8 +38,8 @@ open class IndicesShape(vertices: FloatArray, parts: IntArray, indices: IntArray
         glDrawElementsInstanced(mode, size, GL_UNSIGNED_INT, 0, amount)
     }
 
-    fun getVertices() = getBuffer(VBO)
-    fun getElements() = getBuffer(EBO, GL_ELEMENT_ARRAY_BUFFER)
+    override fun getVertices() = getFloatBuffer(VBO, GL_ARRAY_BUFFER)
+    fun getElements() = getIntBuffer(EBO, GL_ELEMENT_ARRAY_BUFFER)
 
     override fun delete() {
         super.delete()

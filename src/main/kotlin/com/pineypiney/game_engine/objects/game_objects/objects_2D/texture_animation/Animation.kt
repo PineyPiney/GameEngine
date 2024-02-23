@@ -10,16 +10,11 @@ class Animation(val name: String, val frames: MutableMap<Int, KeyFrame>, var fps
     val length = totalFrames / fps
 
 
-    constructor(name: String, fps: Float, root: String, textures: List<String>, file: String? = null) : this(name, textures.associateIndexed{ i, it -> i to KeyFrame(mutableMapOf("TXR.txr" to "$root/$it")) }.toMutableMap(), fps, textures.size, file){
+    constructor(name: String, fps: Float, root: String, textures: List<String>, file: String? = null) : this(name, textures.associateIndexed{ i, it -> i to KeyFrame(mutableMapOf("RND.txr" to "$root/$it")) }.toMutableMap(), fps, textures.size, file){
         save()
     }
 
     var lastFrame = -1
-
-    // Throw errors if any of the constructor parameters are illegal
-    init {
-
-    }
 
     fun getCurrentFrame(time: Float): Int{
         val frame = time * fps
@@ -45,7 +40,10 @@ class Animation(val name: String, val frames: MutableMap<Int, KeyFrame>, var fps
     fun save(): Boolean{
         val relativeLocation = fileLocation ?: return false
         val file = File(fullPath(relativeLocation))
-        if(!file.exists()) file.createNewFile()
+        if(!file.exists()) {
+            if(file.parentFile.mkdirs()) file.createNewFile()
+            else return false
+        }
 
         val binaryString = StringBuilder()
         var text = "fps=$fps\nframes=$totalFrames\ndefinedFrames=${frames.size}"
@@ -63,6 +61,8 @@ class Animation(val name: String, val frames: MutableMap<Int, KeyFrame>, var fps
 
     companion object {
 
+        val default = Animation("default", mutableMapOf(), 1f, 0)
+
         fun fullPath(relative: String) = "src/main/resources/animations/$relative.anim"
         operator fun invoke(file: String): Animation {
             val lines = File(fullPath(file)).readLines()
@@ -72,29 +72,31 @@ class Animation(val name: String, val frames: MutableMap<Int, KeyFrame>, var fps
             var definedFrames = 0
             val frames = mutableMapOf<Int, KeyFrame>()
 
-            if (lines[0].startsWith("fps")) {
-                fps = lines[0].substring(4, lines[0].length).f
-            }
-            if (lines[1].startsWith("frames")) {
-                numFrames = lines[1].substring(7, lines[1].length).i
-            }
-            if (lines[2].startsWith("definedFrames")) {
-                definedFrames = lines[2].substring(14, lines[2].length).i
-            }
+            if(lines.size >= 5) {
+                if (lines[0].startsWith("fps")) {
+                    fps = lines[0].substring(4, lines[0].length).f
+                }
+                if (lines[1].startsWith("frames")) {
+                    numFrames = lines[1].substring(7, lines[1].length).i
+                }
+                if (lines[2].startsWith("definedFrames")) {
+                    definedFrames = lines[2].substring(14, lines[2].length).i
+                }
 
-            val binaryString = lines.subList(3 + definedFrames, lines.size).joinToString("\n")
-            for (i in 3..2 + definedFrames) {
-                val line = lines[i]
-                val s = line.indexOf(':')
-                val t = line.substring(0, s).i
-                val m = line.substring(s + 1).split("&").associate {
-                    val e = it.indexOf('=')
-                    val k = it.substring(0, e)
-                    val (start, end) = it.substring(e + 1).split('-')
-                    k to binaryString.substring(start.i, end.i)
+                val binaryString = lines.subList(3 + definedFrames, lines.size).joinToString("\n")
+                for (i in 3..2 + definedFrames) {
+                    val line = lines[i]
+                    val s = line.indexOf(':')
+                    val t = line.substring(0, s).i
+                    val m = line.substring(s + 1).split("&").associate {
+                        val e = it.indexOf('=')
+                        val k = it.substring(0, e)
+                        val (start, end) = it.substring(e + 1).split('-')
+                        k to binaryString.substring(start.i, end.i)
 
-                }.toMutableMap()
-                frames[t] = KeyFrame(m)
+                    }.toMutableMap()
+                    frames[t] = KeyFrame(m)
+                }
             }
 
             return Animation(name, frames, fps, numFrames, file)

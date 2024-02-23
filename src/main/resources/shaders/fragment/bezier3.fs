@@ -2,7 +2,7 @@
 #version 400 core
 
 uniform vec2 points[4];
-uniform vec2 windowSize;
+uniform ivec2 viewport;
 
 uniform vec4 colour;
 uniform float width;
@@ -22,8 +22,8 @@ vec2 p1 = points[1];
 vec2 p2 = points[2];
 vec2 p3 = points[3];
 
-vec2 pos = (gl_FragCoord.xy / windowSize) - vec2(1);
-float aspect = windowSize.x / windowSize.y;
+vec2 pos = (gl_FragCoord.xy / viewport) - vec2(1);
+float aspect = float(viewport.x) / viewport.y;
 
 void main(){
 

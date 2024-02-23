@@ -22,7 +22,7 @@ abstract class AbstractVideoPlayer: Initialisable, Drawable {
         tex.bind()
 
         shader.use()
-        shader.setUniforms(uniforms)
+        //shader.setUniforms(uniforms,) Haha nobody cares about you no todo for yo- AHHH WHAT HAPPENED!
 
         shape.bindAndDraw()
     }

@@ -1,43 +1,20 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
-import com.pineypiney.game_engine.GameLogicI
-import com.pineypiney.game_engine.objects.menu_items.InteractableMenuItem
-import com.pineypiney.game_engine.resources.shaders.Shader
-import glm_.vec2.Vec2
+import com.pineypiney.game_engine.objects.components.ColourRendererComponent
+import com.pineypiney.game_engine.objects.components.scrollList.ScrollBarComponent
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
+import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import glm_.vec4.Vec4
 
-open class ScrollBarItem(override val parent: ScrollingListItem, override var origin: Vec2 = Vec2(), override var size: Vec2 = Vec2()): InteractableMenuItem() {
+open class ScrollBarItem(): MenuItem() {
 
-    override var shader: Shader = translucentColourShader
+    var colour: Vec4
+        get() = getComponent<ColourRendererComponent>()!!.colour
+        set(value) { getComponent<ColourRendererComponent>()!!.colour = value }
 
-    override var pressed: Boolean = false
-
-    var colour = Vec4(0x00, 0xBF, 0xFF, 0xFF) / 255
-
-    override fun setUniforms() {
-        super.setUniforms()
-
-        uniforms.setVec4Uniform("colour"){ colour }
-    }
-
-    override fun update(interval: Float, time: Double) {
-
-    }
-
-    override fun onDrag(game: GameLogicI, cursorPos: Vec2, cursorDelta: Vec2) {
-        super.onDrag(game, cursorPos, cursorDelta)
-        forceUpdate = true
-
-        // If the scroller item is taller, then the same scroll value should move the bar by a smaller amount
-        // (Remember that parent.scroll is proportional, a value between 0 and (1-ratio))
-        parent.scroll -= (cursorDelta.y / (parent.size.y))
-    }
-
-    override fun onPrimary(game: GameLogicI, action: Int, mods: Byte, cursorPos: Vec2): Int {
-        val p = super.onPrimary(game, action, mods, cursorPos)
-
-        if(!pressed) forceUpdate = false
-
-        return p
+    override fun addComponents() {
+        super.addComponents()
+        components.add(ScrollBarComponent(this))
+        components.add(ColourRendererComponent(this, Vec4(0x00, 0xBF, 0xFF, 0xFF) / 255, translucentColourShader, VertexShape.cornerSquareShape))
     }
 }

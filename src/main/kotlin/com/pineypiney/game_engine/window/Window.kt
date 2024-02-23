@@ -50,7 +50,7 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
         get() = getVec2i(windowHandle, GLFW::glfwGetWindowPos)
         set(value) = setVec2i(windowHandle, GLFW::glfwSetWindowPos, value)
 
-    override var size: Vec2i
+    final override var size: Vec2i
         get() = getVec2i(windowHandle, GLFW::glfwGetWindowSize)
         set(value) = setVec2i(windowHandle, GLFW::glfwSetWindowSize, value)
 
@@ -78,7 +78,7 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
         get() = size.y
         set(value) { size = Vec2i(size.x, value) }
 
-    override val aspectRatio get() = size.run { x.f / y }
+    final override var aspectRatio = size.run { x.f / y }; private set
 
     override val focused: Boolean
         get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_FOCUSED).bool
@@ -244,7 +244,8 @@ abstract class Window(title: String, width: Int, height: Int, fullScreen: Boolea
     }
 
     override fun setFrameBufferResizeCallback(callback: WindowI.() -> Unit) {
-        GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _: Long, _: Int, _: Int ->
+        GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _: Long, x: Int, y: Int ->
+            aspectRatio = x.f / y
             this.callback()
         }
     }

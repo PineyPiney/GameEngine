@@ -11,9 +11,9 @@ abstract class Transform<P, R, S>: Copyable<Transform<P, R, S>> {
     abstract var rotation: R
     abstract var scale: S
 
-    abstract fun translate(move: P)
-    abstract fun rotate(angle: R)
-    abstract fun scale(mult: S)
+    abstract infix fun translate(move: P)
+    abstract infix fun rotate(angle: R)
+    abstract infix fun scale(mult: S)
 
     protected abstract fun recalculateModel()
 

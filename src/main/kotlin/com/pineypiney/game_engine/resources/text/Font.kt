@@ -18,10 +18,10 @@ abstract class Font {
     abstract fun getHeight(text: String): Float
     fun getSize(text: String): Vec2 = Vec2(getWidth(text), getHeight(text))
 
-    abstract fun getQuads(text: String): Collection<TextQuad>
+    abstract fun getQuads(text: String, bold: Boolean = false): Collection<TextQuad>
 
     companion object{
-        val fontShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/text"))
+        val fontShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/text")]
         val defaultFont: Font; get() = FontLoader[ResourceKey(GameEngineI.defaultFont)]
     }
 }

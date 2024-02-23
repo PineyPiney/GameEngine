@@ -44,7 +44,7 @@ class TestVRRenderer(w: Int, h: Int, override val hmd: HMD): VRRenderer<TestVRGa
 
         val shader = BufferedGameRenderer.screenShader
         shader.use()
-        shader.setUniforms(BufferedGameRenderer.screenUniforms)
+        shader.setUniforms(BufferedGameRenderer.screenUniforms, this)
         leftDisplay.draw(SquareShape(Vec2(-0.5, 0), Vec2(1, 2)))
         rightDisplay.draw(SquareShape(Vec2(0.5, 0), Vec2(1, 2)))
         TestWindow.INSTANCE.update()

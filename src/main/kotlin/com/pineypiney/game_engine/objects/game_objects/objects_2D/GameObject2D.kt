@@ -1,8 +1,6 @@
 package com.pineypiney.game_engine.objects.game_objects.objects_2D
 
-import com.pineypiney.game_engine.objects.game_objects.GameObject
-import com.pineypiney.game_engine.objects.game_objects.transforms.Transform2D
-import com.pineypiney.game_engine.objects.util.components.Transform2DComponent
+import com.pineypiney.game_engine.objects.game_objects.OldGameObject
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.normal
@@ -10,30 +8,28 @@ import glm_.i
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec3.Vec3t
+import glm_.vec3.swizzle.xy
 
-abstract class GameObject2D : GameObject() {
+abstract class GameObject2D : OldGameObject() {
 
-    val transformComponent = Transform2DComponent(this)
-    override val transform: Transform2D get() = transformComponent.transform
+    open var velocity2D: Vec2
+        get() = Vec2( transformComponent.velocity)
+        set(value) { transformComponent.velocity.xy = value }
 
-    open var velocity: Vec2
-        get() = transformComponent.velocity
-        set(value) { transformComponent.velocity = value }
-
-    open var position: Vec2
-        get() = transform.position
+    open var position2D: Vec2
+        get() = Vec2(transform.position)
         set(value){
-            transform.position = value
+            transform.position = Vec3(value, transform.position.z)
         }
-    open var scale: Vec2
-        get() = transform.scale
+    open var scale2D: Vec2
+        get() = Vec2(transform.scale)
         set(value){
-            transform.scale = value
+            transform.scale = Vec3(value, transform.scale.z)
         }
-    open var rotation: Float
-        get() = transform.rotation
+    open var rotation2D: Float
+        get() = transform.rotation.w
         set(value){
-            transform.rotation = value
+            transform.rotation.w = value
         }
 
     // Items are rendered in order of depth, from inf to -inf
@@ -41,21 +37,17 @@ abstract class GameObject2D : GameObject() {
         get() = transformComponent.depth
         set(value) { transformComponent.depth = value }
 
-    override fun init() {
-        components.add(transformComponent)
-    }
-
     fun setPosition(pos: Vec3t<*>){
-        position = Vec2(pos)
+        position2D = Vec2(pos)
         depth = pos.z.i
     }
 
     fun translate(move: Vec2){
-        transform translate move
+        transform translate Vec3(move, 0f)
     }
 
     fun rotate(angle: Float){
-        transform.rotate(angle)
+        transform.rotate(Vec3(0, 0, angle))
     }
 
     fun scale(mult: Vec2){
@@ -63,10 +55,10 @@ abstract class GameObject2D : GameObject() {
     }
 
     open fun isCovered(point: Vec2): Boolean{
-        val originTranslation = Vec3(point - this.position)
-        val transform = I.rotate(-this.rotation, normal).translate(originTranslation)
+        val originTranslation = Vec3(point - this.position2D)
+        val transform = I.rotate(-this.rotation2D, normal).translate(originTranslation)
         val vec = Vec2(transform[3][0], transform[3][1])
 
-        return vec.isWithin(Vec2(-(0.5f * scale.x), 0), scale)
+        return vec.isWithin(Vec2(-(0.5f * scale2D.x), 0), scale2D)
     }
 }

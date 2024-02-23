@@ -10,7 +10,7 @@ abstract class SizedText(text: String, override val fontSize: Int = 100, colour:
                          maxWidth: Float = 2f, maxHeight: Float = 2f,
                          override val separation: Float = 0.6f, font: Font = Font.defaultFont,
                          shader: Shader = font.shader):
-    Text(text, colour, maxWidth, maxHeight, font, shader), SizedTextI {
+    OldText(text, colour, maxWidth, maxHeight, font, shader), SizedTextI {
 
     override var quads: Array<TextQuad> = arrayOf()
 

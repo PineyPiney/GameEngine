@@ -1,22 +1,17 @@
 package com.pineypiney.game_engine_test
 
-import com.pineypiney.game_engine.objects.Drawable
-import com.pineypiney.game_engine.objects.Renderable
+import com.pineypiney.game_engine.objects.components.PreRenderComponent
+import com.pineypiney.game_engine.objects.components.RenderedComponent
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
 import com.pineypiney.game_engine.rendering.FrameBuffer
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.util.GLFunc
-import com.pineypiney.game_engine.util.extension_functions.forEachInstance
-import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL11C.*
 
 class Renderer<R: CameraI>(override val window: WindowI, override val camera: R): BufferedGameRenderer<WindowGameLogic>() {
-
-    var view = I
-    var projection = I
 
     override fun init() {
         super.init()
@@ -34,14 +29,27 @@ class Renderer<R: CameraI>(override val window: WindowI, override val camera: R)
         projection = camera.getProjection()
 
         clearFrameBuffer()
-        game.gameObjects.gameItems.forEachInstance<Renderable> { it.render(view, projection, tickDelta) }
-        game.gameObjects.guiItems.forEachInstance<Drawable> { it.draw() }
+        for(o in game.gameObjects.gameItems.flatMap { it.allDescendants() }) {
+            val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
+            if(renderedComponents.isNotEmpty()){
+                for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
+                for(c in renderedComponents) c.render(this, tickDelta)
+            }
+        }
+
+        for(o in game.gameObjects.guiItems.flatMap { it.allDescendants() }) {
+            val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
+            if(renderedComponents.isNotEmpty()){
+                for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
+                for(c in renderedComponents) c.render(this, tickDelta)
+            }
+        }
 
         // This draws the buffer onto the screen
         FrameBuffer.unbind()
         clear()
         screenShader.use()
-        screenShader.setUniforms(screenUniforms)
+        screenShader.setUniforms(screenUniforms, this)
         buffer.draw()
         glClear(GL_DEPTH_BUFFER_BIT)
     }

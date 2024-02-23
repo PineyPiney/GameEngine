@@ -47,7 +47,8 @@ class Transform2D(position: Vec2 = Vec2(), rotation: Float = 0f, scale: Vec2 = V
         model = I.translate(Vec3(position)).rotate(rotation, normal).scale(Vec3(scale, 1))
     }
 
-    override fun copy(): Transform2D = Transform2D(position.copy(), rotation, scale.copy()).apply { recalculateModel() }
+    override fun copy(): Transform2D = Transform2D(position.copy(), rotation, scale.copy())
+        .apply { recalculateModel() }
 
     companion object{
         val origin; get() = Transform2D()

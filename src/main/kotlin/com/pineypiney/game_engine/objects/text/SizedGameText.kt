@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine.objects.text
 
-import com.pineypiney.game_engine.objects.game_objects.transforms.Transform2D
+import com.pineypiney.game_engine.objects.game_objects.transforms.Transform3D
+import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
-import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -20,9 +20,9 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
                 shader: Shader = gameTextShader):
             this(text, fontSize, colour, bounds.x, bounds.y, separation, font, shader)
 
-    override val transform: Transform2D = Transform2D()
+    override val transform: Transform3D = Transform3D()
 
-    override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
+    override fun render(renderer: RendererI<*>, tickDelta: Double) {
         if(lines.isEmpty()) return
 
         val originModel = transform.model
@@ -30,7 +30,7 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
 
         var i = 0
         for(line in lines){
-            super.render(view, projection, tickDelta)
+            super<SizedText>.render(renderer, tickDelta)
 
             val displayLine = line.trim()
             val firstIndex = i + line.indexOfFirst { it != ' ' }
@@ -55,7 +55,7 @@ open class SizedGameText(text: String, fontSize: Int = 100, colour: Vec4 = Vec4(
                 else getUnderlineOf(lines.indexOf(line))
 
                 if(length > 0) {
-                    renderUnderline(lineModel.translate(Vec3(quads[firstIndex].offset, 0)), view, projection, displayLine, length)
+                    renderUnderline(lineModel.translate(Vec3(quads[firstIndex].offset, 0)), renderer.view, renderer.projection, displayLine, length)
                 }
             }
 

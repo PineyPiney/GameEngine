@@ -13,7 +13,7 @@ interface Interactable: Updateable {
     var hover: Boolean
     var pressed: Boolean
 
-    val interactableChildren: Set<Interactable> get() = (this as Storable).children.filterIsInstance<Interactable>().toSet()
+    val interactableChildren: Set<Interactable> get() = (this as GameObject).children.filterIsInstance<Interactable>().toSet()
 
     // Importance is used to set the order in which items are updated and interacted with
     // For example, in the level selection screen the buttons are clicked before the entries are

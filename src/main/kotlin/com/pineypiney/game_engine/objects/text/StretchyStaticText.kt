@@ -35,7 +35,7 @@ open class StretchyStaticText(text: String, final override val window: WindowI, 
     override fun draw() {
 
         shader.use()
-        shader.setUniforms(uniforms)
+        //shader.setUniforms(uniforms,) TODO
         val lineModel = I.translate(origin.x, origin.y, 0f).scale(defaultCharHeight / window.aspectRatio, defaultCharHeight, 1f)
 
         for(i in text.indices){

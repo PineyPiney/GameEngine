@@ -17,11 +17,10 @@ data class ModelMaterial(val name: String, val textures: Map<TextureType, Textur
 
     fun apply(shader: Shader, material: String, target: Int = GL_TEXTURE_2D){
         for((type, texture) in textures){
+            shader.setInt(material + "." + type.name.lowercase(), type.ordinal)
             glActiveTexture(0x84C0 + type.ordinal)
             glBindTexture(target, texture.texturePointer)
         }
-
-        for((type, _) in textures) shader.setInt(material + "." + type.name.lowercase(), type.ordinal)
 
         shader.setUInt("$material.textureMask", mask.toUInt())
         shader.setBool("$material.ambDiff", true)

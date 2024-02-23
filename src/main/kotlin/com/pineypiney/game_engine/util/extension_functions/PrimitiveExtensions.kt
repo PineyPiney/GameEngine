@@ -204,5 +204,8 @@ fun <E> CharSequence.reduce(initial: E, operation: (acc: E, it: Char) -> E): E{
     return accumulator
 }
 
+operator fun String.get(start: Int, end: Int): String = substring(start, end)
+operator fun String.get(range: IntRange): String = substring(range)
+
 operator fun UByte.compareTo(other: Ubyte) = toInt() compareTo other.toInt()
 operator fun Ubyte.compareTo(other: UByte) = toInt() compareTo other.toInt()

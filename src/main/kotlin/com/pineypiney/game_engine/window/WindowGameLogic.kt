@@ -1,11 +1,10 @@
 package com.pineypiney.game_engine.window
 
 import com.pineypiney.game_engine.GameLogic
-import com.pineypiney.game_engine.objects.Drawable
 import com.pineypiney.game_engine.objects.Interactable
+import com.pineypiney.game_engine.objects.components.RenderedComponent
 import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
 import glm_.vec2.Vec2
@@ -24,20 +23,22 @@ abstract class WindowGameLogic : GameLogic() {
 
         // Reset textures so that the last bound texture isn't carried over
         Texture.broke.bind()
+
+        onCursorMove(gameEngine.input.mouse.lastPos, Vec2(0f))
     }
 
     open fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
         val ray = renderer.camera.getRay()
-        for (item in gameObjects.getAllInteractables()){
-            item.hover = item.checkHover(ray, cursorPos)
-            if(item.shouldUpdate()) item.onCursorMove(this, cursorPos, cursorDelta, ray)
+        for (component in gameObjects.getAllInteractables()){
+            component.hover = component.checkHover(ray, cursorPos)
+            if(component.shouldUpdate()) component.onCursorMove(window, cursorPos, cursorDelta, ray)
         }
     }
 
     open fun onScroll(scrollDelta: Vec2): Int {
-        for (item in gameObjects.getAllInteractables()){
-            if(item.shouldUpdate()){
-                if(item.onScroll(this, scrollDelta) == Interactable.INTERRUPT) return Interactable.INTERRUPT
+        for (component in gameObjects.getAllInteractables()){
+            if(component.shouldUpdate()){
+                if(component.onScroll(window, scrollDelta) == Interactable.INTERRUPT) return Interactable.INTERRUPT
             }
         }
         return 0
@@ -46,9 +47,9 @@ abstract class WindowGameLogic : GameLogic() {
     open fun onInput(state: InputState, action: Int): Int {
 
         val mousePos = input.mouse.lastPos
-        for(item in gameObjects.getAllInteractables()){
-            if(item.shouldUpdate()){
-                if(item.onInput(this, state, action, mousePos) == Interactable.INTERRUPT) return Interactable.INTERRUPT
+        for(component in gameObjects.getAllInteractables()){
+            if(component.shouldUpdate()){
+                if(component.onInput(window, state, action, mousePos) == Interactable.INTERRUPT) return Interactable.INTERRUPT
             }
         }
 
@@ -60,9 +61,9 @@ abstract class WindowGameLogic : GameLogic() {
     }
 
     open fun onType(char: Char): Int {
-        for (item in gameObjects.getAllInteractables()){
-            if(item.shouldUpdate()){
-                if(item.onType(this, char) == Interactable.INTERRUPT) return Interactable.INTERRUPT
+        for (component in gameObjects.getAllInteractables()){
+            if(component.shouldUpdate()){
+                if(component.onType(window, char) == Interactable.INTERRUPT) return Interactable.INTERRUPT
             }
         }
         return 0
@@ -81,8 +82,7 @@ abstract class WindowGameLogic : GameLogic() {
 
     open fun updateAspectRatio(window: WindowI) {
         renderer.updateAspectRatio(window, gameObjects)
-        gameObjects.getAllObjects().forEachInstance<Drawable> {
-            it.updateAspectRatio(window)
-        }
+        for(r in gameObjects.getAllComponents().filterIsInstance<RenderedComponent>()) r.updateAspectRatio(renderer)
+
     }
 }

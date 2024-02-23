@@ -1,36 +1,20 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
+import com.pineypiney.game_engine.objects.components.slider.ActionSliderComponent
+import com.pineypiney.game_engine.objects.components.slider.ColourSliderRendererComponent
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
-import glm_.vec4.Vec4
 
-open class ColourSlider(override val origin: Vec2, override val size: Vec2, override val window: WindowI, override var shader: Shader, val colours: MutableMap<String, Float>) : Slider() {
+class ColourSlider(origin: Vec2, size: Vec2, val shader: Shader, val colours: MutableMap<String, Float>, val action: ActionSliderComponent.() -> Unit = {}) : MenuItem() {
 
-    override val low: Float = 0f
-    override val high: Float = 255f
-    override var value: Float = 255f
-
-    override val pointer: SliderPointer = BasicSliderPointer(this, 1f)
-
-    override fun setUniforms() {
-        super.setUniforms()
-
-        uniforms.setFloatUniform("outlineThickness"){ 0.005f }
-        uniforms.setVec4Uniform("outlineColour"){ Vec4(0, 0, 0, 1) }
-        for((colour, _) in colours){
-            uniforms.setFloatUniform(colour){ colours[colour] ?: 0f }
-        }
+    init {
+        os(origin, size)
     }
 
-    operator fun get(colour: String) = colours[colour] ?: 0f
-    operator fun set(colour: String, value: Float){ colours[colour] = value }
-
-    companion object{
-        val redShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/red_slider")))
-        val greenShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/green_slider")))
-        val blueShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/blue_slider")))
+    override fun addComponents() {
+        super.addComponents()
+        components.add(ActionSliderComponent(this, 0f, 255f, 255f, action))
+        components.add(ColourSliderRendererComponent(this, shader, colours))
     }
 }

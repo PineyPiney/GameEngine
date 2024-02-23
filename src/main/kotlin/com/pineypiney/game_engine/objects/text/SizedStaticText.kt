@@ -47,7 +47,7 @@ open class SizedStaticText(text: String, final override val window: WindowI, fon
         var i = 0
         for(line in lines){
             shader.use()
-            shader.setUniforms(uniforms)
+            //shader.setUniforms(uniforms,) TODO
 
             val displayLine = line.trim()
             val alignmentOffset = getAlignment(displayLine, totalWidth)
@@ -81,7 +81,7 @@ open class SizedStaticText(text: String, final override val window: WindowI, fon
 
     override fun updateLines() {
         lines = generateLines()
-        lengths = lines.map { getScreenSize(it).x }.toFloatArray()
+        lengths = lines.map { getWidth(it) }.toFloatArray()
         super.updateLines()
     }
 

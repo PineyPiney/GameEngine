@@ -10,6 +10,7 @@ import kool.ByteBuffer
 import kool.lim
 import kool.toBuffer
 import org.lwjgl.opengl.GL32C.*
+import org.lwjgl.stb.STBImageWrite
 import java.nio.ByteBuffer
 
 class Texture(val fileLocation: String, val texturePointer: Int, val target: Int = GL_TEXTURE_2D) : Resource() {
@@ -60,6 +61,12 @@ class Texture(val fileLocation: String, val texturePointer: Int, val target: Int
     fun parameter(param: Int): Int{
         bind()
         return glGetTexLevelParameteri(target, 0, param)
+    }
+
+    fun savePNG(file: CharSequence): Boolean{
+        val d = getData().rewind().flip()
+        d.limit(d.capacity())
+        return STBImageWrite.stbi_write_png(file, width, height, numChannels, d, numChannels * width)
     }
 
     override fun delete() {

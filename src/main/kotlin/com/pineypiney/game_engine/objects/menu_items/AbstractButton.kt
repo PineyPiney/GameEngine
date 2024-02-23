@@ -1,19 +1,18 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.GameLogicI
-import glm_.vec2.Vec2
-import org.lwjgl.glfw.GLFW
+import com.pineypiney.game_engine.objects.components.ButtonComponent
 
-abstract class AbstractButton : StaticInteractableMenuItem() {
+abstract class AbstractButton : MenuItem() {
 
-    var active: Boolean = true
-    abstract val action: (button: AbstractButton) -> Unit
+    abstract val action: (ButtonComponent) -> Unit
+    val interactor: ButtonComponent get() = getComponent()!!
 
-    override fun onPrimary(game: GameLogicI, action: Int, mods: Byte, cursorPos: Vec2): Int {
-        val ret = super.onPrimary(game, action, mods, cursorPos)
-        if(ret == GLFW.GLFW_RELEASE && active){
-            action(this)
-        }
-        return ret
+    var active: Boolean
+        get() = interactor.active
+        set(value) { interactor.active = value }
+
+    override fun addComponents() {
+        super.addComponents()
+        components.add(ButtonComponent(this, action))
     }
 }

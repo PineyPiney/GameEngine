@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.objects.text
 import com.pineypiney.game_engine.objects.MovableDrawable
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
+import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.window.WindowI
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -27,6 +28,10 @@ interface StaticTextI: TextI, MovableDrawable {
         shader.use()
         shader.setMat4("model", newModel)
         shader.setVec4("colour", colour)
-        VertexShape.cornerSquareShape2D.bindAndDraw()
+        VertexShape.cornerSquareShape.bindAndDraw()
+    }
+
+    override fun render(renderer: RendererI<*>, tickDelta: Double) {
+        draw()
     }
 }

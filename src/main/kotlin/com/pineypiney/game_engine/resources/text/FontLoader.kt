@@ -42,7 +42,8 @@ class FontLoader private constructor(): AbstractResourceLoader<Font>() {
      */
     fun loadFontFromTexture(fontName: String, resourcesLoader: ResourcesLoader, letterWidth: Int, letterHeight: Int, charSpacing: Float, loadBold: Boolean = true, firstLetter: Int = 32, lineSpacing: Float = 1.2f, shader: Shader = Font.fontShader){
 
-        val stream: InputStream = resourcesLoader.getStream("${resourcesLoader.fontLocation}$fontName") ?: return
+        val location = resourcesLoader.fontLocation + fontName
+        val stream: InputStream = resourcesLoader.getStream(location) ?: return
 
         if(stream.available() < 1){
             GameEngineI.warn("Font $fontName does not exist")
@@ -65,8 +66,19 @@ class FontLoader private constructor(): AbstractResourceLoader<Font>() {
         val charMap = getCharDimensions(ByteArray(a.size){ (a[it] and 255).b }, rows, columns, letterWidth, letterHeight, firstLetter)
 
 
-        val boldTexture: Texture? = if(loadBold) loadBoldFromTexture(fontName, image, columns, rows, 3, 5) else null
-        val boldMap: Map<Char, Vec4i>? = if(loadBold) charMap.mapValues { it.value + Vec4i(-4, -4, 4, 4) } else null
+        val boldTexture: Texture?
+        val boldMap: Map<Char, Vec4i>?
+        when(loadBold){
+            true -> {
+                boldTexture = loadBoldFromTexture(fontName, image, columns, rows, 3, 5)
+                boldMap = charMap.mapValues { it.value + Vec4i(-4, -4, 4, 4) }
+                boldTexture.savePNG("src/main/resources/${resourcesLoader.fontLocation}${boldTexture.fileName}.png")
+            }
+            false -> {
+                boldTexture = null
+                boldMap = null
+            }
+        }
 
         val key = ResourceKey(fontName.substringBefore('.'))
         val texture = TextureLoader[ResourceKey("fonts/${key.key}")]
@@ -163,11 +175,11 @@ class FontLoader private constructor(): AbstractResourceLoader<Font>() {
         val boldTextureWidth = image.width + (2 * columns * outerBoldWidth)
         val boldTextureHeight = image.height + (2 * rows * outerBoldWidth)
         val boldBuffer = IntBuffer(boldTextureWidth * boldTextureHeight)
-        for(x in 0 until image.width){
-            for(y in 0 until image.height){
+        for(x in 0..<image.width){
+            for(y in 0..<image.height){
                 val lx = x % letterWidth
                 val ly = y % letterHeight
-                val c = imageArray[x + y * image.width] and 0xffffff
+                val c = imageArray[x + (y * image.width)] and 0xffffff
                 if(c == 0) continue
                 for((vec, s) in strengths){
                     // The position of the new bold pixel in the original texture
@@ -176,19 +188,19 @@ class FontLoader private constructor(): AbstractResourceLoader<Font>() {
                     // The position of the new bold pixel in the bold texture
                     val nx = bx + outerBoldWidth + (((x * columns) / image.width) * outerBoldWidth * 2)
                     val ny = by + outerBoldWidth + (((y * rows) / image.height) * outerBoldWidth * 2)
-                    // The position of the new pixel in the BoldBuffer 8657573, 8655367
-                    val i = nx + boldBuffer.cap - (ny + 1) * boldTextureWidth
+                    // The position of the new pixel in the BoldBuffer
+                    val i = nx + boldBuffer.cap - ((ny + 1) * boldTextureWidth)
                     val shouldSet =
-                        if((lx + vec.x) in 0 until letterWidth && (ly + vec.y) in 0 until letterHeight) imageArray[bx + by * image.width] and 0xffffff == 0
+                        if((lx + vec.x) in 0..<letterWidth && (ly + vec.y) in 0..<letterHeight) imageArray[bx + (by * image.width)] and 0xffffff == 0
                         else true
 
-                    if(shouldSet && s > boldBuffer[i]){
-                        boldBuffer[i] = s
+                    if(shouldSet && s > (boldBuffer[i] and 255)){
+                        boldBuffer[i] = (255 shl 24) or (s shl 16) or (s shl 8) or s
                     }
                 }
             }
         }
-        val texture = Texture("$name bold", TextureLoader.createTexture(boldBuffer.toIntArray().toByteBuffer(), boldTextureWidth, boldTextureHeight, GL11C.GL_RED))
+        val texture = Texture("${name.substringBeforeLast('.')} bold", TextureLoader.createTexture(boldBuffer.toIntArray().toByteBuffer(), boldTextureWidth, boldTextureHeight, GL11C.GL_RGBA))
 
         boldBuffer.clear()
         TextureLoader.loadIndividualSettings(texture.texturePointer)

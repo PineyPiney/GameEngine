@@ -1,7 +1,9 @@
 package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.uniforms.*
+import glm_.b
 import glm_.f
 import glm_.i
 import glm_.mat4x4.Mat4
@@ -18,27 +20,54 @@ import org.lwjgl.opengl.GL20C
 import org.lwjgl.opengl.GL20C.*
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL40C
+import kotlin.experimental.and
 
 class Shader(private var ID: Int, val vName: String, val fName: String, val gName: String? = null, val uniforms: Map<String, String>) : Deleteable {
+
+    val vp: Byte = (
+            (if(uniforms.containsKey("view")) 1 else 0) or
+            (if(uniforms.containsKey("projection")) 2 else 0) or
+            (if(uniforms.containsKey("viewport")) 4 else 0) or
+            (if(uniforms.containsKey("viewPos")) 8 else 0)
+        ).b
+    val hasView get() = (vp and 1) > 0
+    val hasProj get() = (vp and 2) > 0
+    val hasPort get() = (vp and 4) > 0
+    val hasPos get() = (vp and 8) > 0
+
+    val lightMask: Byte = (
+            (if(uniforms.containsKey("dirLight")) 1 else 0) or
+            (if(uniforms.containsKey("pointLight")) 2 else 0) or
+            (if(uniforms.containsKey("spotLight")) 4 else 0)
+        ).b
+    val hasDirL get() = (vp and 1) > 0
+    val hasPointL get() = (vp and 2) > 0
+    val hasSpotL get() = (vp and 4) > 0
+
 
     fun use() {
         glUseProgram(ID)
     }
 
-    fun setUniforms(uniforms: Uniforms){
+    fun setUniforms(uniforms: Uniforms, renderer: RendererI<*>){
         for(u in uniforms.uniforms){
-            u.apply(this)
+            u.apply(this, renderer)
         }
     }
 
-    fun setUp(uniforms: Uniforms){
+    fun setUp(uniforms: Uniforms, renderer: RendererI<*>){
         use()
-        setUniforms(uniforms)
+        setUniforms(uniforms, renderer)
     }
 
     fun setVP(view: Mat4, projection: Mat4){
         setMat4("view", view)
         setMat4("projection", projection)
+    }
+
+    fun setVP(renderer: RendererI<*>){
+        setMat4("view", renderer.view)
+        setMat4("projection", renderer.projection)
     }
 
     // Functions to set uniforms within shaders
@@ -128,9 +157,9 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
                     "vec2" -> set.add(Vec2sUniform(newName))
                     "vec3" -> set.add(Vec3sUniform(newName))
                     "vec4" -> set.add(Vec4sUniform(newName))
-                    "vec2i" -> set.add(Vec2isUniform(newName))
-                    "vec3i" -> set.add(Vec3isUniform(newName))
-                    "vec4i" -> set.add(Vec4isUniform(newName))
+                    "ivec2" -> set.add(Vec2isUniform(newName))
+                    "ivec3" -> set.add(Vec3isUniform(newName))
+                    "ivec4" -> set.add(Vec4isUniform(newName))
                     "mat4" -> set.add(Mat4sUniform(newName))
                 }
             }
@@ -143,9 +172,9 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
                     "vec2" -> set.add(Vec2Uniform(name))
                     "vec3" -> set.add(Vec3Uniform(name))
                     "vec4" -> set.add(Vec4Uniform(name))
-                    "vec2i" -> set.add(Vec2iUniform(name))
-                    "vec3i" -> set.add(Vec3iUniform(name))
-                    "vec4i" -> set.add(Vec4iUniform(name))
+                    "ivec2" -> set.add(Vec2iUniform(name))
+                    "ivec3" -> set.add(Vec3iUniform(name))
+                    "ivec4" -> set.add(Vec4iUniform(name))
                     "mat4" -> set.add(Mat4Uniform(name))
                 }
             }

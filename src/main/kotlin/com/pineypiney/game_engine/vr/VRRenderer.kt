@@ -1,12 +1,18 @@
 package com.pineypiney.game_engine.vr
 
 import com.pineypiney.game_engine.GameLogicI
-import com.pineypiney.game_engine.objects.Renderable
+import com.pineypiney.game_engine.objects.components.PreRenderComponent
+import com.pineypiney.game_engine.objects.components.RenderedComponent
 import com.pineypiney.game_engine.rendering.FrameBuffer
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.util.extension_functions.getTranslation
+import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.vr.util.logCompositorError
 import glm_.L
+import glm_.mat4x4.Mat4
+import glm_.vec2.Vec2i
+import glm_.vec3.Vec3
 import org.lwjgl.opengl.GL30
 import org.lwjgl.openvr.VR
 import org.lwjgl.openvr.VRCompositor
@@ -22,6 +28,14 @@ abstract class VRRenderer<E: GameLogicI>(w: Int, h: Int): RendererI<E> {
 
     abstract val hmd: HMD
 
+    override var viewPos: Vec3 = Vec3(0f)
+    override var view: Mat4 = I
+    override var projection: Mat4 = I
+    override var viewportSize: Vec2i = Vec2i(1)
+    override val aspectRatio: Float = w.toFloat() / h
+
+    override val numPointLights: Int = 4
+
     override fun init() {
         leftBuffer.generate()
         rightBuffer.generate()
@@ -33,14 +47,27 @@ abstract class VRRenderer<E: GameLogicI>(w: Int, h: Int): RendererI<E> {
 
         clearFrameBuffer(buffer)
 
-        val view = getView(eye)
-        val proj = getProjection(eye)
+        viewPos = hmd.hmdPose.getTranslation()
+        view = getView(eye)
+        projection = getProjection(eye)
 
         GLFunc.depthTest = true
-        game.gameObjects.gameItems.filterIsInstance<Renderable>().forEach{ if(it.visible) it.render(view, proj, tickDelta)}
+        for(o in game.gameObjects.gameItems.flatMap { it.allDescendants() }) {
+            val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
+            if(renderedComponents.isNotEmpty()){
+                for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
+                for(c in renderedComponents) c.render(this, tickDelta)
+            }
+        }
 
         GLFunc.depthTest = false
-        game.gameObjects.guiItems.forEach{ if(it.visible) it.draw() }
+        for(o in game.gameObjects.guiItems.flatMap { it.allDescendants() }) {
+            val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
+            if(renderedComponents.isNotEmpty()){
+                for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
+                for(c in renderedComponents) c.render(this, tickDelta)
+            }
+        }
     }
 
     fun blitBuffer(read: FrameBuffer, draw: FrameBuffer){
@@ -55,6 +82,7 @@ abstract class VRRenderer<E: GameLogicI>(w: Int, h: Int): RendererI<E> {
 
     fun clearFrameBuffer(buffer: FrameBuffer){
         buffer.bind()
+        viewportSize = Vec2i(buffer.width, buffer.height)
         clear()
     }
 

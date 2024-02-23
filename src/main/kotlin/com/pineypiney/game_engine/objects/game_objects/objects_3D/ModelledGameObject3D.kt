@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.game_objects.objects_3D
 
 import com.pineypiney.game_engine.Timer
+import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
@@ -9,7 +10,6 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.i
-import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
 open class ModelledGameObject3D(val model: Model, val camera: CameraI, shader: Shader = defaultLitShader, val debug: Int = 0): RenderedGameObject3D(if(debug and Model.DEBUG_MESH > 0) debugShader else shader) {
@@ -33,11 +33,9 @@ open class ModelledGameObject3D(val model: Model, val camera: CameraI, shader: S
         }
     }
 
-    override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
+    override fun render(renderer: RendererI<*>, tickDelta: Double) {
         updateAnimation()
-        super.render(view, projection, tickDelta)
-
-        model.Draw(this, camera.cameraPos, worldModel, view, projection, tickDelta, shader, debug)
+        super.render(renderer, tickDelta)
     }
 
     fun initAnimation(animation: ModelAnimation, loop: Boolean = true){

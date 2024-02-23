@@ -4,9 +4,10 @@ import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.game_objects.objects_3D.RenderedGameObject3D
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
+import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.fromMat4Translation
+import com.pineypiney.game_engine.util.extension_functions.getTranslation
 import com.pineypiney.game_engine.util.extension_functions.rotationComponent
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.vr.VRGameEngine
@@ -22,8 +23,8 @@ class TestVRGame(override val gameEngine: TestVREngine) : GameLogic() {
     override fun addObjects() {
         for(i in 0..999){
             add(object: RenderedGameObject3D(ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/plain")]){
-                override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
-                    super.render(view, projection, tickDelta)
+                override fun render(renderer: RendererI<*>, tickDelta: Double) {
+                    super.render(renderer, tickDelta)
                     VertexShape.centerCubeShape.bindAndDraw()
                 }
             }.apply {
@@ -53,7 +54,7 @@ class TestVRGame(override val gameEngine: TestVREngine) : GameLogic() {
             val jMat = I.translate(j.run { Vec3(x, 0f, y) })
             val hmdr = hmdRotation()
             val hmdMat = hmdr * jMat
-            val vec = Vec3.fromMat4Translation(hmdMat).run { Vec3(x, y, -z) }
+            val vec = hmdMat.getTranslation().run { Vec3(x, y, -z) }
             renderer.viewOffset += vec * Timer.frameDelta
         }
 

@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine
 
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.objects.Storable
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.util.input.Inputs
 
@@ -20,9 +20,9 @@ interface GameLogicI {
 
     fun render(tickDelta: Double)
 
-    fun add(o: Storable?)
+    fun add(o: GameObject?)
 
-    fun remove(o: Storable?)
+    fun remove(o: GameObject?)
 
     fun cleanUp()
 }

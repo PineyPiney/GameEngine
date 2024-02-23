@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.objects.util.collision.SoftCollisionBox
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.models.animations.*
 import com.pineypiney.game_engine.resources.models.pgm.*
@@ -10,7 +9,8 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addToListOr
 import com.pineypiney.game_engine.util.extension_functions.combineLists
-import com.pineypiney.game_engine.util.extension_functions.transform
+import com.pineypiney.game_engine.util.extension_functions.transformedBy
+import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import glm_.f
 import glm_.i
 import glm_.mat4x4.Mat4
@@ -52,7 +52,10 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
                     this::loadObjModel
                 }
                 "gltf" -> {
-                    gltfLoader::loadModel
+                    gltfLoader::loadGLTFFile
+                }
+                "glb" -> {
+                    gltfLoader::loadGLBFile
                 }
                 else -> return@forEach
             }
@@ -80,7 +83,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
                 }
                 "o" -> {
                     if(vertices.isNotEmpty()){
-                        meshes.add(Mesh(name, vertices.toTypedArray(), indices.toIntArray(), material.diffuse, material = material))
+                        meshes.add(Mesh(name, vertices.toTypedArray(), indices.toIntArray(), material = material))
                     }
                     name = parts[1]
                 }
@@ -106,7 +109,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
                 }
             }
         }
-        meshes.add(Mesh(name, vertices.toTypedArray(), indices.toIntArray(), material.diffuse, material = material))
+        meshes.add(Mesh(name, vertices.toTypedArray(), indices.toIntArray(), material = material))
 
         return Model(fileName, meshes.toTypedArray())
     }
@@ -172,7 +175,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
 
                 val pos: Vec3
                 val weights: Array<Controller.BoneWeight> = if(controller != null){
-                    pos = geo.vertices[i].transform(controller.matrix)
+                    pos = geo.vertices[i] transformedBy controller.matrix
                     val weightsMap = controller.weights[i]
                     weightsMap.map {
                         val bone = bones.first { b -> b.sid == it.key }
@@ -187,11 +190,11 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
                 vertices.add(Mesh.MeshVertex(pos, texMap, normal, weights))
             }
 
-            meshes.add(Mesh(geo.name, vertices.toTypedArray(), geo.indices, geo.texture, geo.alpha, geo.order))
+            meshes.add(Mesh(geo.name, vertices.toTypedArray(), geo.indices, geo.alpha, geo.order, ModelMaterial("${geo.name} material", mapOf(ModelMaterial.TextureType.DIFFUSE to TextureLoader.findTexture(geo.texture)))))
         }
 
         val newModel = Model(fileName, meshes.toTypedArray().reversedArray(), bones.getOrNull(0)?.getRoot(), animations)
-        newModel.collisionBox = physics.collision
+        newModel.box = physics.collision
         return newModel
     }
 
@@ -340,9 +343,9 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
             val origin = Vec2(originString.split(" ").map { s -> s.f })
             val sizeString = path.evaluate("$colliderRoot/size", doc, XPathConstants.STRING) as String
             val size = Vec2(sizeString.split(" ").map { s -> s.f})
-            SoftCollisionBox(null, origin, size)
+            Rect2D(origin, size)
         }
-        else SoftCollisionBox(null, Vec2(), Vec2(1))
+        else Rect2D(Vec2(), Vec2(1))
 
         return Physics(collider)
     }

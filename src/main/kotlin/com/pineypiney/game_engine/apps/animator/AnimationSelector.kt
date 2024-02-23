@@ -1,77 +1,78 @@
 package com.pineypiney.game_engine.apps.animator
 
-import com.pineypiney.game_engine.objects.game_objects.objects_2D.Animated
-import com.pineypiney.game_engine.objects.game_objects.objects_2D.texture_animation.Animation
-import com.pineypiney.game_engine.objects.menu_items.scroll_lists.SelectableScrollingListEntry
-import com.pineypiney.game_engine.objects.menu_items.scroll_lists.SelectableScrollingListItem
-import com.pineypiney.game_engine.objects.text.SizedStaticText
-import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.AnimatedComponent
+import com.pineypiney.game_engine.objects.components.ColourRendererComponent
+import com.pineypiney.game_engine.objects.components.RenderedComponent
+import com.pineypiney.game_engine.objects.components.scrollList.ScrollListEntryComponent
+import com.pineypiney.game_engine.objects.components.scrollList.SelectableScrollListComponent
+import com.pineypiney.game_engine.objects.components.scrollList.SelectableScrollListEntryComponent
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
+import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.init
-import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-class AnimationSelector(item: Animated?, override val origin: Vec2, override val size: Vec2, pred: () -> Unit) : SelectableScrollingListItem() {
-
-    var item: Animated? = item
-        set(value) {
-            field = value
-            removeChildren(items)
-            items.delete()
-            if(field != null){
-                items = field!!.animations.mapIndexed { i, a ->
-                    AnimationSelectorEntry(this, a, i)
-                }
-                addChildren(items)
-                items.init()
-                updateEntries()
-            }
-        }
+class AnimationSelector(item: AnimatedComponent?, origin: Vec2, size: Vec2, pred: () -> Unit) : MenuItem() {
 
     override var name: String = "Animation Selector"
 
-    override val entryHeight: Float = 0.2f
-    override val scrollerWidth: Float = 0.05f
-    override val action: (Int, SelectableScrollingListEntry<*>?) -> Unit = { i, e ->
-        (e as? AnimationSelectorEntry)?.let { this.item?.setAnimation(it.text.text) }
-        pred()
+    init{
+        os(origin, size)
+        components.add(AnimationSelectorComponent(this, item, pred))
+        components.add(ColourRendererComponent(this, Vec4(0.8f, 0.8f, 0.8f, 1f), ColourRendererComponent.menuShader, VertexShape.cornerSquareShape))
     }
-    override var items: List<SelectableScrollingListEntry<*>> = item?.animations?.mapIndexed { i, a ->
-        AnimationSelectorEntry(this, a, i)
-    } ?: emptyList()
 
-    class AnimationSelectorEntry(parent: AnimationSelector, a: Animation, i: Int) : SelectableScrollingListEntry<AnimationSelector>(parent, i){
+    class AnimationSelectorComponent(parent: GameObject, animator: AnimatedComponent?, pred: () -> Unit): SelectableScrollListComponent(parent){
+        override val entryHeight: Float = 1f
+        override val scrollerWidth: Float = 0.05f
 
-        override var name: String = "${a.name} Animation Entry"
-        val text = object : SizedStaticText(a.name, ObjectAnimator.window, 10f, Vec4(1f), shader = entryTextShader){
+        var item: AnimatedComponent? = animator
+            set(value) {
+                field = value
+                items.delete()
+                parent.removeChildren(items)
+                if(field != null){
+                    val newItems = field!!.animations.mapIndexed { i, a ->
+                        object : GameObject(){
+                            override var name: String = "${a.name} Animation Entry"
 
-            override fun setUniforms() {
-                super.setUniforms()
+                            override fun addComponents() {
+                                super.addComponents()
+                                components.add(AnimationSelectorEntry(this, a.name, i))
+                                components.add(ColourRendererComponent(this, Vec4(Vec3(if(i%2 == 0) 0.4f else 0.6f), 1f), ScrollListEntryComponent.entryColourShader, VertexShape.cornerSquareShape))
+                            }
 
-                // Limit is in 0 to Window#height space so must be transformed
-                uniforms.setVec2Uniform("limits"){ (limits + Vec2(1)) * (GLFunc.viewportO.y / 2f) }
+                            override fun addChildren() {
+                                super.addChildren()
+                                addChild(ScrollListEntryComponent.makeScrollerText(a.name, Vec4(1f), fontSize = 0f))
+                            }
+
+                            override fun init() {
+                                super.init()
+                                getComponent<RenderedComponent>()?.uniforms?.setVec2Uniform("limits", ::limits)
+                            }
+                        }
+                    }
+                    parent.addChildren(newItems)
+                    newItems.init()
+                    updateEntries()
+                }
             }
+
+        override val action: (Int, SelectableScrollListEntryComponent?) -> Unit = { i, e ->
+            (e as? AnimationSelectorEntry)?.let { item?.setAnimation(it.a) }
+            pred()
         }
 
-        override fun init() {
-            super.init()
-            text.init()
+        override fun createEntries(): List<GameObject> {
+            return listOf()
         }
+    }
 
-        override fun draw() {
-            super.draw()
-            text.drawCenteredLeft(relative(0.1f, 0.5f))
-        }
+    class AnimationSelectorEntry(parent: GameObject, val a: String, override val index: Int) : SelectableScrollListEntryComponent(parent){
 
-        override fun updateAspectRatio(window: WindowI) {
-            super.updateAspectRatio(window)
-            text.updateAspectRatio(window)
-        }
-
-        override fun delete() {
-            super.delete()
-            text.delete()
-        }
     }
 }

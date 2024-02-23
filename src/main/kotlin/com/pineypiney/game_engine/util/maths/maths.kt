@@ -4,10 +4,10 @@ import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import kotlin.math.*
 
-val I = Mat4(1f)
-val O = Vec3(0f)
-val up = Vec3(0f, 1f, 0f)
-val normal = Vec3(0f, 0f, -1f)
+val I get() = Mat4(1f)
+val O get() = Vec3(0f)
+val up get() = Vec3(0f, 1f, 0f)
+val normal get() = Vec3(0f, 0f, -1f)
 
 val sin30 = sin(PI/6)
 val sin60 = sin(PI/3)
@@ -24,7 +24,7 @@ fun eulerToVector(yaw: Double, pitch: Double, res: Vec3 = Vec3()): Vec3{
 }
 
 fun vectorToEuler(v: Vec3): Pair<Float, Float>{
-    val p = asin(v.y)
-    val y = asin(v.z / cos(p))
+    val p = -asin(v.y)
+    val y = -atan2(v.z, v.x)
     return p to y
 }

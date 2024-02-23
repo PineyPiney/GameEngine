@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.game_objects.objects_2D
 
 import com.pineypiney.game_engine.objects.Renderable
+import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
@@ -27,6 +28,8 @@ abstract class RenderedGameObject2D(shader: Shader): GameObject2D(), Renderable 
     }
 
     override fun setUniforms() {
+        if(shader.hasView) uniforms.setMat4UniformR("view", RendererI<*>::view)
+        if(shader.hasProj) uniforms.setMat4UniformR("projection", RendererI<*>::projection)
         uniforms.setMat4Uniform("model"){ worldModel }
     }
 

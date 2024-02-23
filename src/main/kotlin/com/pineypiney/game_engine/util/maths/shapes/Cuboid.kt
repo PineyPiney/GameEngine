@@ -1,7 +1,11 @@
 package com.pineypiney.game_engine.util.maths.shapes
 
+import com.pineypiney.game_engine.util.extension_functions.getRotation
+import com.pineypiney.game_engine.util.extension_functions.getScale
+import com.pineypiney.game_engine.util.extension_functions.getTranslation
 import com.pineypiney.game_engine.util.extension_functions.transformedBy
 import com.pineypiney.game_engine.util.raycasting.Ray
+import glm_.mat4x4.Mat4
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -45,5 +49,9 @@ class Cuboid(val center: Vec3, val rotation: Quat, val size: Vec3): Shape() {
         if(min.x > point.x || point.x > max.x) return false
         if(min.y > point.y || point.y > max.y) return false
         return (min.z < point.z && point.z < max.z)
+    }
+
+    override fun transformedBy(model: Mat4): Shape {
+        return Cuboid(center + model.getTranslation(), rotation * model.getRotation(), size * model.getScale())
     }
 }

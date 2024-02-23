@@ -1,10 +1,45 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.ColourRendererComponent
+import com.pineypiney.game_engine.objects.components.RenderedComponent
+import com.pineypiney.game_engine.objects.components.scrollList.ScrollListComponent
+import com.pineypiney.game_engine.objects.components.scrollList.ScrollListEntryComponent
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
+import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import glm_.vec2.Vec2
+import glm_.vec3.Vec3
+import glm_.vec4.Vec4
 
-class BasicScrollList(override var origin: Vec2, override var size: Vec2, override val entryHeight: Float, override val scrollerWidth: Float, entries: Array<String>, window: WindowI): ScrollingListItem() {
+class BasicScrollList(origin: Vec2, size: Vec2, entryHeight: Float, scrollerWidth: Float, entries: Array<String>): MenuItem() {
 
-    override val items: List<BasicListEntry> = entries.mapIndexed { i, e -> BasicListEntry(e, this, i, window) }
+    init {
+        os(origin, size)
+        components.add(BasicScrollListComponent(this, entryHeight, scrollerWidth, entries))
+    }
 
+    class BasicScrollListComponent(parent: GameObject, override val entryHeight: Float, override val scrollerWidth: Float, val entries: Array<String>): ScrollListComponent(parent){
+
+        override fun createEntries(): List<GameObject> {
+            return entries.mapIndexed { i, e ->
+                object :GameObject(){
+                    override fun addComponents() {
+                        super.addComponents()
+                        components.add(BasicListEntry(this, i))
+                        components.add(ColourRendererComponent(this, Vec3(0.5f), ScrollListEntryComponent.entryColourShader, VertexShape.cornerSquareShape))
+                    }
+
+                    override fun addChildren() {
+                        super.addChildren()
+                        addChild(ScrollListEntryComponent.makeScrollerText(e, Vec4(1f), fontSize = 0f))
+                    }
+
+                    override fun init() {
+                        super.init()
+                        getComponent<RenderedComponent>()?.uniforms?.setVec2Uniform("limits", ::limits)
+                    }
+                }
+            }
+        }
+    }
 }

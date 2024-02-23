@@ -1,14 +1,12 @@
 package com.pineypiney.game_engine_test.test3D
 
 import com.pineypiney.game_engine.Timer
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Interactable
-import com.pineypiney.game_engine.objects.game_objects.objects_2D.RenderedGameObject2D
-import com.pineypiney.game_engine.objects.game_objects.objects_3D.ModelledGameObject3D
-import com.pineypiney.game_engine.objects.game_objects.objects_3D.RenderedGameObject3D
-import com.pineypiney.game_engine.objects.game_objects.objects_3D.SimpleTexturedGameObject3D
-import com.pineypiney.game_engine.objects.menu_items.slider.BasicSliderPointer
-import com.pineypiney.game_engine.objects.menu_items.slider.OutlinedSlider
-import com.pineypiney.game_engine.objects.menu_items.slider.SliderPointer
+import com.pineypiney.game_engine.objects.components.MeshedTextureComponent
+import com.pineypiney.game_engine.objects.components.ModelRendererComponent
+import com.pineypiney.game_engine.objects.components.RenderedComponent
+import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
@@ -20,15 +18,15 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.InputState
-import com.pineypiney.game_engine.util.maths.shapes.AxisAlignedCuboid
-import com.pineypiney.game_engine.util.maths.shapes.Cuboid
+import com.pineypiney.game_engine.util.maths.shapes.Line
+import com.pineypiney.game_engine.util.maths.shapes.Shape
 import com.pineypiney.game_engine.util.maths.vectorToEuler
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import com.pineypiney.game_engine_test.Renderer
-import glm_.mat4x4.Mat4
+import glm_.f
 import glm_.quat.Quat
 import glm_.s
 import glm_.vec2.Vec2
@@ -47,82 +45,25 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
     private var updateRay = true
 
-    private val indexSlider = object : OutlinedSlider(){
-        override val pointer: SliderPointer = BasicSliderPointer(this, 1f)
-        override val low: Float = 0.98f
-        override val high: Float = 1f
-        override var value: Float = 1f
-        override val window: WindowI = gameEngine.window
-
-        override val origin: Vec2 = Vec2(-1f)
-        override val size: Vec2 = Vec2(1f, 0.3f)
-
-        override fun moveSliderTo(move: Float) {
-            super.moveSliderTo(move)
-            Mesh.indicesMult = value
-        }
+    private val indexSlider = BasicActionSlider(Vec2(-1f), Vec2(1f, .3f), .98f,  1f, 1f){
+        Mesh.indicesMult = it.value
     }
 
-    private val crosshair = object : RenderedGameObject2D(ShaderLoader[ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")]){
+    private val crosshair = GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")], Vec3(0f), Vec3(.05f)){}
 
-        override fun init() {
-            super.init()
-            scale = Vec2(0.15)
-        }
+    private val cursorRay = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/arrow")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/plain")])
 
-        override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
-            super.render(view, projection, tickDelta)
-            VertexShape.centerSquareShape2D.bindAndDraw()
-        }
+    private val object3D = GameObject.simpleTextureGameObject(TextureLoader[ResourceKey("broke")], VertexShape.centerCubeShape, RenderedComponent.default3DShader).apply{ rotation = Quat(Vec3(0.4, PI/4, 1.2)) }
+
+    var blockHover = false
+    private val block = GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/lit")], shape = VertexShape.centerCubeShape) {
+        uniforms.setFloatUniform("ambient") { 0.1f }
+        uniforms.setVec3Uniform("blockColour") { if (blockHover) Vec3(0.1, 0.9, 0.1) else Vec3(0.7f) }
+        uniforms.setVec3Uniform("lightPosition") { Vec3(1, 5, 2) }
     }
 
-    private val cursorRay = object : RenderedGameObject3D(ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/plain")]){
-
-        var shape: VertexShape = VertexShape.centerCubeShape
-
-        override fun init() {
-            super.init()
-            scale = Vec3(2, 0.1, 0.1)
-        }
-
-        override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
-            super.render(view, projection, tickDelta)
-
-            shape.bindAndDraw()
-        }
-    }
-
-    private val object3D = object : SimpleTexturedGameObject3D(ResourceKey("broke")){
-        val box: Cuboid get() = Cuboid(position, rotation, scale)
-
-        override fun init() {
-            super.init()
-
-            rotation = Quat(Vec3(0.4, PI/4, 1.2))
-        }
-    }
-
-    private val block = object : RenderedGameObject3D(ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/lit")]){
-
-        var hovered = false
-
-        val box = AxisAlignedCuboid(Vec3(), Vec3(1))
-
-        override fun setUniforms() {
-            super.setUniforms()
-            uniforms.setFloatUniform("ambient"){0.1f}
-            uniforms.setVec3Uniform("blockColour"){ if(hovered) Vec3(0.1, 0.9, 0.1) else Vec3(0.7f)}
-            uniforms.setVec3Uniform("lightPosition"){Vec3(1, 5, 2)}
-        }
-
-        override fun render(view: Mat4, projection: Mat4, tickDelta: Double) {
-            super.render(view, projection, tickDelta)
-            VertexShape.centerCubeShape.bindAndDraw()
-        }
-    }
-
-    private val doughnut = ModelledGameObject3D(ModelLoader[ResourceKey("broke")], camera, ModelledGameObject3D.defaultShader).apply { translate(Vec3(0f, 2f, 0f)) }
-    private val gltf = ModelledGameObject3D(ModelLoader[ResourceKey("gltf/Beating Heart 2")], camera).apply { translate(Vec3(2f, 2f, 0f)); scale(Vec3(0.002f)) }
+    private val doughnut = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("broke")], ModelRendererComponent.defaultShader).apply { translate(Vec3(0f, 2f, 0f)) }
+    private val gltf = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/Beating Heart 3")], ModelRendererComponent.defaultLitShader).apply { translate(Vec3(2f, 2f, 0f)); scale(Vec3(0.002f)) }
 
     override fun init() {
         super.init()
@@ -134,13 +75,12 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         add(block)
         add(crosshair)
         add(cursorRay)
-        add(doughnut.apply { setAnimation("TorusAction") })
+        add(doughnut.apply { getComponent<ModelRendererComponent>()?.setAnimation("TorusAction") })
         add(gltf)
         add(indexSlider)
     }
 
     override fun render(tickDelta: Double) {
-        doughnut.shader.setVec3("viewPos", camera.cameraPos)
         renderer.render(this, tickDelta)
 
         val speed = 10 * Timer.frameDelta
@@ -161,12 +101,14 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         object3D.rotate(Vec3(0.5, 1, 1.5) * Timer.frameDelta)
         val ray = camera.getRay(input.mouse.lastPos)
 
-        object3D.texture = if(object3D.box.intersectedBy(ray).isEmpty()) Texture.broke else TextureLoader[ResourceKey("snake/snake_0")]
+        val shape = object3D.getShape()
+        val hit = shape.intersectedBy(ray).isEmpty()
+        object3D.getComponent<MeshedTextureComponent>()!!.texture = if(hit) Texture.broke else TextureLoader[ResourceKey("snake/snake_0")]
 
         if(updateRay){
-            cursorRay.position = ray.rayOrigin + (ray.direction * cursorRay.scale.x * 0.5)
+            cursorRay.position = ray.rayOrigin + (camera.cameraFront * cursorRay.scale.x * 0.5f)
             val (p, y) = vectorToEuler(ray.direction)
-            cursorRay.rotation = Quat(Vec3(0, y, p))
+            cursorRay.rotation = Quat(Vec3(0f, y + (PI * 0.5).f, p))
         }
     }
 
@@ -208,7 +150,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         }
 
         val ray = camera.getRay(cursorPos)
-        block.hovered = block.box.intersectedBy(ray).isNotEmpty()
+        blockHover = block.getShape().intersectedBy(ray).isNotEmpty()
     }
 
     override fun updateAspectRatio(window: WindowI) {
@@ -224,6 +166,8 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     fun getRayShape(ray: Ray): VertexShape{
         val a = FloatArray(5)
         val b = FloatArray(3) + a + ray.direction.array + a
-        return ArrayShape(b, intArrayOf(3, 3, 2))
+        return object : ArrayShape(b, intArrayOf(3, 3, 2)){
+            override val shape: Shape = Line(Vec3(), ray.direction)
+        }
     }
 }

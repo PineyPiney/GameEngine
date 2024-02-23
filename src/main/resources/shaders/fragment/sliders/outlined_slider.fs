@@ -3,7 +3,7 @@
 
 in vec2 pos;
 
-uniform float aspect;
+uniform ivec2 viewport;
 uniform mat4 model;
 
 uniform vec4 colour;
@@ -15,7 +15,7 @@ out vec4 FragColour;
 void main(){
 	float sizeX = model[0][0];
 	float sizeY = model[1][1];
-	float ratio = aspect * sizeX / sizeY;
+	float ratio = (float(viewport.x) / viewport.y) * sizeX / sizeY;
 
 	if((abs(0.5 - pos.x)) > 0.5 - outlineThickness || abs(0.5 - pos.y) > 0.5 - (outlineThickness * ratio)) FragColour = outlineColour;
 	else FragColour = colour;

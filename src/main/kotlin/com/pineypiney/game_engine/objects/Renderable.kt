@@ -1,11 +1,11 @@
 package com.pineypiney.game_engine.objects
 
-import glm_.mat4x4.Mat4
+import com.pineypiney.game_engine.rendering.RendererI
 
 interface Renderable: Visual, Shaded {
 
-    fun render(view: Mat4, projection: Mat4, tickDelta: Double){
-        shader.setUp(uniforms)
-        shader.setVP(view, projection)
+    fun render(renderer: RendererI<*>, tickDelta: Double){
+        shader.setUp(uniforms, renderer)
+        shader.setVP(renderer.view, renderer.projection)
     }
 }

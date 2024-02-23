@@ -1,23 +1,20 @@
 package com.pineypiney.game_engine.objects.util.shapes
 
+import com.pineypiney.game_engine.util.maths.shapes.Rect2D
+import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec2.Vec2
-import org.lwjgl.opengl.GL11C.GL_TRIANGLE_FAN
 
-class SquareShape(center: Vec2, size: Vec2): ArrayShape(createVertices(center, size / 2), intArrayOf(2, 2)) {
+open class SquareShape(bl: Vec2, tr: Vec2, tbl: Vec2 = Vec2(), ttr: Vec2 = Vec2(1)): IndicesShape(createVertices(bl, tr, tbl, ttr), intArrayOf(2, 2), intArrayOf(0, 1, 2, 0, 2, 3)) {
 
-    override fun draw(mode: Int) {
-        super.draw(GL_TRIANGLE_FAN)
-    }
+    override val shape: Shape = Rect2D(bl, tr - bl)
 
     companion object{
-        fun createVertices(c: Vec2, b: Vec2): FloatArray{
-            val bl = c - b
-            val tr = c + b
+        fun createVertices(bl: Vec2, tr: Vec2, to: Vec2, tf: Vec2): FloatArray{
             return floatArrayOf(
-                bl.x, bl.y, 0, 0,
-                bl.x, tr.y, 0, 1,
-                tr.x, tr.y, 1, 1,
-                tr.x, bl.y, 1, 0
+                bl.x, bl.y, to.x, to.y,
+                bl.x, tr.y, to.x, tf.y,
+                tr.x, tr.y, tf.x, tf.y,
+                tr.x, bl.y, tf.x, to.y
             )
         }
     }

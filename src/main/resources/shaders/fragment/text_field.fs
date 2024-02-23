@@ -3,24 +3,23 @@
 
 in vec2 texCoords;
 
-uniform mat4 model;
 uniform sampler2D ourTexture;
-uniform vec3 colour;
+uniform vec4 colour;
 
 // The horizontal edges of the field
-// Ranges from 0 to Window#width
+// Ranges from -1 to 1
 uniform vec2 limits;
+uniform ivec2 viewport;
 
 out vec4 FragColour;
 
 void main(){
 
-	float x = gl_FragCoord.x;
+	float x = (gl_FragCoord.x * 2.0 / viewport.x) - 1.0;
 
 	if(x < limits[0] || x > limits[1]) discard;
 
 	vec4 texture = texture(ourTexture, texCoords);
 	if(texture.r + texture.g + texture.b < 0.05) discard;
-
-	FragColour = texture * vec4(colour, 1.0);
+	else FragColour = vec4(colour.r, colour.g, colour.b, colour.a * texture.r);
 }

@@ -82,7 +82,7 @@ dependencies {
     implementation("org.bytedeco:ffmpeg-platform-gpl:5.0-$javacv")
 
     // Gson for JSON parsing
-    implementation("org.json:json:20230227")
+    implementation("org.json:json:20231013")
 }
 
 publishing{

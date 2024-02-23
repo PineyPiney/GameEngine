@@ -16,7 +16,7 @@ class TestEngine<E: WindowGameLogic>(resourcesLoader: ResourcesLoader, screen: (
     override val TARGET_UPS: Int = 20
 
     init {
-        GameEngineI.defaultFont = "SemiSlab"
+        GameEngineI.defaultFont = "Large Font"
 
         // Create all the fonts
         FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)

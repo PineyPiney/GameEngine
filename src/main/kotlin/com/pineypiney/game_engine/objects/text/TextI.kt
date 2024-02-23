@@ -1,14 +1,14 @@
 package com.pineypiney.game_engine.objects.text
 
 import com.pineypiney.game_engine.objects.Initialisable
-import com.pineypiney.game_engine.objects.Shaded
+import com.pineypiney.game_engine.objects.Renderable
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.delete
 import glm_.vec4.Vec4
 
-interface TextI: Initialisable, Shaded {
+interface TextI: Initialisable, Renderable {
 
     val text: String
     val colour: Vec4

@@ -1,24 +1,17 @@
 package com.pineypiney.game_engine.apps.animator
 
-import com.pineypiney.game_engine.objects.game_objects.objects_2D.Animated
-import com.pineypiney.game_engine.objects.menu_items.slider.BasicSliderPointer
-import com.pineypiney.game_engine.objects.menu_items.slider.OutlinedSlider
-import com.pineypiney.game_engine.objects.menu_items.slider.SliderPointer
-import com.pineypiney.game_engine.window.WindowI
-import glm_.vec2.Vec2
+import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.AnimatedComponent
+import com.pineypiney.game_engine.objects.components.slider.SliderComponent
 import kotlin.math.min
 
-class AnimationTimeLine(val animatorLogic: AnimatorLogic, override val origin: Vec2, override val size: Vec2) : OutlinedSlider(){
+class AnimationTimeLine(parent: GameObject, val animatorLogic: AnimatorLogic) : SliderComponent(parent, 0f, 1f, 0f){
 
-    override val pointer: SliderPointer = BasicSliderPointer(this, 1f)
-    override val low: Float = 0f
-    override var high: Float = 1f
-    override var value: Float = 0f
-    override val window: WindowI = animatorLogic.window
+    override var high: Float = 1f; protected set
 
     override fun moveSliderTo(move: Float) {
         super.moveSliderTo(move)
-        val a = animatorLogic.o as? Animated ?: return
+        val a = animatorLogic.o?.getComponent<AnimatedComponent>() ?: return
         a.animationTime = value
     }
 

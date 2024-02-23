@@ -5,14 +5,11 @@ import com.pineypiney.game_engine.resources.models.animations.KeyFrame
 import com.pineypiney.game_engine.resources.models.animations.MeshState
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.util.exceptions.ModelParseException
-import glm_.f
-import glm_.i
+import glm_.*
 import glm_.mat2x2.Mat2
 import glm_.mat3x3.Mat3
 import glm_.mat4x4.Mat4
 import glm_.quat.Quat
-import glm_.ub
-import glm_.us
 import glm_.vec2.*
 import glm_.vec3.*
 import glm_.vec4.*
@@ -29,14 +26,9 @@ import java.nio.ByteOrder
 
 class GLTFModelLoader(val loader: ModelLoader) {
 
-    fun loadModel(fileName: String, stream: InputStream): Model{
-        val json = JSONObject(stream.readAllBytes().toString(Charsets.UTF_8))
-        val buffersJson = json.getJSONArray("buffers")
-        val buffers = mutableListOf<ByteBuffer>()
-        for(i in 0..<buffersJson.length()){
-            val bufferLocation = buffersJson.getJSONObject(i).getString("uri")
-            buffers.add(loadBinFile(fileName.substringBeforeLast('/') + "/" + bufferLocation))
-        }
+    fun loadModel(fileName: String, json: JSONObject, buffers: List<ByteBuffer>): Model{
+
+        if(json.isEmpty) return Model.brokeModel
 
         val bufferViewsJson = json.getJSONArray("bufferViews")
         val bufferViews = mutableListOf<ByteBuffer>()
@@ -69,7 +61,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
         }
 
         val materialsJson = json.getJSONArray("materials")
-        val materials = mutableSetOf<ModelMaterial>()
+        val materials = mutableListOf<ModelMaterial>()
         materialsJson.forEachObject { materialJson, _ ->
             val name = materialJson.getString("name")
             materials.add(ModelMaterial(name, mapOf()))
@@ -109,15 +101,16 @@ class GLTFModelLoader(val loader: ModelLoader) {
 
                 val vertices = Array(maxIndex + 1){ Mesh.MeshVertex(posArray[it], texArray[it], norArray[it]) }
 
-                meshes.add(Mesh(name, vertices, indArray.toIntArray()))
+                meshes.add(Mesh(name, vertices, indArray.toIntArray(), material = materials.getOrElse(material){ ModelMaterial.default }))
             }
         }
 
         // Animations
 
-        val animationsJson = json.getJSONArray("animations")
         val animations = mutableListOf<ModelAnimation>()
-        animationsJson.forEachObject { animationJson, i ->
+
+        val animationsJson = if(json.has("animations")) json.getJSONArray("animations") else null
+        animationsJson?.forEachObject { animationJson, i ->
             val name = animationJson.getString("name")
             val states = mutableMapOf<Float, MeshState>()
 
@@ -157,9 +150,40 @@ class GLTFModelLoader(val loader: ModelLoader) {
         return Model(fileName.substringAfterLast('/'), meshes.toTypedArray(), null, animations.toTypedArray())
     }
 
+    fun loadGLTFFile(fileName: String, stream: InputStream): Model{
+        val json = JSONObject(stream.readAllBytes().toString(Charsets.UTF_8))
+        val buffersJson = json.getJSONArray("buffers")
+        val buffers = mutableListOf<ByteBuffer>()
+        for(i in 0..<buffersJson.length()){
+            val bufferLocation = buffersJson.getJSONObject(i).getString("uri")
+            buffers.add(loadBinFile(fileName.substringBeforeLast('/') + "/" + bufferLocation))
+        }
+        return loadModel(fileName, json, buffers)
+    }
+
     fun loadBinFile(name: String): ByteBuffer{
         val stream = loader.currentStreams[name] ?: return ByteBuffer(0)
         return stream.readAllBytes().toBuffer()
+    }
+
+    // https://docs.fileformat.com/3d/glb/ Praise the lord
+    fun loadGLBFile(fileName: String, stream: InputStream): Model{
+        val header = stream.readNBytes(12)
+        var json = JSONObject()
+        val buffers = mutableListOf<ByteBuffer>()
+        while(stream.available() != 0){
+            val chunkHeader = stream.readNBytes(8)
+            val size = chunkHeader.getInt(0, false)
+            val type = chunkHeader.sliceArray(4..7).toString(Charsets.UTF_8)
+            val bytes = stream.readNBytes(size)
+
+            when(type){
+                "JSON" -> json = JSONObject(bytes.toString(Charsets.UTF_8))
+                "BIN" + 0.c -> buffers.add(bytes.toBuffer())
+            }
+        }
+
+        return loadModel(fileName, json, buffers)
     }
 
     enum class DataType(val value: Int, val bytes: Int, val fromBytes: (ByteBuffer, Int) -> Number){

@@ -1,33 +1,28 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.objects.components.SpriteComponent
+import com.pineypiney.game_engine.objects.components.slider.SliderPointerComponent
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
+import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.window.WindowI
-import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 
-open class BasicSliderPointer(override val parent: Slider, val height: Float): SliderPointer() {
+open class BasicSliderPointer(val height: Float): MenuItem() {
 
-    // Make size a variable to that it can be scaled when the aspect ratio is changed
-    override var size: Vec2 = super.size
-    override var shader: Shader = transparentTextureShader
+    override var name: String = "SliderPointer"
 
-    override fun init() {
-        super.init()
-        size = calculateSize()
-    }
+    override fun addComponents() {
+        super.addComponents()
+        components.add(SliderPointerComponent(this))
+        components.add(object : SpriteComponent(this@BasicSliderPointer, pointerTexture, pointerTexture.height.toFloat() / height, transparentTextureShader){
 
-    override fun draw() {
-        pointerTexture.bind()
-        super.draw()
-    }
+            override fun updateAspectRatio(renderer: RendererI<*>) {
+                super.updateAspectRatio(renderer)
 
-
-    fun calculateSize() = Vec2(pointerTexture.aspectRatio / parent.window.aspectRatio, 1) * height * parent.size.y
-
-    override fun updateAspectRatio(window: WindowI) {
-        super.updateAspectRatio(window)
-        size = calculateSize()
+                scale = Vec3(1f / (renderer.aspectRatio * (parent.parent?.scale?.run { x / y } ?: 1f)), 1f, 1f)
+            }
+        })
     }
 
     companion object{

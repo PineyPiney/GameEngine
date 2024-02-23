@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.apps.animator
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.objects.Storable
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
@@ -13,23 +13,29 @@ import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngine
 import java.io.File
 
-class ObjectAnimator(val resources: ResourcesLoader = FileResourcesLoader(File("src/main/resources"))) {
+class ObjectAnimator(val resources: ResourcesLoader = FileResourcesLoader(File("src/main/resources")), creator: () -> GameObject, val tweaker: (GameObject) -> Unit = {}) {
 
     private val engine = object : WindowedGameEngine<AnimatorLogic>(resources){
-        override val activeScreen: AnimatorLogic = AnimatorLogic(this, null)
-        override var TARGET_FPS: Int = 1000
-        override val TARGET_UPS: Int = 20
 
         init {
-            GameEngineI.defaultFont = "SemiSlab"
+            GameEngineI.defaultFont = "Large Font"
 
             // Create all the fonts
             FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)
-            FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader, res = 200)
+            FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader)
         }
+
+        override var TARGET_FPS: Int = 1000
+        override val TARGET_UPS: Int = 20
+        override val activeScreen: AnimatorLogic = AnimatorLogic(this, null, creator)
 
         var lastFrameTime = 0.0
         override val window: WindowI get() = Companion.window
+
+        override fun init() {
+            super.init()
+            activeScreen.o?.let { tweaker(it) }
+        }
 
         override fun render(tickDelta: Double) {
             super.render(tickDelta)
@@ -42,7 +48,7 @@ class ObjectAnimator(val resources: ResourcesLoader = FileResourcesLoader(File("
         engine.run()
     }
 
-    fun setAnimating(o: Storable){
+    fun setAnimating(o: GameObject){
         window.title = "${o.name} Animator"
         engine.activeScreen.setAnimating(o)
     }
@@ -57,13 +63,9 @@ class ObjectAnimator(val resources: ResourcesLoader = FileResourcesLoader(File("
             override val input: Inputs = DefaultInput(this)
         }
 
-        fun run(creator: () -> Storable){
+        fun run(creator: () -> GameObject, tweaker: (GameObject) -> Unit = {}){
             init()
-            val animator = ObjectAnimator()
-
-            val o = creator()
-
-            animator.setAnimating(o)
+            val animator = ObjectAnimator(creator = creator, tweaker = tweaker)
             animator.run()
         }
     }

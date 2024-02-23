@@ -1,16 +1,16 @@
 package com.pineypiney.game_engine.util.maths.shapes
 
-import com.pineypiney.game_engine.util.extension_functions.projectOn
+import com.pineypiney.game_engine.util.extension_functions.*
 import com.pineypiney.game_engine.util.raycasting.Ray
+import glm_.f
+import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.math.PI
 
 class Rect3D(val origin: Vec3, val side1: Vec3, val side2: Vec3): Shape() {
 
-    constructor(origin: Vec2, size: Vec2): this(Vec3(origin, 0), Vec3(size.x, 0, 0), Vec3(0, size.y, 0))
-    constructor(origin: Vec2, size: Vec2, angle: Float): this(Vec3(origin, 0), Vec3(size.x * cos(angle), size.y * sin(angle), 0), Vec3(size.x * sin(angle), size.y * cos(angle), 0))
+    constructor(rect: Rect2D): this(Vec3(rect.origin), Vec3(Vec2.fromAngle(rect.angle + (PI.f  * 0.5f), rect.size.x)), Vec3(Vec2.fromAngle(rect.angle, rect.size.y)))
 
     val normal = (side1 cross side2).normalizeAssign()
 
@@ -37,5 +37,10 @@ class Rect3D(val origin: Vec3, val side1: Vec3, val side2: Vec3): Shape() {
         val intersection = Plane(origin, normal).intersectedBy(ray).getOrNull(0) ?: return arrayOf()
         return if(containsPoint(intersection)) arrayOf(intersection)
         else arrayOf()
+    }
+
+    override fun transformedBy(model: Mat4): Shape {
+        val m = model.rotationComponent().scale(model.getScale())
+        return Rect3D(origin + model.getTranslation(), side1.transformedBy(m), side2.transformedBy(m))
     }
 }
