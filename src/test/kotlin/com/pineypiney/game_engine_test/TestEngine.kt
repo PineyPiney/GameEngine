@@ -1,12 +1,16 @@
 package com.pineypiney.game_engine_test
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.Timer
+import com.pineypiney.game_engine.objects.components.TextRendererComponent
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.util.extension_functions.round
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowedGameEngine
 import com.pineypiney.game_engine.window.WindowedGameEngineI
+import com.pineypiney.game_engine_test.test3D.Game3D
 import glm_.vec4.Vec4
 
 class TestEngine<E: WindowGameLogic>(resourcesLoader: ResourcesLoader, screen: (WindowedGameEngineI<E>) -> E): WindowedGameEngine<E>(resourcesLoader) {
@@ -29,5 +33,23 @@ class TestEngine<E: WindowGameLogic>(resourcesLoader: ResourcesLoader, screen: (
         GLFunc.clearColour = Vec4(1.0f, 0.0f, 0.0f, 1.0f)
     }
 
+    override fun render(tickDelta: Double) {
+        super.render(tickDelta)
+
+        if(Timer.frameTime > nextFPSCount){
+            nextFPSCount += 5.0
+            FPS = FPSTally * 0.2f
+            FPSTally = 1
+            (activeScreen as? Game3D)?.fpsText?.getComponent<TextRendererComponent>()?.text?.text = "FPS: ${FPS.round(1)}"
+        }
+        else FPSTally++
+    }
+
     override var activeScreen: E = screen(this)
+
+    companion object{
+        var FPS = 0f
+        var nextFPSCount = Timer.getCurrentTime()
+        var FPSTally = 0
+    }
 }

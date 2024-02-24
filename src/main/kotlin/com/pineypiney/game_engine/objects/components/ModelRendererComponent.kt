@@ -41,9 +41,11 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
     override fun render(renderer: RendererI<*>, tickDelta: Double) {
         shader.setUp(uniforms, renderer)
 
+        // Lighting
+        if(shader.hasDirL) setLightUniforms()
+
         for(mesh in model.meshes) {
             mesh.setMaterial(shader)
-            mesh.setLights(shader)
             val newModel = parent.worldModel * mesh.transform.model
             shader.setMat4("model", newModel)
 
@@ -51,7 +53,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
         }
 
         if(debug and Model.DEBUG_BONES > 0) renderBones(parent, renderer.view, renderer.projection)
-        if(debug and Model.DEBUG_COLLIDER > 0) renderCollider(parent, renderer, tickDelta)
+        if(debug and Model.DEBUG_COLLIDER > 0) renderCollider(parent, renderer)
     }
 
     fun renderBones(parent: GameObject, view: Mat4, projection: Mat4){
@@ -67,12 +69,12 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
         for(it in bones) { it.render(boneShader, parent.worldModel) }
     }
 
-    fun renderCollider(parent: GameObject, renderer: RendererI<*>, tickDelta: Double){
+    fun renderCollider(parent: GameObject, renderer: RendererI<*>){
         val collider = parent.getComponent<ColliderComponent>()
         if(collider != null) {
             val crenderer = CollisionBoxRenderer(collider)
             crenderer.setUniforms()
-            crenderer.render(renderer, tickDelta)
+            crenderer.render(renderer)
         }
     }
 

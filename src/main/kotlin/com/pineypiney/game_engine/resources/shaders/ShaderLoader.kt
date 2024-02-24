@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.shaders
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.addToMapOr
 import com.pineypiney.game_engine.util.extension_functions.delete
 import glm_.bool
 import org.lwjgl.opengl.GL32C.*
@@ -120,12 +121,31 @@ class ShaderLoader private constructor(): Deleteable{
         }
 
         fun compileUniforms(code: String): Map<String, String>{
+            var structName = ""
+            val structs = mutableMapOf<String, MutableMap<String, String>>()
             val uniforms = mutableMapOf<String, String>()
-            for(line in code.split('\n')) {
-                val parts = line.split(' ')
+            for(line in code.split('\n').map { it.trim() }.filter { it.isNotEmpty() }) {
+                val parts = line.split(' ').map { it.trim() }.filter { it.isNotEmpty() }
+                if(structName.isNotEmpty()){
+                    if(line[0] == '}') structName = ""
+                    else{
+                        val bracket = line.contains('}')
+                        structs.addToMapOr(structName, if(line.contains('}')) parts[1].substringBefore('}') else parts[1].substringBefore(';'), parts[0])
+                        if(bracket) structName = ""
+                    }
+                }
+                if(parts[0] == "struct") {
+                    structName = parts[1].removeSuffix("{").trim()
+                    structs[structName] = mutableMapOf()
+                }
                 if (parts[0] != "uniform") continue
                 val name = line.removePrefix("uniform ${parts[1]} ").substringBefore(';')
-                uniforms[name] = parts[1]
+                if(structs.containsKey(parts[1])){
+                    for((k, v) in structs[parts[1]]!!){
+                        uniforms["$name.$k"] = v
+                    }
+                }
+                else uniforms[name] = parts[1]
             }
 
             return uniforms

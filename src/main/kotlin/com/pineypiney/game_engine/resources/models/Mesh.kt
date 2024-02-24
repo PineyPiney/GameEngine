@@ -1,8 +1,7 @@
 package com.pineypiney.game_engine.resources.models
 
-import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.Deleteable
-import com.pineypiney.game_engine.objects.game_objects.transforms.Transform3D
+import com.pineypiney.game_engine.objects.transforms.Transform3D
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.resources.models.pgm.Controller
 import com.pineypiney.game_engine.resources.models.pgm.Face
@@ -10,10 +9,8 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.extension_functions.expand
-import com.pineypiney.game_engine.util.extension_functions.fromAngle
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape
-import glm_.f
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -114,13 +111,6 @@ class Mesh(var id: String, val vertices: Array<MeshVertex>, val indices: IntArra
 
     fun setMaterial(shader: Shader) {
         material.apply(shader, "material")
-    }
-
-    fun setLights(shader: Shader){
-        shader.setVec3("light.position", Vec2.fromAngle(Timer.frameTime.f * 2, 10f).run { Vec3(x, 2.0, y) })
-        shader.setVec3("light.ambient", Vec3(0.1f))
-        shader.setVec3("light.diffuse", Vec3(0.5f))
-        shader.setVec3("light.specular", Vec3(1f))
     }
 
     fun reset(){

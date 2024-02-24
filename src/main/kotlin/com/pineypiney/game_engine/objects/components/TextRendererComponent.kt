@@ -83,7 +83,7 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
         val newModel = model.scale(text.font.getWidth(line) * amount, text.underlineThickness, 0f).translate(0f, text.underlineOffset, 0f)
 
         shader.use()
-        shader.setVP(renderer)
+        if(shader.hasView) shader.setVP(renderer)
         shader.setMat4("model", newModel)
         shader.setVec4("colour", text.colour)
         VertexShape.cornerSquareShape.bindAndDraw()

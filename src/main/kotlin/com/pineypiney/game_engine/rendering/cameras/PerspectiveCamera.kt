@@ -48,6 +48,7 @@ open class PerspectiveCamera(window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec
     override fun getRay(point: Vec2): Ray {
         val worldPos = screenToWorld(point)
         val dir = (worldPos - cameraPos).normalize()
+        if(cameraPos dot cameraFront > 0f) dir *= -1f
         return Ray(cameraPos, dir)
     }
 

@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
@@ -87,7 +86,7 @@ open class TextFieldComponent(parent: GameObject, textOffset: Float = 0f, textSi
 
         if(input.controlType == ControlType.KEYBOARD && this.forceUpdate){
             if(action != GLFW_RELEASE) specialCharacter(input)
-            return Interactable.INTERRUPT
+            return INTERRUPT
         }
 
         return action
@@ -96,7 +95,7 @@ open class TextFieldComponent(parent: GameObject, textOffset: Float = 0f, textSi
     override fun onType(window: WindowI, char: Char): Int {
         if(this.forceUpdate){
             if(allowed.contains(char)) type(char)
-            return Interactable.INTERRUPT
+            return INTERRUPT
         }
         return 0
     }

@@ -7,7 +7,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.openal.AL10
 import java.io.File
 
-class TestWindow(width: Int = 960, height: Int = 540): Window("Example Window", width, height, false, true, hints) {
+class TestWindow(width: Int = 960, height: Int = 540): Window("Example Window", width, height, false, false, hints) {
 
     // input must be set after the windowHandle has been set so that the callbacks are assigned correctly
     override val input = DefaultInput(this)

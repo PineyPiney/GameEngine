@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.window
 
 import com.pineypiney.game_engine.GameLogic
-import com.pineypiney.game_engine.objects.Interactable
+import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.RenderedComponent
 import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -38,7 +38,7 @@ abstract class WindowGameLogic : GameLogic() {
     open fun onScroll(scrollDelta: Vec2): Int {
         for (component in gameObjects.getAllInteractables()){
             if(component.shouldUpdate()){
-                if(component.onScroll(window, scrollDelta) == Interactable.INTERRUPT) return Interactable.INTERRUPT
+                if(component.onScroll(window, scrollDelta) == InteractorComponent.INTERRUPT) return InteractorComponent.INTERRUPT
             }
         }
         return 0
@@ -49,7 +49,7 @@ abstract class WindowGameLogic : GameLogic() {
         val mousePos = input.mouse.lastPos
         for(component in gameObjects.getAllInteractables()){
             if(component.shouldUpdate()){
-                if(component.onInput(window, state, action, mousePos) == Interactable.INTERRUPT) return Interactable.INTERRUPT
+                if(component.onInput(window, state, action, mousePos) == InteractorComponent.INTERRUPT) return InteractorComponent.INTERRUPT
             }
         }
 
@@ -63,7 +63,7 @@ abstract class WindowGameLogic : GameLogic() {
     open fun onType(char: Char): Int {
         for (component in gameObjects.getAllInteractables()){
             if(component.shouldUpdate()){
-                if(component.onType(window, char) == Interactable.INTERRUPT) return Interactable.INTERRUPT
+                if(component.onType(window, char) == InteractorComponent.INTERRUPT) return InteractorComponent.INTERRUPT
             }
         }
         return 0

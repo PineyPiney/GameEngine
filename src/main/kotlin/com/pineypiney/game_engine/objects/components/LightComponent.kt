@@ -2,12 +2,22 @@ package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.rendering.lighting.Light
+import com.pineypiney.game_engine.resources.shaders.Shader
 
 class LightComponent(parent: GameObject, val light: Light): Component("LGT", parent) {
 
+    var on: Boolean
+        get() = light.on
+        set(value) { light.on = value }
+
     override val fields: Array<Field<*>> = arrayOf()
 
+    fun setShaderUniforms(shader: Shader, name: String){
+        shader.setVec3("$name.position", parent.position)
+        light.setShaderUniforms(shader, name)
+    }
 
+    fun toggle(){ on = !on }
 
 
 

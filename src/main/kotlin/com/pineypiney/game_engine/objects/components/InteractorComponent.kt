@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
@@ -17,7 +16,7 @@ open class InteractorComponent(parent: GameObject, id: String): Component(id, pa
     var forceUpdate: Boolean = false
     var importance: Int = 0
 
-    val interactableChildren: Collection<Interactable> get() = parent.children.filterIsInstance<Interactable>()
+    val interactableChildren: Collection<InteractorComponent> get() = parent.children.mapNotNull { it.getComponent<InteractorComponent>() }
 
     val renderSize get() = parent.getComponent<RenderedComponent>()?.renderSize ?: Vec2(1f, 1f)
 
@@ -34,10 +33,10 @@ open class InteractorComponent(parent: GameObject, id: String): Component(id, pa
     }
 
     open fun onCursorMove(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray){
-        if(pressed) onDrag(window, cursorPos, cursorDelta)
+        if(pressed) onDrag(window, cursorPos, cursorDelta, ray)
     }
 
-    open fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2) {}
+    open fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {}
 
     open fun onScroll(window: WindowI, scrollDelta: Vec2): Int{
         return 0
@@ -66,5 +65,9 @@ open class InteractorComponent(parent: GameObject, id: String): Component(id, pa
 
     open fun shouldUpdate(): Boolean {
         return this.hover || this.pressed || this.forceUpdate || this.interactableChildren.any { child -> child.shouldUpdate() }
+    }
+
+    companion object{
+        const val INTERRUPT = -1
     }
 }

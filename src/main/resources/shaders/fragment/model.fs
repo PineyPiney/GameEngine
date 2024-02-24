@@ -12,7 +12,9 @@ struct Material{
 	float alpha;
 };
 
+in vec3 fragPos;
 in vec2 texCoords;
+in vec3 normal;
 
 uniform Material material;
 

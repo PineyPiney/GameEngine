@@ -9,8 +9,10 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.filterValueIsInstance
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 import kotlin.math.min
 
 abstract class RenderedComponent(parent: GameObject, s: Shader): Component("RND", parent) {
@@ -48,9 +50,6 @@ abstract class RenderedComponent(parent: GameObject, s: Shader): Component("RND"
         if(shader.hasPort) uniforms.setVec2iUniformR("viewport", RendererI<*>::viewportSize)
         if(shader.hasPos) uniforms.setVec3UniformR("viewPos", RendererI<*>::viewPos)
         uniforms.setMat4Uniform("model", parent::worldModel)
-
-        // Lighting
-        if(shader.hasDirL) setLightUniforms()
     }
 
     abstract fun render(renderer: RendererI<*>, tickDelta: Double)
@@ -58,13 +57,15 @@ abstract class RenderedComponent(parent: GameObject, s: Shader): Component("RND"
     open fun updateAspectRatio(renderer: RendererI<*>){}
 
     fun setLightUniforms(){
-        val lights = parent.objects?.getAllComponents()?.filterIsInstance<LightComponent>()?.map { it.light } ?: return
-        lights.firstNotNullOfOrNull { it as? DirectionalLight }?.setShaderUniforms(uniforms, "dirLight")
-        val pointLights = lights.filterIsInstance<PointLight>().sortedByDescending { (it.position - parent.position).length() / it.linear }
-        for(i in 0..<min(pointLights.size, 4)){
-            pointLights[i].setShaderUniforms(uniforms, "pointLights[$i]")
+        val lights = (parent.objects ?: return).getAllComponents().filterIsInstance<LightComponent>().filter { it.light.on }
+        lights.firstOrNull { it.light is DirectionalLight }?.setShaderUniforms(shader, "dirLight")
+        val pointLights = lights.associate { it.parent.position to it.light }.filterValueIsInstance<Vec3, PointLight>().entries.sortedByDescending { (it.key - parent.position).length() / it.value.linear }
+        for(l in 0..<min(4, pointLights.size)){
+            val name = "pointLights[$l]"
+            shader.setVec3("$name.position", pointLights[l].key)
+            pointLights[l].value.setShaderUniforms(shader, name)
         }
-        lights.firstNotNullOfOrNull { it as? SpotLight }?.setShaderUniforms(uniforms, "spotlight")
+        lights.firstOrNull { it.light is SpotLight }?.setShaderUniforms(shader, "spotlight")
     }
 
     companion object{

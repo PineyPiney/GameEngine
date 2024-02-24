@@ -52,6 +52,10 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
         set<FloatsUniform, FloatArray>(name, getter)
     }
 
+    fun setFloatsUniform(name: String, getter: () -> FloatArray){
+        set<FloatsUniform, FloatArray>(name, getter)
+    }
+
     fun setVec2UniformR(name: String, getter: (RendererI<*>) -> Vec2t<*>){
         set<Vec2Uniform, Vec2t<*>>(name, getter)
     }

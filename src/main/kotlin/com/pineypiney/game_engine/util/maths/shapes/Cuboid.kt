@@ -40,7 +40,7 @@ class Cuboid(val center: Vec3, val rotation: Quat, val size: Vec3): Shape() {
         val lastEnter = maxOf(minX, minY, minZ)
         val firstExit = minOf(maxX, maxY, maxZ)
 
-        return if(lastEnter < firstExit) arrayOf(rotatedOrigin + (rotatedDir * lastEnter), rotatedOrigin + (rotatedDir * firstExit))
+        return if(0f < lastEnter && lastEnter < firstExit) arrayOf(rotatedOrigin + (rotatedDir * lastEnter), rotatedOrigin + (rotatedDir * firstExit))
         else arrayOf()
     }
 

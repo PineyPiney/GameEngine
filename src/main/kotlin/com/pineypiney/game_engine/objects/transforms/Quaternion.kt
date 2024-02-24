@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.objects.game_objects.transforms
+package com.pineypiney.game_engine.objects.transforms
 
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4

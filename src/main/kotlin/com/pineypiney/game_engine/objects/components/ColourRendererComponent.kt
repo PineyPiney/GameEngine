@@ -37,6 +37,7 @@ open class ColourRendererComponent(parent: GameObject, var colour: Vec4, shader:
 
     companion object{
         val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/2D"), ResourceKey("fragment/colour"))
+        val shader3D = ShaderLoader.getShader(ResourceKey("vertex/3D"), ResourceKey("fragment/colour"))
         val menuShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/colour"))
     }
 }

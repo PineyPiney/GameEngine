@@ -26,7 +26,7 @@ open class Text(
     var underlineOffset: Float = -0.2f,
     var underlineAmount: Float = 1f,
     var fontSize: Float = 1f,
-    var alignment: Int = SizedText.ALIGN_LEFT
+    var alignment: Int = ALIGN_CENTER_LEFT
 ) : Initialisable {
 
     var lines = arrayOf<String>()
@@ -165,7 +165,7 @@ open class Text(
             maxWidth: Float = 2f,
             maxHeight: Float = 2f,
             fontSize: Float = 1f,
-            alignment: Int = SizedText.ALIGN_LEFT,
+            alignment: Int = ALIGN_CENTER_LEFT,
             shader: Shader = Font.fontShader,
             font: Font = Font.defaultFont,
             italic: Float = 0f,
@@ -188,7 +188,7 @@ open class Text(
             maxWidth: Float = 2f,
             maxHeight: Float = 2f,
             fontSize: Float = 1f,
-            alignment: Int = SizedText.ALIGN_LEFT,
+            alignment: Int = ALIGN_CENTER_LEFT,
             shader: Shader = TextRendererComponent.gameTextShader,
             font: Font = Font.defaultFont,
             italic: Float = 0f,

@@ -4,7 +4,6 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.TextRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
-import com.pineypiney.game_engine.objects.text.SizedText
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -41,7 +40,7 @@ abstract class ScrollListEntryComponent(parent: GameObject): InteractorComponent
             underlineOffset: Float = -0.2f,
             underlineAmount: Float = 1f,
             fontSize: Float = 1f,
-            alignment: Int = SizedText.ALIGN_LEFT,
+            alignment: Int = Text.ALIGN_CENTER_LEFT,
             shader: Shader = entryTextShader
         ): GameObject{
             return object : MenuItem(){

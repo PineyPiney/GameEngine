@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.objects.game_objects.objects_2D.texture_animation
+package com.pineypiney.game_engine.objects.util
 
 import com.pineypiney.game_engine.util.extension_functions.associateIndexed
 import glm_.f

@@ -16,8 +16,8 @@ class SliderPointerComponent(parent: GameObject): InteractorComponent(parent, "S
         return screenPos.isWithin(Vec2(parent.transformComponent.worldPosition) - (size * 0.5f), size)
     }
 
-    override fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2) {
-        super.onDrag(window, cursorPos, cursorDelta)
+    override fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
+        super.onDrag(window, cursorPos, cursorDelta, ray)
         slider.moveSliderTo(cursorPos.x)
     }
 }

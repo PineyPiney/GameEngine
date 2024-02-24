@@ -16,7 +16,6 @@ class Renderer<R: CameraI>(override val window: WindowI, override val camera: R)
     override fun init() {
         super.init()
 
-        GLFunc.depthTest = true
         GLFunc.blend = true
         GLFunc.blendFunc = Vec2i(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -29,6 +28,7 @@ class Renderer<R: CameraI>(override val window: WindowI, override val camera: R)
         projection = camera.getProjection()
 
         clearFrameBuffer()
+        GLFunc.depthTest = true
         for(o in game.gameObjects.gameItems.flatMap { it.allDescendants() }) {
             val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
             if(renderedComponents.isNotEmpty()){
@@ -37,6 +37,7 @@ class Renderer<R: CameraI>(override val window: WindowI, override val camera: R)
             }
         }
 
+        GLFunc.depthTest = false
         for(o in game.gameObjects.guiItems.flatMap { it.allDescendants() }) {
             val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
             if(renderedComponents.isNotEmpty()){

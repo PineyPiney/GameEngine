@@ -2,14 +2,14 @@ package com.pineypiney.game_engine_test.test3D
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.Interactable
-import com.pineypiney.game_engine.objects.components.MeshedTextureComponent
-import com.pineypiney.game_engine.objects.components.ModelRendererComponent
-import com.pineypiney.game_engine.objects.components.RenderedComponent
+import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
-import com.pineypiney.game_engine.objects.util.shapes.ArrayShape
+import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
+import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
+import com.pineypiney.game_engine.rendering.lighting.PointLight
+import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.resources.models.Mesh
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -17,11 +17,9 @@ import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.fromAngle
 import com.pineypiney.game_engine.util.input.InputState
-import com.pineypiney.game_engine.util.maths.shapes.Line
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import com.pineypiney.game_engine.util.maths.vectorToEuler
-import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
@@ -49,7 +47,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         Mesh.indicesMult = it.value
     }
 
-    private val crosshair = GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")], Vec3(0f), Vec3(.05f)){}
+    private val crosshair = GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")], Vec3(0f), Vec3(Vec2(.2f), 1f)){}
 
     private val cursorRay = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/arrow")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/plain")])
 
@@ -65,6 +63,12 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     private val doughnut = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("broke")], ModelRendererComponent.defaultShader).apply { translate(Vec3(0f, 2f, 0f)) }
     private val gltf = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/Beating Heart 3")], ModelRendererComponent.defaultLitShader).apply { translate(Vec3(2f, 2f, 0f)); scale(Vec3(0.002f)) }
 
+    val sun = GameObject.simpleLightObject(DirectionalLight(Vec3(.1f, -.9f, .1f)))
+    val light = GameObject.simpleLightObject(PointLight())
+    val torch = GameObject.simpleLightObject(SpotLight(camera.cameraFront), false)
+
+    val fpsText = Text.makeMenuText("FPS: 0.0", fontSize = .1f, alignment = Text.ALIGN_TOP_RIGHT)
+
     override fun init() {
         super.init()
         glfwSetInputMode(window.windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
@@ -77,7 +81,9 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         add(cursorRay)
         add(doughnut.apply { getComponent<ModelRendererComponent>()?.setAnimation("TorusAction") })
         add(gltf)
+        add(light, torch, sun.apply { position = Vec3(0f, 900f, 0f); scale = Vec3(50f) })
         add(indexSlider)
+        add(fpsText)
     }
 
     override fun render(tickDelta: Double) {
@@ -96,7 +102,10 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
         if(travel != Vec3(0)){
             camera.translate(travel * speed)
+            torch.position = camera.cameraPos
         }
+
+        light.position = Vec2.fromAngle(Timer.frameTime.f * 2f, 10f).run { Vec3(x, 2f, y) }
 
         object3D.rotate(Vec3(0.5, 1, 1.5) * Timer.frameDelta)
         val ray = camera.getRay(input.mouse.lastPos)
@@ -106,9 +115,9 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         object3D.getComponent<MeshedTextureComponent>()!!.texture = if(hit) Texture.broke else TextureLoader[ResourceKey("snake/snake_0")]
 
         if(updateRay){
-            cursorRay.position = ray.rayOrigin + (camera.cameraFront * cursorRay.scale.x * 0.5f)
+            cursorRay.position = ray.rayOrigin + (ray.direction * cursorRay.scale.x * 1.5f)
             val (p, y) = vectorToEuler(ray.direction)
-            cursorRay.rotation = Quat(Vec3(0f, y + (PI * 0.5).f, p))
+            cursorRay.rotation = Quat(Vec3(p, y + (PI * 0.5).f, 0f))
         }
     }
 
@@ -118,7 +127,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     }
 
     override fun onInput(state: InputState, action: Int): Int {
-        if(super.onInput(state, action) == Interactable.INTERRUPT) return Interactable.INTERRUPT
+        if(super.onInput(state, action) == InteractorComponent.INTERRUPT) return InteractorComponent.INTERRUPT
 
         if(action == 1){
             if(state.i == GLFW_KEY_ESCAPE){
@@ -126,10 +135,18 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
             }
             else when(state.c){
                 'F' -> toggleFullscreen()
-                'C' -> input.mouse.setCursorAt(Vec2(0.75))
                 'Z' -> window.size = Vec2i(window.videoMode.width(), window.videoMode.height())
-                'M' -> toggleMouse()
                 'X' -> glfwSetInputMode(window.windowHandle, GLFW_CURSOR, when(glfwGetInputMode(window.windowHandle, GLFW_CURSOR)){ GLFW_CURSOR_NORMAL -> GLFW_CURSOR_DISABLED; else -> GLFW_CURSOR_NORMAL })
+                'C' -> input.mouse.setCursorAt(Vec2(0.75))
+                'V' -> window.vSync = !window.vSync
+                'M' -> toggleMouse()
+                'T' -> torch.getComponent<LightComponent>()?.toggle()
+                'L' -> {
+                    camera.setPos(Vec3(0f, 0f, -5f))
+                    camera.cameraFront = Vec3(0f, 0f, 1f)
+                    torch.position = camera.cameraPos
+                    (torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
+                }
             }
         }
 
@@ -147,6 +164,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
             camera.cameraYaw += cursorDelta.x * 20
             camera.cameraPitch = (camera.cameraPitch + cursorDelta.y * 20).coerceIn(-89.99, 89.99)
             camera.updateCameraVectors()
+            (torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
         }
 
         val ray = camera.getRay(cursorPos)
@@ -161,13 +179,5 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     private fun toggleMouse(){
         moveMouse = !moveMouse
         glfwSetInputMode(window.windowHandle, GLFW_CURSOR, if(moveMouse) GLFW_CURSOR_CAPTURED else GLFW_CURSOR_DISABLED)
-    }
-
-    fun getRayShape(ray: Ray): VertexShape{
-        val a = FloatArray(5)
-        val b = FloatArray(3) + a + ray.direction.array + a
-        return object : ArrayShape(b, intArrayOf(3, 3, 2)){
-            override val shape: Shape = Line(Vec3(), ray.direction)
-        }
     }
 }

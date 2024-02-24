@@ -5,19 +5,17 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.audio.AudioSource
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.Interactable
 import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.scrollList.ScrollListComponent
 import com.pineypiney.game_engine.objects.components.slider.ColourSliderRendererComponent
-import com.pineypiney.game_engine.objects.game_objects.objects_2D.GameObject2D
-import com.pineypiney.game_engine.objects.game_objects.objects_2D.texture_animation.Animation
+import com.pineypiney.game_engine.objects.game_objects.GameObject2D
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
 import com.pineypiney.game_engine.objects.menu_items.slider.ColourSlider
 import com.pineypiney.game_engine.objects.text.Text
-import com.pineypiney.game_engine.objects.util.shapes.VertexShape
+import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
@@ -65,7 +63,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     private val b = TextButton("Button", Vec2(-0.3, 0.6), Vec2(0.6, 0.2)){
         val device = AudioEngine.getAllOutputDevices().random()
         window.setAudioOutput(device)
-        GameEngineI.info("Setting audio out device to $device")
+        GameEngineI.info("Setting audio out device to ${window.audioOutputDevice}")
 
         window.vSync = !window.vSync
         println("Window vSync: ${window.vSync}")
@@ -102,8 +100,8 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     private val text = Text.makeMenuText(
         "X Part: 0.00 \nY Part: 0.00",
         Vec4(0f, 0f, 0f, 1f),
-        0.5f,
-        0.2f,
+        1f,
+        1f,
         .16f,
         Text.ALIGN_CENTER_LEFT
     )
@@ -199,13 +197,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
             window.setCursor(customCursor)
         }
-
-        val s = RenderedComponent.colourShader
-        s.use()
-        s.setVP(renderer)
-        s.setMat4("model", model1.worldModel.scale(0.2f))
-        s.setVec4("colour", Vec4(1f))
-        VertexShape.centerSquareShape.bindAndDraw()
     }
 
     override fun render(tickDelta: Double) {
@@ -243,7 +234,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     }
 
     override fun onInput(state: InputState, action: Int): Int {
-        if(super.onInput(state, action) == Interactable.INTERRUPT) return Interactable.INTERRUPT
+        if(super.onInput(state, action) == InteractorComponent.INTERRUPT) return InteractorComponent.INTERRUPT
 
         if(action == 1){
             if(state.i == GLFW_KEY_ESCAPE){

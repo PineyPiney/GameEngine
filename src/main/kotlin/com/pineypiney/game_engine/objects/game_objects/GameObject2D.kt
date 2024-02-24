@@ -1,6 +1,5 @@
-package com.pineypiney.game_engine.objects.game_objects.objects_2D
+package com.pineypiney.game_engine.objects.game_objects
 
-import com.pineypiney.game_engine.objects.game_objects.OldGameObject
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.normal

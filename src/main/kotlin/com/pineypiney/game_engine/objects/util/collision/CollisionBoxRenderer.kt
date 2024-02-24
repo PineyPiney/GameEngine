@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.objects.util.collision
 
-import com.pineypiney.game_engine.objects.Renderable
 import com.pineypiney.game_engine.objects.components.ColliderComponent
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.RendererI
@@ -13,21 +12,22 @@ import com.pineypiney.game_engine.util.maths.I
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-class CollisionBoxRenderer(val collider: ColliderComponent, val colour: Vec4 = Vec4(1f), override val shader: Shader = defaultShader): Renderable {
+class CollisionBoxRenderer(val collider: ColliderComponent, val colour: Vec4 = Vec4(1f), val shader: Shader = defaultShader) {
 
-    override var visible: Boolean = true
+    var visible: Boolean = true
     val shape = VertexShape.cornerSquareShape
 
-    override val uniforms: Uniforms = shader.compileUniforms()
+    val uniforms: Uniforms = shader.compileUniforms()
 
-    override fun setUniforms() {
+    fun setUniforms() {
+        uniforms.setMat4UniformR("view", RendererI<*>::view)
+        uniforms.setMat4UniformR("projection", RendererI<*>::projection)
         uniforms.setMat4Uniform("model"){ collider.transformedBox.run { I.translate(Vec3(origin, 0f)).rotate(angle).scale(Vec3(size, 1f)) } }
         uniforms.setVec4Uniform("colour", ::colour)
     }
 
-    override fun render(renderer: RendererI<*>, tickDelta: Double){
-        super.render(renderer, tickDelta)
-
+    fun render(renderer: RendererI<*>){
+        shader.setUp(uniforms, renderer)
         shape.bindAndDraw()
     }
 

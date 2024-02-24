@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.game_objects.objects_2D.texture_animation.Animation
+import com.pineypiney.game_engine.objects.util.Animation
 import glm_.f
 
 class AnimatedComponent(parent: GameObject, var animation: Animation, val animations: List<Animation> = listOf(animation)): Component("ANI", parent), PreRenderComponent {

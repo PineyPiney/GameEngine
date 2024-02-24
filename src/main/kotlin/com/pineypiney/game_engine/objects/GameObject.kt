@@ -2,9 +2,10 @@ package com.pineypiney.game_engine.objects
 
 import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.game_objects.OldGameObject
-import com.pineypiney.game_engine.objects.game_objects.transforms.Transform3D
+import com.pineypiney.game_engine.objects.transforms.Transform3D
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -14,6 +15,7 @@ import glm_.mat4x4.Mat4
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
+import glm_.vec4.Vec4
 
 open class GameObject: Initialisable {
 
@@ -203,6 +205,17 @@ open class GameObject: Initialisable {
                 }
             }
 
+            return o
+        }
+
+        fun simpleLightObject(light: Light, render: Boolean = true): GameObject{
+            val o = object : OldGameObject(){
+                override fun addComponents() {
+                    super.addComponents()
+                    components.add(LightComponent(this, light))
+                    if(render) components.add(ColourRendererComponent(this, Vec4(1f), ColourRendererComponent.shader3D, VertexShape.centerCubeShape))
+                }
+            }
             return o
         }
     }

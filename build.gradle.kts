@@ -14,7 +14,7 @@ val ver: String = "1.0-SNAPSHOT"
 group = "com.pineypiney.game_engine"
 version = ver
 
-val lwjglVersion = "3.3.2"
+val lwjglVersion = "3.3.3"
 
 val osArch: String = System.getProperty("os.arch")
 var a64 = osArch.startsWith("aarch64")
@@ -44,11 +44,11 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.22")
 
     // Logback
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-    implementation("ch.qos.logback:logback-classic:1.4.12")
+    implementation("ch.qos.logback:logback-classic:1.4.14")
 
     // GLM
     implementation("kotlin.graphics:kool:0.9.75")
@@ -78,8 +78,8 @@ dependencies {
     // JavaCV for video processing
     implementation("org.bytedeco:javacv:$javacv")
     implementation("org.bytedeco:javacpp:$javacv")
-    implementation("org.bytedeco:opencv-platform-gpu:4.5.5-$javacv")
-    implementation("org.bytedeco:ffmpeg-platform-gpl:5.0-$javacv")
+    implementation("org.bytedeco:opencv-platform-gpu:4.9.0-1.5.10")
+    implementation("org.bytedeco:ffmpeg-platform-gpl:6.1.1-1.5.10")
 
     // Gson for JSON parsing
     implementation("org.json:json:20231013")

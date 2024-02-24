@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.objects.game_objects.transforms
+package com.pineypiney.game_engine.objects.transforms
 
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.maths.I
