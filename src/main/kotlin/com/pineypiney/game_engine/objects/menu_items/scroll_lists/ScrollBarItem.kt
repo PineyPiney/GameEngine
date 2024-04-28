@@ -9,12 +9,12 @@ import glm_.vec4.Vec4
 open class ScrollBarItem(): MenuItem() {
 
     var colour: Vec4
-        get() = getComponent<ColourRendererComponent>()!!.colour
-        set(value) { getComponent<ColourRendererComponent>()!!.colour = value }
+        get() = getComponent<ColourRendererComponent>()!!.colour()
+        set(value) { getComponent<ColourRendererComponent>()!!.colour = { value } }
 
     override fun addComponents() {
         super.addComponents()
         components.add(ScrollBarComponent(this))
-        components.add(ColourRendererComponent(this, Vec4(0x00, 0xBF, 0xFF, 0xFF) / 255, translucentColourShader, VertexShape.cornerSquareShape))
+        components.add(ColourRendererComponent(this, Vec4(0x00, 0xBF, 0xFF, 0xFF) / 255, ColourRendererComponent.menuShader, VertexShape.cornerSquareShape))
     }
 }

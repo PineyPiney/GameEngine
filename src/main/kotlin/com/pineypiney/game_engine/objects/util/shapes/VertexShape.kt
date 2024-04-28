@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.util.shapes
 
 import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.associateIndexed
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.f
@@ -10,7 +11,7 @@ import org.lwjgl.opengl.GL30C.*
 
 abstract class VertexShape: Deleteable {
 
-    val VAO = glGenVertexArrays()
+    val VAO = if(GLFunc.isLoaded) glGenVertexArrays() else -1
     abstract val size: Int
 
     abstract val shape: Shape

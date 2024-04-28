@@ -37,7 +37,7 @@ class BitMapFont(val texture: Texture, val boldTexture: Texture? = null, private
     override fun getQuads(text: String, bold: Boolean): Collection<TextQuad> {
         val dimensions = getPixelSize(text)
         var xOffset = characterSpacing
-        var yOffset = 0f
+        var yOffset = lineSpacing * text.count { it == '\n' }
         val quads = mutableSetOf<TextQuad>()
         for(char in text){
             if(char == '\n'){

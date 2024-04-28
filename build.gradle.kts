@@ -83,6 +83,7 @@ dependencies {
 
     // Gson for JSON parsing
     implementation("org.json:json:20231013")
+	implementation(kotlin("reflect"))
 }
 
 publishing{
@@ -98,6 +99,7 @@ publishing{
     }
 }
 
+/*
 // Package Resources into ZIP file
 tasks.register<Zip>("packageResources"){
     from(layout.projectDirectory.dir("\\src\\main\\resources"))
@@ -116,6 +118,8 @@ tasks.register<Zip>("packageGame"){
     archiveFileName.set("PixelGame.zip")
     destinationDirectory.set(layout.projectDirectory.dir("\\out\\artifacts\\PixelGame_main_jar"))
 }
+
+ */
 
 tasks.test {
     useJUnit()

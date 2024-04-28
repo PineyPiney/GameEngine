@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.apps.animator
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.slider.OutlinedSliderRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.CheckBox
@@ -12,9 +13,11 @@ import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
+import glm_.glm
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -24,6 +27,10 @@ import org.lwjgl.opengl.GL11C
 class AnimatorLogic(override val gameEngine: WindowedGameEngineI<AnimatorLogic>, var o: GameObject?, var creator: () -> GameObject) : WindowGameLogic() {
 
     override val renderer: WindowRendererI<AnimatorLogic> = object : BufferedGameRenderer<AnimatorLogic>(){
+
+        override val view = I
+        override val projection = I
+        override val guiProjection = I
 
         override val window: WindowI = this@AnimatorLogic.window
         override val camera: CameraI = OrthographicCamera(window)
@@ -37,26 +44,17 @@ class AnimatorLogic(override val gameEngine: WindowedGameEngineI<AnimatorLogic>,
         }
 
         override fun render(game: AnimatorLogic, tickDelta: Double) {
-            view = camera.getView()
-            projection = camera.getProjection()
+            camera.getView(view)
+            camera.getProjection(projection)
 
             clearFrameBuffer()
             GLFunc.viewportO = Vec2i(buffer.width, buffer.height)
 
-            for(o in game.gameObjects.gameItems.flatMap { it.allDescendants() }) {
+            for(o in game.gameObjects.map.flatMap { it.value.flatMap { it.allActiveDescendants() }}) {
                 val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
                 if(renderedComponents.isNotEmpty()){
                     for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
                     for(c in renderedComponents) c.render(this, tickDelta)
-                }
-            }
-            for(p in game.gameObjects.guiItems) {
-                for(o in p.allDescendants()) {
-                    val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
-                    if(renderedComponents.isNotEmpty()){
-                        for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
-                        for(c in renderedComponents) c.render(this, tickDelta)
-                    }
                 }
             }
 
@@ -67,6 +65,12 @@ class AnimatorLogic(override val gameEngine: WindowedGameEngineI<AnimatorLogic>,
             screenShader.setUp(screenUniforms, this)
             buffer.draw()
             GL11C.glClear(GL11C.GL_DEPTH_BUFFER_BIT)
+        }
+
+        override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
+            super.updateAspectRatio(window, objects)
+            val w = window.aspectRatio * .5f
+            glm.ortho(-w, w, -.5f, .5f, guiProjection)
         }
     }
 

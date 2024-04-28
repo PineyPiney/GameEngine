@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.Debug
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.bool
 import glm_.vec3.Vec3i
@@ -98,6 +99,10 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 
 
         fun createPointer(params: TextureParameters): Int{
+            if(!GLFunc.isLoaded){
+                GameEngineI.warn("Could not create texture pointer because OpenGL has not been loaded")
+                return -1
+            }
             // Create a handle for the texture
             val texturePointer = glGenTextures()
             // Settings
@@ -127,12 +132,11 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
             if(!buffer.hasRemaining()){
                 GameEngineI.warn("Buffer for texture $name is empty")
             }
-            val (data, vec) = loadTextureData(buffer, params.flip, params.numChannels)
+            val (data, vec) = loadTextureData(buffer, params.flip, params. numChannels)
             if (data != null) {
 
                 val format = channelsToFormat(vec.z)
                 writeTextureToPointer(data, vec.x, vec.y, format, format, GL_UNSIGNED_BYTE)
-
 
                 STBImage.stbi_image_free(data)
                 return pointer
@@ -160,6 +164,10 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
         }
 
         private fun writeTextureToPointer(data: ByteBuffer?, width: Int, height: Int, format: Int, internalFormat: Int, type: Int){
+            if(!GLFunc.isLoaded){
+                GameEngineI.warn("Could not write texture to pointer because OpenGL has not been loaded")
+                return
+            }
             val d = Debug().start()
             glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data)
             d.add()
@@ -169,7 +177,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 
         fun createTexture(data: ByteBuffer?, width: Int, height: Int, format: Int = GL_RGB, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, params: TextureParameters = TextureParameters.default): Int{
             val pointer = createPointer(params)
-            writeTextureToPointer(data, width, height, format, internalFormat, type)
+            if(pointer != -1) writeTextureToPointer(data, width, height, format, internalFormat, type)
             return pointer
         }
 
@@ -222,6 +230,10 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
         val parameters = mapOf(
             Pair("NEAREST", GL_NEAREST),
             Pair("LINEAR", GL_LINEAR),
+            Pair("NEAREST_NEAREST", GL_NEAREST_MIPMAP_NEAREST),
+            Pair("LINEAR_NEAREST", GL_LINEAR_MIPMAP_NEAREST),
+            Pair("NEAREST_LINEAR", GL_NEAREST_MIPMAP_LINEAR),
+            Pair("LINEAR_LINEAR", GL_LINEAR_MIPMAP_LINEAR),
             Pair("RED", GL_RED),
             Pair("GREEN", GL_GREEN),
             Pair("BLUE", GL_BLUE),

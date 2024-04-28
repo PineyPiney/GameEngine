@@ -13,7 +13,7 @@ abstract class GameLogic : GameLogicI {
     override fun init() {
         renderer.init()
         addObjects()
-        gameObjects.getAllObjects().init()
+        gameObjects.getAllObjects(true).init()
     }
 
     // This addObjects function allows adding items and calling init() on them all here in gameLogic, see init()

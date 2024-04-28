@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.components.scrollList
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.InteractorComponent
+import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.PostChildrenInit
 import com.pineypiney.game_engine.objects.components.RenderedComponent
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.ScrollBarItem
@@ -10,7 +10,7 @@ import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-abstract class ScrollListComponent(parent: GameObject): InteractorComponent(parent, "SCL"), PostChildrenInit{
+abstract class ScrollListComponent(parent: GameObject): DefaultInteractorComponent(parent, "SCL"), PostChildrenInit{
 
     abstract val entryHeight: Float
     abstract val scrollerWidth: Float

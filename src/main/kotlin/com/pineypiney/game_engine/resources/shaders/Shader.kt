@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.shaders
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.uniforms.*
+import com.pineypiney.game_engine.util.RandomHelper
 import glm_.b
 import glm_.f
 import glm_.i
@@ -23,22 +24,16 @@ import kotlin.experimental.and
 
 class Shader(private var ID: Int, val vName: String, val fName: String, val gName: String? = null, val uniforms: Map<String, String>) : Deleteable {
 
-    val vp: Byte = (
-            (if(uniforms.containsKey("view")) 1 else 0) or
-            (if(uniforms.containsKey("projection")) 2 else 0) or
-            (if(uniforms.containsKey("viewport")) 4 else 0) or
-            (if(uniforms.containsKey("viewPos")) 8 else 0)
-        ).b
-    val hasView get() = (vp and 1) > 0
-    val hasProj get() = (vp and 2) > 0
-    val hasPort get() = (vp and 4) > 0
-    val hasPos get() = (vp and 8) > 0
+    val screenMask: Byte = RandomHelper.createMask(uniforms::containsKey, "view", "projection", "guiProjection", "viewport", "viewPos").b
 
-    val lightMask: Byte = (
-            (if(uniforms.containsKey("dirLight.direction")) 1 else 0) or
-            (if(uniforms.containsKey("pointLight")) 2 else 0) or
-            (if(uniforms.containsKey("spotLight")) 4 else 0)
-        ).b
+    val hasView get() = (screenMask and 1) > 0
+    val hasProj get() = (screenMask and 2) > 0
+    val hasGUI get() = (screenMask and 4) > 0
+    val hasPort get() = (screenMask and 8) > 0
+    val hasPos get() = (screenMask and 0x10) > 0
+
+    val lightMask: Byte = RandomHelper.createMask(uniforms::containsKey,"dirLight.direction", "pointLight.position", "spotLight.position").b
+
     val hasDirL get() = (lightMask and 1) > 0
     val hasPointL get() = (lightMask and 2) > 0
     val hasSpotL get() = (lightMask and 4) > 0
@@ -153,6 +148,7 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
                     "int" -> set.add(IntsUniform(newName))
                     "uint" -> set.add(UIntsUniform(newName))
                     "float" -> set.add(FloatsUniform(newName))
+                    "double" -> set.add(DoublesUniform(newName))
                     "vec2" -> set.add(Vec2sUniform(newName))
                     "vec3" -> set.add(Vec3sUniform(newName))
                     "vec4" -> set.add(Vec4sUniform(newName))
@@ -168,6 +164,7 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
                     "int" -> set.add(IntUniform(name))
                     "uint" -> set.add(UIntUniform(name))
                     "float" -> set.add(FloatUniform(name))
+                    "double" -> set.add(DoubleUniform(name))
                     "vec2" -> set.add(Vec2Uniform(name))
                     "vec3" -> set.add(Vec3Uniform(name))
                     "vec4" -> set.add(Vec4Uniform(name))

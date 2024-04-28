@@ -5,10 +5,14 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.util.Animation
 import glm_.f
 
-class AnimatedComponent(parent: GameObject, var animation: Animation, val animations: List<Animation> = listOf(animation)): Component("ANI", parent), PreRenderComponent {
+class AnimatedComponent(parent: GameObject, var animation: Animation, val animations: List<Animation> = listOf(animation)): Component(
+	parent,
+	"ANI"
+), PreRenderComponent {
 
     constructor(parent: GameObject): this(parent, Animation.default)
 
+    override val whenVisible: Boolean = true
     var animationTime: Float = 0f
     var playing: Boolean = true
 

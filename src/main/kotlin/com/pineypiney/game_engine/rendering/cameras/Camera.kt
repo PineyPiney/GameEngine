@@ -44,8 +44,8 @@ abstract class Camera(override val window: WindowI, pos: Vec3 = Vec3(0, 0, 5), u
 
     override fun updateAspectRatio() {}
 
-    override fun getView(): Mat4 {
-        return glm.lookAt(cameraPos, cameraPos.plus(cameraFront), cameraUp)
+    override fun getView(mat: Mat4): Mat4 {
+        return glm.lookAt(cameraPos, cameraPos.plus(cameraFront), cameraUp, mat)
     }
 
     override fun delete() {

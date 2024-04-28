@@ -7,6 +7,7 @@ import glm_.f
 import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2d
+import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW.*
 
 open class MouseInput(val input: Inputs) {
@@ -15,13 +16,18 @@ open class MouseInput(val input: Inputs) {
     var lastPos = Vec2(); private set
     private var firstMouse = true
 
+    var transformCoords: (windowSize: Vec2i, xpos: Double, ypos: Double) -> Vec2 = { windowSize, xpos, ypos ->
+        val s = 2.0 / windowSize.y
+        Vec2((xpos * s) - (windowSize.x.toDouble() / windowSize.y), 1.0 - (ypos * s))
+    }
+
     private var cursorOffset = Vec2(0.0, 0.0)
 
     private val buttonStates = mutableMapOf<Short, Float>()
 
     private val cursorPosCallback = { handle: Long, xpos: Double, ypos: Double ->
         val size = WindowI.getSize(handle)
-        val screenPos = Vec2((xpos * 2/size.x) - 1, -((ypos * 2/size.y) - 1))
+        val screenPos = transformCoords(size, xpos, ypos)
         processCursorPos(screenPos)
         input.mouseMoveCallback(screenPos, cursorOffset)
     }

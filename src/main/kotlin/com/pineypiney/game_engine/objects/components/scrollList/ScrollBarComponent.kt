@@ -1,12 +1,12 @@
 package com.pineypiney.game_engine.objects.components.scrollList
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.InteractorComponent
+import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 
-class ScrollBarComponent(parent: GameObject): InteractorComponent(parent, "SLB"){
+class ScrollBarComponent(parent: GameObject): DefaultInteractorComponent(parent, "SLB"){
 
     override fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
         super.onDrag(window, cursorPos, cursorDelta, ray)

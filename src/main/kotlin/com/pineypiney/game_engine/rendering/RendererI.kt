@@ -10,9 +10,10 @@ import org.lwjgl.opengl.GL11C
 interface RendererI<E: GameLogicI>: Initialisable {
 
     val viewPos: Vec3
-    var view: Mat4
-    var projection: Mat4
-    var viewportSize: Vec2i
+    val view: Mat4
+    val projection: Mat4
+    val guiProjection: Mat4
+    val viewportSize: Vec2i
     val aspectRatio: Float
 
     val numPointLights: Int

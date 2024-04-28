@@ -164,13 +164,33 @@ fun Mat4.scale(vec2: Vec2) = scale(Vec3(vec2, 1))
 fun Mat4.getTranslation(): Vec3{
     return Vec3(this[3])
 }
+fun Mat4.setTranslation(translation: Vec3, res: Mat4 = Mat4(this)): Mat4{
+    translation.to(res.array, 12)
+    return res
+}
 
 fun Mat4.getRotation(): Quat{
     return rotationComponent().toQuat()
 }
+fun Mat4.setRotation(rotation: Quat, res: Mat4 = Mat4(this)): Mat4{
+    val rMat = rotation.toMat3()
+    val scale = getScale()
+    (rMat[0] * scale.x).to(res.array, 0)
+    (rMat[1] * scale.y).to(res.array, 4)
+    (rMat[2] * scale.z).to(res.array, 8)
+    return res
+}
 
 fun Mat4.getScale(): Vec3{
     return Vec3(Vec3(this[0]).length(), Vec3(this[1]).length(), Vec3(this[2]).length())
+}
+fun Mat4.setScale(scale: Vec3, res: Mat4 = Mat4(this)): Mat4{
+    val currentScale = getScale()
+    val multiplier = scale / currentScale
+    (Vec3(this[0]) * multiplier.x).to(res.array, 0)
+    (Vec3(this[1]) * multiplier.y).to(res.array, 4)
+    (Vec3(this[2]) * multiplier.z).to(res.array, 8)
+    return res
 }
 
 fun Mat4.rotationComponent(): Mat4{

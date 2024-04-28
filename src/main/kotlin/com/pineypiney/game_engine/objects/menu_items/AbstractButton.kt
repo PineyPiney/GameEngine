@@ -7,10 +7,6 @@ abstract class AbstractButton : MenuItem() {
     abstract val action: (ButtonComponent) -> Unit
     val interactor: ButtonComponent get() = getComponent()!!
 
-    var active: Boolean
-        get() = interactor.active
-        set(value) { interactor.active = value }
-
     override fun addComponents() {
         super.addComponents()
         components.add(ButtonComponent(this, action))

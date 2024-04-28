@@ -17,12 +17,11 @@ class Debug {
         times.add(millis())
     }
 
+    fun differences() = (1..<times.size).map { times[it] - times[it - 1] }
+
     fun printDiffs(){
         if(times.size <= 1) return
-        val b = StringBuilder("Times are ${times[1] - times[0]}")
-        for(i in (2..<times.size)) b.append(", ${times[i] - times[i - 1]}")
-
-        GameEngineI.logger.debug(b.toString())
+        GameEngineI.logger.debug("Times are " + differences().joinToString())
     }
 
     companion object{

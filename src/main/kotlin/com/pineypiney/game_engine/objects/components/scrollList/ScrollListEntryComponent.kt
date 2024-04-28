@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.components.scrollList
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.InteractorComponent
+import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.TextRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
@@ -13,7 +13,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-abstract class ScrollListEntryComponent(parent: GameObject): InteractorComponent(parent, "SLE"){
+abstract class ScrollListEntryComponent(parent: GameObject): DefaultInteractorComponent(parent, "SLE"){
 
     abstract val index: Int
     open val list: ScrollListComponent get() = parent.parent?.getComponent<ScrollListComponent>()!!

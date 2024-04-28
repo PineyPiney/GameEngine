@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.Resource
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.repeat
 import glm_.f
 import glm_.vec2.Vec2i
@@ -59,8 +60,11 @@ class Texture(val fileLocation: String, val texturePointer: Int, val target: Int
     }
 
     fun parameter(param: Int): Int{
-        bind()
-        return glGetTexLevelParameteri(target, 0, param)
+        return if(GLFunc.isLoaded){
+            bind()
+            glGetTexLevelParameteri(target, 0, param)
+        }
+        else 0
     }
 
     fun savePNG(file: CharSequence): Boolean{

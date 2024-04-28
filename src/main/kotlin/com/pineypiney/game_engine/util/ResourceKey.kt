@@ -2,11 +2,16 @@ package com.pineypiney.game_engine.util
 
 class ResourceKey(key: String) {
 
-    val key: String
+    val key: String = processKey(key)
 
-    init {
-        this.key = key.replace('\\', '/')
-            .replace(';', '/')
+    val parentFolder get() = ResourceKey(key.substringBeforeLast('/'))
+
+    operator fun plus(other: ResourceKey): ResourceKey{
+        return ResourceKey("$key/${other.key}")
+    }
+
+    operator fun plus(other: String): ResourceKey{
+        return ResourceKey("$key/${processKey(other)}")
     }
 
     // Equals is used for any other occasions where it doesn't use the HashCode
@@ -23,5 +28,10 @@ class ResourceKey(key: String) {
 
     override fun toString(): String {
         return "ResourceKey[$key]"
+    }
+
+    companion object {
+        fun processKey(key: String) = key.replace('\\', '/')
+            .replace(';', '/')
     }
 }

@@ -19,7 +19,7 @@ open class SpriteComponent(parent: GameObject, texture: Texture = Texture.broke,
     var texture: Texture = texture
         set(value) {
             field = value
-            renderSize = Vec2(texture.width * pixelSize, texture.height * pixelSize)
+            renderSize = Vec2(field.width * pixelSize, field.height * pixelSize)
         }
 
     var pixelsPerUnit: Float = pixelsPerUnit
@@ -54,5 +54,6 @@ open class SpriteComponent(parent: GameObject, texture: Texture = Texture.broke,
 
     companion object{
         val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/2D"), ResourceKey("fragment/texture"))
+        val menuShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/texture")]
     }
 }

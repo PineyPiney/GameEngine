@@ -17,6 +17,8 @@ import org.lwjgl.opengl.GL11
 
 class TestVRRenderer(w: Int, h: Int, override val hmd: HMD): VRRenderer<TestVRGame>(w, h) {
 
+    override var view: Mat4 = I
+
     val viewOffset = Vec3()
 
     override fun init() {

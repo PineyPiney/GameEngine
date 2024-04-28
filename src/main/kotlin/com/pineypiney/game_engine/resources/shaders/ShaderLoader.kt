@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addToMapOr
 import com.pineypiney.game_engine.util.extension_functions.delete
@@ -86,6 +87,10 @@ class ShaderLoader private constructor(): Deleteable{
         }
 
         fun generateShader(vName: String, vertexShader: SubShader, fName: String, fragmentShader: SubShader, gName: String? = null, geometryShader: SubShader? = null): Shader{
+            if(!GLFunc.isLoaded){
+                GameEngineI.warn("Could not generate shader because OpenGL has not been loaded")
+                return Shader(0, "v", "f", null, mapOf())
+            }
             val ID = glCreateProgram()
 
             // Shader Program
@@ -108,7 +113,10 @@ class ShaderLoader private constructor(): Deleteable{
         }
 
         fun createShaderFromString(code: String, shaderType: Int, shaderName: String): Int{
-
+            if(!GLFunc.isLoaded){
+                GameEngineI.warn("OpenGL is not loaded, cannot create shader")
+                return -1
+            }
             // Create numerical handle for shader
             val shader = glCreateShader(shaderType)
 

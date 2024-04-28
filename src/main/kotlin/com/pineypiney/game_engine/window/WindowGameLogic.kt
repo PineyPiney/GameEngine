@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.window
 
 import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.objects.components.InteractorComponent
-import com.pineypiney.game_engine.objects.components.RenderedComponent
+import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
 import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.input.ControlType
@@ -13,8 +13,8 @@ abstract class WindowGameLogic : GameLogic() {
 
 
     abstract override val gameEngine: WindowedGameEngineI<*>
-    val window get() = gameEngine.window
-    val input get() = gameEngine.window.input
+    open val window get() = gameEngine.window
+    open val input get() = gameEngine.window.input
     abstract override val renderer: WindowRendererI<*>
 
     override fun open() {
@@ -24,6 +24,7 @@ abstract class WindowGameLogic : GameLogic() {
         // Reset textures so that the last bound texture isn't carried over
         Texture.broke.bind()
 
+        updateAspectRatio(window)
         onCursorMove(gameEngine.input.mouse.lastPos, Vec2(0f))
     }
 
@@ -82,7 +83,7 @@ abstract class WindowGameLogic : GameLogic() {
 
     open fun updateAspectRatio(window: WindowI) {
         renderer.updateAspectRatio(window, gameObjects)
-        for(r in gameObjects.getAllComponents().filterIsInstance<RenderedComponent>()) r.updateAspectRatio(renderer)
+        for(r in gameObjects.getAllComponents().filterIsInstance<UpdatingAspectRatioComponent>()) r.updateAspectRatio(renderer)
 
     }
 }

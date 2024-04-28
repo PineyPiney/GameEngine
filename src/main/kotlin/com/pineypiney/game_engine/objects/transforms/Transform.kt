@@ -2,10 +2,12 @@ package com.pineypiney.game_engine.objects.transforms
 
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.maths.I
+import glm_.mat4x4.Mat4
 
 abstract class Transform<P, R, S>: Copyable<Transform<P, R, S>> {
 
-    var model = I
+    protected var dirtyModel = true
+    protected var model = I
 
     abstract var position: P
     abstract var rotation: R
@@ -15,6 +17,13 @@ abstract class Transform<P, R, S>: Copyable<Transform<P, R, S>> {
     abstract infix fun rotate(angle: R)
     abstract infix fun scale(mult: S)
 
+    fun fetchModel(): Mat4{
+        if(dirtyModel){
+            recalculateModel()
+            dirtyModel = false
+        }
+        return model
+    }
     protected abstract fun recalculateModel()
 
     operator fun component1() = position

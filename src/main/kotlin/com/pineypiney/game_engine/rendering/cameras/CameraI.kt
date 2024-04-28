@@ -23,8 +23,8 @@ interface CameraI: Initialisable {
     val range: Vec2
 
     fun updateAspectRatio()
-    fun getView(): Mat4
-    fun getProjection(): Mat4
+    fun getView(mat: Mat4 = Mat4()): Mat4
+    fun getProjection(mat: Mat4 = Mat4()): Mat4
     fun getSpan(): Vec2
     fun getRay(point: Vec2 = window.input.mouse.lastPos): Ray
 }

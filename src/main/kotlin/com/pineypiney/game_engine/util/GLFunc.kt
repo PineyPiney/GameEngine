@@ -11,6 +11,7 @@ import kool.DoubleBuffer
 import kool.FloatBuffer
 import kool.IntBuffer
 import org.lwjgl.opengl.ARBImaging.GL_BLEND_COLOR
+import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL30C.*
 import java.nio.ByteBuffer
 import java.nio.DoubleBuffer
@@ -21,12 +22,22 @@ class GLFunc {
 
     companion object{
 
+        val isLoaded get() = try{
+            GL.getCapabilities()
+            true
+        }
+        catch (e: IllegalStateException){
+            false
+        }
+
         var activeTexture: Int
             get() = glGetInteger(GL_ACTIVE_TEXTURE)
             set(value) = glActiveTexture(value)
         var blend: Boolean
             get() = glGetBoolean(GL_BLEND)
             set(value) = setBool(GL_BLEND, value)
+        val blendFuncSrc: Int get() = glGetInteger(GL_BLEND_SRC)
+        val blendFuncDst: Int get() = glGetInteger(GL_BLEND_DST)
         val blendFuncSrcRGB: Int get() = glGetInteger(GL_BLEND_SRC_RGB)
         val blendFuncSrcA: Int get() = glGetInteger(GL_BLEND_SRC_ALPHA)
         val blendFuncDstRGB: Int get() = glGetInteger(GL_BLEND_DST_RGB)
@@ -35,7 +46,7 @@ class GLFunc {
             get() = Vec4i(blendFuncSrcRGB, blendFuncSrcA, blendFuncDstRGB, blendFuncDstA)
             set(value) = glBlendFuncSeparate(value.x, value.y, value.z, value.w)
         var blendFunc: Vec2i
-            get() = Vec2i(blendFuncSrcRGB, blendFuncDstRGB)
+            get() = Vec2i(blendFuncSrc, blendFuncDst)
             set(value) = glBlendFunc(value.x, value.y)
         var blendColour: Vec4
             get() = Vec4(0, getFloats(GL_BLEND_COLOR, 4))

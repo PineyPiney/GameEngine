@@ -3,10 +3,8 @@ package com.pineypiney.game_engine.objects.text
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.components.TextRendererComponent
-import com.pineypiney.game_engine.objects.game_objects.OldGameObject
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.util.shapes.TextQuad
-import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.delete
@@ -51,11 +49,11 @@ open class Text(
 
     }
 
-    fun updateLines(renderer: RendererI<*>, parentAspect: Float){
+    fun updateLines(parentAspect: Float){
         if(fontSize > 0) size = fontSize
-        else fitWithin(Vec2(maxWidth * parentAspect, maxHeight), renderer)
+        else fitWithin(Vec2(maxWidth * parentAspect, maxHeight))
 
-        lines = generateLines(renderer, parentAspect)
+        lines = generateLines(parentAspect)
         lengths = lines.map { font.getWidth(it) }.toFloatArray()
         quads = font.getQuads(lines.joinToString("\n"), false).toTypedArray()
     }
@@ -71,19 +69,22 @@ open class Text(
     fun getWidth(range: IntRange): Float {
         return getWidth(text.substring(range))
     }
+    fun getHeight(): Float{
+        return getHeight(lines.joinToString("\n"))
+    }
 
-    fun getHeight(s: String = text): Float{
+    fun getHeight(s: String): Float{
         return font.getHeight(s) * size
     }
 
-    fun fitWithin(bounds: Vec2, renderer: RendererI<*>){
+    fun fitWithin(bounds: Vec2){
         val fSize = font.getSize(text)
         val fits = bounds / fSize
-        size = min(fits.x * renderer.aspectRatio, fits.y)
+        size = min(fits.x, fits.y)
     }
 
-    fun generateLines(renderer: RendererI<*>, parentAspect: Float): Array<String>{
-        val maxWidth = this.maxWidth * renderer.aspectRatio * parentAspect
+    fun generateLines(parentAspect: Float): Array<String>{
+        val maxWidth = this.maxWidth * parentAspect
         val lines = mutableListOf<String>()
         var currentText = ""
         var i = 0
@@ -196,7 +197,7 @@ open class Text(
             underlineOffset: Float = -0.2f,
             underlineAmount: Float = 1f,
         ): GameObject{
-            return object : OldGameObject() {
+            return object : GameObject() {
 
                 override fun addComponents() {
                     super.addComponents()

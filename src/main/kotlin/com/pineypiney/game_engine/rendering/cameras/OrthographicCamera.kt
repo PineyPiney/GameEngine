@@ -10,20 +10,20 @@ import kotlin.math.max
 
 open class OrthographicCamera(window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0), height: Float = 10f): Camera(window, pos, up) {
 
-    var height: Float = height
+    protected var height: Float = height
         set(value) { field = max(value, 0.001f) }
 
     fun screenToWorld(pos: Vec2): Vec2 {
-        return pos * getSpan() * 0.5 + Vec2(cameraPos)
+        return pos * height * 0.5 + Vec2(cameraPos)
     }
 
     fun worldToScreen(pos: Vec2): Vec2 {
         return (pos - Vec2(cameraPos)) / (getSpan() * 0.5)
     }
 
-    override fun getProjection(): Mat4{
+    override fun getProjection(mat: Mat4): Mat4{
         val extents = getSpan() / 2
-        return glm.ortho(-extents.x, extents.x, -extents.y, extents.y, range.x, range.y)
+        return glm.ortho(-extents.x, extents.x, -extents.y, extents.y, range.x, range.y, mat)
 
     }
 

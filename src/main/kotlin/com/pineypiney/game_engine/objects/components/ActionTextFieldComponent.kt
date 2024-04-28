@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.util.input.InputState
 import glm_.i
 
-open class ActionTextFieldComponent<E: TextFieldComponent>(parent: GameObject, textOffset: Float = 0f, textSize: Float = 1f, val updateType: Int = UPDATE_ON_FINISH, val action: (field: E, char: Char, input: Int) -> Unit): TextFieldComponent(parent, textOffset, textSize) {
+open class ActionTextFieldComponent<E: TextFieldComponent>(parent: GameObject, textSize: Float = 1f, val updateType: Int = UPDATE_ON_FINISH, val action: (field: E, char: Char, input: Int) -> Unit): TextFieldComponent(parent, textSize) {
 
     override fun type(char: Char) {
         super.type(char)

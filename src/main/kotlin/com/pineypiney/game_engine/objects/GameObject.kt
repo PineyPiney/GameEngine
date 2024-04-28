@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.objects
 
 import com.pineypiney.game_engine.objects.components.*
-import com.pineypiney.game_engine.objects.game_objects.OldGameObject
 import com.pineypiney.game_engine.objects.transforms.Transform3D
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.RendererI
@@ -9,6 +8,7 @@ import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.mat4x4.Mat4
@@ -20,7 +20,8 @@ import glm_.vec4.Vec4
 open class GameObject: Initialisable {
 
     open var name: String = "GameObject"
-    open var parent: GameObject? = null
+    var parent: GameObject? = null
+    var active = true
 
     // Every GameObject has a list of all object collections it is stored in.
     // This makes it easier to delete objects and make sure they are not being stored in random places
@@ -51,10 +52,19 @@ open class GameObject: Initialisable {
             transform.rotation = value
         }
 
-    val relativeModel: Mat4 get() = transform.model
+    var layer: Int = 0
+        set(value) {
+            objects?.let {
+                it[field].remove(this)
+                it.map.addToCollectionOr(value, this){ mutableSetOf() }
+            }
+            field = value
+        }
+    val relativeModel: Mat4 get() = transform.fetchModel()
     val worldModel: Mat4 get() = parent?.let { it.worldModel * relativeModel } ?: relativeModel
 
-    val renderer get() = getComponent<RenderedComponent>()
+    val renderer get() = getComponent<RenderedComponentI>()
+    val parentRenderSize get() = parent?.renderer?.renderSize ?: Vec2(1f, 1f)
 
     open fun addComponents(){
         components.add(transformComponent)
@@ -92,10 +102,11 @@ open class GameObject: Initialisable {
 
     // These function define where in an object collection an object is stored
     open fun addTo(objects: ObjectCollection){
-
+        objects.map.addToCollectionOr(layer, this) { mutableSetOf() }
     }
-    open fun removeFrom(objects: ObjectCollection){
 
+    open fun removeFrom(objects: ObjectCollection){
+        objects.map[layer]?.remove(this)
     }
 
     fun addChild(vararg children: GameObject){
@@ -106,9 +117,10 @@ open class GameObject: Initialisable {
         this.children.addAll(children.toSet())
         for(c in children) c.parent = this
     }
-    fun removeChild(vararg children: GameObject){
-        this.children.removeAll(children.toSet())
-        for(c in children) c.parent = null
+    fun removeChild(vararg children: GameObject?){
+        val childList = children.filterNotNull().toSet()
+        this.children.removeAll(childList)
+        for(c in childList) c.parent = null
     }
     fun removeChildren(children: Iterable<GameObject>){
         this.children.removeAll(children.toSet())
@@ -124,7 +136,7 @@ open class GameObject: Initialisable {
         return children.firstOrNull { it.name == parts[0] }?.getComponent(id.substring(parts[0].length + 1))
     }
 
-    inline fun <reified T: Component> getComponent(): T?{
+    inline fun <reified T: ComponentI> getComponent(): T?{
         return components.firstOrNull { it is T } as? T
     }
 
@@ -134,7 +146,7 @@ open class GameObject: Initialisable {
             return collider.transformedBox
         }
 
-        val renderer = getComponent<RenderedComponent>()
+        val renderer = this.renderer
         if(renderer != null){
             return renderer.shape transformedBy worldModel.scale(Vec3(renderer.renderSize, 1f))
         }
@@ -144,18 +156,27 @@ open class GameObject: Initialisable {
 
     fun allDescendants(set: MutableSet<GameObject> = mutableSetOf()): Set<GameObject>{
         set.add(this)
-        for(c in children) c.allDescendants(set)
+        for (c in children) c.allActiveDescendants(set)
+        return set
+    }
+
+    fun allActiveDescendants(set: MutableSet<GameObject> = mutableSetOf()): Set<GameObject>{
+        if(active) {
+            set.add(this)
+            for (c in children) c.allActiveDescendants(set)
+        }
         return set
     }
 
     override fun delete() {
-
+        objects?.map?.get(layer)?.remove(this)
+        objects = null
     }
 
     companion object{
 
-        fun simpleRenderedGameObject(shader: Shader, position: Vec3 = Vec3(), scale: Vec3 = Vec3(1f), shape: VertexShape = VertexShape.centerSquareShape, setUniformsFunc: RenderedComponent.() -> Unit): GameObject{
-            return object : OldGameObject(){
+        fun simpleRenderedGameObject(shader: Shader, position: Vec3 = Vec3(), scale: Vec3 = Vec3(1f), shape: VertexShape = VertexShape.centerSquareShape, setUniformsFunc: RenderedComponentI.() -> Unit): GameObject{
+            return object : GameObject(){
 
                 override fun addComponents() {
                     super.addComponents()
@@ -186,7 +207,7 @@ open class GameObject: Initialisable {
         }
 
         fun simpleTextureGameObject(texture: Texture, shape: VertexShape = VertexShape.centerSquareShape, shader: Shader = RenderedComponent.default2DShader): GameObject {
-            val o = object : OldGameObject(){
+            val o = object : GameObject(){
                 override fun addComponents() {
                     super.addComponents()
                     components.add(MeshedTextureComponent(this, texture, shader, shape))
@@ -197,7 +218,7 @@ open class GameObject: Initialisable {
         }
 
         fun simpleModelledGameObject(model: Model, shader: Shader = ModelRendererComponent.defaultShader, debug: Int = 0): GameObject {
-            val o = object : OldGameObject(){
+            val o = object : GameObject(){
                 override fun addComponents() {
                     super.addComponents()
                     components.add(ModelRendererComponent(this, model, shader).apply { this.debug = debug })
@@ -209,7 +230,7 @@ open class GameObject: Initialisable {
         }
 
         fun simpleLightObject(light: Light, render: Boolean = true): GameObject{
-            val o = object : OldGameObject(){
+            val o = object : GameObject(){
                 override fun addComponents() {
                     super.addComponents()
                     components.add(LightComponent(this, light))

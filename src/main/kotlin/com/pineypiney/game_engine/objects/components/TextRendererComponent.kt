@@ -13,7 +13,7 @@ import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-open class TextRendererComponent(parent: GameObject, val text: Text, shader: Shader): RenderedComponent(parent, shader) {
+open class TextRendererComponent(parent: GameObject, val text: Text, shader: Shader): RenderedComponent(parent, shader), UpdatingAspectRatioComponent {
 
     override val renderSize: Vec2 get() = Vec2(text.getWidth(), text.getHeight())
 
@@ -32,15 +32,14 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 
     override fun render(renderer: RendererI<*>, tickDelta: Double) {
         if(text.textChanged) {
-            text.updateLines(renderer, parent.transformComponent.worldScale.let { it.x / it.y })
+            text.updateLines(parent.transformComponent.worldScale.let { it.x / it.y })
             text.textChanged = false
         }
         if(text.lines.isEmpty()) return
 
         val parentAspect = parent.transformComponent.worldScale.let { it.y / it.x }
-        val aspectRatio = if(shader.hasProj) parentAspect else parentAspect / renderer.aspectRatio
 
-        val originModel = getFormattedOrigin(text.getWidth() * aspectRatio, text.getHeight())
+        val originModel = getFormattedOrigin(text.getWidth() * parentAspect, text.getHeight())
         val totalWidth = text.getWidth()
 
         var i = 0
@@ -49,8 +48,8 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
             shader.setUniforms(uniforms, renderer)
 
             val displayLine = line.trim()
-            val alignmentOffset = text.getAlignment(displayLine, totalWidth) * aspectRatio
-            val lineModel = originModel.translate(alignmentOffset, 0f, 0f).scale(text.size * aspectRatio, text.size, 1f)
+            val alignmentOffset = text.getAlignment(displayLine, totalWidth) * parentAspect
+            val lineModel = originModel.translate(alignmentOffset, 0f, 0f).scale(text.size * parentAspect, text.size, 1f)
 
             val firstIndex = i + line.indexOfFirst { it != ' ' }
             for(j in displayLine.indices){
@@ -110,8 +109,7 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
     }
 
     override fun updateAspectRatio(renderer: RendererI<*>) {
-        super.updateAspectRatio(renderer)
-        if(!shader.hasProj) text.updateLines(renderer, parent.parent?.transformComponent?.worldScale?.run { x / y } ?: 1f)
+        if(!shader.hasProj) text.updateLines(parent.parent?.transformComponent?.worldScale?.run { x / y } ?: 1f)
     }
 
     override fun delete() {

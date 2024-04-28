@@ -10,8 +10,8 @@ open class GamepadInput(val input: Inputs, key: GLFWJoystickCallbackI? = null) {
     private val joystickCallback = key ?: object : GLFWJoystickCallback() {
         override fun invoke(jid: Int, event: Int) {
             when(event){
-                GLFW_CONNECTED -> connectedGamepads.add(GamePad(jid, input))
-                GLFW_DISCONNECTED -> connectedGamepads.removeIf{ it.id == jid }
+                GLFW_CONNECTED -> onControllerConnect(jid)
+                GLFW_DISCONNECTED -> onControllerDisconnect(jid)
             }
         }
 
@@ -25,12 +25,29 @@ open class GamepadInput(val input: Inputs, key: GLFWJoystickCallbackI? = null) {
 
         // GLFW supports up to 16 connected gamepads, at the beginning iterate through each and check if it is connected
         for(i in 0..15){
-            if(glfwJoystickPresent(i)) connectedGamepads.add(GamePad(i, input))
+            if(glfwJoystickPresent(i)) connectedGamepads.add(createController(i))
         }
     }
 
     // Because GLFW doesn't have a callback for gamepad inputs they must be surveyed every render loop
     fun input(){
         for(gamepad in connectedGamepads) gamepad.input()
+    }
+
+    fun onControllerConnect(jid: Int){
+        connectedGamepads.add(createController(jid))
+    }
+
+    fun onControllerDisconnect(jid: Int){
+        connectedGamepads.removeIf{ it.id == jid }
+    }
+
+    fun createController(id: Int): GamePad{
+        val name = glfwGetGamepadName(id)
+        return when(name){
+            "PS5 Controller" -> PS5Controller(id, input)
+            "PS4 Controller" -> PS4Controller(id, input)
+            else -> GamePad(id, input)
+        }
     }
 }

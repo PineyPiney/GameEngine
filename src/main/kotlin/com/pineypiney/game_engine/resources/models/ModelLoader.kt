@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.resources.models.pgm.*
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.addToListOr
+import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
 import com.pineypiney.game_engine.util.extension_functions.combineLists
 import com.pineypiney.game_engine.util.extension_functions.transformedBy
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
@@ -447,7 +447,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
                 val rotation = if(rotArray.size > i) rotArray[i] else Vec3()
 
                 // Initialise list if it doesn't yet exist, and don't forget to convert degrees to radians
-                stateMap.addToListOr(time,
+                stateMap.addToCollectionOr(time,
                     BoneState(bone.removePrefix("Animation_"), translation, rotation * -PI.f / 180f),
                 ){ mutableListOf() }
             }
@@ -499,7 +499,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
                 val order = if(orderArray.size > i) orderArray[i] else geo?.order ?: 0
 
                 // Initialise list if it doesn't yet exist, and don't forget to convert degrees to radians
-                stateMap.addToListOr(time,
+                stateMap.addToCollectionOr(time,
                     MeshState(mesh.removePrefix("Animation_"), translation, Quat(rotation * -PI.f / 180f).inverse(), alpha, order),
                 ){ mutableListOf() }
             }

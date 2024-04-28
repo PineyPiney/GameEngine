@@ -1,28 +1,31 @@
 package com.pineypiney.game_engine.objects.util.shapes
 
+import com.pineypiney.game_engine.util.GLFunc
 import org.lwjgl.opengl.GL31C.*
 
 abstract class IndicesShape(vertices: FloatArray, parts: IntArray, indices: IntArray): VertexShape() {
 
-    private val VBO = glGenBuffers()
-    private val EBO = glGenBuffers()
+    private val VBO = if(GLFunc.isLoaded) glGenBuffers() else -1
+    private val EBO = if(GLFunc.isLoaded) glGenBuffers() else -1
     override val size: Int = indices.size
 
     init{
-        glBindVertexArray(VAO)
+        if(GLFunc.isLoaded) {
+            glBindVertexArray(VAO)
 
-        glBindBuffer(GL_ARRAY_BUFFER, VBO)
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+            glBindBuffer(GL_ARRAY_BUFFER, VBO)
+            glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
-        // How to read non-indices array
-        setAttribs(parts)
+            // How to read non-indices array
+            setAttribs(parts)
 
-        glBindVertexArray(0)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+            glBindVertexArray(0)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+        }
     }
 
     override fun bind() {

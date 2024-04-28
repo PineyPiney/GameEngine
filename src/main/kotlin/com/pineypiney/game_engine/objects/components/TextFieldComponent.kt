@@ -22,11 +22,10 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-open class TextFieldComponent(parent: GameObject, textOffset: Float = 0f, textSize: Float = 1f): InteractorComponent(parent, "TXF"), UpdatingComponent {
+open class TextFieldComponent(parent: GameObject, textSize: Float = 1f): DefaultInteractorComponent(parent, "TXF"), UpdatingComponent {
 
     open var allowed = all
 
-    private var textPos = Vec2(0f, textOffset)
     var text: String
         get() = textBox.getComponent<TextRendererComponent>()!!.text.text
         set(value) {
@@ -37,14 +36,14 @@ open class TextFieldComponent(parent: GameObject, textOffset: Float = 0f, textSi
     var textBox = object : MenuItem() {
         override fun addComponents() {
             super.addComponents()
-            components.add(TextFieldText(this, Text("", fontSize = textSize), fieldShader))
+            components.add(TextFieldText(this, Text("", maxWidth = Float.MAX_VALUE, fontSize = textSize), fieldShader))
         }
     }
 
     private var caretObject = object : MenuItem(){
         override fun addComponents() {
             super.addComponents()
-            components.add(CaretRendererComponent(this, Vec4(.2f, .2f, .2f, 1f), translucentColourShader, VertexShape.cornerSquareShape))
+            components.add(CaretRendererComponent(this, Vec4(.2f, .2f, .2f, 1f), ColourRendererComponent.menuShader, VertexShape.cornerSquareShape))
         }
 
         override fun init() {
@@ -76,7 +75,7 @@ open class TextFieldComponent(parent: GameObject, textOffset: Float = 0f, textSi
         }
         else if(this.pressed){
             this.forceUpdate = true
-            placeCaret(cursorPos, window)
+            placeCaret(cursorPos)
         }
         return action
     }
@@ -155,7 +154,7 @@ open class TextFieldComponent(parent: GameObject, textOffset: Float = 0f, textSi
         }
     }
 
-    private fun placeCaret(cursorPos: Vec2, window: WindowI){
+    private fun placeCaret(cursorPos: Vec2){
         if(text.isEmpty()) {
             caret = 0
             return
@@ -163,7 +162,7 @@ open class TextFieldComponent(parent: GameObject, textOffset: Float = 0f, textSi
         var i = 1
         val textRenderer = textBox.getComponent<TextRendererComponent>()!!
         val relativeX = (cursorPos.x - textBox.transformComponent.worldPosition.x) / parent.transformComponent.worldScale.x
-        val ar = (parent.getComponent<RenderedComponent>()!!.renderSize * Vec2(parent.transformComponent.worldScale)).run { (x * window.aspectRatio) / y }
+        val ar = (parent.getComponent<RenderedComponent>()!!.renderSize * Vec2(parent.transformComponent.worldScale)).run { x / y }
         val scaledX = relativeX * ar
         while(i < text.length && (textRenderer.text.getWidth(text.substring(0, i)) < scaledX)) i++
 

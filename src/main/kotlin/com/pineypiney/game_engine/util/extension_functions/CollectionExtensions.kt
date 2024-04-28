@@ -211,7 +211,7 @@ fun <E, T> MutableMap<E, T>.getOrSet(key: E, create: (key: E) -> T): T{
  * @param [value] The value to add to the collection at [key]
  * @param [create] The constructor to create a new mutable collection with
  */
-fun <K, V: MutableCollection<E>, E> MutableMap<K, V>.addToListOr(key: K, value: E, create: (key: K) -> V){
+fun <K, V: MutableCollection<E>, E> MutableMap<K, V>.addToCollectionOr(key: K, value: E, create: (key: K) -> V){
     this.putIfAbsent(key, create(key))
     this[key]?.add(value)
 }

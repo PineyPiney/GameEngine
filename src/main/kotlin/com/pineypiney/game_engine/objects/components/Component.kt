@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.game_objects.GameObject2D
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
@@ -14,24 +13,83 @@ import glm_.vec1.Vec1Vars
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
+import kotlin.reflect.KParameter
+import kotlin.reflect.full.isSupertypeOf
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.javaType
 
-abstract class Component(val id: String, val parent: GameObject): Initialisable {
+abstract class Component(final override val parent: GameObject, override val id: String): ComponentI {
 
-    abstract val fields: Array<Field<*>>
     val parentPath = parent
 
     override fun init(){
 
     }
 
-    fun setValue(key: String, value: String){
+    override fun setValue(key: String, value: String){
         val field = fields.firstOrNull { it.id == key } ?: return
         field.set(this, value)
     }
 
-    fun <F: Field<*>> getField(id: String): F?{
+    override fun <F: Field<*>> getField(id: String): F?{
         val f = fields.firstOrNull { it.id == id } ?: return null
         return f as? F
+    }
+
+    @Throws(InstantiationError::class)
+    override fun copy(newParent: GameObject): Component{
+        val clazz = this::class
+        val constructors = clazz.constructors
+
+        val oClass = GameObject::class.java
+        val smallConst = constructors.firstOrNull { it.parameters.size == 1 && it.parameters[0].type.javaType == oClass }
+
+        val newComponent: Component =
+            if(smallConst != null) smallConst.call(newParent)
+            else{
+                val constructor = clazz.primaryConstructor ?: constructors.first()
+                val params = mutableMapOf<KParameter, Any?>()
+
+                for(param in constructor.parameters){
+                    if(param.type.javaType == oClass) params[param] = newParent
+                    else {
+                        val memberProperty = clazz.memberProperties.firstOrNull { it.name == param.name && it.returnType.isSupertypeOf(param.type) }
+                        if(memberProperty != null) params[param] = memberProperty.call(this)
+                        else {
+                            throw InstantiationError("Could not copy Component Class $clazz, did not have a default constructor and could not find backing field for parameter ${param.name}")
+                        }
+                    }
+                }
+
+                constructor.callBy(params)
+            }
+
+        copyFieldsTo(newComponent)
+        return newComponent
+    }
+
+    override fun copyFieldsTo(dst: ComponentI){
+        for(f in fields){
+            copyFieldTo(dst, f)
+        }
+    }
+
+    override fun <T> copyFieldTo(dst: ComponentI, field: Field<T>){
+        val dstField = getMatchingField(dst, field)
+        if(dstField == null) {
+            GameEngineI.warn("Copying component $this, $dst did not have field ${field.id}")
+            return
+        }
+        field.copyTo(dstField)
+    }
+
+    override fun <T> getMatchingField(other: ComponentI, field: Field<T>): Field<T>?{
+        return try{
+            other.fields.firstOrNull{ it.id == field.id } as? Field<T>
+        } catch (e: Exception){
+            null
+        }
     }
 
     override fun delete() {
@@ -42,9 +100,17 @@ abstract class Component(val id: String, val parent: GameObject): Initialisable 
         return "Component[$id]"
     }
 
-    open class Field<T>(val id: String, val editor: FieldCreator<T>, val getter: () -> T, val setter: (T) -> Unit, val serialise: (T) -> String, val parse: (Component, String) -> T?){
+    open class Field<T>(val id: String, val editor: FieldCreator<T>, val getter: () -> T, val setter: (T) -> Unit, val serialise: (T) -> String, val parse: (Component, String) -> T?, val copy: (T) -> T = { it }){
         fun set(component: Component, value: String){
             setter(parse(component, value) ?: return)
+        }
+
+        fun copyTo(other: Field<T>){
+            other.setter(copy(getter()))
+        }
+
+        override fun toString(): String {
+            return "ComponentField[$id]"
         }
     }
 
@@ -74,6 +140,30 @@ abstract class Component(val id: String, val parent: GameObject): Initialisable 
             }
         }
     }
+    class DoubleField(id: String, getter: () -> Double, setter: (Double) -> Unit): Field<Double>(id,
+        ::DoubleFieldEditor, getter, setter,
+        ::double2String, { _, s -> string2Float(s) }){
+
+        companion object{
+            fun double2String(d: Double): String{
+                val n = d.asLongBits
+                val a = CharArray(8){x -> ((n shr (56 - (x * 8))) and 255).c}
+                return String(a)
+            }
+            fun string2Float(s: String): Double{
+                var i = 0L
+                for(a in 0..7){
+                    try {
+                        i += s[a].i shl (56 - (a * 8))
+                    }
+                    catch (e: StringIndexOutOfBoundsException){
+                        GameEngineI.logger.warn("Couldn't parse encoded double string $s length ${s.length}")
+                    }
+                }
+                return Double.fromBits(i)
+            }
+        }
+    }
     class BooleanField(id: String, getter: () -> Boolean, setter: (Boolean) -> Unit): Field<Boolean>(id,
         ::DefaultFieldEditor, getter, setter, { b -> b.i.toString() }, { _, s -> s.toBoolean() })
     class Vec2Field(id: String, getter: () -> Vec2, setter: (Vec2) -> Unit): Field<Vec2>(id,
@@ -84,19 +174,19 @@ abstract class Component(val id: String, val parent: GameObject): Initialisable 
         catch (e: NumberFormatException){
             Vec2()
         }
-    })
+    }, { Vec2(it.x, it.y) })
     class Vec3Field(id: String, getter: () -> Vec3, setter: (Vec3) -> Unit): Field<Vec3>(id,
         ::Vec3FieldEditor, getter, setter, { v -> v.toString(",", FloatField.Companion::float2String) }, { _, s -> Vec3.fromString(s, false,
             FloatField.Companion::string2Float
-        ) })
+        ) }, { Vec3(it.x, it.y, it.z) })
     class Vec4Field(id: String, getter: () -> Vec4, setter: (Vec4) -> Unit): Field<Vec4>(id,
         ::Vec4FieldEditor, getter, setter, { v -> v.toString(",", FloatField.Companion::float2String) }, { _, s -> Vec4.fromString(s, false,
             FloatField.Companion::string2Float
-        ) })
+        ) }, { Vec4(it.x, it.y, it.z, it.w)})
     class QuatField(id: String, getter: () -> Quat, setter: (Quat) -> Unit): Field<Quat>(id,
         ::QuatFieldEditor, getter, setter, { q -> q.toString(",", FloatField.Companion::float2String) }, { _, s -> Quat.fromString(s, false,
             FloatField.Companion::string2Float
-        ) })
+        ) }, { Quat(it.w, it.x, it.y, it.z) })
     class GameObjectField<T: GameObject?>(id: String, getter: () -> T, setter: (T) -> Unit): Field<T>(id,
         ::DefaultFieldEditor, getter, setter,
         Companion::serialise,
@@ -172,6 +262,28 @@ abstract class Component(val id: String, val parent: GameObject): Initialisable 
         val textField = ActionTextField<TextFieldComponent>(Vec2(0f, 0f), Vec2(1f, 1f)){ f, _, _ ->
             try{
                 val value = java.lang.Float.parseFloat(f.text)
+                field.setter(value)
+                callback(fullId, field.serialise(value))
+            }
+            catch (_: NumberFormatException){
+
+            }
+        }
+
+        override fun addChildren() {
+            addChild(textField)
+        }
+
+        override fun update() {
+            textField.text = field.getter().toString()
+        }
+    }
+
+    open class DoubleFieldEditor(component: Component, id: String, origin: Vec2, size: Vec2, callback: (String, String) -> Unit): FieldEditor<Double, DoubleField>(component, id, origin, size){
+
+        val textField = ActionTextField<TextFieldComponent>(Vec2(0f, 0f), Vec2(1f, 1f)){ f, _, _ ->
+            try{
+                val value = java.lang.Double.parseDouble(f.text)
                 field.setter(value)
                 callback(fullId, field.serialise(value))
             }

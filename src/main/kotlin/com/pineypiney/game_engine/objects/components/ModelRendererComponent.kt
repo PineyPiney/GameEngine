@@ -5,6 +5,9 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.util.collision.CollisionBoxRenderer
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
+import com.pineypiney.game_engine.rendering.lighting.PointLight
+import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.resources.models.Bone
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
@@ -12,10 +15,13 @@ import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.filterValueIsInstance
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
+import glm_.vec3.Vec3
+import kotlin.math.min
 
 open class ModelRendererComponent(parent: GameObject, var model: Model, shader: Shader = defaultShader): RenderedComponent(parent, shader) {
 
@@ -31,12 +37,18 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
 
     var debug = 0
 
+    val colliderRenderer = CollisionBoxRenderer(parent)
 
     constructor(parent: GameObject): this(parent, Model.brokeModel)
 
     override val fields: Array<Field<*>> = arrayOf(
         Field("mdl", ::DefaultFieldEditor, ::model, { model = it }, { it.name.substringBefore('.') }, { _, s -> ModelLoader[ResourceKey(s)]} )
     )
+
+    override fun init() {
+        super.init()
+        parent.addChild(colliderRenderer)
+    }
 
     override fun render(renderer: RendererI<*>, tickDelta: Double) {
         shader.setUp(uniforms, renderer)
@@ -46,14 +58,26 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
 
         for(mesh in model.meshes) {
             mesh.setMaterial(shader)
-            val newModel = parent.worldModel * mesh.transform.model
+            val newModel = parent.worldModel * mesh.transform.fetchModel()
             shader.setMat4("model", newModel)
 
             mesh.bindAndDraw()
         }
 
         if(debug and Model.DEBUG_BONES > 0) renderBones(parent, renderer.view, renderer.projection)
-        if(debug and Model.DEBUG_COLLIDER > 0) renderCollider(parent, renderer)
+        colliderRenderer.renderer?.visible = debug and Model.DEBUG_COLLIDER > 0
+    }
+
+    fun setLightUniforms(){
+        val lights = (parent.objects ?: return).getAllComponents().filterIsInstance<LightComponent>().filter { it.light.on }
+        lights.firstOrNull { it.light is DirectionalLight }?.setShaderUniforms(shader, "dirLight")
+        val pointLights = lights.associate { it.parent.position to it.light }.filterValueIsInstance<Vec3, PointLight>().entries.sortedByDescending { (it.key - parent.position).length() / it.value.linear }
+        for(l in 0..<min(4, pointLights.size)){
+            val name = "pointLights[$l]"
+            shader.setVec3("$name.position", pointLights[l].key)
+            pointLights[l].value.setShaderUniforms(shader, name)
+        }
+        lights.firstOrNull { it.light is SpotLight }?.setShaderUniforms(shader, "spotlight")
     }
 
     fun renderBones(parent: GameObject, view: Mat4, projection: Mat4){
@@ -67,15 +91,6 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
 
         val bones: List<Bone> = model.rootBone?.getAllChildren() ?: listOf()
         for(it in bones) { it.render(boneShader, parent.worldModel) }
-    }
-
-    fun renderCollider(parent: GameObject, renderer: RendererI<*>){
-        val collider = parent.getComponent<ColliderComponent>()
-        if(collider != null) {
-            val crenderer = CollisionBoxRenderer(collider)
-            crenderer.setUniforms()
-            crenderer.render(renderer)
-        }
     }
 
     fun initAnimation(animation: ModelAnimation, loop: Boolean = true){

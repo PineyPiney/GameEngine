@@ -1,13 +1,13 @@
 package com.pineypiney.game_engine.objects.components.slider
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.InteractorComponent
+import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicSliderPointer
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-open class SliderComponent(parent: GameObject, protected open val low: Float, protected open val high: Float, value: Float): InteractorComponent(parent, "SLD") {
+open class SliderComponent(parent: GameObject, protected open val low: Float, protected open val high: Float, value: Float): DefaultInteractorComponent(parent, "SLD") {
 
     open var value: Float = value
         set(value) {
@@ -35,7 +35,7 @@ open class SliderComponent(parent: GameObject, protected open val low: Float, pr
     }
 
     override fun checkHover(ray: Ray, screenPos: Vec2): Boolean {
-        return super.checkHover(ray, screenPos) || pointer.getComponent<InteractorComponent>()!!.checkHover(ray, screenPos)
+        return super.checkHover(ray, screenPos) || pointer.getComponent<DefaultInteractorComponent>()!!.checkHover(ray, screenPos)
     }
 
     open fun moveSliderTo(move: Float){

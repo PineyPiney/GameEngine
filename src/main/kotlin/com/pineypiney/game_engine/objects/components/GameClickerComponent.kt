@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 
-class GameClickerComponent(parent: GameObject, val primaryClick: () -> Unit = {}, val secondaryClick: () -> Unit = {}): InteractorComponent(parent, "CLK") {
+class GameClickerComponent(parent: GameObject, val primaryClick: () -> Unit = {}, val secondaryClick: () -> Unit = {}): DefaultInteractorComponent(parent, "CLK") {
 
     override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
         val p = super.onPrimary(window, action, mods, cursorPos)

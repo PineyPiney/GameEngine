@@ -1,17 +1,24 @@
 package com.pineypiney.game_engine_test
 
+import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.components.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.RenderedComponent
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
 import com.pineypiney.game_engine.rendering.FrameBuffer
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
+import glm_.glm
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL11C.*
 
 class Renderer<R: CameraI>(override val window: WindowI, override val camera: R): BufferedGameRenderer<WindowGameLogic>() {
+
+    override val view = I
+    override val projection = I
+    override val guiProjection = I
 
     override fun init() {
         super.init()
@@ -24,12 +31,12 @@ class Renderer<R: CameraI>(override val window: WindowI, override val camera: R)
 
     override fun render(game: WindowGameLogic, tickDelta: Double) {
 
-        view = camera.getView()
-        projection = camera.getProjection()
+        camera.getView(view)
+        camera.getProjection(projection)
 
         clearFrameBuffer()
         GLFunc.depthTest = true
-        for(o in game.gameObjects.gameItems.flatMap { it.allDescendants() }) {
+        for(o in game.gameObjects.gameItems.flatMap { it.allActiveDescendants() }) {
             val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
             if(renderedComponents.isNotEmpty()){
                 for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
@@ -38,7 +45,7 @@ class Renderer<R: CameraI>(override val window: WindowI, override val camera: R)
         }
 
         GLFunc.depthTest = false
-        for(o in game.gameObjects.guiItems.flatMap { it.allDescendants() }) {
+        for(o in game.gameObjects.guiItems.flatMap { it.allActiveDescendants() }) {
             val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
             if(renderedComponents.isNotEmpty()){
                 for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
@@ -53,5 +60,11 @@ class Renderer<R: CameraI>(override val window: WindowI, override val camera: R)
         screenShader.setUniforms(screenUniforms, this)
         buffer.draw()
         glClear(GL_DEPTH_BUFFER_BIT)
+    }
+
+    override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
+        super.updateAspectRatio(window, objects)
+        val w = window.aspectRatio
+        glm.ortho(-w, w, -1f, 1f, guiProjection)
     }
 }

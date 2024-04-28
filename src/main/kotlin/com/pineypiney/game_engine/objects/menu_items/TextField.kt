@@ -14,7 +14,7 @@ open class TextField(origin: Vec2, size: Vec2, val textOffset: Float = 0f, val t
 
     override fun addComponents() {
         super.addComponents()
-        components.add(TextFieldComponent(this, textOffset, textSize))
-        components.add(ColourRendererComponent(this, Vec4(0.5f, .5f, .5f, 1f), translucentColourShader, VertexShape.cornerSquareShape))
+        components.add(TextFieldComponent(this, textSize))
+        components.add(ColourRendererComponent(this, Vec4(0.5f, .5f, .5f, 1f), ColourRendererComponent.menuShader, VertexShape.cornerSquareShape))
     }
 }

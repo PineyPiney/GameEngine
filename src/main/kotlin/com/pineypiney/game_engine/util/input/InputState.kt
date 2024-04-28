@@ -18,6 +18,13 @@ class InputState(val key: Short, val controlType: ControlType = ControlType.KEYB
     val caps get() = (this.mods and GLFW_MOD_CAPS_LOCK) > 0
     val num get() = (this.mods and GLFW_MOD_NUM_LOCK) > 0
 
+    infix fun triggers(other: InputState): Boolean{
+        return if(other.mods == 0.b) this.removeMods() == other
+        else this == other
+    }
+
+    fun removeMods() = InputState(key, controlType)
+
     override fun equals(other: Any?): Boolean {
         (other as? InputState)?.let {
             return other.key == this.key &&
@@ -222,11 +229,7 @@ class InputState(val key: Short, val controlType: ControlType = ControlType.KEYB
             Pair(GLFW_GAMEPAD_BUTTON_DPAD_UP      , "GAMEPAD_BUTTON_DPAD_UP"),
             Pair(GLFW_GAMEPAD_BUTTON_DPAD_RIGHT   , "GAMEPAD_BUTTON_DPAD_RIGHT"),
             Pair(GLFW_GAMEPAD_BUTTON_DPAD_DOWN    , "GAMEPAD_BUTTON_DPAD_DOWN"),
-            Pair(GLFW_GAMEPAD_BUTTON_DPAD_LEFT    , "GAMEPAD_BUTTON_DPAD_LEFT"),
-            Pair(GLFW_GAMEPAD_BUTTON_CROSS        , "GLFW_GAMEPAD_BUTTON_CROSS"),
-            Pair(GLFW_GAMEPAD_BUTTON_CIRCLE       , "GLFW_GAMEPAD_BUTTON_CIRCLE"),
-            Pair(GLFW_GAMEPAD_BUTTON_SQUARE       , "GLFW_GAMEPAD_BUTTON_SQUARE"),
-            Pair(GLFW_GAMEPAD_BUTTON_TRIANGLE     , "GLFW_GAMEPAD_BUTTON_TRIANGLE")
+            Pair(GLFW_GAMEPAD_BUTTON_DPAD_LEFT    , "GAMEPAD_BUTTON_DPAD_LEFT")
         ).mapKeys { it.key.s }
 
         // Gamepad Axis Control Names

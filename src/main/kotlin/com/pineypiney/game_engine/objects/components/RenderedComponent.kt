@@ -2,32 +2,22 @@ package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
-import com.pineypiney.game_engine.rendering.lighting.PointLight
-import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.filterValueIsInstance
-import com.pineypiney.game_engine.util.maths.shapes.Shape
-import glm_.vec2.Vec2
-import glm_.vec3.Vec3
-import kotlin.math.min
 
-abstract class RenderedComponent(parent: GameObject, s: Shader): Component("RND", parent) {
+abstract class RenderedComponent(parent: GameObject, s: Shader): Component(parent, "RND"), RenderedComponentI {
 
-    var visible = true
-    abstract val renderSize: Vec2
-    abstract val shape: Shape
+    final override var visible = true
 
-    var shader: Shader = s
+    final override var shader: Shader = s
         set(value) {
             field = value
             uniforms = field.compileUniforms()
         }
 
-    var uniforms: Uniforms = shader.compileUniforms()
+    final override var uniforms: Uniforms = shader.compileUniforms()
         set(value) {
             field = value
             setUniforms()
@@ -44,28 +34,13 @@ abstract class RenderedComponent(parent: GameObject, s: Shader): Component("RND"
         setUniforms()
     }
 
-    open fun setUniforms(){
+    override fun setUniforms(){
         if(shader.hasView) uniforms.setMat4UniformR("view", RendererI<*>::view)
         if(shader.hasProj) uniforms.setMat4UniformR("projection", RendererI<*>::projection)
+        if(shader.hasGUI) uniforms.setMat4UniformR("guiProjection", RendererI<*>::guiProjection)
         if(shader.hasPort) uniforms.setVec2iUniformR("viewport", RendererI<*>::viewportSize)
         if(shader.hasPos) uniforms.setVec3UniformR("viewPos", RendererI<*>::viewPos)
         uniforms.setMat4Uniform("model", parent::worldModel)
-    }
-
-    abstract fun render(renderer: RendererI<*>, tickDelta: Double)
-
-    open fun updateAspectRatio(renderer: RendererI<*>){}
-
-    fun setLightUniforms(){
-        val lights = (parent.objects ?: return).getAllComponents().filterIsInstance<LightComponent>().filter { it.light.on }
-        lights.firstOrNull { it.light is DirectionalLight }?.setShaderUniforms(shader, "dirLight")
-        val pointLights = lights.associate { it.parent.position to it.light }.filterValueIsInstance<Vec3, PointLight>().entries.sortedByDescending { (it.key - parent.position).length() / it.value.linear }
-        for(l in 0..<min(4, pointLights.size)){
-            val name = "pointLights[$l]"
-            shader.setVec3("$name.position", pointLights[l].key)
-            pointLights[l].value.setShaderUniforms(shader, name)
-        }
-        lights.firstOrNull { it.light is SpotLight }?.setShaderUniforms(shader, "spotlight")
     }
 
     companion object{

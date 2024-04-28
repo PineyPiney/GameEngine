@@ -6,9 +6,8 @@ import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import glm_.vec3.swizzle.xy
 
-class ColliderComponent(parent: GameObject, val box: Rect2D): Component("C2D", parent) {
+class ColliderComponent(parent: GameObject, val box: Rect2D): Component(parent, "C2D") {
 
     constructor(parent: GameObject2D): this(parent, Rect2D(Vec2(), Vec2(1)))
 
@@ -38,7 +37,7 @@ class ColliderComponent(parent: GameObject, val box: Rect2D): Component("C2D", p
 
         // Create a temporary collision box in the new position to calculate collisions
         val newCollision = transformedBox
-        newCollision.origin plusAssign (movement / parent.scale.xy)
+        newCollision.origin plusAssign movement
 
         // Iterate over all collision boxes sharing object collections and
         // eject this collision boxes object if the collision boxes collide

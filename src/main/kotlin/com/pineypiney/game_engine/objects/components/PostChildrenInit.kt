@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects.components
 
-interface PostChildrenInit {
+interface PostChildrenInit: ComponentI {
 
     fun postChildrenInit()
 }

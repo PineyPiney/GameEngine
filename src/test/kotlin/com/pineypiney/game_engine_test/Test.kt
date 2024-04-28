@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.ColliderComponent
 import com.pineypiney.game_engine.objects.components.SpriteComponent
-import com.pineypiney.game_engine.objects.game_objects.OldGameObject
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
@@ -78,7 +77,7 @@ class Test{
 }
 
 fun createSnake(): GameObject{
-    return object : OldGameObject() {
+    return object : GameObject() {
 
         override var name: String = "Snake"
 

@@ -4,15 +4,17 @@ import com.pineypiney.game_engine.objects.components.ColliderComponent
 import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.UpdatingComponent
-import com.pineypiney.game_engine.objects.game_objects.OldGameObject
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
+import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 
 open class ObjectCollection {
 
-    open val gameItems = mutableSetOf<OldGameObject>()
-    open val guiItems = mutableSetOf<MenuItem>()
+    open val map = mutableMapOf<Int, MutableSet<GameObject>>()
+
+
+    open val gameItems get() = get(0)
+    open val guiItems get() = get(1)
 
     open fun addObject(o: GameObject?){
         // Add the object to this
@@ -36,12 +38,17 @@ open class ObjectCollection {
         }
     }
 
-    open fun getAllObjects(): Set<GameObject>{
-        return (guiItems + gameItems).flatMap { it.allDescendants() }.toSet()
+    open fun getAllObjects(includeInactive: Boolean = false): Set<GameObject>{
+        val func: GameObject.() -> Set<GameObject> = if(includeInactive) GameObject::allDescendants else GameObject::allActiveDescendants
+        return map.values.flatten().flatMap(func).toSet()
     }
 
     open fun getAllComponents(): Set<Component>{
-        return (guiItems + gameItems).flatMap { o -> o.allDescendants().flatMap { it.components } }.toSet()
+        return map.flatMap { (_, s) -> s.flatMap{ o -> o.allActiveDescendants().flatMap { it.components } } }.toSet()
+    }
+
+    inline fun <reified T: Component> getAllComponentInstances(): Set<T>{
+        return getAllObjects().mapNotNull { it.getComponent<T>() }.toSet()
     }
 
     fun getAllInteractables(sort: Boolean = true): Set<InteractorComponent>{
@@ -51,6 +58,12 @@ open class ObjectCollection {
 
     fun getAllCollisions(): Set<ColliderComponent>{
         return getAllObjects().mapNotNull { it.getComponent<ColliderComponent>() }.toSet()
+    }
+
+    operator fun get(layer: Int) = map[layer] ?: mutableSetOf()
+    operator fun set(layer: Int, set: MutableSet<GameObject>){ map[layer] = set }
+    operator fun set(layer: Int, obj: GameObject){
+        map.addToCollectionOr(layer, obj){ mutableSetOf() }
     }
 
     fun delete(){

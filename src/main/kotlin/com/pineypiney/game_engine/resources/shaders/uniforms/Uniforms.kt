@@ -56,6 +56,22 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
         set<FloatsUniform, FloatArray>(name, getter)
     }
 
+    fun setDoubleUniformR(name: String, getter: (RendererI<*>) -> Double){
+        set<DoubleUniform, Double>(name, getter)
+    }
+
+    fun setDoubleUniform(name: String, getter: () -> Double){
+        set<DoubleUniform, Double>(name, getter)
+    }
+
+    fun setDoublesUniformR(name: String, getter: (RendererI<*>) -> DoubleArray){
+        set<DoublesUniform, DoubleArray>(name, getter)
+    }
+
+    fun setDoublesUniform(name: String, getter: () -> DoubleArray){
+        set<DoublesUniform, DoubleArray>(name, getter)
+    }
+
     fun setVec2UniformR(name: String, getter: (RendererI<*>) -> Vec2t<*>){
         set<Vec2Uniform, Vec2t<*>>(name, getter)
     }
@@ -162,6 +178,10 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
 
     override fun toString(): String {
         return "Uniforms[" + uniforms.joinToString { it.name } + ']'
+    }
+
+    fun allValues(rendererI: RendererI<*>): Map<String, Any?>{
+        return uniforms.associate { it.name to it.getter(rendererI) }
     }
 
     companion object{

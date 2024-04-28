@@ -1,15 +1,14 @@
 package com.pineypiney.game_engine.objects.game_objects
 
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.normal
-import glm_.i
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import glm_.vec3.Vec3t
 import glm_.vec3.swizzle.xy
 
-abstract class GameObject2D : OldGameObject() {
+abstract class GameObject2D : GameObject() {
 
     open var velocity2D: Vec2
         get() = Vec2( transformComponent.velocity)
@@ -30,16 +29,6 @@ abstract class GameObject2D : OldGameObject() {
         set(value){
             transform.rotation.w = value
         }
-
-    // Items are rendered in order of depth, from inf to -inf
-    open var depth: Int
-        get() = transformComponent.depth
-        set(value) { transformComponent.depth = value }
-
-    fun setPosition(pos: Vec3t<*>){
-        position2D = Vec2(pos)
-        depth = pos.z.i
-    }
 
     fun translate(move: Vec2){
         transform translate Vec3(move, 0f)

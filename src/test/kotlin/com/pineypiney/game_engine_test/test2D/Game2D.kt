@@ -10,7 +10,6 @@ import com.pineypiney.game_engine.objects.components.scrollList.ScrollListCompon
 import com.pineypiney.game_engine.objects.components.slider.ColourSliderRendererComponent
 import com.pineypiney.game_engine.objects.game_objects.GameObject2D
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
 import com.pineypiney.game_engine.objects.menu_items.slider.ColourSlider
@@ -71,16 +70,16 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     private val bc = Rect2D(b.position.xy, 0.6f, 0.2f)
 
     var squareColour = Vec4()
-    private val cursorSquare = GameObject.simpleRenderedGameObject(MenuItem.translucentColourShader, Vec3(), Vec3(0.1f, 0.1f * window.aspectRatio, 1f)){
+    private val cursorSquare = GameObject.simpleRenderedGameObject(ColourRendererComponent.menuShader, Vec3(), Vec3(.1f, .1f, 1f)){
         uniforms.setVec4Uniform("colour", ::squareColour)
     }
 
-    private val button = TextButton("button", Vec2(0.6, 0.8), Vec2(0.4, 0.2)){
+    private val button = TextButton("button", Vec2(window.aspectRatio - .4f, .8f), Vec2(.4f, .2f)){
         println("Pressed!")
         AudioSource(audio).play()
         window.setCursor(standardCursors.random())
     }
-    private val textField = ActionTextField<ActionTextFieldComponent<*>>(Vec2(-1), Vec2(1, 0.2)){ _, _, _ ->
+    private val textField = ActionTextField<ActionTextFieldComponent<*>>(Vec2(-window.aspectRatio, -1f), Vec2(window.aspectRatio, 0.2)){ _, _, _ ->
 //        AudioSource(audio).play()
         window.setCursor(0L)
 
@@ -128,7 +127,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         Text.ALIGN_CENTER_LEFT
     )
 
-    private val list = BasicScrollList(Vec2(-1, 0.4), Vec2(0.6), 1f, 0.05f, arrayOf("Hello", "World"))
+    private val list = BasicScrollList(Vec2(-window.aspectRatio, 0.4), Vec2(1f, 0.6f), 1f, 0.05f, arrayOf("Hello", "World"))
 
 //    val video = VideoPlayer(VideoLoader[ResourceKey("ghost"), gameEngine.resourcesLoader], Vec2(0.5, -0.15), Vec2(0.5, 0.3))
 
@@ -159,8 +158,8 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
         add(list)
 
         add(text, gameText, siGameText, testText)
-        text.position = Vec3(-1f, 0f, 0f)
-        testText.position = Vec3(-1f, -.3f, 0f)
+        text.position = Vec3(-window.aspectRatio, 0f, 0f)
+        testText.position = Vec3(-window.aspectRatio, -.3f, 0f)
 
         add(b)
         add(cursorSquare)
@@ -283,6 +282,18 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     override fun updateAspectRatio(window: WindowI) {
         super.updateAspectRatio(window)
         GLFunc.viewportO = Vec2i(window.width, window.height)
+
+        button.run {
+            position = Vec3(window.aspectRatio - .4f, .8f, 0f)
+        }
+        textField.run {
+            position = Vec3(-window.aspectRatio, -1f, 0f)
+            scale = Vec3(window.aspectRatio, .2f, 1f)
+        }
+        list.position = Vec3(-window.aspectRatio, 0.4, 0f)
+
+        text.position = Vec3(-window.aspectRatio, 0f, 0f)
+        testText.position = Vec3(-window.aspectRatio, -.3f, 0f)
     }
 
     override fun cleanUp() {

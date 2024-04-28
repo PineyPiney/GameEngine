@@ -37,7 +37,7 @@ open class PerspectiveCamera(window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec
         return Vec2(pos / pos.w)
     }
 
-    override fun getProjection(): Mat4 = glm.perspective(FOV.rad, window.aspectRatio, range.x, range.y)
+    override fun getProjection(mat: Mat4): Mat4 = glm.perspective(FOV.rad, window.aspectRatio, range.x, range.y, mat)
 
     override fun getSpan(): Vec2 {
         val backgroundVerticalSpan = 2 * tan(FOV.rad * 0.5)
@@ -46,7 +46,7 @@ open class PerspectiveCamera(window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec
     }
 
     override fun getRay(point: Vec2): Ray {
-        val worldPos = screenToWorld(point)
+        val worldPos = screenToWorld(Vec2(point.x / window.aspectRatio, point.y))
         val dir = (worldPos - cameraPos).normalize()
         if(cameraPos dot cameraFront > 0f) dir *= -1f
         return Ray(cameraPos, dir)

@@ -31,6 +31,7 @@ abstract class VRRenderer<E: GameLogicI>(w: Int, h: Int): RendererI<E> {
     override var viewPos: Vec3 = Vec3(0f)
     override var view: Mat4 = I
     override var projection: Mat4 = I
+    override val guiProjection: Mat4 = I
     override var viewportSize: Vec2i = Vec2i(1)
     override val aspectRatio: Float = w.toFloat() / h
 
@@ -52,7 +53,7 @@ abstract class VRRenderer<E: GameLogicI>(w: Int, h: Int): RendererI<E> {
         projection = getProjection(eye)
 
         GLFunc.depthTest = true
-        for(o in game.gameObjects.gameItems.flatMap { it.allDescendants() }) {
+        for(o in game.gameObjects.gameItems.flatMap { it.allActiveDescendants() }) {
             val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
             if(renderedComponents.isNotEmpty()){
                 for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
@@ -61,7 +62,7 @@ abstract class VRRenderer<E: GameLogicI>(w: Int, h: Int): RendererI<E> {
         }
 
         GLFunc.depthTest = false
-        for(o in game.gameObjects.guiItems.flatMap { it.allDescendants() }) {
+        for(o in game.gameObjects.guiItems.flatMap { it.allActiveDescendants() }) {
             val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
             if(renderedComponents.isNotEmpty()){
                 for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)

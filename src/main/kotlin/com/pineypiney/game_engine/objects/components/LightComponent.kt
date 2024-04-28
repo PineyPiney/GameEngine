@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.resources.shaders.Shader
 
-class LightComponent(parent: GameObject, val light: Light): Component("LGT", parent) {
+class LightComponent(parent: GameObject, val light: Light): Component(parent, "LGT") {
 
     var on: Boolean
         get() = light.on
