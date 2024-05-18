@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.LibrarySetUp
 import com.pineypiney.game_engine.apps.animator.ObjectAnimator
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.AnimatedComponent
-import com.pineypiney.game_engine.objects.components.ColliderComponent
+import com.pineypiney.game_engine.objects.components.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.SpriteComponent
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.resources.FileResourcesLoader
@@ -14,15 +14,18 @@ import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.directory
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine_test.test2D.Game2D
 import com.pineypiney.game_engine_test.test3D.Game3D
 import com.pineypiney.game_engine_test.testVR.TestVREngine
 import com.pineypiney.game_engine_test.testVR.TestVRGame
+import glm_.f
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import org.junit.Test
+import kotlin.math.PI
 
 class Test{
 
@@ -74,6 +77,14 @@ class Test{
 
         val q3 = (I.translate(2f, -3f, 0f) * model.scale(3f)).getRotation()
     }
+
+    @Test
+    fun cuboid(){
+        val box = Cuboid(Vec3(0f), Quat(Vec3(0f, PI.f * .25f, 0f)), Vec3(6f, 8f, 6f))
+        val point = Vec3(3.3f, -3.9f, 1.0f)
+        val c = box containsPoint point
+        println(c)
+    }
 }
 
 fun createSnake(): GameObject{
@@ -89,7 +100,7 @@ fun createSnake(): GameObject{
 
             scale = Vec3(4f)
             components.add(SpriteComponent(this))
-            components.add(ColliderComponent(this, Rect2D(Vec2(), Vec2(1))))
+            components.add(Collider2DComponent(this, Rect2D(Vec2(), Vec2(1))))
             components.add(AnimatedComponent(this, animation, animations))
         }
     }

@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.video.Video
 import glm_.vec2.Vec2
 
-abstract class VideoRendererComponent(parent: GameObject): RenderedComponent(parent, default2DShader) {
+abstract class VideoRendererComponent(parent: GameObject): RenderedComponent(parent, MeshedTextureComponent.default2DShader) {
 
     abstract val video: Video
     val vShape = Companion.shape

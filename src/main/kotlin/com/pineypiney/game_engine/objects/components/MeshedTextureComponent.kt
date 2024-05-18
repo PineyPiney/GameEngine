@@ -11,7 +11,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec2.Vec2
 
-open class MeshedTextureComponent(parent: GameObject, var texture: Texture = Texture.broke, shader: Shader = defaultShader, val vShape: VertexShape = VertexShape.centerSquareShape): RenderedComponent(parent, shader) {
+open class MeshedTextureComponent(parent: GameObject, var texture: Texture = Texture.broke, shader: Shader = default2DShader, val vShape: VertexShape = VertexShape.centerSquareShape): RenderedComponent(parent, shader) {
 
     override val renderSize: Vec2 get() = Vec2(1f)
 
@@ -30,6 +30,7 @@ open class MeshedTextureComponent(parent: GameObject, var texture: Texture = Tex
     }
 
     companion object{
-        val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/2D"), ResourceKey("fragment/texture"))
+        val default2DShader = ShaderLoader.getShader(ResourceKey("vertex/2D"), ResourceKey("fragment/texture"))
+        val default3DShader = ShaderLoader.getShader(ResourceKey("vertex/3D"), ResourceKey("fragment/texture"))
     }
 }

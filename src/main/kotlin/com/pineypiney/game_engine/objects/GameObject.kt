@@ -17,9 +17,9 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-open class GameObject: Initialisable {
+open class GameObject(open var name: String = "GameObject"): Initialisable {
 
-    open var name: String = "GameObject"
+
     var parent: GameObject? = null
     var active = true
 
@@ -29,7 +29,10 @@ open class GameObject: Initialisable {
     val components: MutableSet<Component> = mutableSetOf()
     val children: MutableSet<GameObject> = mutableSetOf()
 
-    val transformComponent = TransformComponent(this)
+    val transformComponent by lazy {
+        if(!hasComponent<TransformComponent>()) components.add(TransformComponent(this))
+        getComponent<TransformComponent>()!!
+    }
     val transform: Transform3D get() = transformComponent.transform
 
     var velocity: Vec3
@@ -113,6 +116,13 @@ open class GameObject: Initialisable {
         this.children.addAll(children.toSet())
         for(c in children) c.parent = this
     }
+    fun addAndInitChild(vararg children: GameObject){
+        this.children.addAll(children.toSet())
+        for(c in children) {
+            c.parent = this
+            c.init()
+        }
+    }
     fun addChildren(children: Iterable<GameObject>){
         this.children.addAll(children.toSet())
         for(c in children) c.parent = this
@@ -121,6 +131,14 @@ open class GameObject: Initialisable {
         val childList = children.filterNotNull().toSet()
         this.children.removeAll(childList)
         for(c in childList) c.parent = null
+    }
+    fun removeAndDeleteChild(vararg children: GameObject?){
+        val childList = children.filterNotNull().toSet()
+        this.children.removeAll(childList)
+        for(c in childList) {
+            c.parent = null
+            c.delete()
+        }
     }
     fun removeChildren(children: Iterable<GameObject>){
         this.children.removeAll(children.toSet())
@@ -141,10 +159,9 @@ open class GameObject: Initialisable {
     }
 
     fun getShape(): Shape{
-        val collider = getComponent<ColliderComponent>()
-        if(collider != null) {
-            return collider.transformedBox
-        }
+        
+        getComponent<Collider2DComponent>()?.let { return it.transformedBox }
+        getComponent<Collider3DComponent>()?.let { return it.transformedBox }
 
         val renderer = this.renderer
         if(renderer != null){
@@ -154,9 +171,18 @@ open class GameObject: Initialisable {
         return Rect2D(Vec2(), Vec2(1f))
     }
 
+    fun getLineage(): Set<GameObject>{
+        var o = this.parent ?: return emptySet()
+        val set = mutableSetOf(o)
+        while (true){
+            o = o.parent ?: return set
+            set.add(o)
+        }
+    }
+
     fun allDescendants(set: MutableSet<GameObject> = mutableSetOf()): Set<GameObject>{
         set.add(this)
-        for (c in children) c.allActiveDescendants(set)
+        for (c in children) c.allDescendants(set)
         return set
     }
 
@@ -166,6 +192,23 @@ open class GameObject: Initialisable {
             for (c in children) c.allActiveDescendants(set)
         }
         return set
+    }
+
+    fun copy(): GameObject{
+        val o = GameObject(name)
+
+        o.parent = parent
+        o.active = active
+        o.layer = layer
+
+        o.components.addAll(components.map { it.copy(o) })
+        o.children.addAll(children.map { it.copy() })
+
+        return o
+    }
+
+    override fun toString(): String {
+        return "GameObject[$name]"
     }
 
     override fun delete() {
@@ -206,7 +249,7 @@ open class GameObject: Initialisable {
             }
         }
 
-        fun simpleTextureGameObject(texture: Texture, shape: VertexShape = VertexShape.centerSquareShape, shader: Shader = RenderedComponent.default2DShader): GameObject {
+        fun simpleTextureGameObject(texture: Texture, shape: VertexShape = VertexShape.centerSquareShape, shader: Shader = MeshedTextureComponent.default2DShader): GameObject {
             val o = object : GameObject(){
                 override fun addComponents() {
                     super.addComponents()
@@ -222,7 +265,7 @@ open class GameObject: Initialisable {
                 override fun addComponents() {
                     super.addComponents()
                     components.add(ModelRendererComponent(this, model, shader).apply { this.debug = debug })
-                    components.add(ColliderComponent(this, model.box))
+                    components.add(model.box.getComponent(this))
                 }
             }
 

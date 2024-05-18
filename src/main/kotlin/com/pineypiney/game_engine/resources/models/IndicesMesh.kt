@@ -78,7 +78,6 @@ class IndicesMesh(var vertices: Array<MeshVertex> = arrayOf(),
     }
 
     private fun setTextures() {
-        glActiveTexture(GL_TEXTURE0)
         textures[0].bind()
     }
 

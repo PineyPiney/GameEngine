@@ -6,8 +6,10 @@ import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import glm_.i
 import glm_.vec2.Vec2t
+import kool.ByteBuffer
 import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.stb.STBImageWrite
 import java.nio.ByteBuffer
 
 open class FrameBuffer(var width: Int, var height: Int, var internalFormat: Int = GL_RGB, var format: Int = GL_RGB): Deleteable {
@@ -57,6 +59,20 @@ open class FrameBuffer(var width: Int, var height: Int, var internalFormat: Int 
         GL13C.glActiveTexture(GL13C.GL_TEXTURE0)
         GL13C.glBindTexture(GL13C.GL_TEXTURE_2D, TCB)
         shape.bindAndDraw()
+    }
+
+    fun savePNG(file: CharSequence): Boolean{
+        val d = getData().rewind().flip()
+        d.limit(d.capacity())
+        val numChannels = TextureLoader.formatToChannels(format)
+        return STBImageWrite.stbi_write_png(file, width, height, numChannels, d, numChannels * width)
+    }
+
+    fun getData(): ByteBuffer{
+        bind()
+        val buffer = ByteBuffer(width * height * TextureLoader.formatToChannels(format))
+        glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, buffer)
+        return buffer
     }
 
     override fun delete() {

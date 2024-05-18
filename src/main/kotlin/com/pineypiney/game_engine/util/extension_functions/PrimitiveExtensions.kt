@@ -176,7 +176,7 @@ infix fun Int.getRGBAValue(shift: Int) = ((this shr (shift * 8)) and 255).f / 25
  * Return the value with the smallest absolute value
  */
 fun absMinOf(a: Float, vararg other: Float): Float{
-    return (other + a).minByOrNull { abs(it) } ?: 0f
+    return (other + a).minByOrNull { abs(it) } ?: a
 }
 
 // Yes I know Strings aren't primitive types, STFU

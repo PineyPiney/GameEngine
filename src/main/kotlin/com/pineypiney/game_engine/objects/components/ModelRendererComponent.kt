@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.util.collision.CollisionBoxRenderer
+import com.pineypiney.game_engine.objects.util.collision.CollisionBox2DRenderer
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
@@ -16,7 +16,6 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.filterValueIsInstance
-import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -26,7 +25,7 @@ import kotlin.math.min
 open class ModelRendererComponent(parent: GameObject, var model: Model, shader: Shader = defaultShader): RenderedComponent(parent, shader) {
 
     override val renderSize: Vec2 get() = Vec2(1f)
-    override val shape: Shape = Rect2D(Vec2(), Vec2(1f)) //TODO
+    override val shape: Shape = model.box.shape
     protected var animation: ModelAnimation? = null
     private var animationStartTime: Double = 0.0
     private var animationEndTime: Double = 0.0
@@ -37,7 +36,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
 
     var debug = 0
 
-    val colliderRenderer = CollisionBoxRenderer(parent)
+    val colliderRenderer = CollisionBox2DRenderer(parent)
 
     constructor(parent: GameObject): this(parent, Model.brokeModel)
 
@@ -50,7 +49,13 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
         parent.addChild(colliderRenderer)
     }
 
+    override fun setUniforms() {
+        super.setUniforms()
+        uniforms.setMat4sUniform("boneTransforms[0]") { model.rootBone?.getAllChildren()?.map { it.getMeshTransform() }?.toTypedArray() ?: emptyArray() }
+    }
+
     override fun render(renderer: RendererI<*>, tickDelta: Double) {
+        updateAnimation()
         shader.setUp(uniforms, renderer)
 
         // Lighting

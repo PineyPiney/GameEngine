@@ -3,6 +3,8 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.models.animations.State
+import com.pineypiney.game_engine.util.maths.Collider
+import com.pineypiney.game_engine.util.maths.Collider2D
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -14,9 +16,7 @@ import org.lwjgl.assimp.Assimp.aiProcess_Triangulate
 
 // Materials are also stored in the model, and accessed by the meshes through IDs
 
-class Model(val name: String, val meshes: Array<Mesh> = arrayOf(Mesh.default), val rootBone: Bone? = null, val animations: Array<ModelAnimation> = arrayOf(), val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource() {
-
-    var box: Rect2D = Rect2D(Vec2(), Vec2(1f))
+class Model(val name: String, val meshes: Array<Mesh> = arrayOf(Mesh.default), val rootBone: Bone? = null, val animations: Array<ModelAnimation> = arrayOf(), val box: Collider = Collider2D(Rect2D(Vec2(), Vec2(1f))), val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource() {
 
     /**
      * @param name The name of a bone, e.g. head

@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-abstract class MenuItem : GameObject() {
+open class MenuItem : GameObject() {
 
     override var name: String = "MenuItem"
 

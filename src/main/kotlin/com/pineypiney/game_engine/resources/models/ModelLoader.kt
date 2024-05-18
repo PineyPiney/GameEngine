@@ -10,6 +10,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
 import com.pineypiney.game_engine.util.extension_functions.combineLists
 import com.pineypiney.game_engine.util.extension_functions.transformedBy
+import com.pineypiney.game_engine.util.maths.Collider2D
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import glm_.f
 import glm_.i
@@ -193,8 +194,7 @@ class ModelLoader private constructor(): DeletableResourcesLoader<Model>() {
             meshes.add(Mesh(geo.name, vertices.toTypedArray(), geo.indices, geo.alpha, geo.order, ModelMaterial("${geo.name} material", mapOf(ModelMaterial.TextureType.DIFFUSE to TextureLoader.findTexture(geo.texture)))))
         }
 
-        val newModel = Model(fileName, meshes.toTypedArray().reversedArray(), bones.getOrNull(0)?.getRoot(), animations)
-        newModel.box = physics.collision
+        val newModel = Model(fileName, meshes.toTypedArray().reversedArray(), bones.getOrNull(0)?.getRoot(), animations, Collider2D(physics.collision))
         return newModel
     }
 

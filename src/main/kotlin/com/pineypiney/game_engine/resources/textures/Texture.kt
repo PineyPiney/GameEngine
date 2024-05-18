@@ -14,7 +14,7 @@ import org.lwjgl.opengl.GL32C.*
 import org.lwjgl.stb.STBImageWrite
 import java.nio.ByteBuffer
 
-class Texture(val fileLocation: String, val texturePointer: Int, val target: Int = GL_TEXTURE_2D) : Resource() {
+class Texture(val fileLocation: String, val texturePointer: Int, val target: Int = GL_TEXTURE_2D, var binding: Int = 0) : Resource() {
 
     val fileName = fileLocation.substringAfterLast('\\').substringBefore('.')
 
@@ -29,7 +29,7 @@ class Texture(val fileLocation: String, val texturePointer: Int, val target: Int
 
 
     fun bind(){
-        glActiveTexture(GL_TEXTURE0)
+        glActiveTexture(GL_TEXTURE0 + binding)
         glBindTexture(target, texturePointer)
     }
 
@@ -47,7 +47,6 @@ class Texture(val fileLocation: String, val texturePointer: Int, val target: Int
     }
 
     fun getData(): ByteBuffer{
-
         bind()
         val buffer = ByteBuffer(bytes)
         glGetTexImage(target, 0, format, GL_UNSIGNED_BYTE, buffer)

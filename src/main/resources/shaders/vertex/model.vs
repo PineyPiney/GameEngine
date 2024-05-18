@@ -10,11 +10,11 @@ layout (location = 2) in vec3 aNormal;
 layout (location = 3) in ivec4 boneIndices;
 layout (location = 4) in vec4 boneWeights;
 
-uniform mat4 boneTransforms[MAX_BONES];
-
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+
+uniform mat4 boneTransforms[MAX_BONES];
 
 out vec3 fragPos;
 out vec2 texCoords;
@@ -40,8 +40,8 @@ void main(){
 	}
 
 
-	fragPos = vec3(model * pos4);
-	gl_Position = projection * view * model * pos4;
+	fragPos = vec3(model * pos);
+	gl_Position = projection * view * model * pos;
 	texCoords = aTexCoord;
 	normal = normalize(mat3(transpose(inverse(model))) * aNormal);
 }

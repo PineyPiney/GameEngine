@@ -5,6 +5,10 @@ import com.pineypiney.game_engine.resources.models.animations.KeyFrame
 import com.pineypiney.game_engine.resources.models.animations.MeshState
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.util.exceptions.ModelParseException
+import com.pineypiney.game_engine.util.maths.Collider2D
+import com.pineypiney.game_engine.util.maths.Collider3D
+import com.pineypiney.game_engine.util.maths.shapes.Cuboid
+import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import glm_.*
 import glm_.mat2x2.Mat2
 import glm_.mat3x3.Mat3
@@ -147,7 +151,25 @@ class GLTFModelLoader(val loader: ModelLoader) {
 
             animations.add(ModelAnimation(name, frames.toTypedArray()))
         }
-        return Model(fileName.substringAfterLast('/'), meshes.toTypedArray(), null, animations.toTypedArray())
+
+        val min = Vec3(Float.POSITIVE_INFINITY)
+        val max = Vec3(Float.NEGATIVE_INFINITY)
+        for(mesh in meshes){
+            for(vertex in mesh.vertices){
+                val p = vertex.position
+                if(p.x < min.x) min.x = p.x
+                if(p.y < min.y) min.y = p.y
+                if(p.z < min.z) min.z = p.z
+                if(p.x > max.x) max.x = p.x
+                if(p.y > max.y) max.y = p.y
+                if(p.z > max.z) max.z = p.z
+            }
+        }
+
+        val collider =
+            if(min.z == max.z) Collider2D(Rect2D(Vec2(min), Vec2(max - min)))
+            else Collider3D(Cuboid((min + max) * .5f, Quat.identity, max - min))
+        return Model(fileName.substringAfterLast('/'), meshes.toTypedArray(), null, animations.toTypedArray(), collider)
     }
 
     fun loadGLTFFile(fileName: String, stream: InputStream): Model{

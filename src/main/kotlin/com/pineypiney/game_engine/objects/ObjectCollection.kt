@@ -1,9 +1,6 @@
 package com.pineypiney.game_engine.objects
 
-import com.pineypiney.game_engine.objects.components.ColliderComponent
-import com.pineypiney.game_engine.objects.components.Component
-import com.pineypiney.game_engine.objects.components.InteractorComponent
-import com.pineypiney.game_engine.objects.components.UpdatingComponent
+import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
@@ -38,17 +35,18 @@ open class ObjectCollection {
         }
     }
 
-    open fun getAllObjects(includeInactive: Boolean = false): Set<GameObject>{
+    open fun getAllObjects(layer: Int? = null, includeInactive: Boolean = false): Set<GameObject>{
         val func: GameObject.() -> Set<GameObject> = if(includeInactive) GameObject::allDescendants else GameObject::allActiveDescendants
-        return map.values.flatten().flatMap(func).toSet()
+        val heads = layer?.let { get(it) } ?: map.values.flatten()
+        return heads.flatMap(func).toSet()
     }
 
     open fun getAllComponents(): Set<Component>{
         return map.flatMap { (_, s) -> s.flatMap{ o -> o.allActiveDescendants().flatMap { it.components } } }.toSet()
     }
 
-    inline fun <reified T: Component> getAllComponentInstances(): Set<T>{
-        return getAllObjects().mapNotNull { it.getComponent<T>() }.toSet()
+    inline fun <reified T: Component> getAllComponentInstances(layer: Int? = null): Set<T>{
+        return getAllObjects(layer).mapNotNull { it.getComponent<T>() }.toSet()
     }
 
     fun getAllInteractables(sort: Boolean = true): Set<InteractorComponent>{
@@ -56,8 +54,12 @@ open class ObjectCollection {
         return (if(sort) components.sortedByDescending { it.importance } else components).toSet()
     }
 
-    fun getAllCollisions(): Set<ColliderComponent>{
-        return getAllObjects().mapNotNull { it.getComponent<ColliderComponent>() }.toSet()
+    fun getAll2DCollisions(): Set<Collider2DComponent>{
+        return getAllObjects().mapNotNull { it.getComponent<Collider2DComponent>() }.toSet()
+    }
+
+    fun getAll3DCollisions(): Set<Collider3DComponent>{
+        return getAllObjects().mapNotNull { it.getComponent<Collider3DComponent>() }.toSet()
     }
 
     operator fun get(layer: Int) = map[layer] ?: mutableSetOf()

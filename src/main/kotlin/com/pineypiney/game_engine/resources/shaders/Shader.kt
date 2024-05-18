@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.shaders
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.uniforms.*
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.RandomHelper
 import glm_.b
 import glm_.f
@@ -142,10 +143,10 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
         val set = mutableSetOf<Uniform<*>>()
         for((name, type) in uniforms){
             if(name.contains('[') && name.contains(']')){
-                val newName = name.substringBefore('[') + name.substringAfter(']')
+                val newName = name.substringBefore('[') + "[0]"
                 when(type){
                     "bool" -> set.add(BoolsUniform(newName))
-                    "int" -> set.add(IntsUniform(newName))
+                    "int", "sampler2D" -> set.add(IntsUniform(newName))
                     "uint" -> set.add(UIntsUniform(newName))
                     "float" -> set.add(FloatsUniform(newName))
                     "double" -> set.add(DoublesUniform(newName))
@@ -161,7 +162,7 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
             else {
                 when(type){
                     "bool" -> set.add(BoolUniform(name))
-                    "int" -> set.add(IntUniform(name))
+                    "int", "sampler2D" -> set.add(IntUniform(name))
                     "uint" -> set.add(UIntUniform(name))
                     "float" -> set.add(FloatUniform(name))
                     "double" -> set.add(DoubleUniform(name))
@@ -203,31 +204,26 @@ class Shader(private var ID: Int, val vName: String, val fName: String, val gNam
 
     companion object{
 
-        const val vS: String =
-                "#version 330 core\n" +
-                "layout (location = 0) in vec3 aPos;\n" +
-                "layout (location = 2) in vec2 aTexCoord;\n" +
-                "\n" +
-                "out vec2 texCoords;\n" +
-                "\n" +
-                "void main(){\n" +
-                "\tgl_Position = vec4(aPos, 1.0);\n" +
-                "\ttexCoords = aTexCoord;\n" +
-                "}"
-        const val fS: String =
-                "#version 330 core\n" +
-                "\n" +
-                "in vec2 texCoords;\n" +
-                "\n" +
-                "uniform sampler2D ourTexture;\n" +
-                "\n" +
-                "out vec4 FragColour;\n" +
-                "\n" +
-                "void main(){\n" +
-                "\tvec4 colour = texture(ourTexture, texCoords);\n" +
-                "\tif(colour.a == 0) discard;\n" +
-                "\tFragColour = colour;\n" +
-                "}"
+        val vS: String
+        val fS: String
+        init {
+            val (V, v) = GLFunc.version
+            vS =
+                "#version $V${v}0 core\n" +
+                        "layout (location = 0) in vec2 aPos;\n" +
+                        "\n" +
+                        "void main(){\n" +
+                        "\tgl_Position = vec4(aPos, 0.0, 1.0);\n" +
+                        "}"
+            fS =
+            "#version $V${v}0 core\n" +
+                    "\n" +
+                    "out vec4 FragColour;\n" +
+                    "\n" +
+                    "void main(){\n" +
+                    "\tFragColour = vec4(1.0, 1.0, 1.0, 1.0);\n" +
+                    "}"
+        }
 
         val brokeShader: Shader = ShaderLoader.generateShader(
             "broke", ShaderLoader.generateSubShader("broke", vS, GL_VERTEX_SHADER),

@@ -10,7 +10,7 @@ import glm_.vec3.Vec3
 abstract class Camera(override val window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Vec3 = Vec3(0, 1, 0)): CameraI {
 
     override var cameraPos = Vec3(); protected set
-    override var cameraUp = up
+    override val cameraUp = up
 
     override val cameraFront = Vec3(0, 0, -1)
     override var cameraRight = Vec3()

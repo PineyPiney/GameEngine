@@ -213,7 +213,7 @@ abstract class Component(final override val parent: GameObject, override val id:
     )
 
     val components2D: Array<(GameObject2D) -> Component> = arrayOf(
-        ::ColliderComponent
+        ::Collider2DComponent
     )
 
     abstract class FieldEditor<T, out F: Field<T>>(component: Component, val fullId: String, origin: Vec2, size: Vec2): MenuItem(){
@@ -419,3 +419,8 @@ abstract class Component(final override val parent: GameObject, override val id:
 }
 
 typealias FieldCreator<T> = (component: Component, id: String, origin: Vec2, size: Vec2, callback: (String, String) -> Unit) -> Component.FieldEditor<T, Component.Field<T>>
+
+fun <C: Component> C.applied(): C{
+    parent.components.add(this)
+    return this
+}

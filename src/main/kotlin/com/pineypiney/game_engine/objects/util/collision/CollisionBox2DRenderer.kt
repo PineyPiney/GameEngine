@@ -15,11 +15,11 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-class CollisionBoxRenderer(val obj: GameObject, val colour: Vec4 = Vec4(1f), val shader: Shader = defaultShader): GameObject() {
+class CollisionBox2DRenderer(val obj: GameObject, val colour: Vec4 = Vec4(1f), val shader: Shader = defaultShader): GameObject() {
 
     override fun addComponents() {
         super.addComponents()
-        components.add(object : RenderedComponent(this@CollisionBoxRenderer, shader) {
+        components.add(object : RenderedComponent(this@CollisionBox2DRenderer, shader) {
 
             val vShape = VertexShape.cornerSquareShape
             override val shape: Shape = vShape.shape
@@ -27,7 +27,7 @@ class CollisionBoxRenderer(val obj: GameObject, val colour: Vec4 = Vec4(1f), val
 
             override fun setUniforms() {
                 super.setUniforms()
-                uniforms.setMat4Uniform("model"){ (this@CollisionBoxRenderer.obj.getShape() as Rect2D).run { I.translate(Vec3(origin, 0f)).rotate(angle).scale(Vec3(size, 1f)) } }
+                uniforms.setMat4Uniform("model"){ (this@CollisionBox2DRenderer.obj.getShape() as Rect2D).run { I.translate(Vec3(origin, 0f)).rotate(angle).scale(Vec3(size, 1f)) } }
                 uniforms.setVec4Uniform("colour", ::colour)
             }
 

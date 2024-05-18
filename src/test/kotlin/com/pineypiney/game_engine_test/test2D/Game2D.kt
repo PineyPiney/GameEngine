@@ -94,7 +94,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
     private val texture = GameObject.simpleTextureGameObject(Texture.broke)
     private val model1 = GameObject.simpleModelledGameObject(ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
-    private val model2 = GameObject.simpleModelledGameObject(ModelLoader.getModel(ResourceKey("missing")), debug = Model.DEBUG_COLLIDER)
+    private val model2 = GameObject.simpleModelledGameObject(ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
 
     private val text = Text.makeMenuText(
         "X Part: 0.00 \nY Part: 0.00",
@@ -174,8 +174,8 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 //        video.play()
 //        video.video.loop = true
 
-        model1.getComponent<AnimatedComponent>()?.setAnimation("Wipe Nose")
-        model2.getComponent<AnimatedComponent>()?.setAnimation("Magic Trick")
+        model1.getComponent<ModelRendererComponent>()?.setAnimation("Wipe Nose")
+        model2.getComponent<ModelRendererComponent>()?.setAnimation("Magic Trick")
         model1.translate(Vec3(2, -3, 0f))
         model1.scale(Vec3(3f))
         model2.translate(Vec3(3, -4, 0f))

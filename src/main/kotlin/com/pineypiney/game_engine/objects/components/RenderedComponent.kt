@@ -42,11 +42,4 @@ abstract class RenderedComponent(parent: GameObject, s: Shader): Component(paren
         if(shader.hasPos) uniforms.setVec3UniformR("viewPos", RendererI<*>::viewPos)
         uniforms.setMat4Uniform("model", parent::worldModel)
     }
-
-    companion object{
-
-        val default2DShader = ShaderLoader.getShader(ResourceKey("vertex\\2D"), ResourceKey("fragment\\texture"))
-        val default3DShader = ShaderLoader.getShader(ResourceKey("vertex\\3D"), ResourceKey("fragment\\texture"))
-        val colourShader = ShaderLoader[ResourceKey("vertex\\2D"), ResourceKey("fragment\\colour")]
-    }
 }

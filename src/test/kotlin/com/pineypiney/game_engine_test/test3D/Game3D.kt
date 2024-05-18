@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.objects.util.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
@@ -51,7 +52,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
     private val cursorRay = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/arrow")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/plain")])
 
-    private val object3D = GameObject.simpleTextureGameObject(TextureLoader[ResourceKey("broke")], VertexShape.centerCubeShape, RenderedComponent.default3DShader).apply{ rotation = Quat(Vec3(0.4, PI/4, 1.2)) }
+    private val object3D = GameObject.simpleTextureGameObject(TextureLoader[ResourceKey("broke")], VertexShape.centerCubeShape, MeshedTextureComponent.default3DShader).apply{ rotation = Quat(Vec3(0.4, PI/4, 1.2)) }
 
     var blockHover = false
     private val block = GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/lit")], shape = VertexShape.centerCubeShape) {
@@ -72,6 +73,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     override fun init() {
         super.init()
         glfwSetInputMode(window.windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+        gltf.addChild(CollisionBox3DRenderer(gltf).apply { init() })
     }
 
     override fun addObjects() {

@@ -33,13 +33,11 @@ open class TransformComponent(parent: GameObject): Component(parent, "T2D") {
         }
 
     var velocity: Vec3 = Vec3()
-    var depth: Int = 0
 
     override val fields: Array<Field<*>> = arrayOf(
         Vec3Field("vlt", ::velocity){ velocity = it },
         Vec3Field("pos", transform::position){ transform.position = it },
         Vec3Field("scl", transform::scale){ transform.scale = it },
-        QuatField("rtn", transform::rotation){ transform.rotation = it },
-        IntField("dpt", ::depth){ depth = it },
+        QuatField("rtn", transform::rotation){ transform.rotation = it }
     )
 }

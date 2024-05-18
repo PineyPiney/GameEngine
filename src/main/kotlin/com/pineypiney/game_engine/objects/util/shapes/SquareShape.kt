@@ -8,6 +8,9 @@ open class SquareShape(bl: Vec2, tr: Vec2, tbl: Vec2 = Vec2(), ttr: Vec2 = Vec2(
 
     override val shape: Shape = Rect2D(bl, tr - bl)
 
+    val bl get() = Vec2(0, getVertices())
+    val tr get() = Vec2(8, getVertices())
+
     companion object{
         fun createVertices(bl: Vec2, tr: Vec2, to: Vec2, tf: Vec2): FloatArray{
             return floatArrayOf(

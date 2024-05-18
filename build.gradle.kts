@@ -16,22 +16,31 @@ version = ver
 
 val lwjglVersion = "3.3.3"
 
-val osArch: String = System.getProperty("os.arch")
-var a64 = osArch.startsWith("aarch64")
-var lwjglNatives = when (OperatingSystem.current()) {
-    OperatingSystem.LINUX -> {
-        if(osArch.startsWith("arm") || a64) "natives-linux-${if(osArch.contains("64") || osArch.startsWith("armv8")) "arm64" else "arm32"}"
-        else "natives-linux"
-    }
+// Use https://www.lwjgl.org/customize to set natives
+val lwjglNatives = run {
+    val name = System.getProperty("os.name")
+    val arch = System.getProperty("os.arch")
+    val a64 = arch.startsWith("aarch64")
+    when {
+        name.startsWith("Windows") -> {
+            if(arch.contains("64")) "natives-windows${if(a64) "-arm64" else ""}"
+            else "natives-windows-x86"
+        }
+        arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) } -> {
+            if(a64) "natives-macos-arm64" else "natives-macos"
+        }
+        arrayOf("Linux", "SunOS", "Unit").any { name.startsWith(it) } ->
+            if (arrayOf("arm", "aarch64").any { arch.startsWith(it) })
+                "natives-linux${if (arch.contains("64") || arch.startsWith("armv8")) "-arm64" else "-arm32"}"
+            else if (arch.startsWith("ppc"))
+                "natives-linux-ppc64le"
+            else if (arch.startsWith("riscv"))
+                "natives-linux-riscv64"
+            else
+                "natives-linux"
 
-    OperatingSystem.MAC_OS -> {
-        if(a64) "natives-macos-arm64" else "natives-macos"
+        else -> throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
     }
-    OperatingSystem.WINDOWS -> {
-        if(osArch.contains("64")) "natives-windows${if(a64) "-arm64" else ""}"
-        else "natives-windows-x86"
-    }
-    else -> ""
 }
 
 val javacv = "1.5.7"
@@ -44,7 +53,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.22")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.24")
 
     // Logback
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
@@ -110,15 +119,14 @@ tasks.register<Zip>("packageResources"){
 
 // Create full game file
 tasks.register<Zip>("packageGame"){
-    from(layout.projectDirectory.dir("\\out\\artifacts\\PixelGame_main_jar\\"))
-    include("\\PixelGame.main.jar")
+    from(layout.projectDirectory.dir("\\out\\artifacts\\GameEngine_main_jar\\"))
+    include("\\GameEngine.main.jar")
     from(layout.projectDirectory.dir("\\"))
     include("\\resources.zip")
 
-    archiveFileName.set("PixelGame.zip")
-    destinationDirectory.set(layout.projectDirectory.dir("\\out\\artifacts\\PixelGame_main_jar"))
+    archiveFileName.set("GameEngine.zip")
+    destinationDirectory.set(layout.projectDirectory.dir("\\out\\artifacts\\GameEngine_main_jar"))
 }
-
  */
 
 tasks.test {
