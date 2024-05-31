@@ -31,9 +31,9 @@ class Timer {
 
         // Gets the current system time in seconds
         fun getCurrentTime(): Double{
-            return System.nanoTime().d/1000000000.0
+            return System.nanoTime().d * 1e-9
         }
 
-        fun getCurrentMillis(): Double = System.nanoTime().toDouble() / 1000000.0
+        fun getCurrentMillis(): Double = System.nanoTime().toDouble() * 1e-6
     }
 }

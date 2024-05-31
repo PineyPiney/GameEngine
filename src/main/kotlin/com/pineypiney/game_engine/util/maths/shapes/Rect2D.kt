@@ -64,14 +64,14 @@ class Rect2D(var origin: Vec2, var length1: Float, var length2: Float, var angle
         return Rect2D((origin.rotate(rotation) * scale) + Vec2(model.getTranslation()), size * scale, angle - rotation)
     }
 
-    override fun containsPoint(point: Vec3): Boolean {
-        return Vec2(point).isWithin(origin, size)
-    }
-
     override fun intersectedBy(ray: Ray): Array<Vec3> {
         val intersection = Plane(Vec3(origin), Vec3(0f, 0f, 1f)).intersectedBy(ray).getOrNull(0) ?: return arrayOf()
         return if(containsPoint(intersection)) arrayOf(intersection)
         else arrayOf()
+    }
+
+    override fun containsPoint(point: Vec3): Boolean {
+        return Vec2(point).isWithin(origin, size)
     }
 
     override fun toString(): String {

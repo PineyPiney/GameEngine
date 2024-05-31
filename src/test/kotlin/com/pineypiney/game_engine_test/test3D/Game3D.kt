@@ -2,7 +2,10 @@ package com.pineypiney.game_engine_test.test3D
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.*
+import com.pineypiney.game_engine.objects.components.InteractorComponent
+import com.pineypiney.game_engine.objects.components.LightComponent
+import com.pineypiney.game_engine.objects.components.MeshedTextureComponent
+import com.pineypiney.game_engine.objects.components.ModelRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox3DRenderer
@@ -107,7 +110,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
             torch.position = camera.cameraPos
         }
 
-        light.position = Vec2.fromAngle(Timer.frameTime.f * 2f, 10f).run { Vec3(x, 2f, y) }
+        light.position = Vec2.fromAngle(Timer.frameTime.mod(PI * 2).toFloat() * 2f, 10f).run { Vec3(x, 2f, y) }
 
         object3D.rotate(Vec3(0.5, 1, 1.5) * Timer.frameDelta)
         val ray = camera.getRay(input.mouse.lastPos)
@@ -145,7 +148,9 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
                 'T' -> torch.getComponent<LightComponent>()?.toggle()
                 'L' -> {
                     camera.setPos(Vec3(0f, 0f, -5f))
-                    camera.cameraFront = Vec3(0f, 0f, 1f)
+                    camera.cameraYaw = -90.0
+                    camera.cameraPitch = 0.0
+                    camera.updateCameraVectors()
                     torch.position = camera.cameraPos
                     (torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
                 }

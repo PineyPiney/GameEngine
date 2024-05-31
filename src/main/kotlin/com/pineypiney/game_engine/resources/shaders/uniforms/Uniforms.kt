@@ -1,6 +1,9 @@
 package com.pineypiney.game_engine.resources.shaders.uniforms
 
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.*
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2t
 import glm_.vec3.Vec3t
@@ -20,6 +23,10 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
         set<BoolsUniform, BooleanArray>(name, getter)
     }
 
+    fun setBoolsUniform(name: String, getter: () -> BooleanArray){
+        set<BoolsUniform, BooleanArray>(name, getter)
+    }
+
     fun setIntUniformR(name: String, getter: (RendererI<*>) -> Int){
         set<IntUniform, Int>(name, getter)
     }
@@ -32,11 +39,23 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
         set<IntsUniform, IntArray>(name, getter)
     }
 
+    fun setIntsUniform(name: String, getter: () -> IntArray){
+        set<IntsUniform, IntArray>(name, getter)
+    }
+
     fun setUIntUniformR(name: String, getter: (RendererI<*>) -> UInt){
         set<UIntUniform, UInt>(name, getter)
     }
 
+    fun setUIntUniform(name: String, getter: () -> UInt){
+        set<UIntUniform, UInt>(name, getter)
+    }
+
     fun setUIntsUniformR(name: String, getter: (RendererI<*>) -> IntArray){
+        set<UIntsUniform, IntArray>(name, getter)
+    }
+
+    fun setUIntsUniform(name: String, getter: () -> IntArray){
         set<UIntsUniform, IntArray>(name, getter)
     }
 
@@ -100,6 +119,10 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
         set<Vec2isUniform, List<Vec2t<*>>>(name, getter)
     }
 
+    fun setVec2isUniform(name: String, getter: () -> List<Vec2t<*>>){
+        set<Vec2isUniform, List<Vec2t<*>>>(name, getter)
+    }
+
     fun setVec3UniformR(name: String, getter: (RendererI<*>) -> Vec3t<*>){
         set<Vec3Uniform, Vec3t<*>>(name, getter)
     }
@@ -109,6 +132,10 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
     }
 
     fun setVec3iUniformR(name: String, getter: (RendererI<*>) -> Vec3t<*>){
+        set<Vec3iUniform, Vec3t<*>>(name, getter)
+    }
+
+    fun setVec3iUniform(name: String, getter: () -> Vec3t<*>){
         set<Vec3iUniform, Vec3t<*>>(name, getter)
     }
 
@@ -124,6 +151,10 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
         set<Vec3isUniform, List<Vec3t<*>>>(name, getter)
     }
 
+    fun setVec3isUniform(name: String, getter: () -> List<Vec3t<*>>){
+        set<Vec3isUniform, List<Vec3t<*>>>(name, getter)
+    }
+
     fun setVec4UniformR(name: String, getter: (RendererI<*>) -> Vec4t<*>){
         set<Vec4Uniform, Vec4t<*>>(name, getter)
     }
@@ -132,7 +163,11 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
         set<Vec4Uniform, Vec4t<*>>(name, getter)
     }
 
-    fun setVeci4UniformR(name: String, getter: (RendererI<*>) -> Vec4t<*>){
+    fun setVec4iUniformR(name: String, getter: (RendererI<*>) -> Vec4t<*>){
+        set<Vec4iUniform, Vec4t<*>>(name, getter)
+    }
+
+    fun setVec4iUniform(name: String, getter: () -> Vec4t<*>){
         set<Vec4iUniform, Vec4t<*>>(name, getter)
     }
 
@@ -140,7 +175,15 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
         set<Vec4sUniform, List<Vec4t<*>>>(name, getter)
     }
 
+    fun setVec4sUniform(name: String, getter: () -> List<Vec4t<*>>){
+        set<Vec4sUniform, List<Vec4t<*>>>(name, getter)
+    }
+
     fun setVec4isUniformR(name: String, getter: (RendererI<*>) -> List<Vec4t<*>>){
+        set<Vec4isUniform, List<Vec4t<*>>>(name, getter)
+    }
+
+    fun setVec4isUniform(name: String, getter: () -> List<Vec4t<*>>){
         set<Vec4isUniform, List<Vec4t<*>>>(name, getter)
     }
 

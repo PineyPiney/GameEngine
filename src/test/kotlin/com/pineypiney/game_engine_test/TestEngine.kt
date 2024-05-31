@@ -27,6 +27,8 @@ class TestEngine<E: WindowGameLogic>(resourcesLoader: ResourcesLoader, screen: (
         FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader, res = 200)
     }
 
+    override var activeScreen: E = screen(this)
+
     override fun init() {
         super.init()
         GLFunc.multiSample = true
@@ -44,8 +46,6 @@ class TestEngine<E: WindowGameLogic>(resourcesLoader: ResourcesLoader, screen: (
         }
         else FPSTally++
     }
-
-    override var activeScreen: E = screen(this)
 
     companion object{
         var FPS = 0f

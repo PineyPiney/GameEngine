@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.game_objects.GameObject2D
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import glm_.quat.Quat
@@ -9,7 +8,7 @@ import glm_.vec3.Vec3
 
 class Collider3DComponent(parent: GameObject, val box: Cuboid): Component(parent, "C3D") {
 
-    constructor(parent: GameObject2D): this(parent, Cuboid(Vec3(), Quat.identity, Vec3(1)))
+    constructor(parent: GameObject): this(parent, Cuboid(Vec3(), Quat.identity, Vec3(1)))
 
     val transformedBox get() = box transformedBy parent.worldModel
     var active = true
@@ -31,7 +30,7 @@ class Collider3DComponent(parent: GameObject, val box: Cuboid): Component(parent
         return false
     }
 
-    fun checkAllCollisions(movement: Vec3): Vec3{
+    fun checkAllCollisions(movement: Vec3, stepBias: Vec3? = null): Vec3{
 
         val collidedMove = movement.copy()
 
@@ -43,20 +42,13 @@ class Collider3DComponent(parent: GameObject, val box: Cuboid): Component(parent
         // eject this collision boxes object if the collision boxes collide
         for(collider in parent.objects?.getAll3DCollisions() ?: emptySet()){
             if(collider != this) {
-                val overlap = newCollision.getEjection(collider.transformedBox, movement)
+                val overlap = newCollision.getEjection(collider.transformedBox, movement, stepBias)
                 if(overlap.x != 0f || overlap.y != 0f || overlap.z != 0f) {
                     newCollision.center plusAssign overlap
                     collidedMove plusAssign overlap
                 }
             }
         }
-
-        // If a collision is detected in either direction then set the velocity to 0
-        parent.velocity = Vec3(
-            if((collidedMove.x < movement.x && parent.velocity.x > 0) || (collidedMove.x > movement.x && parent.velocity.x < 0)) 0f else parent.velocity.x,
-            if((collidedMove.y < movement.y && parent.velocity.y > 0) || (collidedMove.y > movement.y && parent.velocity.y < 0)) 0f else parent.velocity.y,
-            if((collidedMove.z < movement.z && parent.velocity.z > 0) || (collidedMove.z > movement.z && parent.velocity.z < 0)) 0f else parent.velocity.z,
-        )
 
         return collidedMove
     }

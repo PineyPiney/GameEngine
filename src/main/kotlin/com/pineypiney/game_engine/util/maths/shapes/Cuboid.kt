@@ -73,6 +73,15 @@ class Cuboid(var center: Vec3, var rotation: Quat, var size: Vec3): Shape() {
         return Cuboid(center.rotate(rotation) * scale + model.getTranslation(), this.rotation * rotation, size * scale)
     }
 
+    /**
+     * Gets the size of the overlap between two cuboids in the direction of the given normal
+     *
+     * @param [normal] The direction to find the overlap in
+     * @param [other] The other cuboid to check against
+     *
+     * @return A Vec2 containing the overlap in the positive and negative directions of the vector respectively
+     *          If this cuboid is moved by either (normal * x) or (normal * y) it will no longer be intersecting with other
+     */
     fun overlap1D(normal: Vec3, other: Cuboid): Vec2 {
 
         // The range of the normal that each rect takes up
@@ -94,11 +103,25 @@ class Cuboid(var center: Vec3, var rotation: Quat, var size: Vec3): Shape() {
         return r
     }
 
-    fun getEjection(other: Cuboid, movement: Vec3): Vec3{
+    /**
+     * Determine the most appropriate ejection vector to move this cuboid out of other
+     *
+     * @param other The cuboid to eject this cuboid from
+     * @param movement The original movement of this
+     * @param stepBias If there is a direction that this should be able to 'step' up.
+     *          Setting this to (0, 0.2, 0) would allow a player to step up a height increase of .2 in the y direction
+     *
+     * @return Returns the offset to movement to stop this from intersecting with other
+     */
+    fun getEjection(other: Cuboid, movement: Vec3, stepBias: Vec3? = null): Vec3{
         val still = movement == Vec3(0f)
-        val moveMag = movement.length()
         val lengths = normals(other).associateWith {
+            // The overlap in each direction of the normal
             val overlaps = overlap1D(it, other)
+
+            // If any of the normals don't overlap then the cuboids also don't overlap so no escape vector is needed
+            if(overlaps.x == 0f) return Vec3(0f)
+
             // If there is no movement then just pick the smallest movement
             if (still) {
                 absMinOf(overlaps.x, overlaps.y)
@@ -112,14 +135,25 @@ class Cuboid(var center: Vec3, var rotation: Quat, var size: Vec3): Shape() {
             }
         }
 
-        // If any of the normals don't overlap then the cuboids also don't overlap so no escape vector is needed
-        if(lengths.any { it.value == 0f }) return Vec3(0f)
+        //if(lengths.any { it.value == 0f }) return Vec3(0f)
 
-        // If there is movement then check for a vector parallel to the movement, which would be used automatically
         if(!still) {
-            for ((normal, mag) in lengths) {
+            if(stepBias != null) {
+                val stepMag = stepBias.length()
+                for ((normal, mult) in lengths) {
+                    val dot = normal dot stepBias
+
+                    if (abs(dot) > stepMag * .9f && abs(mult) <= stepMag) return normal * mult
+                }
+            }
+
+            // If there is movement then check for a vector parallel to the movement, which would be used automatically
+            val moveMag = movement.length()
+            for ((normal, mult) in lengths) {
                 val dot = normal dot movement
-                if (abs(dot) > moveMag * .9f && abs(mag) <= moveMag) return normal * mag
+                // if the normal is nearly parallel to the movement, and the new movement is smaller that the original movement
+                // This almost always means someone's walking into a wall, falling into a floor etc.
+                if (abs(dot) > moveMag * .9f && abs(mult) <= moveMag) return normal * mult
             }
         }
         val r = lengths.minBy { it.value.abs }.run { key * value }

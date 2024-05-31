@@ -44,7 +44,7 @@ class Test{
         run(::TestVREngine, ::TestVRGame)
     }
 
-    fun <E: GameLogicI, R: GameEngineI<E>> run(engine: (ResourcesLoader, (R) -> E) -> R, screen: (R) -> E){
+    fun <G: GameLogicI, E: GameEngineI<G>> run(engine: (ResourcesLoader, (E) -> G) -> E, screen: (E) -> G){
 
         LibrarySetUp.initLibraries()
         TestWindow.INSTANCE.init()

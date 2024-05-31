@@ -9,23 +9,26 @@ open class ObjectCollection {
 
     open val map = mutableMapOf<Int, MutableSet<GameObject>>()
 
-
     open val gameItems get() = get(0)
     open val guiItems get() = get(1)
 
     open fun addObject(o: GameObject?){
-        // Add the object to this
-        o?.addTo(this)
+        if(o != null) {
+            // Add the object to this
+            map.addToCollectionOr(o.layer, o) { mutableSetOf() }
 
-        // Add this to the object
-        o?.objects = this
+            // Add this to the object
+            o.objects = this
+        }
     }
     open fun removeObject(o: GameObject?){
-        // Remove the object from this
-        o?.removeFrom(this)
+        if(o != null) {
+            // Remove the object from this
+            map[o.layer]?.remove(o)
 
-        // Remove this from the object
-        o?.objects = this
+            // Remove this from the object
+            o.objects = null
+        }
     }
 
 

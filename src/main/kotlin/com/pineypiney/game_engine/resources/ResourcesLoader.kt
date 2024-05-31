@@ -76,7 +76,7 @@ abstract class ResourcesLoader {
         }
 
         fun timeActionM(action: () -> Unit): Double{
-            return timeAction(action) / 1e6
+            return timeAction(action) * 1e-6
         }
 
         fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int = 1024, resize: Boolean = true): ByteBuffer {

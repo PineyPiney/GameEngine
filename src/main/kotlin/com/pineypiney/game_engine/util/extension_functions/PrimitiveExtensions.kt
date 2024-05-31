@@ -1,9 +1,10 @@
 package com.pineypiney.game_engine.util.extension_functions
 
-import glm_.f
 import glm_.pow
 import unsigned.Ubyte
 import kotlin.math.*
+
+const val PIF = PI.toFloat()
 
 /**
  * Round the double to [places] decimal places
@@ -72,19 +73,19 @@ fun Double.lerp(next: Double, delta: Double): Double{
 /**
  * Sin interpolate between 0 and 1, using [this] as delta
  */
-fun Float.serp(): Float = 0.5f + 0.5f * sin((this - 0.5) * PI).f
+fun Float.serp(): Float = 0.5f + 0.5f * sin((this - 0.5f) * PIF)
 /**
  * Exponentially interpolate between 0 and 1, using [this] as delta
  *
  * @param [exponent] The exponent to interpolate with. A greater value will mean a steeper curve nearer 0.5
  */
 fun Float.eerp(exponent: Int): Float =
-    if(this < 0.5){
-        0.5 * pow(exponent) / 0.5.pow(exponent)
+    if(this < 0.5f){
+        0.5f * (this * 2).pow(exponent)
     }
     else{
-        1 - 0.5 * ((1f - this).pow(exponent) / 0.5.pow(exponent))
-    }.f
+        1f - 0.5f * ((2f - (2 * this)).pow(exponent))
+    }
 /**
  * Quadratically interpolate between 0 and 1, using [this] as delta
  */
@@ -117,8 +118,8 @@ fun Float.cerp(next: Float, delta: Float) = lerp(next, delta.cerp())
  */
 fun Float.lerpAngle(next: Float, delta: Float): Float{
 
-    val angleLast = wrap(0f, 2 * PI.f)
-    val angleNext = next.wrap(angleLast - PI.f, angleLast + PI.f)
+    val angleLast = wrap(0f, 2 * PIF)
+    val angleNext = next.wrap(angleLast - PIF, angleLast + PIF)
 
     return angleLast.lerp(angleNext, delta)
 }
@@ -132,10 +133,10 @@ fun Float.cerpAngle(next: Float, delta: Float) = lerpAngle(next, delta.cerp())
 fun Double.serp(): Double = 0.5 + 0.5 * sin((this - 0.5) * PI)
 fun Double.eerp(exponent: Int): Double =
     if(this < 0.5){
-        0.5 * pow(exponent) / 0.5.pow(exponent)
+        0.5 * (this * 2).pow(exponent)
     }
     else{
-        1 - 0.5 * ((1.0 - this).pow(exponent) / 0.5.pow(exponent))
+        1.0 - 0.5 * ((2.0 - (2 * this)).pow(exponent))
     }
 fun Double.querp(): Double = eerp(2)
 fun Double.cerp(): Double = eerp(3)
@@ -170,7 +171,7 @@ fun Int.wrap(min: Int, max: Int): Int{
     return min + rem
 }
 
-infix fun Int.getRGBAValue(shift: Int) = ((this shr (shift * 8)) and 255).f / 255f
+infix fun Int.getRGBAValue(shift: Int) = ((this shr (shift * 8)) and 255) * 0.003921569f
 
 /**
  * Return the value with the smallest absolute value

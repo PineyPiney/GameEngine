@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.game_objects.GameObject2D
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.util.extension_functions.fromString
@@ -212,7 +211,7 @@ abstract class Component(final override val parent: GameObject, override val id:
         ::ColouredSpriteComponent,
     )
 
-    val components2D: Array<(GameObject2D) -> Component> = arrayOf(
+    val components2D: Array<(GameObject) -> Component> = arrayOf(
         ::Collider2DComponent
     )
 

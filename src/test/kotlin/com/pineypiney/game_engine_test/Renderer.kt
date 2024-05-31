@@ -56,8 +56,7 @@ class Renderer<R: CameraI>(override val window: WindowI, override val camera: R)
         // This draws the buffer onto the screen
         FrameBuffer.unbind()
         clear()
-        screenShader.use()
-        screenShader.setUniforms(screenUniforms, this)
+        screenShader.setUp(screenUniforms, this)
         buffer.draw()
         glClear(GL_DEPTH_BUFFER_BIT)
     }

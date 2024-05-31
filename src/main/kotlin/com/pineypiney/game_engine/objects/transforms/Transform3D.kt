@@ -33,7 +33,7 @@ open class Transform3D(position: Vec3 = Vec3(), rotation: Quat = Quat(), scale: 
         dirtyModel = true
     }
 
-    fun rotate(euler: Vec3) = rotate(Quat(euler))
+    infix fun rotate(euler: Vec3) = rotate(Quat(euler))
 
     override fun scale(mult: Vec3){
         scale timesAssign mult

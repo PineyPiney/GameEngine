@@ -22,12 +22,12 @@ fun Vec2.dist(other: Vec2): Float = (this - other).length()
  * Angle of Vec2, in radians, going clockwise starting at (0, 1)
  */
 fun Vec2.angle(): Float {
-    return if (y == 0f) (if (x > 0) PI / 2 else PI * 3 / 2).f
-            else (atan(x / y) + (if (y < 0) PI.f else 0f)).wrap(0f, PI.f * 2)
+    return if (y == 0f) (if (x > 0) PIF * .5f else PIF * 1.5f)
+            else (atan(x / y) + (if (y < 0) PIF else 0f)).wrap(0f, PIF * 2)
 }
 
 fun Vec2.angleBetween(other: Vec2): Float{
-    return (angle() - other.angle()).wrap(-PI.f, PI.f)
+    return (angle() - other.angle()).wrap(-PIF, PIF)
 }
 
 /**
@@ -137,7 +137,7 @@ fun Vec4.Companion.fromHex(num: Int, alpha: Float = 1f): Vec4{
 }
 
 fun Vec4.Companion.fromHex(num: Int, alpha: Int): Vec4{
-    return Vec4(num getRGBAValue 2, num getRGBAValue 1, num getRGBAValue 0, alpha.f / 255)
+    return Vec4(num getRGBAValue 2, num getRGBAValue 1, num getRGBAValue 0, alpha * 0.003921569f)
 }
 
 fun Vec3.rotate(rotation: Vec3): Vec3{

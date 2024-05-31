@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.rendering.cameras
 
+import com.pineypiney.game_engine.util.extension_functions.projectOn
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.glm
@@ -13,25 +14,15 @@ open class OrthographicCamera(window: WindowI, pos: Vec3 = Vec3(0, 0, 5), up: Ve
     protected var height: Float = height
         set(value) { field = max(value, 0.001f) }
 
-    fun screenToWorld(pos: Vec2): Vec2 {
-        return pos * height * 0.5 + Vec2(cameraPos)
-    }
-
-    fun worldToScreen(pos: Vec2): Vec2 {
-        return (pos - Vec2(cameraPos)) / (getSpan() * 0.5)
-    }
-
     override fun getProjection(mat: Mat4): Mat4{
-        val extents = getSpan() / 2
+        val extents = Vec2(height * .5f * window.aspectRatio, height * .5f)
         return glm.ortho(-extents.x, extents.x, -extents.y, extents.y, range.x, range.y, mat)
 
     }
 
-    override fun getSpan(): Vec2 {
-        return Vec2(window.aspectRatio * height, height)
-    }
-
     override fun getRay(point: Vec2): Ray {
-        return Ray(Vec3(screenToWorld(point), cameraPos.z), cameraFront)
+        val worldPos = screenToWorld(Vec2(point.x / window.aspectRatio, point.y))
+        val origin = worldPos + ((cameraPos - worldPos) projectOn cameraFront)
+        return Ray(origin, cameraFront)
     }
 }

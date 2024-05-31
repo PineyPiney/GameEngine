@@ -13,7 +13,7 @@ import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
-class CollisionBox3DRenderer(val obj: GameObject, val colour: Vec4 = Vec4(1f), val shader: Shader = defaultShader): GameObject() {
+class CollisionBox3DRenderer(val obj: GameObject, val lineThickness: Float = .05f, val colour: Vec4 = Vec4(1f), val shader: Shader = defaultShader): GameObject() {
 
     override fun addComponents() {
         super.addComponents()
@@ -27,6 +27,7 @@ class CollisionBox3DRenderer(val obj: GameObject, val colour: Vec4 = Vec4(1f), v
                 super.setUniforms()
                 uniforms.setMat4Uniform("model"){ (this@CollisionBox3DRenderer.obj.getShape() as Cuboid).run { (I.translate(center) * rotation.toMat4()).scale(size) } }
                 uniforms.setVec4Uniform("colour", ::colour)
+                uniforms.setFloatUniform("thickness", ::lineThickness)
             }
 
             override fun render(renderer: RendererI<*>, tickDelta: Double){

@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.scrollList.ScrollListComponent
 import com.pineypiney.game_engine.objects.components.slider.ColourSliderRendererComponent
-import com.pineypiney.game_engine.objects.game_objects.GameObject2D
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
@@ -131,7 +130,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 //    val video = VideoPlayer(VideoLoader[ResourceKey("ghost"), gameEngine.resourcesLoader], Vec2(0.5, -0.15), Vec2(0.5, 0.3))
 
-    val snake = object: GameObject2D(){
+    val snake = object: GameObject(){
         val animation: Animation = Animation("slither", 7f, "snake", (0..5).map { "snake_$it" })
 
         override fun addComponents() {
@@ -142,7 +141,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
         override fun init() {
             super.init()
-            scale2D = Vec2(4)
+            scale = Vec3(4f, 4f, 1f)
         }
     }
 
@@ -176,10 +175,10 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
         model1.getComponent<ModelRendererComponent>()?.setAnimation("Wipe Nose")
         model2.getComponent<ModelRendererComponent>()?.setAnimation("Magic Trick")
-        model1.translate(Vec3(2, -3, 0f))
-        model1.scale(Vec3(3f))
-        model2.translate(Vec3(3, -4, 0f))
-        snake.translate(Vec2(-2, -5))
+        model1 translate Vec3(2, -3, 0f)
+        model1 scale Vec3(3f)
+        model2 translate Vec3(3, -4, 0f)
+        snake translate Vec3(-2, -5, 0f)
     }
 
     private fun rotateGoblin() {

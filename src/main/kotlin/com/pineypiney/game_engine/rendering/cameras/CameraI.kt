@@ -25,6 +25,5 @@ interface CameraI: Initialisable {
     fun updateAspectRatio()
     fun getView(mat: Mat4 = Mat4()): Mat4
     fun getProjection(mat: Mat4 = Mat4()): Mat4
-    fun getSpan(): Vec2
     fun getRay(point: Vec2 = window.input.mouse.lastPos): Ray
 }
