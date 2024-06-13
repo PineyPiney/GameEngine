@@ -57,6 +57,14 @@ class InputState(val key: Short, val controlType: ControlType = ControlType.KEYB
     }
 
     companion object{
+
+        fun shift(mods: Byte) = (mods and GLFW_MOD_SHIFT) > 0
+        fun control(mods: Byte) = (mods and GLFW_MOD_CONTROL) > 0
+        fun alt(mods: Byte) = (mods and GLFW_MOD_ALT) > 0
+        fun super_(mods: Byte) = (mods and GLFW_MOD_SUPER) > 0
+        fun caps(mods: Byte) = (mods and GLFW_MOD_CAPS_LOCK) > 0
+        fun num(mods: Byte) = (mods and GLFW_MOD_NUM_LOCK) > 0
+
         val keyNames: Map<Short, String> = mapOf(
             Pair(GLFW_KEY_SPACE         , "SPACE"),
             Pair(GLFW_KEY_APOSTROPHE    , "APOSTROPHE"),

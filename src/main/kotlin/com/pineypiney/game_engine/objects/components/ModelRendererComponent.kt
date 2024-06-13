@@ -63,7 +63,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
 
         for(mesh in model.meshes) {
             mesh.setMaterial(shader)
-            val newModel = parent.worldModel * mesh.transform.fetchModel()
+            val newModel = parent.worldModel * mesh.transform
             shader.setMat4("model", newModel)
 
             mesh.bindAndDraw()

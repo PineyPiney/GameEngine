@@ -14,6 +14,12 @@ class Rect3D(val origin: Vec3, val side1: Vec3, val side2: Vec3): Shape() {
 
     val normal = (side1 cross side2).normalizeAssign()
 
+    override fun intersectedBy(ray: Ray): Array<Vec3> {
+        val intersection = Plane(origin, normal).intersectedBy(ray).getOrNull(0) ?: return arrayOf()
+        return if(containsPoint(intersection)) arrayOf(intersection)
+        else arrayOf()
+    }
+
     override infix fun containsPoint(point: Vec3): Boolean{
 
         // https://stackoverflow.com/a/8862483
@@ -33,13 +39,24 @@ class Rect3D(val origin: Vec3, val side1: Vec3, val side2: Vec3): Shape() {
         return q1b && q2b
     }
 
-    override fun intersectedBy(ray: Ray): Array<Vec3> {
-        val intersection = Plane(origin, normal).intersectedBy(ray).getOrNull(0) ?: return arrayOf()
-        return if(containsPoint(intersection)) arrayOf(intersection)
-        else arrayOf()
+    // https://gamedev.stackexchange.com/a/169389
+    override fun vectorTo(point: Vec3): Vec3 {
+        val op = point - origin
+        val a = op dot side1
+        val x: Vec3 = if(a < 0) Vec3(0f)
+        else if(a > side1.length()) side1
+        else op projectOn side1
+
+        val b = op dot side2
+        val y: Vec3 = if(b < 0) Vec3(0f)
+        else if(b > side2.length()) side2
+        else op projectOn side2
+
+        val closestPoint = origin + x + y
+        return point - closestPoint
     }
 
-    override fun transformedBy(model: Mat4): Shape {
+    override fun transformedBy(model: Mat4): Rect3D {
         val m = model.rotationComponent().scale(model.getScale())
         return Rect3D(origin + model.getTranslation(), side1.transformedBy(m), side2.transformedBy(m))
     }

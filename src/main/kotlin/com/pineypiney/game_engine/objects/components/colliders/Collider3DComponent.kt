@@ -1,27 +1,23 @@
-package com.pineypiney.game_engine.objects.components
+package com.pineypiney.game_engine.objects.components.colliders
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.util.extension_functions.copy
-import com.pineypiney.game_engine.util.maths.shapes.Cuboid
-import glm_.quat.Quat
+import com.pineypiney.game_engine.util.maths.shapes.Shape3D
 import glm_.vec3.Vec3
 
-class Collider3DComponent(parent: GameObject, val box: Cuboid): Component(parent, "C3D") {
+abstract class Collider3DComponent(parent: GameObject): Component(parent, "C3D") {
 
-    constructor(parent: GameObject): this(parent, Cuboid(Vec3(), Quat.identity, Vec3(1)))
-
-    val transformedBox get() = box transformedBy parent.worldModel
+    abstract val shape: Shape3D
+    val transformedShape get() = shape transformedBy parent.worldModel
     var active = true
 
     override val fields: Array<Field<*>> = arrayOf(
-        Vec3Field("ogn", box::center){ o -> box.center = o },
-        Vec3Field("sze", box::size){ s -> box.size = s },
-        QuatField("rtn", box::rotation){ r -> box.rotation = r},
         BooleanField("atv", ::active){ a -> active = a}
     )
 
     infix fun collidesWith(other: Collider3DComponent): Boolean{
-        return this.parent != other.parent && active && other.active && box intersects other.box
+        return this.parent != other.parent && active && other.active && shape intersects other.shape
     }
 
     fun isColliding(collisions: Collection<Collider3DComponent>? = parent.objects?.getAll3DCollisions()): Boolean{
@@ -35,16 +31,16 @@ class Collider3DComponent(parent: GameObject, val box: Cuboid): Component(parent
         val collidedMove = movement.copy()
 
         // Create a temporary collision box in the new position to calculate collisions
-        val newCollision = transformedBox
-        newCollision.center plusAssign movement
+        val newCollision = transformedShape
+        newCollision.translate(movement)
 
         // Iterate over all collision boxes sharing object collections and
         // eject this collision boxes object if the collision boxes collide
         for(collider in parent.objects?.getAll3DCollisions() ?: emptySet()){
             if(collider != this) {
-                val overlap = newCollision.getEjection(collider.transformedBox, movement, stepBias)
+                val overlap = newCollision.getEjection(collider.transformedShape, movement, stepBias)
                 if(overlap.x != 0f || overlap.y != 0f || overlap.z != 0f) {
-                    newCollision.center plusAssign overlap
+                    newCollision.translate(overlap)
                     collidedMove plusAssign overlap
                 }
             }
@@ -54,9 +50,9 @@ class Collider3DComponent(parent: GameObject, val box: Cuboid): Component(parent
     }
 
     fun isGrounded(): Boolean{
-        val b = transformedBox
-        b.center.y -= 0.01f
+        val b = transformedShape
+        b.translate(Vec3(0f, -0.01f, 0f))
 
-        return (parent.objects?.getAll3DCollisions()?.minus(this))?.any { it.transformedBox.intersects(b) } ?: false
+        return (parent.objects?.getAll3DCollisions()?.minus(this))?.any { it.transformedShape.intersects(b) } ?: false
     }
 }

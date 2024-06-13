@@ -17,7 +17,6 @@ import glm_.quat.Quat
 import glm_.vec2.*
 import glm_.vec3.*
 import glm_.vec4.*
-import kool.ByteBuffer
 import kool.count
 import kool.toBuffer
 import org.json.JSONArray
@@ -30,25 +29,25 @@ import java.nio.ByteOrder
 
 class GLTFModelLoader(val loader: ModelLoader) {
 
-    fun loadModel(fileName: String, json: JSONObject, buffers: List<ByteBuffer>): Model{
+    fun loadModel(fileName: String, json: JSONObject, buffers: List<ByteArray>): Model{
 
         if(json.isEmpty) return Model.brokeModel
 
         val bufferViewsJson = json.getJSONArray("bufferViews")
-        val bufferViews = mutableListOf<ByteBuffer>()
+        val bufferViews = mutableListOf<ByteArray>()
         bufferViewsJson.forEachObject{ o, _ ->
             val buffer = buffers[o.getInt("buffer")]
             val length = o.getInt("byteLength")
             val offset = o.getInt("byteOffset")
 
 
-            bufferViews.add(buffer.slice(offset, length))
+            bufferViews.add(buffer.copyOfRange(offset, offset + length))
         }
 
         val accessorsJson = json.getJSONArray("accessors")
         val accessors = mutableListOf<Array<Any>>()
         for((_, o) in accessorsJson.objects){
-            val view = bufferViews[o.getInt("bufferView")]
+            val view = bufferViews[o.getInt("bufferView")].toBuffer()
             val type = DataType.entries.first { it.value == o.getInt("componentType") }
             val matrix = DataMatrix.valueOf(o.getString("type"))
             val size = type.bytes * matrix.size
@@ -175,7 +174,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
     fun loadGLTFFile(fileName: String, stream: InputStream): Model{
         val json = JSONObject(stream.readAllBytes().toString(Charsets.UTF_8))
         val buffersJson = json.getJSONArray("buffers")
-        val buffers = mutableListOf<ByteBuffer>()
+        val buffers = mutableListOf<ByteArray>()
         for(i in 0..<buffersJson.length()){
             val bufferLocation = buffersJson.getJSONObject(i).getString("uri")
             buffers.add(loadBinFile(fileName.substringBeforeLast('/') + "/" + bufferLocation))
@@ -183,16 +182,16 @@ class GLTFModelLoader(val loader: ModelLoader) {
         return loadModel(fileName, json, buffers)
     }
 
-    fun loadBinFile(name: String): ByteBuffer{
-        val stream = loader.currentStreams[name] ?: return ByteBuffer(0)
-        return stream.readAllBytes().toBuffer()
+    fun loadBinFile(name: String): ByteArray{
+        val stream = loader.currentStreams[name] ?: return ByteArray(0)
+        return stream.readAllBytes()
     }
 
     // https://docs.fileformat.com/3d/glb/ Praise the lord
     fun loadGLBFile(fileName: String, stream: InputStream): Model{
         val header = stream.readNBytes(12)
         var json = JSONObject()
-        val buffers = mutableListOf<ByteBuffer>()
+        val buffers = mutableListOf<ByteArray>()
         while(stream.available() != 0){
             val chunkHeader = stream.readNBytes(8)
             val size = chunkHeader.getInt(0, false)
@@ -201,7 +200,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
 
             when(type){
                 "JSON" -> json = JSONObject(bytes.toString(Charsets.UTF_8))
-                "BIN" + 0.c -> buffers.add(bytes.toBuffer())
+                "BIN" + 0.c -> buffers.add(bytes)
             }
         }
 

@@ -20,22 +20,22 @@ class Line2D(val start: Vec2, val end: Vec2): Shape() {
         return false
     }
 
+    override infix fun vectorTo(point: Vec3): Vec3 {
+        val vec = end - start
+        val p = Vec2(point) - start
+        val proj = vec dot p
+        val delta = proj / vec.length2()
+
+        return if(delta > 1f) point - Vec3(end, 0f)
+        else if(delta < 0f) Vec3(p, point.z)
+        else point - Vec3((start + (vec * delta)), 0f)
+    }
+
     override fun transformedBy(model: Mat4): Shape {
         val s = end - start
         val m = model.rotationComponent().scale(model.getScale())
         val newStart = start + Vec2(model.getTranslation())
         val newS = Vec2(m * Vec4(s, 0f, 1f))
         return Line2D(newStart, newStart + newS)
-    }
-
-    infix fun vectorTo(point: Vec2): Vec2 {
-        val vec = end - start
-        val p = point - start
-        val proj = vec dot p
-        val delta = proj / vec.length2()
-
-        return if(delta > 1f) point - end
-        else if(delta < 0f) p
-        else point - (start + (vec * delta))
     }
 }

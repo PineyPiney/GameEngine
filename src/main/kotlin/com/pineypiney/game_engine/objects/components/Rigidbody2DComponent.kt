@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 

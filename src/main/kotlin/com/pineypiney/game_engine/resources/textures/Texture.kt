@@ -66,7 +66,7 @@ class Texture(val fileLocation: String, val texturePointer: Int, val target: Int
         else 0
     }
 
-    fun savePNG(file: CharSequence): Boolean{
+    fun savePNG(file: String): Boolean{
         val d = getData().rewind().flip()
         d.limit(d.capacity())
         return STBImageWrite.stbi_write_png(file, width, height, numChannels, d, numChannels * width)

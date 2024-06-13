@@ -1,7 +1,8 @@
 package com.pineypiney.game_engine.objects
 
 import com.pineypiney.game_engine.objects.components.*
-import com.pineypiney.game_engine.objects.transforms.Transform3D
+import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
+import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.lighting.Light
@@ -33,22 +34,21 @@ open class GameObject(open var name: String = "GameObject"): Initialisable {
 		if(!hasComponent<TransformComponent>()) components.add(TransformComponent(this))
 		getComponent<TransformComponent>()!!
 	}
-	val transform: Transform3D get() = transformComponent.transform
 
 	var position: Vec3
-		get() = transform.position
+		get() = transformComponent.position
 		set(value){
-			transform.position = value
+			transformComponent.position = value
 		}
 	var scale: Vec3
-		get() = transform.scale
+		get() = transformComponent.scale
 		set(value){
-			transform.scale = value
+			transformComponent.scale = value
 		}
 	var rotation: Quat
-		get() = transform.rotation
+		get() = transformComponent.rotation
 		set(value){
-			transform.rotation = value
+			transformComponent.rotation = value
 		}
 
 	var layer: Int = 0
@@ -59,8 +59,8 @@ open class GameObject(open var name: String = "GameObject"): Initialisable {
 			}
 			field = value
 		}
-	val relativeModel: Mat4 get() = transform.fetchModel()
-	val worldModel: Mat4 get() = parent?.let { it.worldModel * relativeModel } ?: relativeModel
+	val relativeModel: Mat4 get() = transformComponent.fetchModel()
+	val worldModel: Mat4 get() = transformComponent.fetchWorldModel()
 
 	val renderer get() = getComponent<RenderedComponentI>()
 	val parentRenderSize get() = parent?.renderer?.renderSize ?: Vec2(1f, 1f)
@@ -92,10 +92,10 @@ open class GameObject(open var name: String = "GameObject"): Initialisable {
 		}
 	}
 
-	infix fun translate(vec: Vec3)=transform translate vec
-	infix fun scale(vec: Vec3)=transform scale vec
-	infix fun rotate(euler: Vec3)=transform rotate euler
-	infix fun rotate(quat: Quat)=transform rotate quat
+	infix fun translate(vec: Vec3) = transformComponent translate vec
+	infix fun scale(vec: Vec3) = transformComponent scale vec
+	infix fun rotate(euler: Vec3) = transformComponent rotate euler
+	infix fun rotate(quat: Quat) = transformComponent rotate quat
 
 	fun addChild(vararg children: GameObject){
 		this.children.addAll(children.toSet())
@@ -130,6 +130,13 @@ open class GameObject(open var name: String = "GameObject"): Initialisable {
 		for(c in children) c.parent = null
 	}
 
+	fun deleteAllChildren(){
+		for(c in children){
+			c.parent = null
+			c.delete()
+		}
+		children.clear()
+	}
 
 	fun getChild(name: String) = children.firstOrNull { it.name == name }
 
@@ -148,7 +155,7 @@ open class GameObject(open var name: String = "GameObject"): Initialisable {
 	fun getShape(): Shape{
 
 		getComponent<Collider2DComponent>()?.let { return it.transformedBox }
-		getComponent<Collider3DComponent>()?.let { return it.transformedBox }
+		getComponent<Collider3DComponent>()?.let { return it.transformedShape }
 
 		val renderer = this.renderer
 		if(renderer != null){

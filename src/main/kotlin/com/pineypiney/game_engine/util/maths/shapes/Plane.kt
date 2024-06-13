@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.util.maths.shapes
 
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
+import com.pineypiney.game_engine.util.extension_functions.projectOn
 import com.pineypiney.game_engine.util.extension_functions.rotationComponent
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.mat4x4.Mat4
@@ -9,6 +10,7 @@ import glm_.vec4.Vec4
 import kotlin.math.abs
 
 class Plane(val point: Vec3, val normal: Vec3): Shape() {
+
     override fun intersectedBy(ray: Ray): Array<Vec3> {
 
         // https://stackoverflow.com/a/8862483
@@ -27,6 +29,10 @@ class Plane(val point: Vec3, val normal: Vec3): Shape() {
     override fun containsPoint(point: Vec3): Boolean {
         val (m, c) = getEquation()
         return abs((m dot point) + c) < 1e-6
+    }
+
+    override fun vectorTo(point: Vec3): Vec3 {
+        return (point - this.point) projectOn normal
     }
 
     override fun transformedBy(model: Mat4): Shape {

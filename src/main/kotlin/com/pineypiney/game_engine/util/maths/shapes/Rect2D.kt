@@ -58,12 +58,6 @@ class Rect2D(var origin: Vec2, var length1: Float, var length2: Float, var angle
             if(other == null || angle.mod(PI.f / 2) == other.angle.mod(PI.f / 2)) arrayOf(normal1, normal2)
             else arrayOf(normal1, normal2, other.normal1, other.normal2)
 
-    override fun transformedBy(model: Mat4): Rect2D {
-        val scale = Vec2(model.getScale())
-        val rotation = model.getRotation().eulerAngles().z
-        return Rect2D((origin.rotate(rotation) * scale) + Vec2(model.getTranslation()), size * scale, angle - rotation)
-    }
-
     override fun intersectedBy(ray: Ray): Array<Vec3> {
         val intersection = Plane(Vec3(origin), Vec3(0f, 0f, 1f)).intersectedBy(ray).getOrNull(0) ?: return arrayOf()
         return if(containsPoint(intersection)) arrayOf(intersection)
@@ -72,6 +66,17 @@ class Rect2D(var origin: Vec2, var length1: Float, var length2: Float, var angle
 
     override fun containsPoint(point: Vec3): Boolean {
         return Vec2(point).isWithin(origin, size)
+    }
+
+    override fun vectorTo(point: Vec3): Vec3 {
+        // Lazy
+        return Rect3D(this) vectorTo point
+    }
+
+    override fun transformedBy(model: Mat4): Rect2D {
+        val scale = Vec2(model.getScale())
+        val rotation = model.getRotation().eulerAngles().z
+        return Rect2D((origin.rotate(rotation) * scale) + Vec2(model.getTranslation()), size * scale, angle - rotation)
     }
 
     override fun toString(): String {

@@ -12,10 +12,11 @@ import glm_.vec1.Vec1Vars
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
+import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.IllegalCallableAccessException
 import kotlin.reflect.full.isSupertypeOf
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaType
 
 abstract class Component(final override val parent: GameObject, override val id: String): ComponentI {
@@ -45,23 +46,52 @@ abstract class Component(final override val parent: GameObject, override val id:
         val smallConst = constructors.firstOrNull { it.parameters.size == 1 && it.parameters[0].type.javaType == oClass }
 
         val newComponent: Component =
+            // If there is a small Constructor that just takes a GameObject then use that
             if(smallConst != null) smallConst.call(newParent)
             else{
-                val constructor = clazz.primaryConstructor ?: constructors.first()
+                // Otherwise use the primary constructor or the first one
                 val params = mutableMapOf<KParameter, Any?>()
+                var func: KFunction<Component>? = null
+                var i = 0
+                var errors = mutableListOf<String>()
+                constructors@for(constructor in constructors) {
 
-                for(param in constructor.parameters){
-                    if(param.type.javaType == oClass) params[param] = newParent
-                    else {
-                        val memberProperty = clazz.memberProperties.firstOrNull { it.name == param.name && it.returnType.isSupertypeOf(param.type) }
-                        if(memberProperty != null) params[param] = memberProperty.call(this)
+                    for (param in constructor.parameters) {
+                        // If this is a GameObject parameter set the new parent
+                        if (param.type.javaType == oClass) params[param] = newParent
+                        else if(param.isOptional) continue
                         else {
-                            throw InstantiationError("Could not copy Component Class $clazz, did not have a default constructor and could not find backing field for parameter ${param.name}")
+                            // Search for a member property with the same name and type
+                            val memberProperty = clazz.memberProperties.firstOrNull { it.name == param.name }
+                            var good = true
+
+                            if(memberProperty == null) {
+                                errors.add("Constructor ${i++} invalid, param ${param.name} does not have a matching class member")
+                                good = false
+                            }
+                            else if(!memberProperty.returnType.isSupertypeOf(param.type)){
+                                errors.add("Constructor ${i++} invalid, param ${param.name} type is ${param.type}, matching field type is ${memberProperty.returnType}")
+                                good = false
+                            }
+                            if (good) {
+                                try {
+                                    params[param] = memberProperty?.call(this)
+                                    continue
+                                }
+                                catch (_: IllegalCallableAccessException){
+                                    errors.add("Constructor ${i++} invalid, param ${param.name} matching field is inaccessible")
+                                }
+                            }
+                            params.clear()
+                            continue@constructors
                         }
                     }
+                    // Managed to fill out all the parameters
+                    func = constructor
+                    break
                 }
 
-                constructor.callBy(params)
+                func?.callBy(params) ?: throw InstantiationError("Could not copy Component Class $clazz, did not have a default constructor and could not use any of the available constructors for the following reasons:\n" + errors.joinToString("\n"))
             }
 
         copyFieldsTo(newComponent)
@@ -204,16 +234,6 @@ abstract class Component(final override val parent: GameObject, override val id:
     class CollectionField<T, C: Collection<T>>(id: String, getter: () -> C, setter: (C) -> Unit, val separator: String, serialise: (T) -> String, parse: (Component, String) -> T?, collectionConverter: (List<T>) -> C, val subEditor: FieldCreator<T>): Field<C>(id, { c, i, o, s, cb -> CollectionFieldEditor(c, i, o, s, subEditor, cb) }, getter, setter, { it.joinToString(separator, transform = serialise)}, { c, s ->
         collectionConverter(s.split(separator).mapNotNull { parse(c, it) })
     })
-
-    val components: Array<(GameObject) -> Component> = arrayOf(
-        ::TransformComponent,
-        ::SpriteComponent,
-        ::ColouredSpriteComponent,
-    )
-
-    val components2D: Array<(GameObject) -> Component> = arrayOf(
-        ::Collider2DComponent
-    )
 
     abstract class FieldEditor<T, out F: Field<T>>(component: Component, val fullId: String, origin: Vec2, size: Vec2): MenuItem(){
 

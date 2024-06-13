@@ -18,6 +18,10 @@ import kotlin.math.*
  */
 fun Vec2.dist(other: Vec2): Float = (this - other).length()
 
+fun Vec2i.manhattan(): Int{
+    return abs(x) + abs(y)
+}
+
 /**
  * Angle of Vec2, in radians, going clockwise starting at (0, 1)
  */

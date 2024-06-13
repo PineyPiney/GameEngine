@@ -20,7 +20,7 @@ open class BasicSliderPointer(val height: Float): MenuItem() {
     override fun init() {
         super.init()
         val parentHeight = parent?.transformComponent?.worldScale?.y ?: 1f
-        transformComponent.worldScale = Vec3(parentHeight, parentHeight, 1f)
+        this.transformComponent.worldScale = Vec3(parentHeight, parentHeight, 1f)
     }
 
     companion object{

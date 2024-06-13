@@ -167,7 +167,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
     override fun init() {
         super.init()
 
-        gameText.transform.position = Vec3(0, 2)
+        gameText.transformComponent.transform.position = Vec3(0, 2)
 
 //        video.init()
 //        video.play()

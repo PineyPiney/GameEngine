@@ -32,6 +32,7 @@ class ComponentEditor(var o: GameObject, component: Component, origin: Vec2, siz
     }
 
     fun generateFields(){
+        val f = editingComponent::class.supertypes
         var i = editingComponent.fields.size
         val h = 0.06f
 

@@ -5,7 +5,6 @@ import glm_.vec3.Vec3
 import kotlin.math.*
 
 val I get() = Mat4(1f)
-val O get() = Vec3(0f)
 val up get() = Vec3(0f, 1f, 0f)
 val normal get() = Vec3(0f, 0f, -1f)
 

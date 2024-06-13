@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
 import glm_.vec3.Vec3
 
 class Rigidbody3DComponent(parent: GameObject) : Component(parent, "RGB"), UpdatingComponent {

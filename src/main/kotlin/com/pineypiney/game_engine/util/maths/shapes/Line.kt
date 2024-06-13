@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.util.maths.shapes
 
 import com.pineypiney.game_engine.util.extension_functions.getScale
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
+import com.pineypiney.game_engine.util.extension_functions.projectOn
 import com.pineypiney.game_engine.util.extension_functions.rotationComponent
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.mat4x4.Mat4
@@ -33,6 +34,18 @@ class Line(val start: Vec3, val end: Vec3): Shape() {
 
     override fun containsPoint(point: Vec3): Boolean {
         return false
+    }
+
+    override fun vectorTo(point: Vec3): Vec3 {
+        val op = point - start
+        val side = (end - start)
+
+        val a = op dot (end - start)
+        val x: Vec3 = if(a < 0) Vec3(0f)
+        else if(a > side.length()) side
+        else op projectOn side
+
+        return start + x
     }
 
     override fun transformedBy(model: Mat4): Shape {

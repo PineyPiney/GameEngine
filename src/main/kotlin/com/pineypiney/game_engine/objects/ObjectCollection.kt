@@ -1,6 +1,10 @@
 package com.pineypiney.game_engine.objects
 
-import com.pineypiney.game_engine.objects.components.*
+import com.pineypiney.game_engine.objects.components.Component
+import com.pineypiney.game_engine.objects.components.InteractorComponent
+import com.pineypiney.game_engine.objects.components.UpdatingComponent
+import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
+import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
 import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance

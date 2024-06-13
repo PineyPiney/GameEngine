@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.objects.Deleteable
-import com.pineypiney.game_engine.objects.transforms.Transform3D
 import com.pineypiney.game_engine.objects.util.shapes.VertexShape
 import com.pineypiney.game_engine.resources.models.pgm.Controller
 import com.pineypiney.game_engine.resources.models.pgm.Face
@@ -9,8 +8,10 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.Copyable
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.extension_functions.expand
+import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape
+import glm_.mat4x4.Mat4
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -42,7 +43,7 @@ class Mesh(var id: String, val vertices: Array<MeshVertex>, val indices: IntArra
     var alpha = defaultAlpha
     var order = defaultOrder
 
-    val transform: Transform3D get() = Transform3D(translation, rotation, Vec3(1))
+    val transform: Mat4 get() = I.translate(translation) * rotation.toMat4()
 
     init {
         if(vertices.isNotEmpty()) setupMesh()

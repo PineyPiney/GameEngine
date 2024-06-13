@@ -31,7 +31,10 @@ abstract class WindowGameLogic : GameLogic() {
     open fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
         val ray = renderer.camera.getRay()
         for (component in gameObjects.getAllInteractables()){
+            val oldHover = component.hover
             component.hover = component.checkHover(ray, cursorPos)
+            if(!oldHover && component.hover) component.onCursorEnter(window, cursorPos, cursorDelta, ray)
+            else if(oldHover && !component.hover) component.onCursorExit(window, cursorPos, cursorDelta, ray)
             if(component.shouldUpdate()) component.onCursorMove(window, cursorPos, cursorDelta, ray)
         }
     }

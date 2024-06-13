@@ -89,7 +89,7 @@ fun <E, K, V> Iterable<E>.associateIndexed(transform: (Int, E) -> Pair<K, V>): M
  * @return `true` if any of the specified elements was added to the collection, `false` if the collection was not modified.
  */
 fun <E> MutableCollection<E>.addAll(vararg elements: E): Boolean{
-    return addAll(elements.toSet())
+    return addAll(elements)
 }
 
 /**

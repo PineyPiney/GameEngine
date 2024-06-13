@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.stb.STBImageWrite
 import java.nio.ByteBuffer
 
-open class FrameBuffer(var width: Int, var height: Int, var internalFormat: Int = GL_RGB, var format: Int = GL_RGB): Deleteable {
+open class FrameBuffer(var width: Int, var height: Int, var format: Int = GL_RGB, var internalFormat: Int = format): Deleteable {
 
     constructor(size: Vec2t<*>): this(size.x.i, size.y.i)
 
@@ -61,11 +61,12 @@ open class FrameBuffer(var width: Int, var height: Int, var internalFormat: Int 
         shape.bindAndDraw()
     }
 
-    fun savePNG(file: CharSequence): Boolean{
-        val d = getData().rewind().flip()
+    fun savePNG(file: String): Boolean{
+        val d = getData()
         d.limit(d.capacity())
         val numChannels = TextureLoader.formatToChannels(format)
-        return STBImageWrite.stbi_write_png(file, width, height, numChannels, d, numChannels * width)
+        val fileName = if(file.endsWith(".png")) file else "$file.png"
+        return STBImageWrite.stbi_write_png(fileName, width, height, numChannels, d, numChannels * width)
     }
 
     fun getData(): ByteBuffer{

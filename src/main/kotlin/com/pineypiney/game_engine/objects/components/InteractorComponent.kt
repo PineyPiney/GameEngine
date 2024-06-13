@@ -36,6 +36,8 @@ interface InteractorComponent: ComponentI {
     fun onCursorMove(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray){
         if(pressed) onDrag(window, cursorPos, cursorDelta, ray)
     }
+    fun onCursorEnter(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray){}
+    fun onCursorExit(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray){}
     fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {}
     fun onScroll(window: WindowI, scrollDelta: Vec2): Int = 0
 
@@ -56,7 +58,7 @@ interface InteractorComponent: ComponentI {
         return action
     }
 
-    fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int = 0
+    fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int = action
 
     fun shouldUpdate(): Boolean {
         return this.hover || this.pressed || this.forceUpdate || this.interactableChildren.any { child -> child.shouldUpdate() }

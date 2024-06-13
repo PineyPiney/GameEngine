@@ -1,7 +1,5 @@
 package com.pineypiney.game_engine
 
-import glm_.d
-
 class Timer {
 
     fun init(){
@@ -24,6 +22,7 @@ class Timer {
     }
 
     companion object{
+        var startTime = System.nanoTime()
         var time: Double = 0.0; private set
         var delta: Double = 0.0; private set
         var frameTime: Double = 0.0; private set
@@ -31,9 +30,9 @@ class Timer {
 
         // Gets the current system time in seconds
         fun getCurrentTime(): Double{
-            return System.nanoTime().d * 1e-9
+            return (System.nanoTime() - startTime).toDouble() * 1e-9
         }
 
-        fun getCurrentMillis(): Double = System.nanoTime().toDouble() * 1e-6
+        fun getCurrentMillis(): Double = (System.nanoTime() - startTime).toDouble() * 1e-6
     }
 }
