@@ -193,9 +193,9 @@ class GLTFModelLoader(val loader: ModelLoader) {
         var json = JSONObject()
         val buffers = mutableListOf<ByteArray>()
         while(stream.available() != 0){
-            val chunkHeader = stream.readNBytes(8)
+            val chunkHeader = stream.readNBytes(8) ?: break
             val size = chunkHeader.getInt(0, false)
-            val type = chunkHeader.sliceArray(4..7).toString(Charsets.UTF_8)
+            val type = chunkHeader.copyOfRange(4, 8).toString(Charsets.UTF_8)
             val bytes = stream.readNBytes(size)
 
             when(type){
