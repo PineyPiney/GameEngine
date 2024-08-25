@@ -4,47 +4,49 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
+import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import glm_.vec2.Vec2
 
-class Collider2DComponent(parent: GameObject, val box: Rect2D): Component(parent, "C2D") {
+class Collider2DComponent(parent: GameObject, var shape: Shape2D, val flags: MutableSet<String> = mutableSetOf()) : Component(parent, "C2D") {
 
-	constructor(parent: GameObject): this(parent, Rect2D(Vec2(), Vec2(1)))
+	constructor(parent: GameObject, shape: Shape2D, vararg flags: String): this(parent, shape, mutableSetOf(*flags))
 
-	val transformedBox get() = box transformedBy parent.worldModel
+	constructor(parent: GameObject) : this(parent, Rect2D(Vec2(), Vec2(1)))
+
+	val transformedShape get() = shape transformedBy parent.worldModel
 	var active = true
 
 	override val fields: Array<Field<*>> = arrayOf(
-		Vec2Field("ogn", box::origin){ o -> box.origin = o },
-		Vec2Field("sze", box::size){ s -> box.size = s },
-		FloatField("rtn", box::angle){ r -> box.angle = r},
-		BooleanField("atv", ::active){ a -> active = a}
+		BooleanField("atv", ::active) { a -> active = a }
 	)
 
-	infix fun collidesWith(other: Collider2DComponent): Boolean{
-		return this.parent != other.parent && active && other.active && box intersects other.box
+	infix fun collidesWith(other: Collider2DComponent): Boolean {
+		return this.parent != other.parent && active && other.active && shape intersects other.shape
 	}
 
-	fun isColliding(collisions: Collection<Collider2DComponent>? = parent.objects?.getAll2DCollisions()): Boolean{
-		if(collisions.isNullOrEmpty()) return false
-		for(c in collisions.toSet()) if(this collidesWith c) return true
+	fun isColliding(collisions: Collection<Collider2DComponent>? = parent.objects?.getAll2DCollisions()): Boolean {
+		if (collisions.isNullOrEmpty()) return false
+		for (c in collisions.toSet()) if (this collidesWith c) return true
 		return false
 	}
 
-	fun checkAllCollisions(movement: Vec2): Vec2{
+	fun checkAllCollisions(movement: Vec2, stepBias: Vec2? = null): Vec2 {
 
 		val collidedMove = movement.copy()
 
 		// Create a temporary collision box in the new position to calculate collisions
-		val newCollision = transformedBox
-		newCollision.origin plusAssign movement
+		val newCollision = transformedShape
+		newCollision translate movement
 
 		// Iterate over all collision boxes sharing object collections and
 		// eject this collision boxes object if the collision boxes collide
-		for(collider in parent.objects?.getAll2DCollisions() ?: emptySet()){
-			if(collider != this) {
-				val overlap = newCollision overlapVector collider.transformedBox
-				if(overlap.x != 0f || overlap.y != 0f) {
+		for (collider in parent.objects?.getAll2DCollisions() ?: emptySet()) {
+			if (collider.active && collider != this) {
+				val overlap = newCollision.getEjection(collider.transformedShape, movement, stepBias)
+				if (overlap.x != 0f || overlap.y != 0f) {
 					collidedMove plusAssign overlap
+					parent.getComponent<Collider2DCallback>()?.onCollide(this, collider)
+					collider.parent.getComponent<Collider2DCallback>()?.onCollide(collider, this)
 				}
 			}
 		}
@@ -52,10 +54,10 @@ class Collider2DComponent(parent: GameObject, val box: Rect2D): Component(parent
 		return collidedMove
 	}
 
-	fun isGrounded(): Boolean{
-		val b = transformedBox
-		b.origin.y -= 0.01f
+	fun isGrounded(): Boolean {
+		val b = transformedShape
+		b translate Vec2(0f, -0.01f)
 
-		return (parent.objects?.getAll2DCollisions()?.minus(this))?.any { it.transformedBox.intersects(b) } ?: false
+		return (parent.objects?.getAll2DCollisions()?.minus(this))?.any { it.transformedShape.intersects(b) } ?: false
 	}
 }

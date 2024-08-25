@@ -8,51 +8,50 @@ import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import kotlin.math.abs
 
-class Line(val start: Vec3, val end: Vec3): Shape() {
-    val grad = (end - start).normalize()
+class Line(val start: Vec3, val end: Vec3) : Shape3D() {
+	val grad = (end - start).normalize()
+	override val center: Vec3
+		get() = (start + end) * .5f
 
-    // https://stackoverflow.com/a/8862483
-    infix fun intersects(plane: Plane): Vec3?{
+	override fun intersectedBy(ray: Ray): Array<Vec3> {
+		return arrayOf()
+	}
 
-        val dot = plane.normal dot grad
+	override fun containsPoint(point: Vec3): Boolean {
+		return false
+	}
 
-        // If the direction is perpendicular to the normal then they do not cross over
-        if(abs(dot) < 1e-6) return null
+	override fun vectorTo(point: Vec3): Vec3 {
+		val op = point - start
+		val side = (end - start)
 
-        // a is the distance along the ray to the intersection with the plane of the rectangle
-        val a = ((plane.point - start) dot plane.normal) / dot
+		val a = op dot (end - start)
+		val x: Vec3 = if (a < 0) Vec3(0f)
+		else if (a > side.length()) side
+		else op projectOn side
 
-        // return the point on the plane
-        return start + grad * a
-    }
+		return start + x
+	}
 
-    override fun intersectedBy(ray: Ray): Array<Vec3> {
-        return arrayOf()
-    }
+	override fun getNormals(): Set<Vec3> {
+		return setOf(grad)
+	}
 
-    override fun containsPoint(point: Vec3): Boolean {
-        return false
-    }
+	override fun projectToNormal(normal: Vec3): Set<Float> {
+		return setOf(start dot normal, end dot normal)
+	}
 
-    override fun vectorTo(point: Vec3): Vec3 {
-        val op = point - start
-        val side = (end - start)
+	override fun translate(move: Vec3) {
+		start += move
+		end += move
+	}
 
-        val a = op dot (end - start)
-        val x: Vec3 = if(a < 0) Vec3(0f)
-        else if(a > side.length()) side
-        else op projectOn side
-
-        return start + x
-    }
-
-    override fun transformedBy(model: Mat4): Shape {
-        val s = end - start
-        val m = model.rotationComponent().scale(model.getScale())
-        val newStart = start + model.getTranslation()
-        val newS = Vec3(m * Vec4(s, 1f))
-        return Line(newStart, newStart + newS)
-    }
+	override fun transformedBy(model: Mat4): Shape3D {
+		val s = end - start
+		val m = model.rotationComponent().scale(model.getScale())
+		val newStart = start + model.getTranslation()
+		val newS = Vec3(m * Vec4(s, 1f))
+		return Line(newStart, newStart + newS)
+	}
 }

@@ -6,17 +6,17 @@ import glm_.i
 import java.nio.ByteBuffer
 import kotlin.math.floor
 
-abstract class VideoData<E: Deleteable>: Initialisable {
+abstract class VideoData<E : Deleteable> : Initialisable {
 
-    abstract val video: Video
+	abstract val video: Video
 
-    var nextUpdate = 0
-    val currentIndex: Int get() = floor(video.timeStamp * video.frameRate).i
+	var nextUpdate = 0
+	val currentIndex: Int get() = floor(video.timeStamp * video.frameRate).i
 
-    abstract fun loadNextBuffer(buffer: ByteBuffer)
-    abstract fun update()
+	abstract fun loadNextBuffer(buffer: ByteBuffer)
+	abstract fun update()
 
-    fun reset(){
-        nextUpdate = 0
-    }
+	fun reset() {
+		nextUpdate = 0
+	}
 }

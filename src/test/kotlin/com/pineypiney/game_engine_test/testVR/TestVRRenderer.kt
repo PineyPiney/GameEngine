@@ -17,42 +17,42 @@ import org.lwjgl.opengl.GL11
 
 class TestVRRenderer(w: Int, h: Int, override val hmd: HMD): VRRenderer<TestVRGame>(w, h) {
 
-    override var view: Mat4 = I
+	override var view: Mat4 = I
 
-    val viewOffset = Vec3()
+	val viewOffset = Vec3()
 
-    override fun init() {
-        super.init()
-        GLFunc.clearColour = Vec4(0, 1, 0, 1)
-    }
+	override fun init() {
+		super.init()
+		GLFunc.clearColour = Vec4(0, 1, 0, 1)
+	}
 
-    override fun render(game: TestVRGame, tickDelta: Double) {
-        GLFunc.viewportO = Vec2i(leftBuffer.width, leftBuffer.height)
-        GLFunc.multiSample = true
-        drawScene(game, 0, leftBuffer, tickDelta)
-        drawScene(game, 1, rightBuffer, tickDelta)
+	override fun render(game: TestVRGame, tickDelta: Double) {
+		GLFunc.viewportO = Vec2i(leftBuffer.width, leftBuffer.height)
+		GLFunc.multiSample = true
+		drawScene(game, 0, leftBuffer, tickDelta)
+		drawScene(game, 1, rightBuffer, tickDelta)
 
-        GLFunc.multiSample = false
-        blitBuffer(leftBuffer, leftDisplay)
-        blitBuffer(rightBuffer, rightDisplay)
+		GLFunc.multiSample = false
+		blitBuffer(leftBuffer, leftDisplay)
+		blitBuffer(rightBuffer, rightDisplay)
 
-        submitFrames(leftDisplay.TCB, rightDisplay.TCB)
-        GL11.glGetError()
+		submitFrames(leftDisplay.TCB, rightDisplay.TCB)
+		GL11.glGetError()
 
-        // Draws output to the test window
-        FrameBuffer.unbind()
-        clear()
-        GLFunc.viewportO = TestWindow.INSTANCE.framebufferSize
+		// Draws output to the test window
+		FrameBuffer.unbind()
+		clear()
+		GLFunc.viewportO = TestWindow.INSTANCE.framebufferSize
 
-        val shader = BufferedGameRenderer.screenShader
-        shader.use()
-        shader.setUniforms(BufferedGameRenderer.screenUniforms, this)
-        leftDisplay.draw(SquareShape(Vec2(-0.5, 0), Vec2(1, 2)))
-        rightDisplay.draw(SquareShape(Vec2(0.5, 0), Vec2(1, 2)))
-        TestWindow.INSTANCE.update()
-    }
+		val shader = BufferedGameRenderer.screenShader
+		shader.use()
+		shader.setUniforms(BufferedGameRenderer.screenUniforms, this)
+		leftDisplay.draw(SquareShape(Vec2(-0.5, 0), Vec2(1, 2)))
+		rightDisplay.draw(SquareShape(Vec2(0.5, 0), Vec2(1, 2)))
+		TestWindow.INSTANCE.update()
+	}
 
-    override fun getView(eye: Int): Mat4 {
-        return super.getView(eye) * (I.translate(viewOffset).inverse())
-    }
+	override fun getView(eye: Int): Mat4 {
+		return super.getView(eye) * (I.translate(viewOffset).inverse())
+	}
 }

@@ -16,43 +16,50 @@ import org.lwjgl.assimp.Assimp.aiProcess_Triangulate
 
 // Materials are also stored in the model, and accessed by the meshes through IDs
 
-class Model(val name: String, val meshes: Array<Mesh> = arrayOf(Mesh.default), val rootBone: Bone? = null, val animations: Array<ModelAnimation> = arrayOf(), val box: Collider = Collider2D(Rect2D(Vec2(), Vec2(1f))), val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs): Resource() {
+class Model(
+	val name: String,
+	val meshes: Array<ModelMesh> = arrayOf(ModelMesh.default),
+	val rootBone: Bone? = null,
+	val animations: Array<ModelAnimation> = arrayOf(),
+	val box: Collider = Collider2D(Rect2D(Vec2(), Vec2(1f))),
+	val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs
+) : Resource() {
 
-    /**
-     * @param name The name of a bone, e.g. head
-     *
-     * @return The first bone found with a name that matches [name], or null
-     */
-    fun findBone(name: String) = rootBone?.getChild(name)
+	/**
+	 * @param name The name of a bone, e.g. head
+	 *
+	 * @return The first bone found with a name that matches [name], or null
+	 */
+	fun findBone(name: String) = rootBone?.getChild(name)
 
-    fun animate(states: Array<State>){
-        // Get the states, or forget it
-        reset()
-        setStates(states)
-        meshes.sortBy { it.order }
-    }
+	fun animate(states: Array<State>) {
+		// Get the states, or forget it
+		reset()
+		setStates(states)
+		meshes.sortBy { it.order }
+	}
 
-    private fun setStates(states: Array<State>){
-        for(state in states){
-            state.applyTo(this)
-        }
-    }
+	private fun setStates(states: Array<State>) {
+		for (state in states) {
+			state.applyTo(this)
+		}
+	}
 
-    fun reset(){
-        meshes.forEach { it.reset() }
-        rootBone?.reset()
-    }
+	fun reset() {
+		meshes.forEach { it.reset() }
+		rootBone?.reset()
+	}
 
-    override fun delete() {}
+	override fun delete() {}
 
-    companion object{
+	companion object {
 
-        const val DEBUG_MESH = 1
-        const val DEBUG_BONES = 2
-        const val DEBUG_COLLIDER = 4
+		const val DEBUG_MESH = 1
+		const val DEBUG_BONES = 2
+		const val DEBUG_COLLIDER = 4
 
-        val brokeMaterial = ModelMaterial("broke", mapOf(), Vec3(1))
+		val brokeMaterial = ModelMaterial("broke", mapOf(), Vec3(1))
 
-        val brokeModel = Model("broke")
-    }
+		val brokeModel = Model("broke")
+	}
 }

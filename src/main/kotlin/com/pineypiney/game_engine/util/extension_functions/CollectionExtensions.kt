@@ -13,46 +13,46 @@ import com.pineypiney.game_engine.objects.Initialisable
  *
  * @returns The final value of the accumulator
  */
-inline fun <S, T> Iterable<T>.reduceA(acc: S, operation: (acc: S, T) -> S): S{
-    val iterator = this.iterator()
-    if (!iterator.hasNext()) throw UnsupportedOperationException("Empty collection can't be reduced.")
-    var accumulator: S = acc
-    while (iterator.hasNext()) {
-        accumulator = operation(accumulator, iterator.next())
-    }
-    return accumulator
+inline fun <S, T> Iterable<T>.reduceA(acc: S, operation: (acc: S, T) -> S): S {
+	val iterator = this.iterator()
+	if (!iterator.hasNext()) throw UnsupportedOperationException("Empty collection can't be reduced.")
+	var accumulator: S = acc
+	while (iterator.hasNext()) {
+		accumulator = operation(accumulator, iterator.next())
+	}
+	return accumulator
 }
 
 /**
  * Initialise all items in a collection of initialisable objects
  */
-fun <E: Initialisable> Iterable<E?>?.init(){
-    this?.forEach {
-        it?.init()
-    }
+fun <E : Initialisable> Iterable<E?>?.init() {
+	this?.forEach {
+		it?.init()
+	}
 }
 
 /**
  * Initialise all items in a map of initialisable objects
  */
-fun <E: Initialisable> Map<*, E?>.init(){
-    for(i in values) i?.init()
+fun <E : Initialisable> Map<*, E?>.init() {
+	for (i in values) i?.init()
 }
 
 /**
  * Delete all items in a collection of deletable objects
  */
-fun <E: Deleteable> Iterable<E?>?.delete(){
-    this?.forEach {
-        it?.delete()
-    }
+fun <E : Deleteable> Iterable<E?>?.delete() {
+	this?.forEach {
+		it?.delete()
+	}
 }
 
 /**
  * Delete all items in a map of deletable objects
  */
-fun <E: Deleteable> Map<*, E?>.delete(){
-    for(i in values) i?.delete()
+fun <E : Deleteable> Map<*, E?>.delete() {
+	for (i in values) i?.delete()
 }
 
 /**
@@ -62,23 +62,23 @@ fun <E: Deleteable> Map<*, E?>.delete(){
  *
  * @return The sum of the values of [selector] performed on each element
  */
-fun <T> Iterable<T>.sumOf(selector: (T) -> Float): Float{
-    var sum = 0f
-    for (element in this) {
-        sum += selector(element)
-    }
-    return sum
+fun <T> Iterable<T>.sumOf(selector: (T) -> Float): Float {
+	var sum = 0f
+	for (element in this) {
+		sum += selector(element)
+	}
+	return sum
 }
 
-fun <E, K, V> Iterable<E>.associateIndexed(transform: (Int, E) -> Pair<K, V>): Map<K, V>{
-    val it = iterator()
-    var i = 0;
-    val map = mutableMapOf<K, V>()
-    while(it.hasNext()){
-        val pair = transform(i++, it.next());
-        map[pair.first] = pair.second
-    }
-    return map;
+fun <E, K, V> Iterable<E>.associateIndexed(transform: (Int, E) -> Pair<K, V>): Map<K, V> {
+	val it = iterator()
+	var i = 0;
+	val map = mutableMapOf<K, V>()
+	while (it.hasNext()) {
+		val pair = transform(i++, it.next());
+		map[pair.first] = pair.second
+	}
+	return map;
 }
 
 /**
@@ -88,8 +88,8 @@ fun <E, K, V> Iterable<E>.associateIndexed(transform: (Int, E) -> Pair<K, V>): M
  *
  * @return `true` if any of the specified elements was added to the collection, `false` if the collection was not modified.
  */
-fun <E> MutableCollection<E>.addAll(vararg elements: E): Boolean{
-    return addAll(elements)
+fun <E> MutableCollection<E>.addAll(vararg elements: E): Boolean {
+	return addAll(elements)
 }
 
 /**
@@ -99,8 +99,8 @@ fun <E> MutableCollection<E>.addAll(vararg elements: E): Boolean{
  *
  * @return `true` if any of the specified elements was removed from the collection, `false` if the collection was not modified.
  */
-fun <E> MutableCollection<E>.removeAll(vararg elements: E): Boolean{
-    return removeAll(elements.toSet())
+fun <E> MutableCollection<E>.removeAll(vararg elements: E): Boolean {
+	return removeAll(elements.toSet())
 }
 
 /**
@@ -110,10 +110,10 @@ fun <E> MutableCollection<E>.removeAll(vararg elements: E): Boolean{
  *
  * @return A new list expanded to [size] using [entry]
  */
-fun List<Float>.expand(size: Int, entry: Float = 0f): List<Float>{
-    val list = this.toMutableList()
-    while(list.size < size) list.add(entry)
-    return list
+fun List<Float>.expand(size: Int, entry: Float = 0f): List<Float> {
+	val list = this.toMutableList()
+	while (list.size < size) list.add(entry)
+	return list
 }
 
 /**
@@ -123,22 +123,22 @@ fun List<Float>.expand(size: Int, entry: Float = 0f): List<Float>{
  *
  * @return A new list expanded to [size] using [entry]
  */
-fun List<Int>.expand(size: Int, entry: Int = 0): List<Int>{
-    val list = this.toMutableList()
-    while(list.size < size) list.add(entry)
-    return list
+fun List<Int>.expand(size: Int, entry: Int = 0): List<Int> {
+	val list = this.toMutableList()
+	while (list.size < size) list.add(entry)
+	return list
 }
 
 /**
  * Returns a list containing all elements that are both instances of specified type parameter [R] and satisfy [predicate].
  *
  */
-inline fun<E, reified R> Iterable<E>.filterIsInstance(predicate: (E) -> Boolean): List<R>{
-    val a = ArrayList<R>()
-    for(e in this){
-        if(e is R && predicate(e)) a.add(e)
-    }
-    return a
+inline fun <E, reified R> Iterable<E>.filterIsInstance(predicate: (E) -> Boolean): List<R> {
+	val a = ArrayList<R>()
+	for (e in this) {
+		if (e is R && predicate(e)) a.add(e)
+	}
+	return a
 }
 
 /**
@@ -146,8 +146,16 @@ inline fun<E, reified R> Iterable<E>.filterIsInstance(predicate: (E) -> Boolean)
  *
  * @return A new list with no elements of type R
  */
-inline fun <reified R, E> Collection<E>.filterIsNotInstance(): Collection<E>{
-    return this.filter { it !is R }
+inline fun <reified R, E> Collection<E>.filterIsNotInstance(): Collection<E> {
+	return this.filter { it !is R }
+}
+
+fun <T, R> Iterable<T>.firstNotNullOfOrNull(transform: (T) -> R?, predicate: (R) -> Boolean): R?{
+	for(t in this){
+		val r = transform(t) ?: continue
+		if(predicate(r)) return r
+	}
+	return null
 }
 
 /**
@@ -155,8 +163,8 @@ inline fun <reified R, E> Collection<E>.filterIsNotInstance(): Collection<E>{
  *
  * @param [action] The function called on each instance of R
  */
-inline fun <reified R> Iterable<*>.forEachInstance(action: (R) -> Unit){
-    filterIsInstance<R>().forEach(action)
+inline fun <reified R> Iterable<*>.forEachInstance(action: (R) -> Unit) {
+	filterIsInstance<R>().forEach(action)
 }
 
 /**
@@ -166,10 +174,10 @@ inline fun <reified R> Iterable<*>.forEachInstance(action: (R) -> Unit){
  *
  * @return The removed element
  */
-fun <E> MutableIterable<E>.popFirst(predicate: (E) -> Boolean): E{
-    val pop = first(predicate)
-    removeAll{ it == pop }
-    return pop
+fun <E> MutableIterable<E>.popFirst(predicate: (E) -> Boolean): E {
+	val pop = first(predicate)
+	removeAll { it == pop }
+	return pop
 }
 
 /**
@@ -179,10 +187,10 @@ fun <E> MutableIterable<E>.popFirst(predicate: (E) -> Boolean): E{
  *
  * @return The removed element, or null
  */
-fun <E> MutableIterable<E>.popFirstOrNull(predicate: (E) -> Boolean): E?{
-    val pop = firstOrNull(predicate)
-    removeAll{ it == pop }
-    return pop
+fun <E> MutableIterable<E>.popFirstOrNull(predicate: (E) -> Boolean): E? {
+	val pop = firstOrNull(predicate)
+	removeAll { it == pop }
+	return pop
 }
 
 
@@ -194,14 +202,14 @@ fun <E> MutableIterable<E>.popFirstOrNull(predicate: (E) -> Boolean): E?{
  *
  * @return The value at [key]
  */
-fun <E, T> MutableMap<E, T>.getOrSet(key: E, create: (key: E) -> T): T{
-    val current = getOrNull(key)
-    return if(current != null) current
-    else{
-        val new = create(key)
-        this[key] = new
-        new
-    }
+fun <E, T> MutableMap<E, T>.getOrSet(key: E, create: (key: E) -> T): T {
+	val current = getOrNull(key)
+	return if (current != null) current
+	else {
+		val new = create(key)
+		this[key] = new
+		new
+	}
 }
 
 /**
@@ -211,9 +219,9 @@ fun <E, T> MutableMap<E, T>.getOrSet(key: E, create: (key: E) -> T): T{
  * @param [value] The value to add to the collection at [key]
  * @param [create] The constructor to create a new mutable collection with
  */
-fun <K, V: MutableCollection<E>, E> MutableMap<K, V>.addToCollectionOr(key: K, value: E, create: (key: K) -> V){
-    this.putIfAbsent(key, create(key))
-    this[key]?.add(value)
+fun <K, V : MutableCollection<E>, E> MutableMap<K, V>.addToCollectionOr(key: K, value: E, create: (key: K) -> V) {
+	this.putIfAbsent(key, create(key))
+	this[key]?.add(value)
 }
 
 /**
@@ -224,9 +232,14 @@ fun <K, V: MutableCollection<E>, E> MutableMap<K, V>.addToCollectionOr(key: K, v
  * @param [value] The value to add to the map at [key2]
  * @param [create] The constructor to create a new mutable collection with
  */
-fun <K1, K2, V> MutableMap<K1, MutableMap<K2, V>>.addToMapOr(key1: K1, key2: K2, value: V, create: (key: K1) -> MutableMap<K2, V> = { mutableMapOf() }){
-    this.putIfAbsent(key1, create(key1))
-    this[key1]?.put(key2, value)
+fun <K1, K2, V> MutableMap<K1, MutableMap<K2, V>>.addToMapOr(
+	key1: K1,
+	key2: K2,
+	value: V,
+	create: (key: K1) -> MutableMap<K2, V> = { mutableMapOf() }
+) {
+	this.putIfAbsent(key1, create(key1))
+	this[key1]?.put(key2, value)
 }
 
 /**
@@ -236,13 +249,13 @@ fun <K1, K2, V> MutableMap<K1, MutableMap<K2, V>>.addToMapOr(key1: K1, key2: K2,
  *
  * @return A new map that has added the collections of [this] and [other] together by key
  */
-fun <K, V: MutableCollection<E>, E> MutableMap<K, V>.combineLists(other: MutableMap<K, V>): MutableMap<K, V>{
-    val newMap = this.toMutableMap()
-    for((key, value) in other){
-        if(this.containsKey(key)) newMap[key]?.addAll(value)
-        else newMap[key] = value
-    }
-    return newMap
+fun <K, V : MutableCollection<E>, E> MutableMap<K, V>.combineLists(other: MutableMap<K, V>): MutableMap<K, V> {
+	val newMap = this.toMutableMap()
+	for ((key, value) in other) {
+		if (this.containsKey(key)) newMap[key]?.addAll(value)
+		else newMap[key] = value
+	}
+	return newMap
 }
 
 /**
@@ -259,30 +272,30 @@ fun <K, V> Map<K, V>.getOrNull(key: K): V? = getOrDefault(key, null)
  *
  * @return A map of keys K and values V
  */
-inline fun <reified K, reified V> Map<*, *>.asType(): Map<K, V>{
-    val map: MutableMap<K, V> = mutableMapOf()
-    for((key, value) in this){
-        if(key is K && value is V){
-            map[key] = value
-        }
-    }
-    return map.toMap()
+inline fun <reified K, reified V> Map<*, *>.asType(): Map<K, V> {
+	val map: MutableMap<K, V> = mutableMapOf()
+	for ((key, value) in this) {
+		if (key is K && value is V) {
+			map[key] = value
+		}
+	}
+	return map.toMap()
 }
 
-inline fun <reified E, reified V> Map<*, V>.filterKeyIsInstance(): Map<E, V>{
-    val newMap = mutableMapOf<E, V>()
-    for((k, v) in this){
-        if(k is E) newMap[k] = v
-    }
-    return newMap
+inline fun <reified E, reified V> Map<*, V>.filterKeyIsInstance(): Map<E, V> {
+	val newMap = mutableMapOf<E, V>()
+	for ((k, v) in this) {
+		if (k is E) newMap[k] = v
+	}
+	return newMap
 }
 
-inline fun <reified K, reified E> Map<K, *>.filterValueIsInstance(): Map<K, E>{
-    val newMap = mutableMapOf<K, E>()
-    for((k, v) in this){
-        if(v is E) newMap[k] = v
-    }
-    return newMap
+inline fun <reified K, reified E> Map<K, *>.filterValueIsInstance(): Map<K, E> {
+	val newMap = mutableMapOf<K, E>()
+	for ((k, v) in this) {
+		if (v is E) newMap[k] = v
+	}
+	return newMap
 }
 
 /**
@@ -290,8 +303,8 @@ inline fun <reified K, reified E> Map<K, *>.filterValueIsInstance(): Map<K, E>{
  *
  * @return a new map with no null keys
  */
-inline fun <reified K, reified V> Map<K?, V>.removeNullKeys(): Map<K, V>{
-    return this.entries.filter { it.key != null }.associate { it.key!! to it.value }
+inline fun <reified K, reified V> Map<K?, V>.removeNullKeys(): Map<K, V> {
+	return this.entries.filter { it.key != null }.associate { it.key!! to it.value }
 }
 
 /**
@@ -299,6 +312,6 @@ inline fun <reified K, reified V> Map<K?, V>.removeNullKeys(): Map<K, V>{
  *
  * @return a new map with no null values
  */
-inline fun <reified K, reified V> Map<K, V?>.removeNullValues(): Map<K, V>{
-    return this.entries.filter { it.value != null }.associate { it.key to it.value!! }
+inline fun <reified K, reified V> Map<K, V?>.removeNullValues(): Map<K, V> {
+	return this.entries.filter { it.value != null }.associate { it.key to it.value!! }
 }

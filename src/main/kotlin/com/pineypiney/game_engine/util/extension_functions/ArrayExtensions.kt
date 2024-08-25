@@ -11,13 +11,13 @@ import com.pineypiney.game_engine.util.Copyable
  *
  * @return An BooleanArray with all the results of [init]
  */
-fun <E> Collection<E>.toBooleanArray(init: (E) -> Boolean): BooleanArray{
-    val res = BooleanArray(size)
-    var index = 0
-    for(i in this){
-        res[index++] = init(i)
-    }
-    return res
+fun <E> Collection<E>.toBooleanArray(init: (E) -> Boolean): BooleanArray {
+	val res = BooleanArray(size)
+	var index = 0
+	for (i in this) {
+		res[index++] = init(i)
+	}
+	return res
 }
 
 /**
@@ -27,13 +27,13 @@ fun <E> Collection<E>.toBooleanArray(init: (E) -> Boolean): BooleanArray{
  *
  * @return An ByteArray with all the results of [init]
  */
-fun <E> Collection<E>.toByteArray(init: (E) -> Byte): ByteArray{
-    val res = ByteArray(size)
-    var index = 0
-    for(i in this){
-        res[index++] = init(i)
-    }
-    return res
+fun <E> Collection<E>.toByteArray(init: (E) -> Byte): ByteArray {
+	val res = ByteArray(size)
+	var index = 0
+	for (i in this) {
+		res[index++] = init(i)
+	}
+	return res
 }
 
 /**
@@ -43,13 +43,13 @@ fun <E> Collection<E>.toByteArray(init: (E) -> Byte): ByteArray{
  *
  * @return An CharArray with all the results of [init]
  */
-fun <E> Collection<E>.toCharArray(init: (E) -> Char): CharArray{
-    val res = CharArray(size)
-    var index = 0
-    for(i in this){
-        res[index++] = init(i)
-    }
-    return res
+fun <E> Collection<E>.toCharArray(init: (E) -> Char): CharArray {
+	val res = CharArray(size)
+	var index = 0
+	for (i in this) {
+		res[index++] = init(i)
+	}
+	return res
 }
 
 /**
@@ -59,13 +59,13 @@ fun <E> Collection<E>.toCharArray(init: (E) -> Char): CharArray{
  *
  * @return An DoubleArray with all the results of [init]
  */
-fun <E> Collection<E>.toDoubleArray(init: (E) -> Double): DoubleArray{
-    val res = DoubleArray(size)
-    var index = 0
-    for(i in this){
-        res[index++] = init(i)
-    }
-    return res
+fun <E> Collection<E>.toDoubleArray(init: (E) -> Double): DoubleArray {
+	val res = DoubleArray(size)
+	var index = 0
+	for (i in this) {
+		res[index++] = init(i)
+	}
+	return res
 }
 
 /**
@@ -75,13 +75,13 @@ fun <E> Collection<E>.toDoubleArray(init: (E) -> Double): DoubleArray{
  *
  * @return An FloatArray with all the results of [init]
  */
-fun <E> Collection<E>.toFloatArray(init: (E) -> Float): FloatArray{
-    val res = FloatArray(size)
-    var index = 0
-    for(i in this){
-        res[index++] = init(i)
-    }
-    return res
+fun <E> Collection<E>.toFloatArray(init: (E) -> Float): FloatArray {
+	val res = FloatArray(size)
+	var index = 0
+	for (i in this) {
+		res[index++] = init(i)
+	}
+	return res
 }
 
 /**
@@ -91,13 +91,13 @@ fun <E> Collection<E>.toFloatArray(init: (E) -> Float): FloatArray{
  *
  * @return An IntArray with all the results of [init]
  */
-fun <E> Collection<E>.toIntArray(init: (E) -> Int): IntArray{
-    val res = IntArray(size)
-    var index = 0
-    for(i in this){
-        res[index++] = init(i)
-    }
-    return res
+fun <E> Collection<E>.toIntArray(init: (E) -> Int): IntArray {
+	val res = IntArray(size)
+	var index = 0
+	for (i in this) {
+		res[index++] = init(i)
+	}
+	return res
 }
 
 /**
@@ -107,13 +107,13 @@ fun <E> Collection<E>.toIntArray(init: (E) -> Int): IntArray{
  *
  * @return An LongArray with all the results of [init]
  */
-fun <E> Collection<E>.toLongArray(init: (E) -> Long): LongArray{
-    val res = LongArray(size)
-    var index = 0
-    for(i in this){
-        res[index++] = init(i)
-    }
-    return res
+fun <E> Collection<E>.toLongArray(init: (E) -> Long): LongArray {
+	val res = LongArray(size)
+	var index = 0
+	for (i in this) {
+		res[index++] = init(i)
+	}
+	return res
 }
 
 /**
@@ -123,13 +123,13 @@ fun <E> Collection<E>.toLongArray(init: (E) -> Long): LongArray{
  *
  * @return An ShortArray with all the results of [init]
  */
-fun <E> Collection<E>.toShortArray(init: (E) -> Short): ShortArray{
-    val res = ShortArray(size)
-    var index = 0
-    for(i in this){
-        res[index++] = init(i)
-    }
-    return res
+fun <E> Collection<E>.toShortArray(init: (E) -> Short): ShortArray {
+	val res = ShortArray(size)
+	var index = 0
+	for (i in this) {
+		res[index++] = init(i)
+	}
+	return res
 }
 
 
@@ -143,14 +143,14 @@ fun <E> Collection<E>.toShortArray(init: (E) -> Short): ShortArray{
  *
  * @returns The final value of the accumulator
  */
-inline fun <S, T> Array<T>.reduceA(acc: S, operation: (acc: S, T) -> S): S{
-    val iterator = this.iterator()
-    if (!iterator.hasNext()) throw UnsupportedOperationException("Empty collection can't be reduced.")
-    var accumulator: S = acc
-    while (iterator.hasNext()) {
-        accumulator = operation(accumulator, iterator.next())
-    }
-    return accumulator
+inline fun <S, T> Array<T>.reduceA(acc: S, operation: (acc: S, T) -> S): S {
+	val iterator = this.iterator()
+	if (!iterator.hasNext()) throw UnsupportedOperationException("Empty collection can't be reduced.")
+	var accumulator: S = acc
+	while (iterator.hasNext()) {
+		accumulator = operation(accumulator, iterator.next())
+	}
+	return accumulator
 }
 
 
@@ -161,26 +161,26 @@ inline fun <S, T> Array<T>.reduceA(acc: S, operation: (acc: S, T) -> S): S{
  *
  * @return The sum of the values of [selector] performed on each element
  */
-fun <T> Array<T>.sumOf(selector: (T) -> Float): Float{
-    var sum = 0f
-    for (element in this) {
-        sum += selector(element)
-    }
-    return sum
+fun <T> Array<T>.sumOf(selector: (T) -> Float): Float {
+	var sum = 0f
+	for (element in this) {
+		sum += selector(element)
+	}
+	return sum
 }
 
 /**
  * Initialise all items in an array of initialisable objects
  */
-fun <E: Initialisable> Array<E>.init(){
-    forEach(Initialisable::init)
+fun <E : Initialisable> Array<E>.init() {
+	forEach(Initialisable::init)
 }
 
 /**
  * Deletes all items in an array of deleteable objects
  */
-fun <E: Deleteable> Array<E>.delete(){
-    forEach(Deleteable::delete)
+fun <E : Deleteable> Array<E>.delete() {
+	forEach(Deleteable::delete)
 }
 
 /**
@@ -190,11 +190,11 @@ fun <E: Deleteable> Array<E>.delete(){
  *
  * @return A new list expanded to [size] using [entry]
  */
-fun FloatArray.expand(size: Int, entry: Float = 0f): FloatArray{
-    val a =  FloatArray(size)
-    this.copyInto(a)
-    for(i in this.size until size) a[i] = entry
-    return a
+fun FloatArray.expand(size: Int, entry: Float = 0f): FloatArray {
+	val a = FloatArray(size)
+	this.copyInto(a)
+	for (i in this.size until size) a[i] = entry
+	return a
 }
 
 /**
@@ -204,11 +204,11 @@ fun FloatArray.expand(size: Int, entry: Float = 0f): FloatArray{
  *
  * @return A new list expanded to [size] using [entry]
  */
-fun IntArray.expand(size: Int, entry: Int = 0): IntArray{
-    val a =  IntArray(size)
-    this.copyInto(a)
-    for(i in this.size until size) a[i] = entry
-    return a
+fun IntArray.expand(size: Int, entry: Int = 0): IntArray {
+	val a = IntArray(size)
+	this.copyInto(a)
+	for (i in this.size until size) a[i] = entry
+	return a
 }
 
 /**
@@ -216,137 +216,137 @@ fun IntArray.expand(size: Int, entry: Int = 0): IntArray{
  *
  * @return A new array of the copies of the original elements
  */
-inline fun <reified E: Copyable<E>> Array<E>.copy() = map { i -> i.copy() }.toTypedArray()
+inline fun <reified E : Copyable<E>> Array<E>.copy() = map { i -> i.copy() }.toTypedArray()
 
 /**
  * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  *
  * @param element The element to be removed
  */
-operator fun <T> Array<T>.minus(element: T): Array<T>{
-    val index = indexOf(element)
-    if(index == -1) return this
+operator fun <T> Array<T>.minus(element: T): Array<T> {
+	val index = indexOf(element)
+	if (index == -1) return this
 
-    // sliceArray must be used so that the array isn't a nullable one
-    val newArray = sliceArray(0 .. size - 2)
-    for(i in (index..size - 2)) newArray[i] = this[i + 1]
-    return newArray
+	// sliceArray must be used so that the array isn't a nullable one
+	val newArray = sliceArray(0..size - 2)
+	for (i in (index..size - 2)) newArray[i] = this[i + 1]
+	return newArray
 }
 
 /**
  * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
-operator fun ByteArray.minus(element: Byte): ByteArray{
-    val index = indexOfFirst{ it == element }
-    if(index == -1) return this
+operator fun ByteArray.minus(element: Byte): ByteArray {
+	val index = indexOfFirst { it == element }
+	if (index == -1) return this
 
-    val newArray = copyOf(size - 1)
-    for(i in (index..size - 2)) newArray[i] = this[i + 1]
-    return newArray
+	val newArray = copyOf(size - 1)
+	for (i in (index..size - 2)) newArray[i] = this[i + 1]
+	return newArray
 }
 
 /**
  * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
-operator fun ShortArray.minus(element: Short): ShortArray{
-    val index = indexOfFirst{ it == element }
-    if(index == -1) return this
+operator fun ShortArray.minus(element: Short): ShortArray {
+	val index = indexOfFirst { it == element }
+	if (index == -1) return this
 
-    val newArray = copyOf(size - 1)
-    for(i in (index..size - 2)) newArray[i] = this[i + 1]
-    return newArray
+	val newArray = copyOf(size - 1)
+	for (i in (index..size - 2)) newArray[i] = this[i + 1]
+	return newArray
 }
 
 /**
  * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
-operator fun IntArray.minus(element: Int): IntArray{
-    val index = indexOfFirst{ it == element }
-    if(index == -1) return this
+operator fun IntArray.minus(element: Int): IntArray {
+	val index = indexOfFirst { it == element }
+	if (index == -1) return this
 
-    val newArray = copyOf(size - 1)
-    for(i in (index..size - 2)) newArray[i] = this[i + 1]
-    return newArray
+	val newArray = copyOf(size - 1)
+	for (i in (index..size - 2)) newArray[i] = this[i + 1]
+	return newArray
 }
 
 /**
  * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
-operator fun LongArray.minus(element: Long): LongArray{
-    val index = indexOfFirst{ it == element }
-    if(index == -1) return this
+operator fun LongArray.minus(element: Long): LongArray {
+	val index = indexOfFirst { it == element }
+	if (index == -1) return this
 
-    val newArray = copyOf(size - 1)
-    for(i in (index..size - 2)) newArray[i] = this[i + 1]
-    return newArray
+	val newArray = copyOf(size - 1)
+	for (i in (index..size - 2)) newArray[i] = this[i + 1]
+	return newArray
 }
 
 /**
  * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
-operator fun FloatArray.minus(element: Float): FloatArray{
-    val index = indexOfFirst{ it == element }
-    if(index == -1) return this
+operator fun FloatArray.minus(element: Float): FloatArray {
+	val index = indexOfFirst { it == element }
+	if (index == -1) return this
 
-    val newArray = copyOf(size - 1)
-    for(i in (index..size - 2)) newArray[i] = this[i + 1]
-    return newArray
+	val newArray = copyOf(size - 1)
+	for (i in (index..size - 2)) newArray[i] = this[i + 1]
+	return newArray
 }
 
 /**
  * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
-operator fun DoubleArray.minus(element: Double): DoubleArray{
-    val index = indexOfFirst{ it == element }
-    if(index == -1) return this
+operator fun DoubleArray.minus(element: Double): DoubleArray {
+	val index = indexOfFirst { it == element }
+	if (index == -1) return this
 
-    val newArray = copyOf(size - 1)
-    for(i in (index..size - 2)) newArray[i] = this[i + 1]
-    return newArray
+	val newArray = copyOf(size - 1)
+	for (i in (index..size - 2)) newArray[i] = this[i + 1]
+	return newArray
 }
 
 /**
  * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
-operator fun BooleanArray.minus(element: Boolean): BooleanArray{
-    val index = indexOfFirst{ it == element }
-    if(index == -1) return this
+operator fun BooleanArray.minus(element: Boolean): BooleanArray {
+	val index = indexOfFirst { it == element }
+	if (index == -1) return this
 
-    val newArray = copyOf(size - 1)
-    for(i in (index..size - 2)) newArray[i] = this[i + 1]
-    return newArray
+	val newArray = copyOf(size - 1)
+	for (i in (index..size - 2)) newArray[i] = this[i + 1]
+	return newArray
 }
 
 /**
  * Returns an array containing all elements of the original array except the first instance that equals the given [element].
  */
-operator fun CharArray.minus(element: Char): CharArray{
-    val index = indexOfFirst{ it == element }
-    if(index == -1) return this
+operator fun CharArray.minus(element: Char): CharArray {
+	val index = indexOfFirst { it == element }
+	if (index == -1) return this
 
-    val newArray = copyOf(size - 1)
-    for(i in (index..size - 2)) newArray[i] = this[i + 1]
-    return newArray
+	val newArray = copyOf(size - 1)
+	for (i in (index..size - 2)) newArray[i] = this[i + 1]
+	return newArray
 }
 
 /**
  * Returns an Array repeated [times] times.
  */
-infix fun <T> Array<T>.repeat(times: Int): Array<T>{
-    var a = copyOf()
-    for(i in 2 .. times) {
-        a += this
-    }
-    return a
+infix fun <T> Array<T>.repeat(times: Int): Array<T> {
+	var a = copyOf()
+	for (i in 2..times) {
+		a += this
+	}
+	return a
 }
 
 /**
  * Returns a ByteArray repeated [times] times.
  */
-infix fun ByteArray.repeat(times: Int): ByteArray{
-    var a = copyOf()
-    for(i in 2 .. times){
-        a += this
-    }
-    return a
+infix fun ByteArray.repeat(times: Int): ByteArray {
+	var a = copyOf()
+	for (i in 2..times) {
+		a += this
+	}
+	return a
 }

@@ -8,43 +8,51 @@ import com.pineypiney.game_engine.util.input.Inputs
 
 abstract class GameLogic : GameLogicI {
 
-    override val gameObjects: ObjectCollection = ObjectCollection()
+	override val gameObjects: ObjectCollection = ObjectCollection()
 
-    override fun init() {
-        renderer.init()
-        addObjects()
-        gameObjects.getAllObjects(null, true).init()
-    }
+	override fun init() {
+		renderer.init()
+		addObjects()
+		gameObjects.getAllObjects(null, true).init()
+	}
 
-    // This addObjects function allows adding items and calling init() on them all here in gameLogic, see init()
-    abstract fun addObjects()
+	// This addObjects function allows adding items and calling init() on them all here in gameLogic, see init()
+	abstract fun addObjects()
 
-    override fun open() {
-        // Force update everything
-        gameObjects.update(0f)
+	override fun open() {
+		// Force update everything
+		gameObjects.update(0f)
 
-        // Reset textures so that the last bound texture isn't carried over
-        Texture.broke.bind()
-    }
+		// Reset textures so that the last bound texture isn't carried over
+		Texture.broke.bind()
+	}
 
-    override fun update(interval: Float, input: Inputs) {
-        gameObjects.update(interval)
-    }
+	override fun update(interval: Float, input: Inputs) {
+		gameObjects.update(interval)
+	}
 
-    override fun add(o: GameObject?){
-        gameObjects.addObject(o)
-    }
+	override fun add(o: GameObject?) {
+		gameObjects.addObject(o)
+	}
 
-    fun add(vararg os: GameObject?){
-        for(o in os) gameObjects.addObject(o)
-    }
+	fun add(vararg os: GameObject?) {
+		for (o in os) gameObjects.addObject(o)
+	}
 
-    override fun remove(o: GameObject?){
-        gameObjects.removeObject(o)
-    }
+	fun addAll(os: Iterable<GameObject>) {
+		gameObjects.addObjects(os)
+	}
 
-    override fun cleanUp() {
-        gameObjects.delete()
-        renderer.delete()
-    }
+	override fun remove(o: GameObject?) {
+		gameObjects.removeObject(o)
+	}
+
+	fun removeAll(os: Iterable<GameObject>) {
+		gameObjects.removeObjects(os)
+	}
+
+	override fun cleanUp() {
+		gameObjects.delete()
+		renderer.delete()
+	}
 }

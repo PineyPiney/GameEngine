@@ -9,44 +9,45 @@ import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 
-abstract class BufferedGameRenderer<E: GameLogicI>: WindowRendererI<E> {
+abstract class BufferedGameRenderer<E : GameLogicI> : WindowRendererI<E> {
 
-    val buffer = FrameBuffer(0, 0)
+	val buffer = FrameBuffer(0, 0)
 
-    override val viewPos: Vec3 get() = camera.cameraPos
-    override var viewportSize: Vec2i = Vec2i(1)
-    override var aspectRatio: Float = 1f
+	override val viewPos: Vec3 get() = camera.cameraPos
+	override var viewportSize: Vec2i = Vec2i(1)
+	override var aspectRatio: Float = 1f
 
-    override val numPointLights: Int = 4
+	override val numPointLights: Int = 4
 
-    override fun init() {
-        camera.init()
-        buffer.setSize(window.framebufferSize)
-    }
+	override fun init() {
+		camera.init()
+		buffer.setSize(window.framebufferSize)
+	}
 
-    open fun clearFrameBuffer(buffer: FrameBuffer = this.buffer){
-        buffer.bind()
-        viewportSize = Vec2i(buffer.width, buffer.height)
-        GLFunc.viewportO = viewportSize
-        clear()
-    }
+	open fun clearFrameBuffer(buffer: FrameBuffer = this.buffer) {
+		buffer.bind()
+		viewportSize = Vec2i(buffer.width, buffer.height)
+		GLFunc.viewportO = viewportSize
+		clear()
+	}
 
-    override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
-        camera.updateAspectRatio()
-        buffer.setSize(window.framebufferSize)
-        aspectRatio = window.aspectRatio
-    }
+	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
+		camera.updateAspectRatio(window.aspectRatio)
+		buffer.setSize(window.framebufferSize)
+		aspectRatio = window.aspectRatio
+	}
 
-    open fun deleteFrameBuffers(){
-        buffer.delete()
-    }
+	open fun deleteFrameBuffers() {
+		buffer.delete()
+	}
 
-    override fun delete() {
-        deleteFrameBuffers()
-    }
+	override fun delete() {
+		deleteFrameBuffers()
+	}
 
-    companion object{
-        val screenShader = ShaderLoader.getShader(ResourceKey("vertex/frame_buffer"), ResourceKey("fragment/frame_buffer"))
-        val screenUniforms = screenShader.compileUniforms()
-    }
+	companion object {
+		val screenShader =
+			ShaderLoader.getShader(ResourceKey("vertex/frame_buffer"), ResourceKey("fragment/frame_buffer"))
+		val screenUniforms = screenShader.compileUniforms()
+	}
 }

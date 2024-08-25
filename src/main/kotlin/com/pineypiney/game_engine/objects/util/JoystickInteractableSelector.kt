@@ -6,29 +6,30 @@ import glm_.vec2.Vec2
 class JoystickInteractableSelector(val items: () -> Collection<InteractorComponent>) {
 
 
-	fun selectFirstButton(){
+	fun selectFirstButton() {
 		val buttons = items()
-		if(buttons.isNotEmpty() && buttons.none { it.hover }) buttons.first().hover = true
+		if (buttons.isNotEmpty() && buttons.none { it.hover }) buttons.first().hover = true
 	}
 
-	fun selectButton(d: Vec2){
+	fun selectButton(d: Vec2) {
 		val buttons = items()
-		if(buttons.isNotEmpty()) {
+		if (buttons.isNotEmpty()) {
 			val selectedButton = buttons.firstOrNull { it.hover }
 			if (selectedButton == null) {
 				buttons.first().hover = true
-			}
-			else if(buttons.size > 1){
+			} else if (buttons.size > 1) {
 				val otherButtons = buttons - selectedButton
 				val measures = otherButtons.associateBy {
-					val vec = Vec2(it.parent.transformComponent.worldPosition - selectedButton.parent.transformComponent.worldPosition)
+					val vec =
+						Vec2(it.parent.transformComponent.worldPosition - selectedButton.parent.transformComponent.worldPosition)
 					val dir = d dot vec.normalize()
 					vec to dir
 				}
 
-				val nextButton = measures.filter { it.key.second > .6f }.maxByOrNull { it.key.second / it.key.first.length2() }?.value
+				val nextButton = measures.filter { it.key.second > .6f }
+					.maxByOrNull { it.key.second / it.key.first.length2() }?.value
 
-				if(nextButton != null) {
+				if (nextButton != null) {
 					selectedButton.hover = false
 					nextButton.hover = true
 				}

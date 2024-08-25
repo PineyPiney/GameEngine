@@ -21,20 +21,22 @@ class Rigidbody3DComponent(parent: GameObject) : Component(parent, "RGB"), Updat
 	)
 
 	override fun update(interval: Float) {
-		acceleration plusAssign  gravity
+		acceleration plusAssign gravity
 		velocity plusAssign acceleration * interval
 		val collider = parent.getComponent<Collider3DComponent>()
 		val movement = velocity * interval
-		if(collider != null){
+		if (collider != null) {
 			val collidedMove = collider.checkAllCollisions(movement, stepBias)
 			parent.translate(collidedMove)
 
 			// If a collision is detected in either direction then set the velocity to 0
-			if((collidedMove.x < movement.x && velocity.x > 0) || (collidedMove.x > movement.x && velocity.x < 0)) velocity.x = 0f
-			if((collidedMove.y < movement.y && velocity.y > 0) || (collidedMove.y > movement.y && velocity.y < 0)) velocity.y = 0f
-			if((collidedMove.z < movement.z && velocity.z > 0) || (collidedMove.z > movement.z && velocity.z < 0)) velocity.z = 0f
-		}
-		else parent.translate(movement)
+			if ((collidedMove.x < movement.x && velocity.x > 0) || (collidedMove.x > movement.x && velocity.x < 0)) velocity.x =
+				0f
+			if ((collidedMove.y < movement.y && velocity.y > 0) || (collidedMove.y > movement.y && velocity.y < 0)) velocity.y =
+				0f
+			if ((collidedMove.z < movement.z && velocity.z > 0) || (collidedMove.z > movement.z && velocity.z < 0)) velocity.z =
+				0f
+		} else parent.translate(movement)
 
 		acceleration = Vec3()
 	}

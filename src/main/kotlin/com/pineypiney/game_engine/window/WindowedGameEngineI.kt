@@ -5,10 +5,10 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.util.input.Inputs
 
-interface WindowedGameEngineI<E: GameLogicI> : GameEngineI<E> {
+interface WindowedGameEngineI<E : GameLogicI> : GameEngineI<E> {
 
-    val window: WindowI
-    val input: Inputs
+	val window: WindowI
+	val input: Inputs
 
-    fun setInputCallbacks()
+	fun setInputCallbacks()
 }

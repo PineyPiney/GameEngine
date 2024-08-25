@@ -9,15 +9,17 @@ uniform vec4 colour;
 // The horizontal edges of the field
 // Ranges from -1 to 1
 uniform vec2 limits;
+uniform mat4 guiProjection;
 uniform ivec2 viewport;
 
 out vec4 FragColour;
 
 void main(){
 
+	vec2 guiLimits = limits * guiProjection[0][0];
 	float x = (gl_FragCoord.x * 2.0 / viewport.x) - 1.0;
 
-	if(x < limits[0] || x > limits[1]) discard;
+	if(x < guiLimits[0] || x > guiLimits[1]) discard;
 
 	vec4 texture = texture(ourTexture, texCoords);
 	if(texture.r + texture.g + texture.b < 0.05) discard;

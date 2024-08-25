@@ -1,30 +1,15 @@
 package com.pineypiney.game_engine.util.maths.shapes
 
 import com.pineypiney.game_engine.util.extension_functions.absMinOf
-import com.pineypiney.game_engine.util.extension_functions.reduceA
 import glm_.func.common.abs
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import kotlin.math.abs
 
-abstract class Shape3D: Shape() {
+abstract class Shape3D : Shape<Vec3>() {
 
 	abstract override fun transformedBy(model: Mat4): Shape3D
-
-	abstract fun getNormals(): Set<Vec3>
-	abstract fun projectToNormal(normal: Vec3): Set<Vec3>
-	abstract fun translate(move: Vec3)
-
-	infix fun projectTo(normal: Vec3): Vec2 {
-		val points = projectToNormal(normal)
-		return if(points.isEmpty()) Vec2(Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY)
-			else points.reduceA(Vec2(Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY)) { acc, pp ->
-			// Normalise pp twice because of floating point errors
-			val p = pp.length() * if (pp.normalize().normalize() != normal.normalize()) -1 else 1
-			Vec2(kotlin.math.min(acc.x, p), kotlin.math.max(acc.y, p))
-		}
-	}
 
 	/**
 	 * Gets the size of the overlap between two shapes in the direction of the given normal
@@ -47,10 +32,10 @@ abstract class Shape3D: Shape() {
 		// where the first value is positive and the second is negative
 		val a = range2.x - range1.y
 		val b = range2.y - range1.x
-		return if(a > 0f) Vec2(a, b) else Vec2(b, a)
+		return if (a > 0f) Vec2(a, b) else Vec2(b, a)
 	}
 
-	infix fun intersects(other: Shape3D): Boolean{
+	infix fun intersects(other: Shape3D): Boolean {
 		return (getNormals() + other.getNormals()).all { overlap1D(it, other).x != 0f }
 	}
 
@@ -64,21 +49,21 @@ abstract class Shape3D: Shape() {
 	 *
 	 * @return Returns the offset to movement to stop this from intersecting with other
 	 */
-	fun getEjection(other: Shape3D, movement: Vec3, stepBias: Vec3? = null): Vec3{
+	fun getEjection(other: Shape3D, movement: Vec3, stepBias: Vec3? = null): Vec3 {
 		val still = movement == Vec3(0f)
 		val lengths = (getNormals() + other.getNormals()).associateWith {
 			// The overlap in each direction of the normal
 			val overlaps = overlap1D(it, other)
 
 			// If any of the normals don't overlap then the shapes also don't overlap so no escape vector is needed
-			if(overlaps.x == 0f) return Vec3(0f)
+			if (overlaps.x == 0f) return Vec3(0f)
 
 			// If there is no movement then just pick the smallest movement
 			if (still) {
 				absMinOf(overlaps.x, overlaps.y)
 			}
 			// Otherwise pick the one to move back against the original movement
-			else{
+			else {
 				val dot = it dot movement
 				// If the movement is in the other direction to the normal then use the positive magnitude (x)
 				// otherwise use the negative version
@@ -88,8 +73,8 @@ abstract class Shape3D: Shape() {
 
 		//if(lengths.any { it.value == 0f }) return Vec3(0f)
 
-		if(!still) {
-			if(stepBias != null) {
+		if (!still) {
+			if (stepBias != null) {
 				val stepMag = stepBias.length()
 				for ((normal, mult) in lengths) {
 					val dot = normal dot stepBias
@@ -109,5 +94,11 @@ abstract class Shape3D: Shape() {
 		}
 		val r = lengths.minBy { it.value.abs }.run { key * value }
 		return r
+	}
+
+	companion object {
+		fun projectAllPoints(normal: Vec3, points: Set<Vec3>): Set<Float> {
+			return points.map { it dot normal }.toSet()
+		}
 	}
 }

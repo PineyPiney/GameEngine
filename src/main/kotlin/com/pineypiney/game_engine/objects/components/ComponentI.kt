@@ -4,24 +4,27 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Initialisable
 import glm_.*
 
-interface ComponentI: Initialisable {
+interface ComponentI : Initialisable {
 
 	val parent: GameObject
 	val id: String
 
-    val fields: Array<Component.Field<*>>
+	val fields: Array<Component.Field<*>>
 
-    fun setValue(key: String, value: String)
+	fun getAllFields(): Array<Component.Field<*>>
 
-    fun <F: Component.Field<*>> getField(id: String): F?
+	fun setValue(key: String, value: String)
 
-    @Throws(InstantiationError::class)
-    fun copy(newParent: GameObject): ComponentI
+	fun <F : Component.Field<*>> getField(id: String): F?
 
-    fun copyFieldsTo(dst: ComponentI)
+	@Throws(InstantiationError::class)
+	fun copy(newParent: GameObject): ComponentI
 
-    fun <T> copyFieldTo(dst: ComponentI, field: Component.Field<T>)
+	fun copyFieldsTo(dst: ComponentI)
 
-    fun <T> getMatchingField(other: ComponentI, field: Component.Field<T>): Component.Field<T>?
+	fun <T> copyFieldTo(dst: ComponentI, field: Component.Field<T>)
 
+	fun <T> getMatchingField(other: ComponentI, field: Component.Field<T>): Component.Field<T>?
+
+	fun serialise(head: StringBuilder, data: StringBuilder)
 }

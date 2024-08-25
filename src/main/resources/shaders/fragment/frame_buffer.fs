@@ -27,6 +27,7 @@ out vec4 FragColour;
 
 void main(){
 	vec4 c = texture(screenTexture, texCoords);
+	if(c.a == 0.0) discard;
 
 	if((effects & EDGE_DETECTION) > 0){
 		float kernel[9] = float[](

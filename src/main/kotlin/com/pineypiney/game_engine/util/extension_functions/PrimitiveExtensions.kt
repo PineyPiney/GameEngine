@@ -13,9 +13,9 @@ const val PIF = PI.toFloat()
  *
  * @return The rounded value of the double
  */
-fun Double.round(places: Int): Double{
-    val mult = 10.0.pow(places)
-    return (mult * this).roundToInt()/mult
+fun Double.round(places: Int): Double {
+	val mult = 10.0.pow(places)
+	return (mult * this).roundToInt() / mult
 }
 
 /**
@@ -25,9 +25,9 @@ fun Double.round(places: Int): Double{
  *
  * @return The rounded value of the float
  */
-fun Float.round(places: Int): Float{
-    val mult = 10f.pow(places)
-    return (mult * this).roundToInt()/mult
+fun Float.round(places: Int): Float {
+	val mult = 10f.pow(places)
+	return (mult * this).roundToInt() / mult
 }
 
 /**
@@ -38,8 +38,8 @@ fun Float.round(places: Int): Float{
  *
  * @return If [this] is within these criteria
  */
-fun Float.isWithin(min: Float, size: Float): Boolean{
-    return min < this && this < min + size
+fun Float.isWithin(min: Float, size: Float): Boolean {
+	return min < this && this < min + size
 }
 
 /**
@@ -50,8 +50,8 @@ fun Float.isWithin(min: Float, size: Float): Boolean{
  *
  * @return If [this] is within these criteria
  */
-fun Float.isBetween(min: Float, max: Float): Boolean{
-    return min < this && this < max
+fun Float.isBetween(min: Float, max: Float): Boolean {
+	return min < this && this < max
 }
 
 
@@ -65,8 +65,8 @@ fun Float.isBetween(min: Float, max: Float): Boolean{
  *
  * @return The interpolated value
  */
-fun Double.lerp(next: Double, delta: Double): Double{
-    return this + ((next - this) * delta)
+fun Double.lerp(next: Double, delta: Double): Double {
+	return this + ((next - this) * delta)
 }
 
 // Interpolate floats, assuming they are between 0 and 1
@@ -74,31 +74,34 @@ fun Double.lerp(next: Double, delta: Double): Double{
  * Sin interpolate between 0 and 1, using [this] as delta
  */
 fun Float.serp(): Float = 0.5f + 0.5f * sin((this - 0.5f) * PIF)
+
 /**
  * Exponentially interpolate between 0 and 1, using [this] as delta
  *
  * @param [exponent] The exponent to interpolate with. A greater value will mean a steeper curve nearer 0.5
  */
 fun Float.eerp(exponent: Int): Float =
-    if(this < 0.5f){
-        0.5f * (this * 2).pow(exponent)
-    }
-    else{
-        1f - 0.5f * ((2f - (2 * this)).pow(exponent))
-    }
+	if (this < 0.5f) {
+		0.5f * (this * 2).pow(exponent)
+	} else {
+		1f - 0.5f * ((2f - (2 * this)).pow(exponent))
+	}
+
 /**
  * Quadratically interpolate between 0 and 1, using [this] as delta
  */
 fun Float.querp(): Float = eerp(2)
+
 /**
  * Cubically interpolate between 0 and 1, using [this] as delta
  */
 fun Float.cerp(): Float = eerp(3)
 
 // Simple Interpolation functions
-fun Float.lerp(next: Float, delta: Float): Float{
-    return this + ((next - this) * delta)
+fun Float.lerp(next: Float, delta: Float): Float {
+	return this + ((next - this) * delta)
 }
+
 fun Float.serp(next: Float, delta: Float) = lerp(next, delta.serp())
 fun Float.eerp(next: Float, delta: Float, exponent: Int) = lerp(next, delta.eerp(exponent))
 fun Float.querp(next: Float, delta: Float) = lerp(next, delta.querp())
@@ -116,13 +119,14 @@ fun Float.cerp(next: Float, delta: Float) = lerp(next, delta.cerp())
  * @return A new float that represents the angle between this and [next]
  * given the smallest angle between them
  */
-fun Float.lerpAngle(next: Float, delta: Float): Float{
+fun Float.lerpAngle(next: Float, delta: Float): Float {
 
-    val angleLast = wrap(0f, 2 * PIF)
-    val angleNext = next.wrap(angleLast - PIF, angleLast + PIF)
+	val angleLast = wrap(0f, 2 * PIF)
+	val angleNext = next.wrap(angleLast - PIF, angleLast + PIF)
 
-    return angleLast.lerp(angleNext, delta)
+	return angleLast.lerp(angleNext, delta)
 }
+
 fun Float.serpAngle(next: Float, delta: Float) = lerpAngle(next, delta.serp())
 fun Float.eerpAngle(next: Float, delta: Float, exponent: Int) = lerpAngle(next, delta.eerp(exponent))
 fun Float.querpAngle(next: Float, delta: Float) = lerpAngle(next, delta.querp())
@@ -132,52 +136,60 @@ fun Float.cerpAngle(next: Float, delta: Float) = lerpAngle(next, delta.cerp())
 // Interpolate floats, assuming they are between 0 and 1
 fun Double.serp(): Double = 0.5 + 0.5 * sin((this - 0.5) * PI)
 fun Double.eerp(exponent: Int): Double =
-    if(this < 0.5){
-        0.5 * (this * 2).pow(exponent)
-    }
-    else{
-        1.0 - 0.5 * ((2.0 - (2 * this)).pow(exponent))
-    }
+	if (this < 0.5) {
+		0.5 * (this * 2).pow(exponent)
+	} else {
+		1.0 - 0.5 * ((2.0 - (2 * this)).pow(exponent))
+	}
+
 fun Double.querp(): Double = eerp(2)
 fun Double.cerp(): Double = eerp(3)
 
 /**
  * Returns the position [this] would be on a circle that starts at [min] and ends at [max]
  */
-fun Double.wrap(min: Double, max: Double): Double{
-    val range = abs(max - min)
-    var rem = (this - min) % range
-    if(rem < 0) rem += range
-    return min + rem
+fun Double.wrap(min: Double, max: Double): Double {
+	val range = abs(max - min)
+	var rem = (this - min) % range
+	if (rem < 0) rem += range
+	return min + rem
 }
 
 /**
  * Returns the position [this] would be on a circle that starts at [min] and ends at [max]
  */
-fun Float.wrap(min: Float, max: Float): Float{
-    val range = abs(max - min)
-    var rem = (this - min) % range
-    if(rem < 0) rem += range
-    return min + rem
+fun Float.wrap(min: Float, max: Float): Float {
+	val range = abs(max - min)
+	var rem = (this - min) % range
+	if (rem < 0) rem += range
+	return min + rem
 }
 
 /**
  * Returns the position [this] would be on a circle that starts at [min] and ends at [max]
  */
-fun Int.wrap(min: Int, max: Int): Int{
-    val ran = abs(max - min)
-    var rem = (this - min) % ran
-    if(rem < 0) rem += ran
-    return min + rem
+fun Int.wrap(min: Int, max: Int): Int {
+	val ran = abs(max - min)
+	var rem = (this - min) % ran
+	if (rem < 0) rem += ran
+	return min + rem
 }
 
 infix fun Int.getRGBAValue(shift: Int) = ((this shr (shift * 8)) and 255) * 0.003921569f
 
+fun Int.toBytes(bytes: Int = 4): List<Byte> {
+	return (0..<bytes).map { ((this shr (it * 8) and 255)).toByte() }
+}
+
+fun Int.toByteString(bytes: Int = 4): String {
+	return (0..<bytes).reversed().joinToString("") { ((this shr (it * 8) and 255)).toChar().toString() }
+}
+
 /**
  * Return the value with the smallest absolute value
  */
-fun absMinOf(a: Float, vararg other: Float): Float{
-    return (other + a).minByOrNull { abs(it) } ?: a
+fun absMinOf(a: Float, vararg other: Float): Float {
+	return (other + a).minByOrNull { abs(it) } ?: a
 }
 
 // Yes I know Strings aren't primitive types, STFU
@@ -185,24 +197,24 @@ fun absMinOf(a: Float, vararg other: Float): Float{
 /**
  * Replace all whitespaces with [replace]
  */
-fun CharSequence.replaceWhiteSpaces(replace: String = ""): String{
-    return replace(Regex("\\s+"), replace)
+fun CharSequence.replaceWhiteSpaces(replace: String = ""): String {
+	return replace(Regex("\\s+"), replace)
 }
 
-fun CharSequence.sumOf(selector: (Char) -> Float): Float{
-    var sum = 0f
-    for(char in this){
-        sum += selector(char)
-    }
-    return sum
+fun CharSequence.sumOf(selector: (Char) -> Float): Float {
+	var sum = 0f
+	for (char in this) {
+		sum += selector(char)
+	}
+	return sum
 }
 
-fun <E> CharSequence.reduce(initial: E, operation: (acc: E, it: Char) -> E): E{
-    var accumulator = initial
-    for(char in this) {
-        accumulator = operation(accumulator, char)
-    }
-    return accumulator
+fun <E> CharSequence.reduce(initial: E, operation: (acc: E, it: Char) -> E): E {
+	var accumulator = initial
+	for (char in this) {
+		accumulator = operation(accumulator, char)
+	}
+	return accumulator
 }
 
 operator fun String.get(start: Int, end: Int): String = substring(start, end)

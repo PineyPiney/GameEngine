@@ -5,11 +5,18 @@ import com.pineypiney.game_engine.objects.components.slider.OutlinedSliderRender
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import glm_.vec2.Vec2
 
-class BasicActionSlider(origin: Vec2, size: Vec2, low: Float, high: Float, value: Float, val action: (ActionSliderComponent) -> Unit): MenuItem() {
+class BasicActionSlider(
+	origin: Vec2,
+	size: Vec2,
+	low: Float,
+	high: Float,
+	value: Float,
+	val action: (ActionSliderComponent) -> Unit
+) : MenuItem() {
 
-    init {
-        os(origin, size)
-        components.add(ActionSliderComponent(this, low, high, value, action))
-        components.add(OutlinedSliderRendererComponent(this))
-    }
+	init {
+		os(origin, size)
+		components.add(ActionSliderComponent(this, low, high, value, action))
+		components.add(OutlinedSliderRendererComponent(this))
+	}
 }

@@ -6,22 +6,26 @@ import com.pineypiney.game_engine.util.extension_functions.lerpAngle
 import glm_.f
 import glm_.vec3.Vec3
 
-class BoneState(boneId: String, val translation: Vec3, val rotation: Vec3): State(boneId){
+class BoneState(boneId: String, val translation: Vec3, val rotation: Vec3) : State(boneId) {
 
-    override fun lerpWith(nextState: State, delta: Number): BoneState {
-        return if(nextState is BoneState)
-            BoneState(this.parentId, this.translation.lerp(nextState.translation, delta.f), this.rotation.lerpAngle(nextState.rotation, delta.f))
-            else this
-    }
+	override fun lerpWith(nextState: State, delta: Number): BoneState {
+		return if (nextState is BoneState)
+			BoneState(
+				this.parentId,
+				this.translation.lerp(nextState.translation, delta.f),
+				this.rotation.lerpAngle(nextState.rotation, delta.f)
+			)
+		else this
+	}
 
-    override fun applyTo(model: Model) {
-        val bone = model.findBone(this.parentId) ?: return
-        bone.translation = this.translation
-        bone.rotation = this.rotation
-    }
+	override fun applyTo(model: Model) {
+		val bone = model.findBone(this.parentId) ?: return
+		bone.translation = this.translation
+		bone.rotation = this.rotation
+	}
 
-    override fun toString(): String {
-        return "BoneState($parentId)"
-    }
+	override fun toString(): String {
+		return "BoneState($parentId)"
+	}
 }
 

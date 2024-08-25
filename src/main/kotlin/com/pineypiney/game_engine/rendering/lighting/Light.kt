@@ -5,25 +5,25 @@ import glm_.vec3.Vec3
 
 abstract class Light {
 
-    var on = true
+	var on = true
 
-    abstract val ambient: Vec3
-    abstract val diffuse: Vec3
-    abstract val specular: Vec3
+	abstract val ambient: Vec3
+	abstract val diffuse: Vec3
+	abstract val specular: Vec3
 
-    open fun setShaderUniforms(shader: Shader, name: String){
-        shader.setVec3("$name.diffuse", diffuse)
-        shader.setVec3("$name.ambient", ambient)
-        shader.setVec3("$name.specular", specular)
-    }
+	open fun setShaderUniforms(shader: Shader, name: String) {
+		shader.setVec3("$name.diffuse", diffuse)
+		shader.setVec3("$name.ambient", ambient)
+		shader.setVec3("$name.specular", specular)
+	}
 
-    companion object{
+	companion object {
 
-        fun setShaderUniforms(shader: Shader, name: String, lights: Map<Vec3, Light>){
-            shader.setVec3s("$name.position", lights.keys.toList())
-            shader.setVec3s("$name.ambient", lights.values.map { it.ambient })
-            shader.setVec3s("$name.diffuse", lights.values.map { it.diffuse })
-            shader.setVec3s("$name.specular", lights.values.map { it.specular })
-        }
-    }
+		fun setShaderUniforms(shader: Shader, name: String, lights: Map<Vec3, Light>) {
+			shader.setVec3s("$name.position", lights.keys.toList())
+			shader.setVec3s("$name.ambient", lights.values.map { it.ambient })
+			shader.setVec3s("$name.diffuse", lights.values.map { it.diffuse })
+			shader.setVec3s("$name.specular", lights.values.map { it.specular })
+		}
+	}
 }

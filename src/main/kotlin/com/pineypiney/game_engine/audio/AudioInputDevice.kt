@@ -10,36 +10,48 @@ import java.nio.ByteBuffer
 
 class AudioInputDevice(val ptr: Long) {
 
-    constructor(specifier: ByteBuffer? = null, freq: Int = 44100, format: Int = AL10.AL_FORMAT_STEREO16, samples: Int = 1024): this(ALC11.alcCaptureOpenDevice(specifier, freq, format, samples))
-    constructor(specifier: CharSequence?, freq: Int = 44100, format: Int = AL10.AL_FORMAT_STEREO16, samples: Int = 1024): this(ALC11.alcCaptureOpenDevice(specifier, freq, format, samples))
+	constructor(
+		specifier: ByteBuffer? = null,
+		freq: Int = 44100,
+		format: Int = AL10.AL_FORMAT_STEREO16,
+		samples: Int = 1024
+	) : this(ALC11.alcCaptureOpenDevice(specifier, freq, format, samples))
 
-    val name: String get() = ALUtil.getStringList(ptr, ALC11.ALC_CAPTURE_DEVICE_SPECIFIER)?.getOrNull(0) ?: ""
-    val error: Int get() = ALC10.alcGetError(ptr)
-    val samples: Int get() = ALC10.alcGetInteger(ptr, ALC11.ALC_CAPTURE_SAMPLES)
+	constructor(
+		specifier: CharSequence?,
+		freq: Int = 44100,
+		format: Int = AL10.AL_FORMAT_STEREO16,
+		samples: Int = 1024
+	) : this(ALC11.alcCaptureOpenDevice(specifier, freq, format, samples))
 
-    fun start() = ALC11.alcCaptureStart(ptr)
-    fun stop() = ALC11.alcCaptureStop(ptr)
+	val name: String get() = ALUtil.getStringList(ptr, ALC11.ALC_CAPTURE_DEVICE_SPECIFIER)?.getOrNull(0) ?: ""
+	val error: Int get() = ALC10.alcGetError(ptr)
+	val samples: Int get() = ALC10.alcGetInteger(ptr, ALC11.ALC_CAPTURE_SAMPLES)
 
-    fun sample(): ByteBuffer{
-        val buffer = ByteBuffer(samples)
-        ALC11.alcCaptureSamples(ptr, buffer, samples)
-        return buffer
-    }
+	fun start() = ALC11.alcCaptureStart(ptr)
+	fun stop() = ALC11.alcCaptureStop(ptr)
 
-    fun close(){
-        if(!ALC11.alcCaptureCloseDevice(ptr)) GameEngineI.warn("Failed to close audio input device $name")
-    }
+	fun sample(): ByteBuffer {
+		val buffer = ByteBuffer(samples)
+		ALC11.alcCaptureSamples(ptr, buffer, samples)
+		return buffer
+	}
 
-    override fun toString(): String {
-        return "AudioDevice $name"
-    }
+	fun close() {
+		if (!ALC11.alcCaptureCloseDevice(ptr)) GameEngineI.warn("Failed to close audio input device $name")
+	}
 
-    companion object{
-        fun bps(format: Int) = when(format){
-            AL10.AL_FORMAT_STEREO16 -> 4
-            AL10.AL_FORMAT_STEREO8,
-            AL10.AL_FORMAT_MONO16 -> 2
-            else -> 1
-        }
-    }
+	override fun toString(): String {
+		return "AudioDevice $name"
+	}
+
+	companion object {
+		fun bps(format: Int) = when (format) {
+			AL10.AL_FORMAT_STEREO16 -> 4
+			AL10.AL_FORMAT_STEREO8,
+			AL10.AL_FORMAT_MONO16 -> 2
+
+			else -> 1
+		}
+	}
 }

@@ -13,60 +13,62 @@ import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngine
 import java.io.File
 
-class ObjectAnimator(val resources: ResourcesLoader = FileResourcesLoader(File("src/main/resources")), creator: () -> GameObject, val tweaker: (GameObject) -> Unit = {}) {
+class ObjectAnimator(
+	val resources: ResourcesLoader = FileResourcesLoader(File("src/main/resources")),
+	creator: () -> GameObject,
+	val tweaker: (GameObject) -> Unit = {}
+) {
 
-    private val engine = object : WindowedGameEngine<AnimatorLogic>(resources){
+	private val engine = object : WindowedGameEngine<AnimatorLogic>(resources) {
 
-        init {
-            GameEngineI.defaultFont = "Large Font"
+		init {
+			GameEngineI.defaultFont = "Large Font"
 
-            // Create all the fonts
-            FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)
-            FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader)
-        }
+			// Create all the fonts
+			FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)
+			FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader)
+		}
 
-        override var TARGET_FPS: Int = 1000
-        override val TARGET_UPS: Int = 20
-        override val activeScreen: AnimatorLogic = AnimatorLogic(this, null, creator)
+		override val activeScreen: AnimatorLogic = AnimatorLogic(this, null, creator)
 
-        var lastFrameTime = 0.0
-        override val window: WindowI get() = Companion.window
+		var lastFrameTime = 0.0
+		override val window: WindowI get() = Companion.window
 
-        override fun init() {
-            super.init()
-            activeScreen.o?.let { tweaker(it) }
-        }
+		override fun init() {
+			super.init()
+			activeScreen.o?.let { tweaker(it) }
+		}
 
-        override fun render(tickDelta: Double) {
-            super.render(tickDelta)
-            val newTime = Timer.getCurrentTime() * 1000.0
-            lastFrameTime = newTime
-        }
-    }
+		override fun render(tickDelta: Double) {
+			super.render(tickDelta)
+			val newTime = Timer.getCurrentTime() * 1000.0
+			lastFrameTime = newTime
+		}
+	}
 
-    fun run(){
-        engine.run()
-    }
+	fun run() {
+		engine.run()
+	}
 
-    fun setAnimating(o: GameObject){
-        window.title = "${o.name} Animator"
-        engine.activeScreen.setAnimating(o)
-    }
+	fun setAnimating(o: GameObject) {
+		window.title = "${o.name} Animator"
+		engine.activeScreen.setAnimating(o)
+	}
 
-    companion object {
+	companion object {
 
-        fun init(){
-            window.init()
-        }
+		fun init() {
+			window.init()
+		}
 
-        val window = object : Window("Animator", 960, 540, false, true){
-            override val input: Inputs = DefaultInput(this)
-        }
+		val window = object : Window("Animator", 960, 540, false, true) {
+			override val input: Inputs = DefaultInput(this)
+		}
 
-        fun run(creator: () -> GameObject, tweaker: (GameObject) -> Unit = {}){
-            init()
-            val animator = ObjectAnimator(creator = creator, tweaker = tweaker)
-            animator.run()
-        }
-    }
+		fun run(creator: () -> GameObject, tweaker: (GameObject) -> Unit = {}) {
+			init()
+			val animator = ObjectAnimator(creator = creator, tweaker = tweaker)
+			animator.run()
+		}
+	}
 }

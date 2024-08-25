@@ -1,39 +1,44 @@
 package com.pineypiney.game_engine.objects.components.scrollList
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
 
-abstract class SelectableScrollListEntryComponent(parent: GameObject): ScrollListEntryComponent(parent){
+abstract class SelectableScrollListEntryComponent(parent: GameObject) : ScrollListEntryComponent(parent), InteractorComponent {
 
-    override val list: SelectableScrollListComponent get() = parent.parent?.getComponent<SelectableScrollListComponent>()!!
+	abstract val index: Int
 
-    override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override var hover: Boolean = false
+	override var pressed: Boolean = false
+	override var forceUpdate: Boolean = false
+	override var passThrough: Boolean = false
 
-        val p = super.onPrimary(window, action, mods, cursorPos)
+	override val list: SelectableScrollListComponent get() = parent.parent?.getComponent<SelectableScrollListComponent>()!!
 
-        if(action == GLFW.GLFW_RELEASE && this.hover){
-            if(this.index != list.selectedEntry){
-                // Remember to unselect before selecting,
-                // as select() changes the selectedEntry value automatically
-                list.getSelectedEntry()?.unselect()
-                select()
-            }
-        }
+	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+		super.onPrimary(window, action, mods, cursorPos)
 
-        return p
-    }
+		if (action == GLFW.GLFW_RELEASE && this.hover) {
+			if (this.index != list.selectedEntry) {
+				select()
+			}
+		}
 
-    open fun select(){
-        this.forceUpdate = true
-        list.selectedEntry = this.index
-        list.action(list.selectedEntry, this)
-    }
+		return action
+	}
 
-    open fun unselect(){
-        this.forceUpdate = false
-        list.selectedEntry = -1
-        list.action(-1, null)
-    }
+	open fun select() {
+		list.getSelectedEntry()?.forceUpdate = false
+		this.forceUpdate = true
+		list.selectedEntry = this.index
+		list.action(list.selectedEntry, this)
+	}
+
+	open fun unselect() {
+		this.forceUpdate = false
+		list.selectedEntry = -1
+		list.action(-1, null)
+	}
 }
