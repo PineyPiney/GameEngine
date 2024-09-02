@@ -38,6 +38,7 @@ class GLFunc {
 			set(value) = setBool(GL_BLEND, value)
 		val blendFuncSrc: Int get() = glGetInteger(GL_BLEND_SRC)
 		val blendFuncDst: Int get() = glGetInteger(GL_BLEND_DST)
+
 		val blendFuncSrcRGB: Int get() = glGetInteger(GL_BLEND_SRC_RGB)
 		val blendFuncSrcA: Int get() = glGetInteger(GL_BLEND_SRC_ALPHA)
 		val blendFuncDstRGB: Int get() = glGetInteger(GL_BLEND_DST_RGB)
@@ -48,6 +49,13 @@ class GLFunc {
 		var blendFunc: Vec2i
 			get() = Vec2i(blendFuncSrc, blendFuncDst)
 			set(value) = glBlendFunc(value.x, value.y)
+		var blendEquationRGB: Int
+			get() = glGetInteger(GL_BLEND_EQUATION_RGB)
+			set(value) { glBlendEquationSeparate(value, blendEquationA)}
+		var blendEquationA: Int
+			get() = glGetInteger(GL_BLEND_EQUATION_ALPHA)
+			set(value) { glBlendEquationSeparate(blendEquationRGB, value)}
+
 		var blendColour: Vec4
 			get() = Vec4(0, getFloats(GL_BLEND_COLOR, 4))
 			set(value) = glBlendColor(value.x, value.y, value.z, value.w)

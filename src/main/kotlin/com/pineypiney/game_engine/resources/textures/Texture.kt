@@ -108,9 +108,11 @@ class Texture(
 	}
 
 	fun savePNG(file: String): Boolean {
-		val d = getData().rewind().flip()
+		val d = getData()
 		d.limit(d.capacity())
-		return STBImageWrite.stbi_write_png(file, width, height, numChannels, d, numChannels * width)
+		val fileName = if (file.endsWith(".png")) file else "$file.png"
+		STBImageWrite.stbi_flip_vertically_on_write(true)
+		return STBImageWrite.stbi_write_png(fileName, width, height, numChannels, d, numChannels * width)
 	}
 
 	fun savePNG(file: String, x: Int, y: Int, width: Int, height: Int, format: Int = this.format): Boolean {

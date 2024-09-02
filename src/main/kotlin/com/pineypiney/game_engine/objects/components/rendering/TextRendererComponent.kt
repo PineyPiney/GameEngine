@@ -12,7 +12,6 @@ import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
-import glm_.vec3.Vec3
 
 open class TextRendererComponent(parent: GameObject, val text: Text, shader: Shader) :
 	ShaderRenderedComponent(parent, shader), UpdatingAspectRatioComponent {
@@ -23,6 +22,7 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 
 	override fun setUniforms() {
 		super.setUniforms()
+		uniforms.setMat4Uniform("model"){ parent.worldModel.let { it.scale(text.size * it[1, 1] / it[0, 0], text.size, 1f) } }
 		uniforms.setVec4Uniform("colour", text::colour)
 		uniforms.setFloatUniform("italic", text::italic)
 	}
@@ -39,50 +39,11 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 		}
 		if (text.lines.isEmpty()) return
 
-		val parentAspect = parent.transformComponent.worldScale.let { it.y / it.x }
 
-		val originModel = getFormattedOrigin(text.getWidth() * parentAspect, text.getHeight())
-		val totalWidth = text.getWidth()
-
-		var i = 0
-		for (line in text.lines) {
-			shader.use()
-			shader.setUniforms(uniforms, renderer)
-
-			val displayLine = line.trim()
-			val alignmentOffset = text.getAlignment(displayLine, totalWidth) * parentAspect
-			val lineModel =
-				originModel.translate(alignmentOffset, 0f, 0f).scale(text.size * parentAspect, text.size, 1f)
-
-			val firstIndex = i + line.indexOfFirst { it != ' ' }
-			for (j in displayLine.indices) {
-
-				val quad = text.quads[firstIndex + j]
-				text.setIndividualUniforms(shader, quad)
-
-
-				val model = lineModel.translate(Vec3(quad.offset, 0))
-				shader.setMat4("model", model)
-
-				quad.bindAndDraw()
-			}
-
-			if (text.underlineThickness > 0 && text.underlineAmount > 0) {
-				val length = if (text.underlineAmount == 1f) 1f
-				else text.getUnderlineOf(text.lines.indexOf(line))
-
-				if (length > 0) {
-					renderUnderline(
-						lineModel.translate(Vec3(text.quads[firstIndex].offset, 0)),
-						renderer,
-						displayLine,
-						length
-					)
-				}
-			}
-
-			i += line.length
-		}
+		shader.use()
+		shader.setUniforms(uniforms, renderer)
+		text.mesh.texture.bind()
+		text.mesh.bindAndDraw()
 	}
 
 	fun renderUnderline(
@@ -123,7 +84,7 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 	}
 
 	override fun updateAspectRatio(renderer: RendererI) {
-		if (!shader.hasProj) text.updateLines(parent.parent?.transformComponent?.worldScale?.run { x / y } ?: 1f)
+		if (!shader.hasProj) text.updateLines(parent.transformComponent.worldScale.run { x / y })
 	}
 
 	override fun delete() {

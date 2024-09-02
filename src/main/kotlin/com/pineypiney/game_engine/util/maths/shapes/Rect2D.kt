@@ -77,4 +77,8 @@ class Rect2D(val origin: Vec2, var length1: Float, var length2: Float, var angle
 	override fun toString(): String {
 		return "Rect2D[$origin, $size]"
 	}
+
+	companion object {
+		val unitSquare = Rect2D(Vec2(0f), 1f, 1f)
+	}
 }

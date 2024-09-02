@@ -1,7 +1,8 @@
 package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.objects.util.shapes.TextQuad
+import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.objects.util.shapes.TextMesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -9,6 +10,7 @@ import glm_.vec2.Vec2
 
 abstract class Font {
 
+	abstract val name: String
 	abstract val shader: Shader
 
 	abstract fun getCharWidth(char: Char): Float
@@ -18,7 +20,32 @@ abstract class Font {
 	abstract fun getHeight(text: String): Float
 	fun getSize(text: String): Vec2 = Vec2(getWidth(text), getHeight(text))
 
-	abstract fun getQuads(text: String, bold: Boolean = false): Collection<TextQuad>
+	abstract fun getShape(text: String, bold: Boolean, alignment: Int): TextMesh
+
+	fun getAlignmentOffset(text: String, alignment: Int): Pair<FloatArray, Float>{
+
+		val alignX = alignment and 7
+		val alignY = alignment and 0x70
+
+		val lines = text.split('\n')
+		val offsetX = FloatArray(lines.size){
+			val width = getWidth(lines[it])
+			when(alignX){
+				Text.ALIGN_RIGHT -> -width
+				Text.ALIGN_CENTER_H -> width * -.5f
+				else -> 0f
+			}
+		}
+
+		val height = getHeight(text)
+		val offsetY = when(alignY){
+			Text.ALIGN_TOP -> -height
+			Text.ALIGN_CENTER_V -> height * -.5f
+			else -> 0f
+		}
+
+		return offsetX to offsetY
+	}
 
 	companion object {
 		val fontShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/text")]

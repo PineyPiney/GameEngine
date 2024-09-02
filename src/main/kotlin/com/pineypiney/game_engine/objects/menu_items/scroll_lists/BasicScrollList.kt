@@ -44,7 +44,7 @@ class BasicScrollList(origin: Vec2, size: Vec2, entryHeight: Float, scrollerWidt
 
 					override fun addChildren() {
 						super.addChildren()
-						addChild(ScrollListEntryComponent.makeScrollerText(e, Vec4(1f), fontSize = 0f))
+						addChild(ScrollListEntryComponent.makeScrollerText(e, Vec4(1f), fontSize = 0f).apply { position = Vec3(0f, .5f, .01f) })
 					}
 
 					override fun init() {

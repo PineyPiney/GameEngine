@@ -332,12 +332,8 @@ operator fun CharArray.minus(element: Char): CharArray {
 /**
  * Returns an Array repeated [times] times.
  */
-infix fun <T> Array<T>.repeat(times: Int): Array<T> {
-	var a = copyOf()
-	for (i in 2..times) {
-		a += this
-	}
-	return a
+inline infix fun <reified T> Array<T>.repeat(times: Int): Array<T> {
+	return Array(size * times){ get(it % size) }
 }
 
 /**

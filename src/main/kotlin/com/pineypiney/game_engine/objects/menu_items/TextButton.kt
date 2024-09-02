@@ -53,7 +53,7 @@ open class TextButton(
 	override fun addChildren() {
 		super.addChildren()
 		addChild(textObject)
-		textObject.translate(Vec3(0f, 0f, .01f))
+		textObject.translate(Vec3(.5f, .5f, .01f))
 	}
 
 	fun selectColour(): Vec4 {

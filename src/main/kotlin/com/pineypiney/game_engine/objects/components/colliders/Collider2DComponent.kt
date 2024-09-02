@@ -45,8 +45,9 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D, val flags: Mut
 				val overlap = newCollision.getEjection(collider.transformedShape, movement, stepBias)
 				if (overlap.x != 0f || overlap.y != 0f) {
 					collidedMove plusAssign overlap
-					parent.getComponent<Collider2DCallback>()?.onCollide(this, collider)
-					collider.parent.getComponent<Collider2DCallback>()?.onCollide(collider, this)
+					newCollision translate overlap
+					parent.getComponent<Collider2DCallback>()?.onCollide(this, collider, overlap)
+					collider.parent.getComponent<Collider2DCallback>()?.onCollide(collider, this, -overlap)
 				}
 			}
 		}

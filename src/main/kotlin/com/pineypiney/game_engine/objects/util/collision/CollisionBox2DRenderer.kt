@@ -15,7 +15,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-class CollisionBox2DRenderer(val obj: GameObject, val colour: Vec4 = Vec4(1f), val shader: Shader = defaultShader) :
+class CollisionBox2DRenderer(val obj: GameObject, val width: Float = .05f, val colour: Vec4 = Vec4(1f), val shader: Shader = defaultShader) :
 	GameObject() {
 
 	override fun addComponents() {
@@ -36,6 +36,7 @@ class CollisionBox2DRenderer(val obj: GameObject, val colour: Vec4 = Vec4(1f), v
 					}
 				}
 				uniforms.setVec4Uniform("colour", ::colour)
+				uniforms.setFloatUniform("width", ::width)
 			}
 
 			override fun render(renderer: RendererI, tickDelta: Double) {

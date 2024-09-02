@@ -6,7 +6,6 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec2.Vec2
@@ -25,13 +24,7 @@ open class MeshedTextureComponent(
 	constructor(parent: GameObject) : this(parent, Texture.broke)
 
 	override val fields: Array<Field<*>> = arrayOf(
-		Field(
-			"txr",
-			::DefaultFieldEditor,
-			::texture,
-			{ texture = it },
-			{ it.fileLocation.substringBefore('.') },
-			{ _, s -> TextureLoader[ResourceKey(s)] })
+		TextureField("txr", ::texture) { texture = it }
 	)
 
 	override fun render(renderer: RendererI, tickDelta: Double) {

@@ -4,10 +4,9 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
-import com.pineypiney.game_engine.objects.util.shapes.TextQuad
+import com.pineypiney.game_engine.objects.util.shapes.TextMesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
-import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
@@ -31,7 +30,7 @@ open class Text(
 	var lengths = floatArrayOf()
 	var size: Float = 1f
 
-	var quads: Array<TextQuad> = arrayOf()
+	var mesh: TextMesh = TextMesh(emptyArray())
 
 	// Initialise as true so the text is generated before it's first render call
 	var textChanged = true
@@ -41,21 +40,19 @@ open class Text(
 			textChanged = true
 		}
 
-	open fun setIndividualUniforms(s: Shader, quad: TextQuad) {
-
-	}
-
 	override fun init() {
 
 	}
 
 	fun updateLines(parentAspect: Float) {
-		if (fontSize > 0) size = fontSize
+		if (fontSize > 0f) size = fontSize
 		else fitWithin(Vec2(maxWidth * parentAspect, maxHeight))
 
 		lines = generateLines(parentAspect)
 		lengths = lines.map { font.getWidth(it) }.toFloatArray()
-		quads = font.getQuads(lines.joinToString("\n"), false).toTypedArray()
+		mesh.delete()
+		mesh = font.getShape(lines.joinToString("\n"), false, alignment)
+		textChanged = false
 	}
 
 	fun getWidth(): Float {
@@ -136,7 +133,7 @@ open class Text(
 	}
 
 	override fun delete() {
-		quads.toSet().delete()
+		mesh.delete()
 	}
 
 	override fun toString(): String {

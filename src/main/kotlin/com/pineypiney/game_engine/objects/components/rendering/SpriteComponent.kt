@@ -37,7 +37,8 @@ open class SpriteComponent(
 			::sprite,
 			{ this.sprite = it },
 			{ it.texture.fileLocation.substringBefore('.') },
-			{ _, s -> Sprite(TextureLoader[ResourceKey(s)], sprite.pixelsPerUnit) }),
+			{ _, s -> Sprite(TextureLoader[ResourceKey(s)], sprite.pixelsPerUnit) }
+		),
 		FloatField("ppu", sprite::pixelsPerUnit) { this.sprite.pixelsPerUnit = it }
 	)
 

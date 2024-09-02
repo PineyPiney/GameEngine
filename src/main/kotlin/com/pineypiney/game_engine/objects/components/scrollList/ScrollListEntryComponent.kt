@@ -43,7 +43,7 @@ abstract class ScrollListEntryComponent(parent: GameObject) : Component(parent, 
 			alignment: Int = Text.ALIGN_CENTER_LEFT,
 			shader: Shader = entryTextShader
 		): GameObject {
-			return object : MenuItem() {
+			return object : MenuItem("Scroller Text $text") {
 				override fun addComponents() {
 					super.addComponents()
 					val x = this

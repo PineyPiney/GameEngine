@@ -20,14 +20,13 @@ import java.awt.font.FontRenderContext
 import java.awt.image.BufferedImage
 import java.io.InputStream
 import javax.imageio.ImageIO
-import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import java.awt.Font as JavaFont
 
 class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 
-	override val missing: Font = BitMapFont(Texture.broke, null, mapOf(), null)
+	override val missing: Font = BitMapFont("broke", Texture.broke, null, mapOf(), null)
 
 	/**
 	 * Load and save a BitMap font from an image file
@@ -99,9 +98,10 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 			}
 		}
 
-		val key = ResourceKey(fontName.substringBefore('.'))
-		val texture = TextureLoader[ResourceKey("fonts/${key.key}")]
-		map[key] = BitMapFont(
+		val key = fontName.substringBefore('.')
+		val texture = TextureLoader[ResourceKey("fonts/${key}")]
+		map[ResourceKey(key)] = BitMapFont(
+			key,
 			texture,
 			boldTexture,
 			charMap,
@@ -177,6 +177,7 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 	) {
 		val stream: InputStream = resourcesLoader.getStream("${resourcesLoader.fontLocation}$fontName") ?: return
 		val font = JavaFont.createFont(JavaFont.TRUETYPE_FONT, stream)
+		val pixSize = 1.0 / res
 
 		val map = chars.associateWith { char ->
 			val glyph = font.createGlyphVector(ctx, char.toString())
@@ -185,22 +186,22 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 			val size = shape.bounds2D.let { Vec2i(it.width * res, it.height * res) }
 
 			val pixels = List(size.x * size.y) {
-				val pos = Vec2d((it % size.x).d / res, (size.y - floor(it.d / size.x)) / res) + offset
+				val pos = Vec2d((it % size.x).toDouble(), size.y - (it / size.x).toDouble()) * pixSize + offset
 				val pixel = shape.contains(pos.x, pos.y)
 				if (pixel) {
-					val pd = 1.0 / res
-					val strength = shape.contains(pos.x + pd, pos.y).i +
-							shape.contains(pos.x - pd, pos.y).i +
-							shape.contains(pos.x, pos.y + pd).i +
-							shape.contains(pos.x, pos.y - pd).i
-					List(3) { (strength * 255).b } + (255).b
-				} else listOf(0.b, 0.b, 0.b, 255.b)
+					val strength = (shape.contains(pos.x + pixSize, pos.y).i +
+							shape.contains(pos.x - pixSize, pos.y).i +
+							shape.contains(pos.x, pos.y + pixSize).i +
+							shape.contains(pos.x, pos.y - pixSize).i) * .25f
+					List(3) { (strength * 255).b }
+				} else listOf(0.b, 0.b, 0.b)
 			}
 			val array = pixels.flatten().toByteArray()
-			Texture("", TextureLoader.createTexture(array.toBuffer(), size.x, size.y, GL12C.GL_RGBA))
+			Texture("", TextureLoader.createTexture(array.toBuffer(), size.x, size.y, GL12C.GL_RGB))
 		}
 
-		this.map[ResourceKey(fontName.substringBefore('.'))] = TrueTypeFont(font, map, ctx, shader)
+		val name = fontName.substringBefore('.')
+		this.map[ResourceKey(name)] = TrueTypeFont(name, font, map, ctx, shader)
 	}
 
 	fun loadBoldFromTexture(

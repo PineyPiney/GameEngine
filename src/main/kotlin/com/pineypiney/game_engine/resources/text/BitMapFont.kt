@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources.text
 
-import com.pineypiney.game_engine.objects.util.shapes.TextQuad
+import com.pineypiney.game_engine.objects.util.shapes.TextMesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.sumOf
@@ -14,6 +14,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 class BitMapFont(
+	override val name: String,
 	val texture: Texture,
 	val boldTexture: Texture? = null,
 	private val charDimensions: Map<Char, Vec4i>,
@@ -38,7 +39,9 @@ class BitMapFont(
 
 	// Get the width of a string on the scale of 1 being the width of an entire column
 	override fun getWidth(text: String): Float {
-		return (characterSpacing * (text.length + 1)) + text.sumOf { getCharWidth(it) }
+		return text.split('\n').maxOf { line ->
+			(characterSpacing * (line.length + 1)) + line.sumOf { getCharWidth(it) }
+		}
 	}
 
 	// Get the height of a string on the scale of 1 being the width of an entire column
@@ -46,29 +49,31 @@ class BitMapFont(
 		return 1f + lineSpacing * (text.count { it == '\n' })
 	}
 
-	override fun getQuads(text: String, bold: Boolean): Collection<TextQuad> {
+	override fun getShape(text: String, bold: Boolean, alignment: Int): TextMesh{
 		val dimensions = getPixelSize(text)
-		var xOffset = characterSpacing
-		var yOffset = lineSpacing * text.count { it == '\n' }
-		val quads = mutableSetOf<TextQuad>()
+		var letterX = characterSpacing
+		var letterY = lineSpacing * text.count { it == '\n' }
+		val quads = mutableSetOf<TextMesh.CharacterMesh>()
+
+		val (alignX, alignY) = getAlignmentOffset(text, alignment)
+		var line = 0
+
 		for (char in text) {
 			if (char == '\n') {
-				xOffset = characterSpacing
-				yOffset -= lineSpacing
+				line++
+				letterX = characterSpacing
+				letterY -= lineSpacing
 				continue
 			}
-			val quad = TextQuad(
-				createTextVertices(char, dimensions.w, dimensions.y),
-				if (bold) boldTexture ?: texture else texture,
-				Vec2(xOffset, yOffset)
-			)
-			xOffset += getCharWidth(char) + characterSpacing
+			val offset = Vec2(letterX + alignX[line], letterY + alignY)
+			val quad = createTextVertices(char, dimensions.w, dimensions.y, offset)
+			letterX += getCharWidth(char) + characterSpacing
 			quads.add(quad)
 		}
-		return quads
+		return TextMesh(quads.toTypedArray(), if(bold) boldTexture?:texture else texture)
 	}
 
-	fun createTextVertices(char: Char, top: Float, bottom: Float): Array<Vec2> {
+	fun createTextVertices(char: Char, top: Float, bottom: Float, offset: Vec2): TextMesh.CharacterMesh {
 		val pixelHeight = top - bottom
 
 		// Index of letter within bitmap, where 0 is the letter in the top left, counting along the rows
@@ -82,7 +87,7 @@ class BitMapFont(
 		val texturePos = Vec2(letterPoint.x.f / texture.width, (letterPoint.y - top) / texture.height)
 
 		val height = pixelHeight / letterWidth
-		return arrayOf(Vec2(0f, 0f), Vec2(getCharWidth(char), height), texturePos, texturePos + letterSize)
+		return TextMesh.CharacterMesh(offset, Vec2(getCharWidth(char), height) + offset, texturePos, texturePos + letterSize)
 	}
 
 	private fun getPixelSize(text: String): Vec4 {

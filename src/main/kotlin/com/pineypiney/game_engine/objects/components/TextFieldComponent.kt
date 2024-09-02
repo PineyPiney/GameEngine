@@ -74,7 +74,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 	override fun init() {
 		super.init()
 
-		textBox.position = Vec3(0f, 0f, .01f)
+		textBox.position = Vec3(0f, .5f, .01f)
 		parent.addChild(textBox, caretObject)
 	}
 

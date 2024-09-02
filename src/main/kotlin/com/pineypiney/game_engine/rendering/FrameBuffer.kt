@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.resources.textures.TextureParameters
 import glm_.i
 import glm_.vec2.Vec2t
 import kool.ByteBuffer
-import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.stb.STBImageWrite
 import java.nio.ByteBuffer
@@ -70,8 +69,8 @@ open class FrameBuffer(var width: Int, var height: Int, var format: Int = GL_RGB
 	}
 
 	open fun draw(shape: Mesh = Mesh.screenQuadShape) {
-		GL13C.glActiveTexture(GL13C.GL_TEXTURE0)
-		GL13C.glBindTexture(GL13C.GL_TEXTURE_2D, TCB)
+		glActiveTexture(GL_TEXTURE0)
+		glBindTexture(GL_TEXTURE_2D, TCB)
 		shape.bindAndDraw()
 	}
 
@@ -85,7 +84,7 @@ open class FrameBuffer(var width: Int, var height: Int, var format: Int = GL_RGB
 	}
 
 	fun getTextureData(): ByteBuffer {
-		GL13C.glBindTexture(GL13C.GL_TEXTURE_2D, TCB)
+		glBindTexture(GL_TEXTURE_2D, TCB)
 		val buffer = ByteBuffer(width * height * TextureLoader.formatToChannels(format))
 		glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, buffer)
 		return buffer
