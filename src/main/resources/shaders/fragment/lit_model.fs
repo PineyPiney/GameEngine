@@ -92,7 +92,7 @@ void main(){
 		CalcSpotLight(spotlight, norm, fragPos, viewDir, ambient, diffuse, specular);
 
 	if(hasTexture(1u)) ambient *= texture(material.ambient, texCoords).xyz;
-	else if(material.ambDiff && hasTexture(2u)) ambient *= texture(material.diffuse, texCoords);
+	else if(material.ambDiff && hasTexture(2u)) ambient *= texture(material.diffuse, texCoords).xyz;
 
 	// diffuse
 	if(hasTexture(2u)) diffuse *= texture(material.diffuse, texCoords).xyz;

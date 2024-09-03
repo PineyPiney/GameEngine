@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.LightComponent
+import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
 import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComponent
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
@@ -88,7 +89,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		add(gltf)
 		add(light, torch, sun.apply { position = Vec3(0f, 900f, 0f); scale = Vec3(50f) })
 		add(indexSlider)
-		add(fpsText)
+		add(fpsText.apply { components.add(RelativeTransformComponent(this, Vec2(1f), Vec2(1f), Vec2(0f), window.aspectRatio)) })
 	}
 
 	override fun render(tickDelta: Double) {

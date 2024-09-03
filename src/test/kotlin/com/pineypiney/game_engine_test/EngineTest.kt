@@ -27,7 +27,11 @@ import glm_.vec3.Vec3
 import org.junit.Test
 import kotlin.math.PI
 
-class Test{
+fun main() {
+	EngineTest().test3D()
+}
+
+class EngineTest{
 
 	@Test
 	fun test2D() {
@@ -44,11 +48,13 @@ class Test{
 		run(::TestVREngine, ::TestVRGame)
 	}
 
-	fun <G: GameLogicI, E: GameEngineI<G>> run(engine: ((E) -> G) -> E, screen: (E) -> G){
-		LibrarySetUp.initLibraries()
+	companion object {
+		fun <G : GameLogicI, E : GameEngineI<G>> run(engine: ((E) -> G) -> E, screen: (E) -> G) {
+			LibrarySetUp.initLibraries()
 
-		TestWindow.INSTANCE.init()
-		engine(screen).run()
+			TestWindow.INSTANCE.init()
+			engine(screen).run()
+		}
 	}
 
 	@Test

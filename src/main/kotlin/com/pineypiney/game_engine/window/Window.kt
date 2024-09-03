@@ -47,11 +47,9 @@ abstract class Window(
 	final override var audioOutputDevice: AudioOutputDevice? = null
 	final override var audioInputDevice: AudioInputDevice? = null
 
-	override var title: String = title
-		set(value) {
-			field = value
-			GLFW.glfwSetWindowTitle(windowHandle, value)
-		}
+	override var title: String
+		get() = GLFW.glfwGetWindowTitle(windowHandle) ?: ""
+		set(value) = GLFW.glfwSetWindowTitle(windowHandle, value)
 
 	override var pos: Vec2i
 		get() = getVec2i(windowHandle, GLFW::glfwGetWindowPos)
@@ -89,7 +87,7 @@ abstract class Window(
 			size = Vec2i(size.x, value)
 		}
 
-	final override var aspectRatio = size.run { x.f / y }; private set
+	final override var aspectRatio = size.run { x.f / y }
 
 	override val focused: Boolean
 		get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_FOCUSED).bool
@@ -311,7 +309,7 @@ abstract class Window(
 			GLFW.GLFW_VISIBLE to 0, // the window will stay hidden after creation
 			GLFW.GLFW_RESIZABLE to 1, // the window will be resizable
 			GLFW.GLFW_CONTEXT_VERSION_MAJOR to 4,
-			GLFW.GLFW_CONTEXT_VERSION_MINOR to 6,
+			GLFW.GLFW_CONTEXT_VERSION_MINOR to 1,
 			GLFW.GLFW_OPENGL_PROFILE to GLFW.GLFW_OPENGL_CORE_PROFILE,
 			GLFW.GLFW_OPENGL_FORWARD_COMPAT to 1,
 		)

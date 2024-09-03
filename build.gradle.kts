@@ -1,8 +1,7 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
+import org.gradle.kotlin.dsl.invoke
 
 plugins {
-    val kotlinVersion = "1.9.10"
+    val kotlinVersion = "2.0.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
@@ -13,30 +12,32 @@ val ver: String = "1.0-SNAPSHOT"
 group = "com.pineypiney.game_engine"
 version = ver
 
-val lwjglVersion = "3.3.3"
+val lwjglVersion = "3.3.4"
 
 // Use https://www.lwjgl.org/customize to set natives
-val lwjglNatives = run {
+val (lwjglNatives: String, nativesSpec: String) = run {
     val name = System.getProperty("os.name")
     val arch = System.getProperty("os.arch")
     val a64 = arch.startsWith("aarch64")
     when {
         name.startsWith("Windows") -> {
-            if(arch.contains("64")) "natives-windows${if(a64) "-arm64" else ""}"
-            else "natives-windows-x86"
+            "natives-windows" to
+            if(arch.contains("64")) if(a64) "-arm64" else ""
+            else "-x86"
         }
         arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) } -> {
-            if(a64) "natives-macos-arm64" else "natives-macos"
+            "natives-macos" to if(a64) "-arm64" else ""
         }
         arrayOf("Linux", "SunOS", "Unit").any { name.startsWith(it) } ->
+            "natives-linux" to
             if (arrayOf("arm", "aarch64").any { arch.startsWith(it) })
-                "natives-linux${if (arch.contains("64") || arch.startsWith("armv8")) "-arm64" else "-arm32"}"
+                if (arch.contains("64") || arch.startsWith("armv8")) "-arm64" else "-arm32"
             else if (arch.startsWith("ppc"))
-                "natives-linux-ppc64le"
+                "-ppc64le"
             else if (arch.startsWith("riscv"))
-                "natives-linux-riscv64"
+                "-riscv64"
             else
-                "natives-linux"
+                ""
 
         else -> throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
     }
@@ -74,14 +75,14 @@ dependencies {
     implementation("org.lwjgl", "lwjgl-opengl")
     implementation("org.lwjgl", "lwjgl-openvr")
     implementation("org.lwjgl", "lwjgl-stb")
-    runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-jemalloc", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-openal", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
+    runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives + nativesSpec)
+    runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = lwjglNatives + nativesSpec)
+    runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = lwjglNatives + nativesSpec)
+    runtimeOnly("org.lwjgl", "lwjgl-jemalloc", classifier = lwjglNatives + nativesSpec)
+    runtimeOnly("org.lwjgl", "lwjgl-openal", classifier = lwjglNatives + nativesSpec)
+    runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives + nativesSpec)
     runtimeOnly("org.lwjgl", "lwjgl-openvr", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = lwjglNatives)
+    runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = lwjglNatives + nativesSpec)
 
     // JavaCV for video processing
     implementation("org.bytedeco:javacv:$javacv")
@@ -131,12 +132,6 @@ tasks.register<Zip>("packageGame"){
 tasks.test {
     useJUnit()
 }
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "20"
-}
-
-java{
-    sourceCompatibility = JavaVersion.VERSION_20
-    targetCompatibility = JavaVersion.VERSION_20
+kotlin {
+    jvmToolchain(21)
 }
