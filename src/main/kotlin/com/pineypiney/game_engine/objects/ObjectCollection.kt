@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.objects
 
-import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.UpdatingComponent
@@ -71,7 +70,7 @@ open class ObjectCollection {
 		return map.flatMap { (_, s) -> s.flatMap { o -> o.allActiveDescendants().flatMap { it.components } } }.toSet()
 	}
 
-	inline fun <reified T : Component> getAllComponentInstances(layer: Int? = null): Set<T> {
+	inline fun <reified T : ComponentI> getAllComponentInstances(layer: Int? = null): Set<T> {
 		return getAllObjects(layer).mapNotNull { it.getComponent<T>() }.toSet()
 	}
 

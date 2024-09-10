@@ -86,6 +86,18 @@ class ByteData {
 			return String(a)
 		}
 
+		fun bytes2Double(bytes: ByteArray): Double {
+			var i = 0L
+			for (a in 0..7) {
+				try {
+					i += bytes[a].toInt() shl (56 - (a * 8))
+				} catch (e: StringIndexOutOfBoundsException) {
+					GameEngineI.logger.warn("Couldn't parse encoded double string $bytes length ${bytes.size}")
+				}
+			}
+			return Double.fromBits(i)
+		}
+
 		fun string2Double(s: String): Double {
 			var i = 0L
 			for (a in 0..7) {

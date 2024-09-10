@@ -19,7 +19,7 @@ open class TextButton(
 	action: (button: ButtonComponent, cursorPos: Vec2) -> Unit
 ) : MenuItem("$string Button") {
 
-	//constructor(string: String, origin: Vec2, size: Vec2, textColour: Vec4 = Vec4(0f, 0f, 0f, 1f), action: () -> Unit): this(string, origin, size, textColour, { _, _ -> action() })
+	constructor(string: String, origin: Vec2, size: Vec2, relative: Boolean = false, textColour: Vec4 = Vec4(0f, 0f, 0f, 1f), action: () -> Unit): this(string, origin, size, relative, textColour, { _, _ -> action() })
 
 	var textObject = Text.makeMenuText(string, textColour, 1f, 1f, 0f, Text.ALIGN_CENTER)
 
