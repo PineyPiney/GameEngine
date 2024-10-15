@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.apps.editor
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.GameObjectSerializer
 import com.pineypiney.game_engine.objects.ObjectCollection
+import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.objects.components.applied
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponentI
@@ -15,6 +16,7 @@ import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.window.WindowGameLogic
@@ -25,7 +27,6 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11C
 import java.io.File
 
@@ -93,6 +94,7 @@ class EditorScreen(
 
 	// What the mouse is dragging, can be anything from any of the browsers e.g. Texture, GameObject
 	var dragging: DraggedElement? = null
+	var draggedField: Component.FieldEditor<*, *>? = null
 
 	private val saveButton = TextButton("Save", Vec2(0.45f, -0.9f), Vec2(0.2f, 0.2f)) { _, _ ->
 		save()
@@ -115,6 +117,23 @@ class EditorScreen(
 		renderer.render(this, tickDelta)
 	}
 
+	override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
+		super.onCursorMove(cursorPos, cursorDelta)
+		val element = dragging?.element ?: return
+		val editor = componentBrowser.parent.getChild("Component Container")?.children?.firstNotNullOfOrNull({ it.getComponent<Component.FieldEditor<*, *>>() }){ it.hover }
+		if(editor == null){
+			if(draggedField != null) {
+				draggedField?.onHoverElement(-1)
+				draggedField = null
+			}
+		}
+		else if(editor != draggedField){
+			draggedField?.onHoverElement(-1)
+			editor.onHoverElement(element)
+			draggedField = editor
+		}
+	}
+
 	override fun onInput(state: InputState, action: Int): Int {
 		if (action == 1){
 			when(state.c) {
@@ -126,7 +145,7 @@ class EditorScreen(
 					}
 				}
 				'S' -> {
-					if(state.mods.toInt() == GLFW.GLFW_MOD_CONTROL){
+					if(state.control){
 						save()
 					}
 				}
@@ -152,6 +171,14 @@ class EditorScreen(
 	}
 
 	fun clearDragging(){
+		val element = dragging?.element ?: return
+
+		if(draggedField != null){
+			draggedField?.onDropElement(element, this)
+			draggedField?.onHoverElement(-1)
+			draggedField = null
+		}
+
 		dragging?.parent?.delete()
 		dragging = null
 	}

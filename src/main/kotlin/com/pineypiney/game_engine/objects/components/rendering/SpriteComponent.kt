@@ -6,7 +6,6 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec2.Vec2
@@ -31,14 +30,10 @@ open class SpriteComponent(
 	constructor(parent: GameObject) : this(parent, Texture.broke)
 
 	override val fields: Array<Field<*>> = arrayOf(
-		Field(
+		TextureField(
 			"txr",
-			::DefaultFieldEditor,
-			::sprite,
-			{ this.sprite = it },
-			{ it.texture.fileLocation.substringBefore('.') },
-			{ _, s -> Sprite(TextureLoader[ResourceKey(s)], sprite.pixelsPerUnit) }
-		),
+			sprite::texture
+		) { this.sprite = Sprite(it, sprite.pixelsPerUnit, sprite.spriteCenter, sprite.origin, sprite.size, sprite.flipX, sprite.flipY) },
 		FloatField("ppu", sprite::pixelsPerUnit) { this.sprite.pixelsPerUnit = it }
 	)
 

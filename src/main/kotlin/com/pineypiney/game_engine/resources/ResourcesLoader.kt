@@ -14,7 +14,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.Channels
 import java.nio.channels.ReadableByteChannel
 
-abstract class ResourcesLoader {
+abstract class ResourcesLoader(val location: String) {
 
 	open val shaderLocation = "shaders/"
 	open val textureLocation = "textures/"

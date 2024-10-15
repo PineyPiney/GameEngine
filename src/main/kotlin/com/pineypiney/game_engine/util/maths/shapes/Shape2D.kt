@@ -21,7 +21,7 @@ abstract class Shape2D : Shape<Vec2>() {
 	 */
 	fun overlap1D(normal: Vec2, other: Shape2D): Vec2 {
 
-		// The range of the normal that each rect takes up
+		// The range of the normal that each shape takes up
 		val range1 = projectTo(normal)
 		val range2 = other projectTo normal
 

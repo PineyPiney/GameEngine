@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.resources
 import java.io.InputStream
 import java.util.zip.ZipFile
 
-open class ZipResourcesLoader(val zipFile: ZipFile) : ResourcesLoader() {
+open class ZipResourcesLoader(val zipFile: ZipFile) : ResourcesLoader("") {
 
 	constructor(location: String) : this(ZipFile(location))
 

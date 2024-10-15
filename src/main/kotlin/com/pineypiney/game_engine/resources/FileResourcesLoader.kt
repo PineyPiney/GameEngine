@@ -6,7 +6,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
 
-open class FileResourcesLoader(val file: File = File("src/main/resources")) : ResourcesLoader() {
+open class FileResourcesLoader(val file: File = File("src/main/resources")) : ResourcesLoader(file.path.replace(s, '/')) {
 
 	constructor(location: String) : this(File(location))
 

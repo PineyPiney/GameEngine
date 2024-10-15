@@ -64,7 +64,7 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 		item.init()
 
 		val textChild = Text.makeMenuText(obj.name)
-		textChild.position = Vec3(.1f, 0f, 0f)
+		textChild.position = Vec3(.1f, .5f, 0f)
 		textChild.scale = Vec3(.8f)
 		item.addChild(textChild)
 		textChild.init()

@@ -10,6 +10,7 @@ import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 
 class NewComponentList(parent: GameObject, val browser: ComponentBrowser): ScrollListComponent(parent) {
 
@@ -59,7 +60,7 @@ class NewComponentList(parent: GameObject, val browser: ComponentBrowser): Scrol
 		override fun init() {
 			super.init()
 
-			parent.addChild(makeScrollerText(compName))
+			parent.addChild(makeScrollerText(compName).apply { position = Vec3(0f, .5f, 0f) })
 		}
 
 		override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {

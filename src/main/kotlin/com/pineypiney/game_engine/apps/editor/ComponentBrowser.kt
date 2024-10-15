@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -61,7 +62,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			// Add component title
 			y -= .05f
 			val compText = Text.makeMenuText(c::class.simpleName ?: "")
-			compText.position = Vec3(0f, y, .01f)
+			compText.position = Vec3(0f, y + .025f, .01f)
 			compText.scale = Vec3(1f, .05f, 1f)
 			compText.init()
 			componentContainer.addChild(compText)
@@ -69,15 +70,16 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			// Add all component fields
 			for(f in c.fields){
 				y -= .05f
-				val editor = f.editor(c, "${c.id}.${f.id}", Vec2(0f, y), Vec2(1f, .05f), c::setValue)
+				val fieldID = "${c.id}.${f.id}"
+				val editor = f.editor(MenuItem("Field Editor $fieldID"), c, fieldID, Vec2(0f, y), Vec2(1f, .05f), c::setValue).applied().parent
 				editor.init()
 				componentContainer.addChild(editor)
 			}
 		}
 	}
 
-	override fun updateAspectRatio(renderer: RendererI) {
-		val invAsp = 1f / renderer.aspectRatio
+	override fun onCursorMove(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
+		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 
 	}
 
@@ -91,5 +93,10 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			return INTERRUPT
 		}
 		return super.onSecondary(window, action, mods, cursorPos)
+	}
+
+	override fun updateAspectRatio(renderer: RendererI) {
+		val invAsp = 1f / renderer.aspectRatio
+
 	}
 }

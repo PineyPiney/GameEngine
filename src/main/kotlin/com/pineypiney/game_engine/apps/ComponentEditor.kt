@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
+import com.pineypiney.game_engine.objects.components.applied
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.init
@@ -56,21 +57,23 @@ class ComponentEditor(
 
 		val s = 1f / i
 		for (f in editingComponent.fields) {
+			val fieldID = id + editingComponent.id + '.' + f.id
 			addChild(
 				f.editor(
+					MenuItem("Field Editor $fieldID"),
 					editingComponent,
-					id + editingComponent.id + '.' + f.id,
+					fieldID,
 					Vec2(0f, ((s * --i))),
 					Vec2(1f, s),
 					callback
-				)
+				).applied().parent
 			)
 		}
 		children.init()
 	}
 
 	fun updateField(id: String) {
-		val fe = children.filterIsInstance<Component.FieldEditor<*, *>>().firstOrNull { it.id == id }
+		val fe = children.filterIsInstance<Component.FieldEditor<*, *>>().firstOrNull { it.fieldID == id }
 		if (fe != null) fe.update()
 		else GameEngineI.logger.warn("Could not find FieldEditor $id")
 	}
