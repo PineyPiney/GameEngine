@@ -2,15 +2,13 @@ package com.pineypiney.game_engine.objects.components.slider
 
 import com.pineypiney.game_engine.objects.GameObject
 
-open class ActionSliderComponent(
+abstract class ActionSliderComponent<T: Number>(
 	parent: GameObject,
-	low: Float,
-	high: Float,
-	value: Float,
-	val action: (ActionSliderComponent) -> Unit
-) : SliderComponent(parent, low, high, value) {
+	value: T,
+	val action: (ActionSliderComponent<T>) -> Unit
+) : SliderComponent<T>(parent, value) {
 
-	override var value: Float
+	override var value: T
 		get() = super.value
 		set(value) {
 			super.value = value

@@ -38,6 +38,7 @@ fun Float.round(places: Int): Float {
  *
  * @return If [this] is within these criteria
  */
+@Suppress("SENSELESS_COMPARISON")
 fun Float.isWithin(min: Float, size: Float): Boolean {
 	return min < this && this < min + size
 }
@@ -50,6 +51,7 @@ fun Float.isWithin(min: Float, size: Float): Boolean {
  *
  * @return If [this] is within these criteria
  */
+@Suppress("SENSELESS_COMPARISON")
 fun Float.isBetween(min: Float, max: Float): Boolean {
 	return min < this && this < max
 }
@@ -80,6 +82,7 @@ fun Float.serp(): Float = 0.5f + 0.5f * sin((this - 0.5f) * PIF)
  *
  * @param [exponent] The exponent to interpolate with. A greater value will mean a steeper curve nearer 0.5
  */
+@Suppress("SENSELESS_COMPARISON")
 fun Float.eerp(exponent: Int): Float =
 	if (this < 0.5f) {
 		0.5f * (this * 2).pow(exponent)
@@ -135,6 +138,7 @@ fun Float.cerpAngle(next: Float, delta: Float) = lerpAngle(next, delta.cerp())
 
 // Interpolate floats, assuming they are between 0 and 1
 fun Double.serp(): Double = 0.5 + 0.5 * sin((this - 0.5) * PI)
+@Suppress("SENSELESS_COMPARISON")
 fun Double.eerp(exponent: Int): Double =
 	if (this < 0.5) {
 		0.5 * (this * 2).pow(exponent)
@@ -177,7 +181,7 @@ fun Int.wrap(min: Int, max: Int): Int {
 
 infix fun Int.getRGBAValue(shift: Int) = ((this shr (shift * 8)) and 255) * 0.003921569f
 
-fun Int.toBytes(bytes: Int = 4): List<Byte> {
+fun Int.toBytes(bytes: Int = 4, bigEndian: Boolean = true): List<Byte> {
 	return (0..<bytes).map { ((this shr (it * 8) and 255)).toByte() }
 }
 

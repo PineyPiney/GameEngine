@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
-import com.pineypiney.game_engine.objects.util.shapes.SquareShape
+import com.pineypiney.game_engine.objects.util.shapes.SquareMesh
 import glm_.vec2.Vec2
 import kotlin.math.max
 
@@ -50,6 +50,6 @@ class Sprite(val texture: Texture, ppu: Float, val spriteCenter: Vec2 = Vec2(.5f
 			s.y = -s.y
 		}
 		val tr = bl + renderSize
-		return SquareShape(bl, tr, o, o + s)
+		return SquareMesh(bl, tr, o, o + s)
 	}
 }

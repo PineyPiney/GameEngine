@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec2.Vec2
 
-class TextMesh(chars: Array<CharacterMesh>, val texture: Texture = Texture.broke, val deleteTexture: Boolean = false) : IndicesShape(chars.flatMap { it.getVertices() }.toFloatArray(), intArrayOf(2, 2), createIndices(chars.size)) {
+class TextMesh(chars: Array<CharacterMesh>, val texture: Texture = Texture.broke, val deleteTexture: Boolean = false) : IndicesMesh(chars.flatMap { it.getVertices() }.toFloatArray(), intArrayOf(2, 2), createIndices(chars.size)) {
 
 	override val shape: Shape<*> = Rect2D(Vec2(0f), 1f, 1f)
 

@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
 
@@ -32,6 +33,10 @@ abstract class WindowGameLogic : GameLogic() {
 
 	open fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
 		val ray = renderer.camera.getRay(input.mouse.screenSpaceCursor())
+		checkHovers(ray, cursorPos, cursorDelta)
+	}
+
+	fun checkHovers(ray: Ray, cursorPos: Vec2, cursorDelta: Vec2){
 		val lengths = mutableMapOf<InteractorComponent, Float>()
 		for (component in gameObjects.getAllInteractables()) {
 			val len = component.checkHover(ray, cursorPos)
@@ -50,11 +55,14 @@ abstract class WindowGameLogic : GameLogic() {
 			}
 		}
 		val sorted = lengths.entries.sortedBy { it.value }
+		var rayReach = 0f
 		var rayStopped = false
 		for ((obj, l) in sorted){
 
-			// If the ray has been stopped then unhover all remaining components
-			if(rayStopped){
+			// If the ray has been stopped
+			// and this component is further that the ray has reached
+			// then unhover all remaining components
+			if(rayStopped && l > rayReach){
 				if(obj.hover){
 					obj.onCursorMove(window, cursorPos, cursorDelta, ray)
 					obj.hover = false
@@ -72,6 +80,7 @@ abstract class WindowGameLogic : GameLogic() {
 				// If this component is hovered and does not let the ray pass through
 				// Then the cursor ray is stopped and all remaining items should be unhovered
 				if(!obj.passThrough) rayStopped = true
+				if(l > rayReach) rayReach = l
 			}
 
 			obj.onCursorMove(window, cursorPos, cursorDelta, ray)

@@ -9,7 +9,10 @@ import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.length
-import glm_.*
+import glm_.and
+import glm_.b
+import glm_.c
+import glm_.i
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
@@ -196,8 +199,12 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 					List(3) { (strength * 255).b }
 				} else listOf(0.b, 0.b, 0.b)
 			}
-			val array = pixels.flatten().toByteArray()
-			Texture("", TextureLoader.createTexture(array.toBuffer(), size.x, size.y, GL12C.GL_RGB))
+			val buffer = pixels.flatten().toByteArray().toBuffer()
+			if(char == '5'){
+				GameEngineI.debug("Creating character 5, using buffer: $buffer, size: $size")
+			}
+			//GameEngineI.debug("Loading character $char, code ${char.code.asHexString}")
+			Texture("", TextureLoader.createTexture(buffer, size.x, size.y, GL12C.GL_RGB, debug = char in '4'..'6'))
 		}
 
 		val name = fontName.substringBefore('.')

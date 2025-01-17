@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -36,7 +35,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		comp.init()
 
 		componentContainer.deleteAllChildren()
-		positionComponents()
+		positionComponents(obj)
 	}
 
 	fun setEditing(obj: GameObject?){
@@ -50,14 +49,18 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			text.init()
 			componentContainer.addChild(text)
 
-			positionComponents()
+			positionComponents(obj)
 		}
 	}
 
-	fun positionComponents(initialY: Float = .95f){
-		val comps = screen.editingObject?.components ?: return
+	fun refreshField(fieldID: String){
+		val obj = componentContainer.getChild("Field Editor $fieldID") ?: return
+		obj.getComponent<FieldEditor<*, *>>()?.update()
+	}
+
+	fun positionComponents(obj: GameObject, initialY: Float = .95f){
 		var y = initialY
-		for(c in comps){
+		for(c in obj.components){
 
 			// Add component title
 			y -= .05f
@@ -69,18 +72,15 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 
 			// Add all component fields
 			for(f in c.fields){
-				y -= .05f
 				val fieldID = "${c.id}.${f.id}"
 				val editor = f.editor(MenuItem("Field Editor $fieldID"), c, fieldID, Vec2(0f, y), Vec2(1f, .05f), c::setValue).applied().parent
+				val dy = editor.scale.y
+				editor.translate(Vec3(0f, -dy, 0f))
+				y -= dy
 				editor.init()
 				componentContainer.addChild(editor)
 			}
 		}
-	}
-
-	override fun onCursorMove(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
-		super.onCursorMove(window, cursorPos, cursorDelta, ray)
-
 	}
 
 	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
@@ -95,8 +95,5 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		return super.onSecondary(window, action, mods, cursorPos)
 	}
 
-	override fun updateAspectRatio(renderer: RendererI) {
-		val invAsp = 1f / renderer.aspectRatio
-
-	}
+	override fun updateAspectRatio(renderer: RendererI) {}
 }

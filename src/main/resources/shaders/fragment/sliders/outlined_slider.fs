@@ -15,8 +15,8 @@ out vec4 FragColour;
 void main(){
 	float sizeX = model[0][0];
 	float sizeY = model[1][1];
-	float ratio = (float(viewport.x) / viewport.y) * sizeX / sizeY;
+	float ratio = (viewport.y * sizeY) / (viewport.x * sizeX);
 
-	if((abs(0.5 - pos.x)) > 0.5 - outlineThickness || abs(0.5 - pos.y) > 0.5 - (outlineThickness * ratio)) FragColour = outlineColour;
+	if((abs(0.5 - pos.x)) > 0.5 - (outlineThickness * ratio) || abs(0.5 - pos.y) > 0.5 - outlineThickness) FragColour = outlineColour;
 	else FragColour = colour;
 }

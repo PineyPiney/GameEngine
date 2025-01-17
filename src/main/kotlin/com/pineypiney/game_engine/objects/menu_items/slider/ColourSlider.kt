@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
+import com.pineypiney.game_engine.objects.components.slider.ActionFloatSliderComponent
 import com.pineypiney.game_engine.objects.components.slider.ActionSliderComponent
 import com.pineypiney.game_engine.objects.components.slider.ColourSliderRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
@@ -11,7 +12,7 @@ class ColourSlider(
 	size: Vec2,
 	val shader: Shader,
 	val colours: MutableMap<String, Float>,
-	val action: ActionSliderComponent.() -> Unit = {}
+	val action: ActionSliderComponent<Float>.() -> Unit = {}
 ) : MenuItem() {
 
 	init {
@@ -20,7 +21,7 @@ class ColourSlider(
 
 	override fun addComponents() {
 		super.addComponents()
-		components.add(ActionSliderComponent(this, 0f, 255f, 255f, action))
+		components.add(ActionFloatSliderComponent(this, 0f, 255f, 255f, action))
 		components.add(ColourSliderRendererComponent(this, shader, colours))
 	}
 }

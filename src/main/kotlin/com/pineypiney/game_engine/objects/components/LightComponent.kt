@@ -15,7 +15,16 @@ class LightComponent(parent: GameObject, val light: Light) : Component(parent, "
 	override val fields: Array<Field<*>> = arrayOf()
 
 	fun setShaderUniforms(shader: Shader, name: String) {
+
+
+		val directionName = name.indexOf('[').let {
+			if(it == -1) "${name}Position"
+			else name.substring(0, it) + "Positions" + name.substring(it)
+		}
+		shader.setVec3(directionName, parent.position)
+
 		shader.setVec3("$name.position", parent.position)
+
 		light.setShaderUniforms(shader, name)
 	}
 

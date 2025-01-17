@@ -1,5 +1,7 @@
 package com.pineypiney.game_engine.apps.editor
 
+import com.pineypiney.game_engine.apps.editor.context_menus.ContextMenu
+import com.pineypiney.game_engine.apps.editor.context_menus.ContextMenuEntry
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.window.WindowI
@@ -46,9 +48,31 @@ class ObjectNode(parent: GameObject, val obj: GameObject): DefaultInteractorComp
 
 	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
 		if(action == 1) {
-			addChild(GameObject())
-			return INTERRUPT
+			browser?.let { browser ->
+				browser.screen.setContextMenu(ObjectNodeContext(browser, this), objectNodeContextMenu, cursorPos)
+				return INTERRUPT
+			}
 		}
 		return super.onSecondary(window, action, mods, cursorPos)
+	}
+
+	companion object {
+		data class ObjectNodeContext(val browser: ObjectBrowser, val node: ObjectNode)
+
+		val objectNodeContextMenu = ContextMenu<ObjectNodeContext>(arrayOf(
+			ContextMenuEntry("Add Child") {
+				node.addChild(GameObject())
+			},
+			ContextMenuEntry("Delete Object"){
+				if(browser.screen.editingObject == node.obj || browser.screen.editingObject?.getAncestry()?.contains(node.obj) == true) browser.screen.editingObject = null
+				node.obj.delete()
+				node.parent.parent?.removeAndDeleteChild(node.parent)
+				browser.positionNodes()
+			},
+			ContextMenuEntry("Colour", arrayOf(
+				ContextMenuEntry("Blue"){ println("Selected Blue") },
+				ContextMenuEntry("Red"){ println("Selected Red") }
+			))
+		))
 	}
 }

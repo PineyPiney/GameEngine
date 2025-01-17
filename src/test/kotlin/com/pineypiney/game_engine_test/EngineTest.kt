@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.LibrarySetUp
 import com.pineypiney.game_engine.apps.animator.ObjectAnimator
 import com.pineypiney.game_engine.apps.editor.EditorScreen
+import com.pineypiney.game_engine.apps.editor.SceneFormat
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
@@ -16,8 +17,9 @@ import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.window.DefaultWindow
 import com.pineypiney.game_engine.window.DefaultWindowedEngine
-import com.pineypiney.game_engine_test.test2D.Game2D
-import com.pineypiney.game_engine_test.test3D.Game3D
+import com.pineypiney.game_engine_test.scenes.Game2D
+import com.pineypiney.game_engine_test.scenes.Game3D
+import com.pineypiney.game_engine_test.scenes.LightingTest
 import com.pineypiney.game_engine_test.testVR.TestVREngine
 import com.pineypiney.game_engine_test.testVR.TestVRGame
 import glm_.f
@@ -41,6 +43,10 @@ class EngineTest{
 	@Test
 	fun test3D(){
 		run(::TestEngine, ::Game3D)
+	}
+	@Test
+	fun testLighting(){
+		run(::TestEngine, ::LightingTest)
 	}
 
 	@Test
@@ -67,7 +73,7 @@ class EngineTest{
 	fun testEditor(){
 		LibrarySetUp.initLibraries()
 		val window = DefaultWindow("Editor").apply { init() }
-		DefaultWindowedEngine(window, ::EditorScreen).run()
+		DefaultWindowedEngine(window, { EditorScreen(it, SceneFormat.nativeFormat) }).run()
 	}
 
 	@Test
@@ -85,6 +91,8 @@ class EngineTest{
 		val q2 = model.getRotation()
 
 		val q3 = (I.translate(2f, -3f, 0f) * model.scale(3f)).getRotation()
+
+		println("q2 is $q2\nq3 is $q3")
 	}
 
 	@Test
@@ -93,6 +101,14 @@ class EngineTest{
 		val point = Vec3(3.3f, -3.9f, 1.0f)
 		val c = box containsPoint point
 		println(c)
+	}
+
+	@Test
+	fun testRegex(){
+		val s = "textures\\\\snake\\snake"
+		val r = Regex("[^\\\\]\\\\[^\\\\]")
+		println("S is $s")
+		println("New String is ${s.replace(r, "T")}")
 	}
 }
 

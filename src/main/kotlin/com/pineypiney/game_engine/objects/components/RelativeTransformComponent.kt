@@ -9,6 +9,10 @@ open class RelativeTransformComponent(
 	parent: GameObject, relPos: Vec2, relScale: Vec2, origin: Vec2 = Vec2(), var aspectRatio: Float = 1f
 ) : TransformComponent(parent), UpdatingAspectRatioComponent {
 
+	constructor(parent: GameObject, pos: Vec3, scale: Vec2, origin: Vec2 = Vec2(), aspectRatio: Float = 1f): this(parent, Vec2(pos), scale, origin, aspectRatio){
+		transform.position = Vec3(transform.position.x, transform.position.y, pos.z)
+	}
+
 	var relPos: Vec2 = relPos
 		set(value) {
 			field = value

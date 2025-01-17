@@ -14,7 +14,7 @@ open class PerspectiveCamera(
 	up: Vec3 = Vec3(0, 1, 0),
 	yaw: Double = -90.0,
 	pitch: Double = 0.0,
-	fov: Float = 90f
+	fov: Float = 60f
 ) : Camera(aspectRatio, pos, up, yaw, pitch) {
 
 	constructor(
@@ -23,7 +23,7 @@ open class PerspectiveCamera(
 		up: Vec3 = Vec3(0, 1, 0),
 		yaw: Double = -90.0,
 		pitch: Double = 0.0,
-		fov: Float = 90f
+		fov: Float = 60f
 	) : this(window.aspectRatio, pos, up, yaw, pitch, fov)
 
 	var FOV = fov

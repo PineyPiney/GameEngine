@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
-import com.pineypiney.game_engine.util.maths.shapes.Rect2D
+import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
@@ -24,17 +24,20 @@ interface InteractorComponent : ComponentI {
 
 	fun checkHover(ray: Ray, screenPos: Vec2): Float {
 		val renderer = parent.getComponent<RenderedComponent>()
-		if (renderer != null) {
-			val shape = renderer.shape as? Rect2D
-			if (shape != null) {
-				val unitSize = Vec2(parent.transformComponent.worldScale) * renderer.renderSize
-				return if(screenPos.isWithin(
-					Vec2(parent.transformComponent.worldPosition) + (shape.origin * unitSize),
-					unitSize * shape.size
-				)) ray.rayOrigin.z - parent.transformComponent.worldPosition.z
-				else -1f
-			}
+		val shape = renderer?.shape
+		if(shape is Shape2D){
+			val newShape = shape.transformedBy(parent.worldModel)
+			return if(newShape.containsPoint(screenPos)) 5f - parent.transformComponent.worldPosition.z
+			else -1f
 		}
+		//if (shape is Rect2D) {
+		//	val unitSize = Vec2(parent.transformComponent.worldScale)
+		//	return if(screenPos.isWithin(
+		//		Vec2(parent.transformComponent.worldPosition) + (shape.origin * unitSize),
+		//		unitSize * shape.size
+		//	)) 5f - parent.transformComponent.worldPosition.z
+		//	else -1f
+		//}
 		return if(screenPos.isWithin(
 			Vec2(parent.transformComponent.worldPosition),
 			Vec2(parent.transformComponent.worldScale) * renderSize

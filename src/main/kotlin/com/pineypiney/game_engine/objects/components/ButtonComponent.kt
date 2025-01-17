@@ -10,10 +10,10 @@ import org.lwjgl.glfw.GLFW
 
 class ButtonComponent(
 	parent: GameObject,
-	val onClick: (button: ButtonComponent, Vec2) -> Unit,
-	val onUnClick: (button: ButtonComponent, Vec2) -> Unit = { _, _ -> },
-	val onEnter: (ButtonComponent, Vec2, Vec2) -> Unit = { _, _, _ -> },
-	val onExit: (ButtonComponent, Vec2, Vec2) -> Unit = { _, _, _ -> }
+	val onClick: (button: ButtonComponent, cursorPos: Vec2) -> Unit,
+	val onUnClick: (button: ButtonComponent, cursorPos: Vec2) -> Unit = { _, _ -> },
+	val onEnter: (button: ButtonComponent, cursorPos: Vec2, cursorDelta: Vec2) -> Unit = { _, _, _ -> },
+	val onExit: (button: ButtonComponent, cursorPos: Vec2, cursorDelta: Vec2) -> Unit = { _, _, _ -> }
 ) : DefaultInteractorComponent(parent, "BTN") {
 
 	var active: Boolean = true

@@ -109,10 +109,10 @@ abstract class Mesh : Deleteable {
 		}
 
 
-		val cornerSquareShape = SquareShape(Vec2(), Vec2(1f))
-		val centerSquareShape = SquareShape(Vec2(-0.5f), Vec2(0.5f))
-		val screenQuadShape = SquareShape(Vec2(-1f), Vec2(1f))
-		val footSquare = SquareShape(Vec2(-0.5f, 0f), Vec2(0.5f, 1f))
+		val cornerSquareShape = SquareMesh(Vec2(), Vec2(1f))
+		val centerSquareShape = SquareMesh(Vec2(-0.5f), Vec2(0.5f))
+		val screenQuadShape = SquareMesh(Vec2(-1f), Vec2(1f))
+		val footSquare = SquareMesh(Vec2(-0.5f, 0f), Vec2(0.5f, 1f))
 
 		val cornerCubeShape = CubeShape(Vec3(0f), Vec3(1f))
 		val centerCubeShape = CubeShape(Vec3(-.5f), Vec3(.5f))

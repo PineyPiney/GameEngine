@@ -2,12 +2,12 @@ package com.pineypiney.game_engine.apps.animator
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.AnimatedComponent
-import com.pineypiney.game_engine.objects.components.slider.SliderComponent
+import com.pineypiney.game_engine.objects.components.slider.FloatSliderComponent
 import kotlin.math.min
 
-class AnimationTimeLine(parent: GameObject, val animatorLogic: AnimatorLogic) : SliderComponent(parent, 0f, 1f, 0f) {
+class AnimationTimeLine(parent: GameObject, val animatorLogic: AnimatorLogic) : FloatSliderComponent(parent, 0f, 1f, 0f) {
 
-	override var high: Float = 1f; protected set
+	override var high: Float = 1f
 
 	override fun moveSliderTo(move: Float) {
 		super.moveSliderTo(move)

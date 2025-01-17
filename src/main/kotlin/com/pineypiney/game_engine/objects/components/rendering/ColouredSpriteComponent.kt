@@ -37,7 +37,8 @@ open class ColouredSpriteComponent(
 	constructor(parent: GameObject) : this(parent, Sprite(Texture.broke, 100f), { Vec4(1f) })
 
 	override val fields: Array<Field<*>> = super.fields + arrayOf(
-		Vec4Field("tnt", tint) { tint = { it } }
+		Vec4Field("tnt", tint) { tint = { it } },
+		ShaderField("sdr", shadUn::shader) { shadUn.shader = it }
 	)
 
 	override fun setUniforms() {

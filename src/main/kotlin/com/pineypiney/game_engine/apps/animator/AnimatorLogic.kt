@@ -5,7 +5,8 @@ import com.pineypiney.game_engine.apps.ComponentSelector
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.GameObjectSerializer
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.objects.components.*
+import com.pineypiney.game_engine.objects.components.AnimatedComponent
+import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.objects.components.slider.OutlinedSliderRendererComponent
@@ -110,22 +111,10 @@ class AnimatorLogic(
 		}
 	}
 
-	private val playButton = object : CheckBox("Play Button") {
-
-		init {
-			position = Vec3(-0.65f, -0.9f, 0f)
-			scale = Vec3(0.2f, 0.2f, 1f)
-		}
-
-		override fun init() {
-			super.init()
-			getComponent<CheckBoxComponent>()?.ticked = true
-		}
-
-		override val action: (Boolean) -> Unit = {
-			animationSelector.item?.playing = it
-		}
+	private val playButton = CheckBox("Play Button", true, { animationSelector.item?.playing = it }).apply {
+		os(Vec3(-0.65f, -0.9f, 0f), Vec2(0.2f, 0.2f))
 	}
+
 	private val saveButton = TextButton("Save", Vec2(0.45f, -0.9f), Vec2(0.2f, 0.2f)) { _, _ ->
 		animationSelector.item?.animation?.save()
 		animationSelector.item?.parent?.let { i ->

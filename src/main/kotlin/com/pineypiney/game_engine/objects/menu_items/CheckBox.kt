@@ -5,22 +5,23 @@ import com.pineypiney.game_engine.objects.components.rendering.ColourRendererCom
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.addAll
 import glm_.vec4.Vec4
 
-abstract class CheckBox(name: String) : MenuItem(name) {
+class CheckBox(name: String, ticked: Boolean = false, action: (Boolean) -> Unit = {}) : MenuItem(name) {
 
-	abstract val action: (Boolean) -> Unit
+	val boxComp = CheckBoxComponent(this, action).also { it.ticked = ticked }
+	val colRend = object :
+		ColourRendererComponent(this@CheckBox, Vec4(1f), checkboxShader, Mesh.cornerSquareShape) {
+		override fun setUniforms() {
+			super.setUniforms()
+			uniforms.setBoolUniform("ticked", getComponent<CheckBoxComponent>()!!::ticked)
+		}
+	}
 
 	override fun addComponents() {
 		super.addComponents()
-		components.add(CheckBoxComponent(this, action))
-		components.add(object :
-			ColourRendererComponent(this@CheckBox, Vec4(1f), checkboxShader, Mesh.cornerSquareShape) {
-			override fun setUniforms() {
-				super.setUniforms()
-				uniforms.setBoolUniform("ticked", getComponent<CheckBoxComponent>()!!::ticked)
-			}
-		})
+		components.addAll(boxComp, colRend)
 	}
 
 	companion object {

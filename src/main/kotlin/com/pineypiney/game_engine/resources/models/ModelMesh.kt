@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.pgm.Controller
 import com.pineypiney.game_engine.resources.models.pgm.Face
 import com.pineypiney.game_engine.resources.shaders.Shader
@@ -22,8 +23,8 @@ import org.lwjgl.opengl.GL31C.*
 // as well as up to 4 bone weights. The transformation of each vertex is linearly
 // interpolated from these 4 bone weights in the shader
 
-class ModelMesh(
-	var id: String, val vertices: Array<MeshVertex>, val indices: IntArray, val defaultAlpha: Float = 1f,
+open class ModelMesh(
+	var id: String, val vertices: Array<out MeshVertex>, val indices: IntArray, val defaultAlpha: Float = 1f,
 	val defaultOrder: Int = 0, val material: ModelMaterial = Model.brokeMaterial
 ) : Mesh() {
 
@@ -38,19 +39,19 @@ class ModelMesh(
 	init {
 		vertexSize = 12
 		positionSize = 3
-		textureSize = 2
-		textureOffset = 3
 		normalSize = 3
-		normalOffset = 5
+		normalOffset = 3
+		textureSize = 2
+		textureOffset = 6
 	}
 
 	override val shape: Shape2D
 		get() = Rect2D(Vec2(), Vec2(1f)) //TODO
 	override val count: Int = indices.size
 
-	private val floatVBO = glGenBuffers()
-	private val intVBO = glGenBuffers()
-	private val EBO = glGenBuffers()
+	protected val floatVBO = glGenBuffers()
+	protected val intVBO = glGenBuffers()
+	protected val EBO = glGenBuffers()
 
 	var translation: Vec3 = Vec3()
 	var rotation: Quat = Quat()
@@ -92,7 +93,7 @@ class ModelMesh(
 		glBindBuffer(GL_ARRAY_BUFFER, 0)
 	}
 
-	fun setupFloats() {
+	open fun setupFloats() {
 
 		// Buffer floats
 		glBindBuffer(GL_ARRAY_BUFFER, floatVBO)
@@ -101,8 +102,8 @@ class ModelMesh(
 		setAttribs(
 			mapOf(
 				0 to Pair(GL_FLOAT, 3),
-				1 to Pair(GL_FLOAT, 2),
-				2 to Pair(GL_FLOAT, 3),
+				1 to Pair(GL_FLOAT, 3),
+				2 to Pair(GL_FLOAT, 2),
 				4 to Pair(GL_FLOAT, 4)
 			)
 		)
@@ -113,7 +114,7 @@ class ModelMesh(
 		glBufferData(GL_ARRAY_BUFFER, floatArray, GL_STATIC_DRAW)
 	}
 
-	fun setupInts() {
+	open fun setupInts() {
 
 		// Buffer ints
 		glBindBuffer(GL_ARRAY_BUFFER, intVBO)
@@ -131,7 +132,7 @@ class ModelMesh(
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 	}
 
-	fun setMaterial(shader: Shader) {
+	fun setMaterialUniforms(shader: Shader) {
 		material.apply(shader, "material")
 	}
 
@@ -161,7 +162,7 @@ class ModelMesh(
 		var indicesMult = 1f
 	}
 
-	data class MeshVertex(
+	open class MeshVertex(
 		val position: Vec3,
 		val texCoord: Vec2 = Vec2(),
 		val normal: Vec3 = Vec3(0, 0, 1),
@@ -169,17 +170,14 @@ class ModelMesh(
 	) : Copyable<MeshVertex>,
 		Deleteable {
 
-		fun getFloatData(): List<Float> {
-			return position.run { listOf(x, y, z) } + texCoord.run { listOf(x, y) } + normal.run {
-				listOf(
-					x,
-					y,
-					z
-				)
-			} + weights.map { w -> w.weight }.expand(4)
+		open fun getFloatData(): List<Float> {
+			return position.run { listOf(x, y, z) } +
+					normal.run { listOf(x, y, z) } +
+					texCoord.run { listOf(x, y) } +
+					weights.map { w -> w.weight }.expand(4)
 		}
 
-		fun getIntData(): List<Int> {
+		open fun getIntData(): List<Int> {
 			// When the shader reaches a bone index of -1 it breaks the loop
 			return weights.map { w -> w.id }.expand(4, -1)
 		}
@@ -189,7 +187,7 @@ class ModelMesh(
 		}
 
 		override fun delete() {
-			weights
+
 		}
 
 		override fun toString(): String {

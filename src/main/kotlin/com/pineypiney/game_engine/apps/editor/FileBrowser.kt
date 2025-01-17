@@ -1,7 +1,10 @@
 package com.pineypiney.game_engine.apps.editor
 
 import com.pineypiney.game_engine.Timer
+import com.pineypiney.game_engine.apps.editor.context_menus.ContextMenu
+import com.pineypiney.game_engine.apps.editor.context_menus.ContextMenuEntry
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.GameObjectSerializer
 import com.pineypiney.game_engine.objects.components.ButtonComponent
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
@@ -12,11 +15,13 @@ import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.SpriteButton
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.rendering.ObjectRenderer
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import kool.toBuffer
@@ -36,7 +41,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, private val root
 
 	private val filesContainer = MenuItem("Files")
 	private val parentFileButton = SpriteButton("Parent File Button", TextureLoader[ResourceKey("menu_items/up_arrow")], 64f){ _, _ ->
-		openFile(currentDirectory.parentFile ?: return@SpriteButton)
+		openDirectory(currentDirectory.parentFile ?: return@SpriteButton)
 	}
 
 	var fileSelect = 0.0
@@ -49,20 +54,24 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, private val root
 	override fun init() {
 		super.init()
 		parent.addChild(filesContainer, parentFileButton)
-		openFile(root)
+		openDirectory(root)
 	}
 
-	private fun openFile(file: File){
+	private fun openDirectory(file: File){
 		currentDirectory = file
+		refreshDirectory()
+	}
+
+	private fun refreshDirectory(){
 		filesContainer.deleteAllChildren()
 		val invAsp = 2f / parent.scale.x
 		val cols = (parent.scale.x * 5f).toInt()
-		for((i, subFile) in file.listFiles()?.withIndex() ?: return){
+		for((i, subFile) in currentDirectory.listFiles()?.sortedBy { it.isFile }?.withIndex() ?: return){
 			if(subFile == null) continue
 			val sprite = getIcon(subFile, Vec2(.5f))
 			val child = MenuItem("File ${subFile.name}")
 			child.components.add(SpriteComponent(child, sprite, SpriteComponent.menuShader))
-			val dragSprite = getIcon(subFile, Vec2(.5f))
+			val dragSprite = getDragIcon(subFile)
 			if(subFile.isDirectory){
 				child.components.add(ButtonComponent(child,
 					{ _, _ ->
@@ -71,7 +80,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, private val root
 							it.components.add(SpriteComponent(it, dragSprite, SpriteComponent.menuShader))
 						}.let { it.scale = child.transformComponent.worldScale }
 					},
-					{ _, _ -> screen.clearDragging(); if(Timer.time - fileSelect < .5) openFile(subFile) }
+					{ _, v -> screen.clearDragging(v); if(Timer.time - fileSelect < .5) openDirectory(subFile) }
 				))
 			}
 			else {
@@ -82,19 +91,51 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, private val root
 							it.components.add(SpriteComponent(it, dragSprite, SpriteComponent.menuShader))
 						}.let { it.scale = child.transformComponent.worldScale }
 					},
-					{ _, _ -> screen.clearDragging() }
+					{ _, v -> screen.clearDragging(v); if(Timer.time - fileSelect < .5) openFile(subFile) }
 				))
 			}
+			child.components.add(object : DefaultInteractorComponent(child, "FCC"){
+				override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+					super.onSecondary(window, action, mods, cursorPos)
+					if(action == 1) {
+						screen.setContextMenu(FileContext(this@FileBrowser, subFile), fileContextMenu, cursorPos)
+						return INTERRUPT
+					}
+					return action
+
+				}
+			})
 			placeChild(child, i, invAsp, cols)
 			filesContainer.addChild(child)
 			child.init()
 
-			val textChild = Text.makeMenuText(subFile.name, alignment = Text.ALIGN_CENTER)
+			val textChild = Text.makeMenuText(subFile.name, maxWidth = 1.5f, fontSize = .3f, alignment = Text.ALIGN_TOP_CENTER)
 			textChild.position = Vec3(-.1f, -.6f, .01f)
-			textChild.scale = Vec3(.2f)
 			child.addChild(textChild)
 			textChild.init()
 		}
+	}
+
+	private fun openFile(file: File){
+		when(file.extension){
+			"scn" -> {
+				screen.sceneObjects.delete()
+				screen.loadScene(file)
+			}
+			"pfb" -> {
+				screen.sceneObjects.delete()
+				screen.loadPrefab(file)
+			}
+		}
+	}
+
+	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+		super.onSecondary(window, action, mods, cursorPos)
+		if(action == 1) {
+			screen.setContextMenu(FileBrowserContext(this), fileBrowserContextMenu, cursorPos)
+			return INTERRUPT
+		}
+		return action
 	}
 
 	private fun getIcon(file: File, center: Vec2, width: Int = 64, height: Int = 64): Sprite{
@@ -139,6 +180,19 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, private val root
 		return sprite
 	}
 
+	private fun getDragIcon(file: File): Sprite{
+		return when(file.extension){
+			"pfb" -> {
+				val renderer = ObjectRenderer(Vec3(0f, 0f, 5f))
+				renderer.render(GameObjectSerializer.parse(file.inputStream()))
+
+				val texture = Texture(file.path, renderer.frameBuffer.TCB)
+				Sprite(texture, 16f)
+			}
+			else -> getIcon(file, Vec2(.5f))
+		}
+	}
+
 	override fun updateAspectRatio(renderer: RendererI) {
 		val invAsp = 1f / renderer.aspectRatio
 		val cols = (renderer.aspectRatio * 10f).toInt()
@@ -158,5 +212,33 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, private val root
 	override fun delete() {
 		super.delete()
 		for((_, s) in loadedTextures) s.texture.delete()
+	}
+
+	companion object {
+		data class FileBrowserContext(val browser: FileBrowser)
+		data class FileContext(val browser: FileBrowser, val file: File)
+
+		val fileBrowserContextMenu = ContextMenu<FileBrowserContext>(arrayOf(
+			ContextMenuEntry("New", arrayOf(
+				ContextMenuEntry("Prefab File"){
+					val directory = browser.currentDirectory.path
+					val fileName = "$directory/prefab_"
+					var i = 0
+					while(File("$fileName$i.pfb").exists()) i++
+
+					val newFile = File("$fileName$i.pfb")
+					newFile.createNewFile()
+					newFile.writeBytes(ByteArray(4))
+
+					browser.refreshDirectory()
+				}
+			))
+		))
+
+		val fileContextMenu = ContextMenu<FileContext>(arrayOf(
+			ContextMenuEntry("Delete"){
+				if(file.delete()) browser.refreshDirectory()
+			}
+		))
 	}
 }

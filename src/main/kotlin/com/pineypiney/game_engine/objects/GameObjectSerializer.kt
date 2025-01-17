@@ -25,7 +25,7 @@ class GameObjectSerializer {
 		) {
 			head.append(obj.name.length.toByteString(2) + obj.name)
 			head.append("act" + if (obj.active) 1.toChar() else 0.toChar())
-			head.append("lay${obj.layer.toByteString(4)}")
+			head.append("lay${obj.layer.toByteString()}")
 
 			val parts = mutableListOf<Pair<StringBuilder, StringBuilder>>()
 			if (obj.components.isNotEmpty()) parts.add(addListPart("COMP", obj.components, ComponentI::serialise))

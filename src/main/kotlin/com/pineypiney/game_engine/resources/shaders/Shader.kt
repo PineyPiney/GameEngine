@@ -53,9 +53,9 @@ class Shader(
 
 	val lightMask: Byte = RandomHelper.createMask(
 		uniforms::containsKey,
-		"dirLight.direction",
-		"pointLight.position",
-		"spotLight.position"
+		"dirLight.ambient",
+		"pointLight.ambient",
+		"spotLight.ambient"
 	).b
 
 	val hasDirL get() = (lightMask and 1) > 0

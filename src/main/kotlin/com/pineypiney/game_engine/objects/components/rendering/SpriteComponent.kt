@@ -30,11 +30,8 @@ open class SpriteComponent(
 	constructor(parent: GameObject) : this(parent, Texture.broke)
 
 	override val fields: Array<Field<*>> = arrayOf(
-		TextureField(
-			"txr",
-			sprite::texture
-		) { this.sprite = Sprite(it, sprite.pixelsPerUnit, sprite.spriteCenter, sprite.origin, sprite.size, sprite.flipX, sprite.flipY) },
-		FloatField("ppu", sprite::pixelsPerUnit) { this.sprite.pixelsPerUnit = it }
+		TextureField("txr", { sprite.texture }) { this.sprite = Sprite(it, sprite.pixelsPerUnit, sprite.spriteCenter, sprite.origin, sprite.size, sprite.flipX, sprite.flipY) },
+		FloatField("ppu", { sprite.pixelsPerUnit }) { this.sprite.pixelsPerUnit = it }
 	)
 
 	override fun render(renderer: RendererI, tickDelta: Double) {

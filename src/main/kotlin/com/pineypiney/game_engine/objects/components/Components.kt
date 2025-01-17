@@ -70,10 +70,11 @@ class Components {
 
 			addComponent(ScrollBarComponent::class)
 
-			addComponent(ActionSliderComponent::class)
+			addComponent(ActionFloatSliderComponent::class)
+			addComponent(ActionIntSliderComponent::class)
 			addComponent(ColourSliderRendererComponent::class)
 			addComponent(OutlinedSliderRendererComponent::class)
-			addComponent(SliderComponent::class)
+			addComponent(FloatSliderComponent::class)
 			addComponent(SliderPointerComponent::class)
 
 			addComponent(ActionTextFieldComponent::class)

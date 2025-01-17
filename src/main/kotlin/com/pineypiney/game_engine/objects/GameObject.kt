@@ -54,7 +54,7 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		set(value) {
 			objects?.let {
 				it[field].remove(this)
-				it.map.addToCollectionOr(value, this) { mutableSetOf() }
+				it.map.addToCollectionOr(value, this) { ObjectCollectionLayer(value) }
 			}
 			field = value
 		}
@@ -202,6 +202,23 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		return o
 	}
 
+	/**
+	 * Gets the ancestors of this GameObject going back [generations] generations, or all of them is generations is -1
+	 *
+	 * @param generations The number of ancestors to get, or -1 to get all of them
+	 *
+	 * @return A list of ancestors
+	 */
+	fun getAncestry(generations: Int = -1): List<GameObject>{
+		val objects = mutableListOf<GameObject>(parent ?: return emptyList())
+
+		while(generations == -1 || objects.size < generations){
+			objects.add(objects.last().parent ?: break)
+		}
+
+		return objects
+	}
+
 	fun getLineage(): Set<GameObject> {
 		var o = this.parent ?: return emptySet()
 		val set = mutableSetOf(o)
@@ -252,7 +269,8 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 
 	override fun delete() {
 		components.delete()
-		children.delete()
+		while(children.isNotEmpty()) children.firstOrNull()?.delete() ?: break
+		parent?.removeChild(this)
 
 		objects?.map?.get(layer)?.remove(this)
 		objects = null
@@ -329,7 +347,7 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		}
 
 		fun simpleLightObject(light: Light, render: Boolean = true): GameObject {
-			val o = object : GameObject() {
+			val o = object : GameObject(light.javaClass.name + " Object") {
 				override fun addComponents() {
 					super.addComponents()
 					components.add(LightComponent(this, light))

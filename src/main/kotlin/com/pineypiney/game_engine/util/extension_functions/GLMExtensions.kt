@@ -295,9 +295,12 @@ fun Vec4.Companion.fromString(
 fun Quat.Companion.fromString(
 	s: String,
 	trim: Boolean = false,
+	wLast: Boolean,
 	parse: String.() -> Float = java.lang.Float::parseFloat
 ): Quat {
 	val trimmed = if (trim) s.trim().removePrefix("Quat{").removeSuffix("}") else s
-	return trimmed.split(",")
-		.let { Quat(it[0].trim().parse(), it[1].trim().parse(), it[2].trim().parse(), it[3].trim().parse()) }
+	return trimmed.split(",").let {
+		if(wLast) Quat(it[3].trim().parse(), it[0].trim().parse(), it[1].trim().parse(), it[2].trim().parse())
+		else Quat(it[0].trim().parse(), it[1].trim().parse(), it[2].trim().parse(), it[3].trim().parse())
+	}
 }

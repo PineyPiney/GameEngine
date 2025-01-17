@@ -2,6 +2,8 @@ package com.pineypiney.game_engine.util
 
 import com.pineypiney.game_engine.GameEngineI
 import glm_.asLongBits
+import glm_.vec2.Vec2t
+import glm_.vec3.Vec3t
 import kotlin.math.min
 
 class ByteData {
@@ -108,6 +110,16 @@ class ByteData {
 				}
 			}
 			return Double.fromBits(i)
+		}
+
+		fun <T: Number> vec22bytes(vec: Vec2t<T>, bigEndian: Boolean = true): ByteArray{
+			val bytes = ByteArray(8)
+			return vec.to(bytes, bigEndian)
+		}
+
+		fun <T: Number> vec32bytes(vec: Vec3t<T>, bigEndian: Boolean = true): ByteArray{
+			val bytes = ByteArray(12)
+			return vec.to(bytes, bigEndian)
 		}
 	}
 }

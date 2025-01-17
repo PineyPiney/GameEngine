@@ -13,7 +13,7 @@ open class TransformComponent(parent: GameObject) : Component(parent, "T2D") {
 	protected val transform: Transform3D = Transform3D.origin
 
 	private var dirtyWorldModel = true
-	private var worldModel: Mat4 = I
+	var worldModel: Mat4 = I //TODO make private again
 
 	@EditingField
 	var position: Vec3
@@ -41,7 +41,11 @@ open class TransformComponent(parent: GameObject) : Component(parent, "T2D") {
 		set(value) {
 			val p = parent.parent?.worldModel
 			if (p == null) parent.position = value
-			else parent.position = (parent.worldModel.setTranslation(value) / p).getTranslation()
+			else {
+				val newWorldModel = parent.worldModel.setTranslation(value)
+				val newModel = p.inverse() * newWorldModel
+				parent.position = newModel.getTranslation()
+			}
 		}
 	var worldRotation: Quat
 		get() = if (parent.parent == null) transform.rotation else parent.worldModel.getRotation()
@@ -64,8 +68,10 @@ open class TransformComponent(parent: GameObject) : Component(parent, "T2D") {
 		QuatField("rtn", transform::rotation) { rotation = it }
 	)
 
+
 	init {
 
+		@Suppress("SENSELESS_COMPARISON")
 		if(parent.transformComponent != this && parent.transformComponent != null) {
 			// A GameObject can only have 1 transform component at a time
 			parent.transformComponent.delete()

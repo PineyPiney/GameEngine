@@ -11,7 +11,7 @@ import com.pineypiney.game_engine.util.extension_functions.round
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowedGameEngine
 import com.pineypiney.game_engine.window.WindowedGameEngineI
-import com.pineypiney.game_engine_test.test3D.Game3D
+import com.pineypiney.game_engine_test.scenes.Game3D
 import glm_.vec4.Vec4
 
 class TestEngine<E: WindowGameLogic>(screen: (WindowedGameEngineI<E>) -> E, resourcesLoader: ResourcesLoader = FileResourcesLoader()): WindowedGameEngine<E>(resourcesLoader) {

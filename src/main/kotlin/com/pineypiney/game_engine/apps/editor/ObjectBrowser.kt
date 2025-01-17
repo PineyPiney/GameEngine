@@ -49,10 +49,16 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 		addNode(parentNode.parent, obj)
 	}
 
-	fun addRootObject(obj: GameObject){
-		screen.add(obj)
+	fun addRootObject(obj: GameObject): ObjectNode{
+		screen.sceneObjects.addObject(obj)
 		val node = addNode(objectList, obj)
 		node.parent.scale = Vec3(.8f, .045f, 1f)
+		return node
+	}
+
+	fun addFamily(parentNode: ObjectNode, obj: GameObject){
+		val node = addNode(parentNode.parent, obj)
+		for(child in obj.children) addFamily(node, child)
 	}
 
 	fun addNode(nodeParent: GameObject, obj: GameObject): ObjectNode{
@@ -80,6 +86,14 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 		}
 	}
 
+	fun reset(){
+		objectList.deleteAllChildren()
+		for(o in screen.sceneObjects.map.flatMap { it.value }){
+			val rootNode = addRootObject(o)
+			for(c in o.children) addFamily(rootNode, c)
+		}
+	}
+
 	override fun updateAspectRatio(renderer: RendererI) {
 		positionNodes()
 	}
@@ -96,4 +110,5 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 	override fun onCursorExit(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
 		colour.colour = Vec4(.7f,  .7f, .7f, 1f)
 	}
+
 }

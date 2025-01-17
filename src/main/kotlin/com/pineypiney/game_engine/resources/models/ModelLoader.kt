@@ -3,6 +3,8 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.models.animations.*
+import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
+import com.pineypiney.game_engine.resources.models.materials.PhongMaterial
 import com.pineypiney.game_engine.resources.models.pgm.*
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -27,9 +29,6 @@ import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPath
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
 import kotlin.math.PI
 
 class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
@@ -78,7 +77,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		val indices = mutableListOf<Int>()
 		val meshes = mutableListOf<ModelMesh>()
 		var name = ""
-		var material = ModelMaterial.default
+		var material: ModelMaterial = PhongMaterial.default
 		for (line in stream.readAllBytes().toString(Charsets.UTF_8).split('\n')) {
 			if (line.startsWith('#')) continue
 			val parts = line.split(' ')
@@ -95,7 +94,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 				}
 
 				"usemtl" -> {
-					material = materials.firstOrNull { it.name == parts[1] } ?: ModelMaterial.default
+					material = materials.firstOrNull { it.name == parts[1] } ?: PhongMaterial.default
 				}
 
 				"v" -> positions.add(Vec3(parts[1].f, parts[2].f, parts[3].f))
@@ -137,40 +136,40 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		val materials = mutableSetOf<ModelMaterial>()
 		val stream = currentStreams[rootFile + fileName] ?: return materials
 		var name = ""
-		val textures = mutableMapOf<ModelMaterial.TextureType, Texture>()
+		val textures = mutableMapOf<PhongMaterial.TextureType, Texture>()
 		for (line in stream.readAllBytes().toString(Charsets.UTF_8).split('\n')) {
 			if (line.isEmpty() || line.trimStart().startsWith('#')) continue
 			val parts = line.trim().split(' ')
 			when (parts[0]) {
 				"newmtl" -> {
 					if (textures.isNotEmpty()) {
-						materials.add(ModelMaterial(name, textures))
+						materials.add(PhongMaterial(name, textures))
 					}
 					name = parts[1]
 				}
 
-				"map_Ka" -> updateTextureType(textures, ModelMaterial.TextureType.AMBIENT, rootFile + parts[1])
-				"map_Kd" -> updateTextureType(textures, ModelMaterial.TextureType.DIFFUSE, rootFile + parts[1])
-				"map_Ks" -> updateTextureType(textures, ModelMaterial.TextureType.SPECULAR, rootFile + parts[1])
+				"map_Ka" -> updateTextureType(textures, PhongMaterial.TextureType.AMBIENT, rootFile + parts[1])
+				"map_Kd" -> updateTextureType(textures, PhongMaterial.TextureType.DIFFUSE, rootFile + parts[1])
+				"map_Ks" -> updateTextureType(textures, PhongMaterial.TextureType.SPECULAR, rootFile + parts[1])
 				"bump", "map_bump", "map_Kn" -> updateTextureType(
 					textures,
-					ModelMaterial.TextureType.NORMAL,
+					PhongMaterial.TextureType.NORMAL,
 					rootFile + parts[1]
 				)
 
-				"map_roughness" -> updateTextureType(textures, ModelMaterial.TextureType.ROUGHNESS, rootFile + parts[1])
-				"map_metallic" -> updateTextureType(textures, ModelMaterial.TextureType.METALLIC, rootFile + parts[1])
+				"map_roughness" -> updateTextureType(textures, PhongMaterial.TextureType.ROUGHNESS, rootFile + parts[1])
+				"map_metallic" -> updateTextureType(textures, PhongMaterial.TextureType.METALLIC, rootFile + parts[1])
 
 			}
 		}
-		materials.add(ModelMaterial(name, textures))
+		materials.add(PhongMaterial(name, textures))
 
 		return materials
 	}
 
 	private fun updateTextureType(
-		textures: MutableMap<ModelMaterial.TextureType, Texture>,
-		type: ModelMaterial.TextureType,
+		textures: MutableMap<PhongMaterial.TextureType, Texture>,
+		type: PhongMaterial.TextureType,
 		location: String
 	) {
 		textures[type] =
@@ -225,9 +224,9 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 					geo.indices,
 					geo.alpha,
 					geo.order,
-					ModelMaterial(
+					PhongMaterial(
 						"${geo.name} material",
-						mapOf(ModelMaterial.TextureType.DIFFUSE to TextureLoader.findTexture(geo.texture))
+						mapOf(PhongMaterial.TextureType.DIFFUSE to TextureLoader.findTexture(geo.texture))
 					)
 				)
 			)

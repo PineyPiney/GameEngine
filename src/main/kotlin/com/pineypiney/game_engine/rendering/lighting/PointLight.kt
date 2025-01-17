@@ -5,15 +5,16 @@ import glm_.vec3.Vec3
 
 class PointLight(
 	override val ambient: Vec3 = Vec3(0.1f),
-	override val diffuse: Vec3 = Vec3(0.5f),
+	override val diffuse: Vec3 = Vec3(1f),
 	override val specular: Vec3 = Vec3(1f),
 	val constant: Float = 1f,
-	val linear: Float = .09f,
-	val quadratic: Float = .032f
+	val linear: Float = .022f,
+	val quadratic: Float = .0019f
 ) : Light() {
 
 	override fun setShaderUniforms(shader: Shader, name: String) {
 		super.setShaderUniforms(shader, name)
+
 		shader.setFloat("$name.constant", constant)
 		shader.setFloat("$name.linear", linear)
 		shader.setFloat("$name.quadratic", quadratic)

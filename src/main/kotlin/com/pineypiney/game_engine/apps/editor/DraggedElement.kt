@@ -9,6 +9,8 @@ import glm_.vec3.Vec3
 
 class DraggedElement(parent: GameObject, val element: Any): DefaultInteractorComponent(parent, "DEM") {
 
+	var isDroppable = false
+
 	override fun init() {
 		super.init()
 		forceUpdate = true

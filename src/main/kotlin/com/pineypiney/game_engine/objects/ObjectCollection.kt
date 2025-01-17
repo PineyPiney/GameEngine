@@ -11,7 +11,7 @@ import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 
 open class ObjectCollection {
 
-	open val map = mutableMapOf<Int, MutableSet<GameObject>>()
+	open val map = mutableMapOf<Int, ObjectCollectionLayer>()
 
 	open val gameItems get() = get(0)
 	open val guiItems get() = get(1)
@@ -19,7 +19,7 @@ open class ObjectCollection {
 	open fun addObject(o: GameObject?) {
 		if (o != null) {
 			// Add the object to this
-			map.addToCollectionOr(o.layer, o) { mutableSetOf() }
+			map.addToCollectionOr(o.layer, o) { ObjectCollectionLayer(o.layer) }
 
 			// Add this to the object
 			o.objects = this
@@ -30,7 +30,7 @@ open class ObjectCollection {
 		for (o in os) {
 			val cur = map[o.layer]
 			if (cur != null) cur.add(o)
-			else map[o.layer] = mutableSetOf(o)
+			else map[o.layer] = ObjectCollectionLayer(o.layer, o)
 			o.objects = this
 		}
 	}
@@ -88,12 +88,12 @@ open class ObjectCollection {
 	}
 
 	operator fun get(layer: Int) = map[layer] ?: mutableSetOf()
-	operator fun set(layer: Int, set: MutableSet<GameObject>) {
-		map[layer] = set
+	operator fun set(layer: Int, collection: ObjectCollectionLayer) {
+		map[layer] = collection
 	}
 
 	operator fun set(layer: Int, obj: GameObject) {
-		map.addToCollectionOr(layer, obj) { mutableSetOf() }
+		map.addToCollectionOr(layer, obj) { ObjectCollectionLayer(obj.layer) }
 	}
 
 	fun delete() {

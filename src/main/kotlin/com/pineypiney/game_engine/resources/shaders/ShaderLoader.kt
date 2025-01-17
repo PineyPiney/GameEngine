@@ -139,31 +139,50 @@ class ShaderLoader private constructor() : Deleteable {
 			var structName = ""
 			val structs = mutableMapOf<String, MutableMap<String, String>>()
 			val uniforms = mutableMapOf<String, String>()
-			for (line in code.split('\n').map { it.trim() }.filter { it.isNotEmpty() }) {
-				val parts = line.split(' ').map { it.trim() }.filter { it.isNotEmpty() }
-				if (structName.isNotEmpty()) {
-					if (line[0] == '}') structName = ""
-					else {
-						val bracket = line.contains('}')
-						structs.addToMapOr(
-							structName,
-							if (line.contains('}')) parts[1].substringBefore('}') else parts[1].substringBefore(';'),
-							parts[0]
-						)
-						if (bracket) structName = ""
+
+			var skipNext = false
+			for (fullLine in code.split('\n').map { it.trim() }.filter { it.isNotEmpty() }) {
+
+				val commentIndex = fullLine.indexOf("//")
+				val line = if(commentIndex == -1) fullLine else fullLine.substring(0, commentIndex).trim()
+
+				if(line.isNotEmpty()){
+					if(skipNext) {
+						skipNext = false
+						continue
 					}
-				}
-				if (parts[0] == "struct") {
-					structName = parts[1].removeSuffix("{").trim()
-					structs[structName] = mutableMapOf()
-				}
-				if (parts[0] != "uniform") continue
-				val name = line.removePrefix("uniform ${parts[1]} ").substringBefore(';')
-				if (structs.containsKey(parts[1])) {
-					for ((k, v) in structs[parts[1]]!!) {
-						uniforms["$name.$k"] = v
+					
+					val parts = line.split(' ').map { it.trim() }.filter { it.isNotEmpty() }
+					if (structName.isNotEmpty()) {
+						if (line[0] == '}') structName = ""
+						else {
+							val bracket = line.contains('}')
+							structs.addToMapOr(
+								structName,
+								if (line.contains('}')) parts[1].substringBefore('}') else parts[1].substringBefore(';'),
+								parts[0]
+							)
+							if (bracket) structName = ""
+						}
 					}
-				} else uniforms[name] = parts[1]
+					if (parts[0] == "struct") {
+						structName = parts[1].removeSuffix("{").trim()
+						structs[structName] = mutableMapOf()
+					}
+					if (parts[0] != "uniform") continue
+					val name = line.removePrefix("uniform ${parts[1]} ").substringBefore(';')
+					if (structs.containsKey(parts[1])) {
+						for ((k, v) in structs[parts[1]]!!) {
+							uniforms["$name.$k"] = v
+						}
+					} else uniforms[name] = parts[1]
+				}
+
+
+				if(commentIndex != -1){
+					val comment = fullLine.substring(commentIndex + 2)
+					if(comment.contains("MANUAL")) skipNext = true
+				}
 			}
 
 			return uniforms

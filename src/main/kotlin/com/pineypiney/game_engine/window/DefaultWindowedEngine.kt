@@ -11,12 +11,13 @@ class DefaultWindowedEngine<E : WindowGameLogic>(
 	ups: Int = 20,
 	fps: Int = 2000
 ) : WindowedGameEngine<E>(resources) {
-	override val activeScreen: E = screen(this)
-	override val TARGET_FPS: Int = fps
-	override val TARGET_UPS: Int = ups
-
+	
 	init {
 		GameEngineI.defaultFont = "Large Font"
 		FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)
 	}
+
+	override val activeScreen: E = screen(this)
+	override val TARGET_FPS: Int = fps
+	override val TARGET_UPS: Int = ups
 }

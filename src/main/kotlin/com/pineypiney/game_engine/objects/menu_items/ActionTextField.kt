@@ -5,29 +5,30 @@ import com.pineypiney.game_engine.objects.components.TextFieldComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
 open class ActionTextField<E : TextFieldComponent>(
 	name: String,
-	origin: Vec2,
-	size: Vec2,
 	val startText: String = "",
 	val textSize: Float = 1f,
 	val updateType: Int = ActionTextFieldComponent.UPDATE_ON_FINISH,
 	val action: (field: E, char: Char, input: Int) -> Unit
 ) : MenuItem(name) {
 
-	constructor(origin: Vec2, size: Vec2, action: (field: E, char: Char, input: Int) -> Unit): this("Action Text Field", origin, size, action = action)
+	constructor(name: String, origin: Vec3, size: Vec2, startText: String = "", textSize: Float = 1f, updateType: Int = ActionTextFieldComponent.UPDATE_ON_FINISH, action: (field: E, char: Char, input: Int) -> Unit): this(name, startText, textSize, updateType, action = action){
+		os(origin, size)
+	}
+
+	constructor(name: String, origin: Vec2, size: Vec2, startText: String = "", textSize: Float = 1f, updateType: Int = ActionTextFieldComponent.UPDATE_ON_FINISH, action: (field: E, char: Char, input: Int) -> Unit): this(name, startText, textSize, updateType, action = action){
+		os(origin, size)
+	}
 
 	var text: String
 		get() = getComponent<TextFieldComponent>()!!.text
 		set(value) {
 			getComponent<TextFieldComponent>()!!.text = value
 		}
-
-	init {
-		os(origin, size)
-	}
 
 	override fun addComponents() {
 		super.addComponents()

@@ -179,14 +179,19 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			height: Int,
 			format: Int,
 			internalFormat: Int,
-			type: Int
+			type: Int,
+			debug: Boolean = false
 		) {
 			if (!GLFunc.isLoaded) {
 				GameEngineI.warn("Could not write texture to pointer because OpenGL has not been loaded")
 				return
 			}
 			val d = Debug().start()
-			glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data)
+			if(data == null) GameEngineI.warn("write null data to texture")
+			if(debug) GameEngineI.debug("Calling texImage2D with internalFormat: $internalFormat, width: $width, height: $height, format: $format, type: $type and data: $data")
+			try { glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data) }
+			catch (e: Exception){ "TEXTURE FAILURE" }
+
 			d.add()
 
 			glGenerateMipmap(GL_TEXTURE_2D)
@@ -199,10 +204,12 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			format: Int = GL_RGB,
 			internalFormat: Int = format,
 			type: Int = GL_UNSIGNED_BYTE,
-			params: TextureParameters = TextureParameters.default
+			params: TextureParameters = TextureParameters.default,
+			debug: Boolean = false
 		): Int {
 			val pointer = createPointer(params)
-			if (pointer != -1) writeTextureToPointer(data, width, height, format, internalFormat, type)
+			if(debug) GameEngineI.debug("Calling writeTextureToPointer on texturePtr: $pointer with parameters: $params")
+			if (pointer != -1) writeTextureToPointer(data, width, height, format, internalFormat, type, debug)
 			return pointer
 		}
 

@@ -16,11 +16,9 @@ import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.filterValueIsInstance
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
-import glm_.vec3.Vec3
 import kotlin.math.min
 
 open class ModelRendererComponent(parent: GameObject, var model: Model, shader: Shader = defaultShader) :
@@ -72,7 +70,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
 		if (shader.hasDirL) setLightUniforms()
 
 		for (mesh in model.meshes) {
-			mesh.setMaterial(shader)
+			mesh.setMaterialUniforms(shader)
 			val newModel = parent.worldModel * mesh.transform
 			shader.setMat4("model", newModel)
 
@@ -84,16 +82,16 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
 	}
 
 	fun setLightUniforms() {
-		val lights =
-			(parent.objects ?: return).getAllComponents().filterIsInstance<LightComponent>().filter { it.light.on }
+		val lights = (parent.objects ?: return).getAllComponents().filterIsInstance<LightComponent>().filter { it.light.on }
+
 		lights.firstOrNull { it.light is DirectionalLight }?.setShaderUniforms(shader, "dirLight")
-		val pointLights = lights.associate { it.parent.position to it.light }
-			.filterValueIsInstance<Vec3, PointLight>().entries.sortedByDescending { (it.key - parent.position).length() / it.value.linear }
+
+		val pointLights = lights.associateWith { it.parent.position }.filter{ it.key.light is PointLight }.entries.sortedByDescending { (it.value - parent.position).length() / (it.key.light as PointLight).linear }
 		for (l in 0..<min(4, pointLights.size)) {
 			val name = "pointLights[$l]"
-			shader.setVec3("$name.position", pointLights[l].key)
-			pointLights[l].value.setShaderUniforms(shader, name)
+			pointLights[l].key.setShaderUniforms(shader, name)
 		}
+
 		lights.firstOrNull { it.light is SpotLight }?.setShaderUniforms(shader, "spotlight")
 	}
 
@@ -158,7 +156,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
 	companion object {
 		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/model"))
 		val defaultLitShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/lit_model"))
-		val debugShader =
-			ShaderLoader.getShader(ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights"))
+		val debugShader = ShaderLoader.getShader(ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights"))
+		val pbrShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/pbr_lit_model"))
 	}
 }

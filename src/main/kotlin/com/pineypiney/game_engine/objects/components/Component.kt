@@ -2,11 +2,17 @@ package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.apps.editor.EditorScreen
+import com.pineypiney.game_engine.apps.editor.field_editors.QuatFieldEditor
+import com.pineypiney.game_engine.apps.editor.field_editors.Vec2FieldEditor
+import com.pineypiney.game_engine.apps.editor.field_editors.Vec3FieldEditor
+import com.pineypiney.game_engine.apps.editor.field_editors.Vec4FieldEditor
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.Component.Field
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
+import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ByteData
@@ -15,9 +21,11 @@ import com.pineypiney.game_engine.util.extension_functions.fromString
 import com.pineypiney.game_engine.util.extension_functions.toByteString
 import com.pineypiney.game_engine.util.extension_functions.toString
 import com.pineypiney.game_engine.util.s
-import glm_.*
+import glm_.asHexString
+import glm_.i
+import glm_.intValue
+import glm_.plus
 import glm_.quat.Quat
-import glm_.vec1.Vec1Vars
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -51,6 +59,7 @@ abstract class Component(final override val parent: GameObject, override val id:
 		field.set(this, value)
 	}
 
+	@Suppress("UNCHECKED_CAST")
 	override fun <F : Field<*>> getField(id: String): F? {
 		val f = fields.firstOrNull { it.id == id } ?: return null
 		return f as? F
@@ -135,6 +144,7 @@ abstract class Component(final override val parent: GameObject, override val id:
 		field.copyTo(dstField)
 	}
 
+	@Suppress("UNCHECKED_CAST")
 	override fun <T> getMatchingField(other: ComponentI, field: Field<T>): Field<T>? {
 		return try {
 			other.fields.firstOrNull { it.id == field.id } as? Field<T>
@@ -233,7 +243,7 @@ abstract class Component(final override val parent: GameObject, override val id:
 	class QuatField(id: String, getter: () -> Quat, setter: (Quat) -> Unit) : Field<Quat>(id,
 		::QuatFieldEditor, getter, setter, { q -> q.toString(",", ByteData::float2String) }, { _, s ->
 			Quat.fromString(
-				s, false,
+				s, false, true,
 				ByteData::string2Float
 			)
 		}, { Quat(it.w, it.x, it.y, it.z) })
@@ -241,6 +251,35 @@ abstract class Component(final override val parent: GameObject, override val id:
 	class TextureField(id: String, getter: () -> Texture, setter: (Texture) -> Unit): Field<Texture>(id, ::TextureFieldEditor, getter, setter,
 		{ it.fileLocation.substringBefore('.') },
 		{ _, s -> TextureLoader[ResourceKey(s)] })
+
+	class ShaderField(id: String, getter: () -> Shader, setter: (Shader) -> Unit): Field<Shader>(id, ::ShaderFieldEditor, getter, setter, ::serialise, ::parse){
+
+		companion object {
+			fun serialise(shader: Shader): String {
+				val sb = StringBuilder()
+				val g = shader.gName != null
+				sb.append(if (g) '3' else '2')
+				sb.append(shader.vName.length.toChar() + shader.vName)
+				sb.append(shader.fName.length.toChar() + shader.fName)
+				if (g) sb.append(shader.gName.length.toChar() + shader.gName)
+				return sb.toString()
+			}
+
+			fun parse(c: ComponentI, s: String): Shader{
+				val hasG = s[0] == '3'
+				val vl = s[1].code
+				val v = s.substring(2, 2+vl)
+				val fl = s[2+vl].code
+				val f = s.substring(3+vl, 3+vl+fl)
+				if(hasG){
+					val gl = s[3+vl+fl]
+					val g = s.substring(4+vl+fl, 4+vl+fl+gl)
+					return ShaderLoader[ResourceKey(v), ResourceKey(f), ResourceKey(g)]
+				}
+				else return ShaderLoader[ResourceKey(v), ResourceKey(f)]
+			}
+		}
+	}
 
 	class GameObjectField<T : GameObject?>(id: String, getter: () -> T, setter: (T) -> Unit) : Field<T>(
 		id,
@@ -254,6 +293,7 @@ abstract class Component(final override val parent: GameObject, override val id:
 				return o?.name ?: "Storable"
 			}
 
+			@Suppress("UNCHECKED_CAST")
 			fun <T : GameObject?> parse(c: ComponentI, s: String): T? {
 				return c.parent.objects?.getAllObjects()?.firstOrNull { it.name == s } as? T
 			}
@@ -294,6 +334,7 @@ abstract class Component(final override val parent: GameObject, override val id:
 		init {
 			parent.position = Vec3(origin, 0f)
 			parent.scale = Vec3(size, 1f)
+			passThrough = true
 		}
 
 		override fun init() {
@@ -309,9 +350,9 @@ abstract class Component(final override val parent: GameObject, override val id:
 
 		abstract fun update()
 
-		open fun onHoverElement(element: Any){}
+		open fun onHoverElement(element: Any, cursorPos: Vec2): Boolean = false
 
-		open fun onDropElement(element: Any, screen: EditorScreen){}
+		open fun onDropElement(element: Any, cursorPos: Vec2, screen: EditorScreen){}
 	}
 
 	open class DefaultFieldEditor<T, F : Field<T>>(
@@ -323,7 +364,7 @@ abstract class Component(final override val parent: GameObject, override val id:
 		callback: (String, String) -> Unit
 	) : FieldEditor<T, F>(parent, component, id, origin, size) {
 
-		val textField = ActionTextField<ActionTextFieldComponent<*>>("Text Field", Vec2(0f, 0f), Vec2(1f, 1f)) { f, _, _ ->
+		val textField = ActionTextField<ActionTextFieldComponent<*>>("Text Field", Vec3(0f, 0f, .01f), Vec2(1f, 1f)) { f, _, _ ->
 			try {
 				field.parse(component, f.text)?.let { field.setter(it) }
 				callback(fullId, f.text)
@@ -350,7 +391,7 @@ abstract class Component(final override val parent: GameObject, override val id:
 		callback: (String, String) -> Unit
 	) : FieldEditor<Float, FloatField>(parent, component, id, origin, size) {
 
-		val textField = ActionTextField<TextFieldComponent>("Floaat Field", Vec2(0f, 0f), Vec2(1f, 1f)) { f, _, _ ->
+		val textField = ActionTextField<TextFieldComponent>("Floaat Field", Vec3(0f, 0f, .01f), Vec2(1f, 1f)) { f, _, _ ->
 			try {
 				val value = java.lang.Float.parseFloat(f.text)
 				field.setter(value)
@@ -378,7 +419,7 @@ abstract class Component(final override val parent: GameObject, override val id:
 		callback: (String, String) -> Unit
 	) : FieldEditor<Double, DoubleField>(parent, component, id, origin, size) {
 
-		val textField = ActionTextField<TextFieldComponent>("Double Field", Vec2(0f, 0f), Vec2(1f, 1f)) { f, _, _ ->
+		val textField = ActionTextField<TextFieldComponent>("Double Field", Vec3(0f, 0f, .01f), Vec2(1f, 1f)) { f, _, _ ->
 			try {
 				val value = java.lang.Double.parseDouble(f.text)
 				field.setter(value)
@@ -397,149 +438,6 @@ abstract class Component(final override val parent: GameObject, override val id:
 		}
 	}
 
-	open class VecFieldEditor<T : Vec1Vars<Float>, out F : Field<T>>(
-		parent: GameObject,
-		component: ComponentI,
-		id: String,
-		origin: Vec2,
-		size: Vec2,
-		callback: (String, String) -> Unit,
-		vecSize: Int,
-		copy: (T) -> T,
-		inSet: T.(Int, Float) -> Unit
-	) : FieldEditor<T, F>(parent, component, id, origin, size) {
-
-		val textFields = Array<ActionTextField<*>>(vecSize) {
-			ActionTextField<ActionTextFieldComponent<*>>(
-				"Vec Field $it",
-				Vec2((size.x * it / vecSize), 0f),
-				Vec2(size.x / vecSize, 1f)
-			) { f, _, _ ->
-				try {
-					val newVal = copy(field.getter())
-					newVal.inSet(it, java.lang.Float.parseFloat(f.text))
-					field.setter(newVal)
-					callback(fullId, field.serialise(newVal))
-				} catch (_: NumberFormatException) {
-
-				}
-			}.also { f -> f.name = "${parent.name.substring(0, parent.name.length - 13)}.${names[it]} Field Editor" }
-		}
-
-		override fun createChildren() {
-			parent.addChild(*textFields)
-		}
-
-		override fun update() {
-			val v = field.getter()
-			textFields.forEachIndexed { index, actionTextField ->
-				actionTextField.text = v[index].toString()
-			}
-		}
-
-		companion object {
-			val names = charArrayOf('x', 'y', 'z', 'w')
-		}
-	}
-
-	open class Vec2FieldEditor(
-		parent: GameObject,
-		component: ComponentI,
-		id: String,
-		origin: Vec2,
-		size: Vec2,
-		callback: (String, String) -> Unit
-	) : VecFieldEditor<Vec2, Vec2Field>(parent, component, id, origin, size, callback, 2, ::Vec2, Vec2::set)
-
-	open class Vec3FieldEditor(
-		parent: GameObject,
-		component: ComponentI,
-		id: String,
-		origin: Vec2,
-		size: Vec2,
-		callback: (String, String) -> Unit
-	) : VecFieldEditor<Vec3, Vec3Field>(parent, component, id, origin, size, callback, 3, ::Vec3, Vec3::set)
-
-	open class Vec4FieldEditor(
-		parent: GameObject,
-		component: ComponentI,
-		id: String,
-		origin: Vec2,
-		size: Vec2,
-		callback: (String, String) -> Unit
-	) : VecFieldEditor<Vec4, Vec4Field>(parent, component, id, origin, size, callback, 4, ::Vec4, Vec4::set)
-
-
-	open class QuatFieldEditor(parent: GameObject, component: ComponentI, id: String, origin: Vec2, size: Vec2, callback: (String, String) -> Unit) : FieldEditor<Quat, QuatField>(parent, component, id, origin, size) {
-
-		val xField = ActionTextField<ActionTextFieldComponent<*>>("Quat X Field", Vec2(0f, 0f), Vec2(size.x * 0.25f, 1f)) { f, _, _ ->
-			try {
-				val v = field.getter()
-				val newVal = Quat(v.w, java.lang.Float.parseFloat(f.text), v.y, v.z)
-				field.setter(newVal)
-				callback(fullId, field.serialise(newVal))
-			} catch (_: NumberFormatException) {
-
-			}
-		}
-
-		val yField = ActionTextField<ActionTextFieldComponent<*>>(
-			"Quat Y Field",
-			Vec2(size.x * 0.25f, 0f),
-			Vec2(size.x * 0.25f, 1f)
-		) { f, _, _ ->
-			try {
-				val v = field.getter()
-				val newVal = Quat(v.w, v.x, java.lang.Float.parseFloat(f.text), v.z)
-				field.setter(newVal)
-				callback(fullId, field.serialise(newVal))
-			} catch (_: NumberFormatException) {
-
-			}
-		}
-
-		val zField =
-			ActionTextField<ActionTextFieldComponent<*>>("Quat Z Field", Vec2(size.x * 0.5f, 0f), Vec2(size.x * 0.25f, 1f)) { f, _, _ ->
-				try {
-					val v = field.getter()
-					val newVal = Quat(v.w, v.x, v.y, java.lang.Float.parseFloat(f.text))
-					field.setter(newVal)
-					callback(fullId, field.serialise(newVal))
-				} catch (_: NumberFormatException) {
-
-				}
-			}
-
-		val wField = ActionTextField<ActionTextFieldComponent<*>>(
-			"Quat W Field",
-			Vec2(size.x * 0.75f, 0f),
-			Vec2(size.x * 0.25f, 1f)
-		) { f, _, _ ->
-			try {
-				val v = field.getter()
-				val newVal = Quat(java.lang.Float.parseFloat(f.text), v.x, v.y, v.z)
-				field.setter(newVal)
-				callback(fullId, field.serialise(newVal))
-			} catch (_: NumberFormatException) {
-
-			}
-		}
-
-		val textFields = arrayOf(xField, yField, zField, wField)
-
-		override fun createChildren() {
-			parent.addChild(*textFields)
-		}
-
-		override fun update() {
-			val v = field.getter()
-			xField.text = v.x.toString()
-			yField.text = v.y.toString()
-			zField.text = v.z.toString()
-			wField.text = v.w.toString()
-		}
-	}
-
 	open class TextureFieldEditor(
 		parent: GameObject,
 		component: ComponentI,
@@ -549,7 +447,7 @@ abstract class Component(final override val parent: GameObject, override val id:
 		callback: (String, String) -> Unit
 	) : FieldEditor<Texture, TextureField>(parent, component, id, origin, size) {
 
-		val textField = ActionTextField<ActionTextFieldComponent<*>>("Texture Field", Vec2(0f, 0f), Vec2(1f, 1f)) { f, _, _ ->
+		val textField = ActionTextField<ActionTextFieldComponent<*>>("Texture Field", Vec3(0f, 0f, -0.005f), Vec2(1f, 1f)) { f, _, _ ->
 			try {
 				field.parse(component, f.text)?.let { field.setter(it) }
 				callback(fullId, f.text)
@@ -566,17 +464,91 @@ abstract class Component(final override val parent: GameObject, override val id:
 			textField.text = field.serialise(field.getter())
 		}
 
-		override fun onHoverElement(element: Any) {
+		override fun onHoverElement(element: Any, cursorPos: Vec2): Boolean {
 			val renderer = textField.getComponent<ColourRendererComponent>()
 			val willAccept = element is File && element.extension == "png"
 			renderer?.colour?.xyz = if(willAccept) Vec3(0.65f) else Vec3(.5f)
+			return willAccept
 		}
 
-		override fun onDropElement(element: Any, screen: EditorScreen) {
+		override fun onDropElement(element: Any, cursorPos: Vec2, screen: EditorScreen) {
 			if(element is File){
 				val path = element.path.replace(s, '/').removePrefix(screen.gameEngine.resourcesLoader.location + '/' + screen.gameEngine.resourcesLoader.textureLocation).substringBefore('.')
 				field.setter(TextureLoader[ResourceKey(path)])
 				textField.text = path
+			}
+		}
+	}
+
+	open class ShaderFieldEditor(
+		parent: GameObject,
+		component: ComponentI,
+		id: String,
+		origin: Vec2,
+		size: Vec2,
+		val callback: (String, String) -> Unit
+	) : FieldEditor<Shader, ShaderField>(parent, component, id, origin, Vec2(size.x, size.y * 3)) {
+
+		val vertexField = ActionTextField<ActionTextFieldComponent<*>>("Vertex Field", Vec3(0f, .68f, -0.005f), Vec2(1f, .32f)) { f, _, _ ->
+			updateValue()
+		}
+		val fragmentField = ActionTextField<ActionTextFieldComponent<*>>("Fragment Field", Vec3(0f, .34f, -0.005f), Vec2(1f, .32f)) { f, _, _ ->
+			updateValue()
+		}
+		val geometryField = ActionTextField<ActionTextFieldComponent<*>>("Geometry Field", Vec3(0f, 0f, -0.005f), Vec2(1f, .32f)) { f, _, _ ->
+			updateValue()
+		}
+
+		fun updateValue(){
+			try {
+				val newS = if(geometryField.text.isEmpty()) ShaderLoader[ResourceKey(vertexField.text), ResourceKey(fragmentField.text)]
+				else ShaderLoader[ResourceKey(vertexField.text), ResourceKey(fragmentField.text), ResourceKey(geometryField.text)]
+				field.setter(newS)
+				callback(fullId, ShaderField.serialise(newS))
+			} catch (_: Exception) {
+
+			}
+		}
+
+		override fun createChildren() {
+			parent.addChild(vertexField, fragmentField, geometryField)
+		}
+
+		override fun update() {
+			val s = field.getter()
+			vertexField.text = s.vName
+			fragmentField.text = s.fName
+			geometryField.text = s.gName ?: ""
+		}
+
+		override fun onHoverElement(element: Any, cursorPos: Vec2): Boolean {
+			if(element is File){
+				val fields = arrayOf(vertexField, fragmentField, geometryField)
+				val relCur = (cursorPos.y - parent.transformComponent.worldPosition.y) / parent.transformComponent.worldScale.y
+				val m = if(element.extension == "vs" && relCur >= .67f) 0
+				else if(element.extension == "fs" && relCur >= .33f && relCur <= .67f) 1
+				else if(element.extension == "gs" && relCur <= .33f) 2
+				else -1
+
+				for((i, f) in fields.withIndex()) {
+					val renderer: ColourRendererComponent? = f.getComponent<ColourRendererComponent>() ?: continue
+					renderer?.colour?.xyz = if (m == i) Vec3(0.65f) else Vec3(.5f)
+				}
+				return m != -1
+			}
+			return false
+		}
+
+		override fun onDropElement(element: Any, cursorPos: Vec2, screen: EditorScreen) {
+			if(element is File){
+				val path = element.path.replace(s, '/').removePrefix(screen.gameEngine.resourcesLoader.location + '/' + screen.gameEngine.resourcesLoader.shaderLocation).substringBefore('.')
+				when(element.extension){
+					"vs" -> vertexField.text = path
+					"fs" -> fragmentField.text = path
+					"gs" -> geometryField.text = path
+					else -> return
+				}
+				updateValue()
 			}
 		}
 	}

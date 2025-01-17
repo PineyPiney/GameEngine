@@ -36,8 +36,10 @@ open class Text(
 	var textChanged = true
 	var text: String = text
 		set(value) {
-			field = value
-			textChanged = true
+			if(field != value) {
+				field = value
+				textChanged = true
+			}
 		}
 
 	override fun init() {
@@ -49,7 +51,7 @@ open class Text(
 		else fitWithin(Vec2(maxWidth * parentAspect, maxHeight))
 
 		lines = generateLines(parentAspect)
-		lengths = lines.map { font.getWidth(it) }.toFloatArray()
+		lengths = lines.map { getWidth(it) }.toFloatArray()
 		mesh.delete()
 		mesh = font.getShape(lines.joinToString("\n"), false, alignment)
 		textChanged = false
@@ -140,6 +142,25 @@ open class Text(
 		return "Text[\"$text\"]"
 	}
 
+	data class Params(var colour: Vec4 = Vec4(0f, 0f, 0f, 1f), var maxWidth: Float = 2f, var maxHeight: Float = 2f,
+					  var fontSize: Float = 1f, var alignment: Int = ALIGN_CENTER_LEFT,
+					  var shader: Shader = Font.fontShader, var font: Font = Font.defaultFont,
+					  var italic: Float = 0f, var underlineThickness: Float = 0f,
+					  var underlineOffset: Float = -0.2f, var underlineAmount: Float = 1f){
+
+		fun withColour(c: Vec4) = this.apply { colour = c }
+		fun withMaxWidth(c: Float) = this.apply { maxWidth = c }
+		fun withMaxHeight(c: Float) = this.apply { maxHeight = c }
+		fun withFontSize(c: Float) = this.apply { fontSize = c }
+		fun withAlignment(c: Int) = this.apply { alignment = c }
+		fun withShader(c: Shader) = this.apply { shader = c }
+		fun withFont(c: Font) = this.apply { font = c }
+		fun withItalic(c: Float) = this.apply { italic = c }
+		fun withUnderlineThickness(c: Float) = this.apply { underlineThickness = c }
+		fun withUnderlineOffset(c: Float) = this.apply { underlineOffset = c }
+		fun withUnderlineAmount(c: Float) = this.apply { underlineAmount = c }
+	}
+
 	companion object {
 		const val ALIGN_CENTER_H = 1
 		const val ALIGN_LEFT = 2
@@ -170,29 +191,29 @@ open class Text(
 			underlineThickness: Float = 0f,
 			underlineOffset: Float = -0.2f,
 			underlineAmount: Float = 1f,
-		): GameObject {
+		): MenuItem {
 			return object : MenuItem("$text Text Object") {
 
 				override fun addComponents() {
 					super.addComponents()
 					components.add(
-						TextRendererComponent(
-							this,
-							Text(
-								text,
-								colour,
-								maxWidth,
-								maxHeight,
-								font,
-								italic,
-								underlineThickness,
-								underlineOffset,
-								underlineAmount,
-								fontSize,
-								alignment
-							),
-							shader
-						)
+						TextRendererComponent(this, Text(text, colour, maxWidth, maxHeight, font, italic,
+							underlineThickness, underlineOffset, underlineAmount, fontSize, alignment), shader)
+					)
+				}
+			}
+		}
+
+		fun makeMenuText(text: String, params: Params): MenuItem{
+			return object : MenuItem("$text Text Object") {
+
+				override fun addComponents() {
+					super.addComponents()
+					components.add(
+						TextRendererComponent(this, Text(text, params.colour, params.maxWidth,
+							params.maxHeight, params.font, params.italic, params.underlineThickness,
+							params.underlineOffset, params.underlineAmount, params.fontSize, params.alignment),
+							params.shader)
 					)
 				}
 			}

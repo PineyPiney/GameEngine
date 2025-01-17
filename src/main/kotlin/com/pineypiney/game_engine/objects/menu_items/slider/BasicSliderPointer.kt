@@ -5,7 +5,6 @@ import com.pineypiney.game_engine.objects.components.slider.SliderPointerCompone
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import glm_.vec3.Vec3
 
 open class BasicSliderPointer(val height: Float) : MenuItem() {
 
@@ -22,12 +21,6 @@ open class BasicSliderPointer(val height: Float) : MenuItem() {
 				SpriteComponent.menuShader
 			)
 		)
-	}
-
-	override fun init() {
-		super.init()
-		val parentHeight = parent?.transformComponent?.worldScale?.y ?: 1f
-		this.transformComponent.worldScale = Vec3(parentHeight, parentHeight, 1f)
 	}
 
 	companion object {

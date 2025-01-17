@@ -13,7 +13,7 @@ import glm_.vec4.Vec4
 open class OutlinedSliderRendererComponent(parent: GameObject) : ShaderRenderedComponent(parent, sliderShader) {
 
 	open var colour: Vec4 = Vec4(0.7)
-	open var outlineThickness: Float = 0.01f
+	open var outlineThickness: Float = 0.06f
 	open var outlineColour: Vec4 = Vec4(0.5, 0.5, 0.5, 1)
 
 	override val renderSize: Vec2 = Vec2(1f, 1f)

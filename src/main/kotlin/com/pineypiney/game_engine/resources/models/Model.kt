@@ -3,11 +3,11 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.models.animations.State
+import com.pineypiney.game_engine.resources.models.materials.PhongMaterial
 import com.pineypiney.game_engine.util.maths.Collider
 import com.pineypiney.game_engine.util.maths.Collider2D
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import glm_.vec2.Vec2
-import glm_.vec3.Vec3
 import org.lwjgl.assimp.Assimp.aiProcess_FlipUVs
 import org.lwjgl.assimp.Assimp.aiProcess_Triangulate
 
@@ -58,7 +58,7 @@ class Model(
 		const val DEBUG_BONES = 2
 		const val DEBUG_COLLIDER = 4
 
-		val brokeMaterial = ModelMaterial("broke", mapOf(), Vec3(1))
+		val brokeMaterial = PhongMaterial("broke", mapOf())
 
 		val brokeModel = Model("broke")
 	}

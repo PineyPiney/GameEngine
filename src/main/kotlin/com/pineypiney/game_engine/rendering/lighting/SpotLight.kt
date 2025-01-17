@@ -18,6 +18,7 @@ class SpotLight(
 	override fun setShaderUniforms(shader: Shader, name: String) {
 		super.setShaderUniforms(shader, name)
 		shader.setVec3("$name.direction", direction)
+
 		shader.setFloat("$name.cutOff", cutoff)
 		shader.setFloat("$name.outerCutOff", outerCutoff)
 		shader.setFloat("$name.constant", constant)
