@@ -21,12 +21,20 @@ class Scale2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, sc
 
 	override var forceUpdate: Boolean = true
 
+	override fun startAt(obj: GameObject, screen: EditorScreen) {
+		super.startAt(obj, screen)
+		parent.rotation = obj.transformComponent.worldRotation
+	}
+
+	fun relativePos(pos: Vec2) = (pos - Vec2(parent.position)).rotate(-parent.rotation.eulerAngles().z)
+
 	override fun onCursorMove(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		if(pressed) return
 
-		val relX = cursorPos.x - parent.transformComponent.position.x
-		val relY = cursorPos.y - parent.transformComponent.position.y
+		val rel = relativePos(cursorPos)
+		val relX = rel.x
+		val relY = rel.y
 		if(abs(relY) < .012f && relX > 0f){
 			red.x = 1f
 			green.y = .8f
@@ -61,7 +69,7 @@ class Scale2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, sc
 			screen.editingObject ?.let {
 				initScale = Vec2(it.scale)
 			}
-			grabPoint = (cursorPos - Vec2(parent.transformComponent.position))
+			grabPoint = relativePos(cursorPos)
 			if(grabPoint.x == 0f) grabPoint.x = .001f
 			if(grabPoint.y == 0f) grabPoint.y = .001f
 			grabPoint = Vec2(1f / grabPoint.x, 1f / grabPoint.y)
@@ -71,13 +79,13 @@ class Scale2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, sc
 
 	override fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
 		val scale = when(selected){
-			1 -> Vec2(initScale.x * (cursorPos.x - parent.position.x) * grabPoint.x, initScale.y)
-			2 -> Vec2(initScale.x, initScale.y * (cursorPos.y - parent.position.y) * grabPoint.y)
-			3 -> initScale * (cursorPos - Vec2(parent.position)) * grabPoint
+			1 -> Vec2(initScale.x * relativePos(cursorPos).x * grabPoint.x, initScale.y)
+			2 -> Vec2(initScale.x, initScale.y * relativePos(cursorPos).y * grabPoint.y)
+			3 -> initScale * relativePos(cursorPos) * grabPoint
 			else -> return
 		}
 		//val newWorldPos = Vec3(Vec2(screen.renderer.camera.screenToWorld(Vec2(parent.position.x / window.aspectRatio, parent.position.y))), screen.editingObject!!.position.z)
 		screen.editingObject?.transformComponent?.let { it.scale = Vec3(scale, it.scale.z) }
-		screen.componentBrowser.refreshField("T2D.scl")
+		screen.componentBrowser.refreshField("T2D.scale")
 	}
 }

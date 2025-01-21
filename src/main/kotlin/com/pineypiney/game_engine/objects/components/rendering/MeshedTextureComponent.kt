@@ -23,10 +23,6 @@ open class MeshedTextureComponent(
 
 	constructor(parent: GameObject) : this(parent, Texture.broke)
 
-	override val fields: Array<Field<*>> = arrayOf(
-		TextureField("txr", ::texture) { texture = it }
-	)
-
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
 		texture.bind()

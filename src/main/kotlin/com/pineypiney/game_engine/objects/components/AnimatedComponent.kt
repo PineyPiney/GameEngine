@@ -21,18 +21,6 @@ class AnimatedComponent(
 	var animationTime: Float = 0f
 	var playing: Boolean = true
 
-	override val fields: Array<Field<*>> = arrayOf(
-		Field(
-			"ani",
-			::DefaultFieldEditor,
-			::animation,
-			{ animation = it },
-			Animation::name,
-			{ c, s -> animations.firstOrNull { it.name == s } }),
-		FloatField("tim", ::animationTime) { animationTime = it },
-		BooleanField("ply", ::playing) { playing = it }
-	)
-
 	override fun preRender(tickDelta: Double) {
 		// For animated items the texture must be set to the animations current frame
 		if (playing) updateAnimationTime()

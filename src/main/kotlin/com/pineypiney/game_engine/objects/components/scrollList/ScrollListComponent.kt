@@ -47,15 +47,6 @@ abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorCompon
 
 	var limits = Vec2(0f); protected set
 
-	override val fields: Array<Field<*>> = super.fields + arrayOf(
-		FloatField("eth", ::entryHeight) { },
-		FloatField("scw", ::scrollerWidth) { },
-		FloatField("tth", ::totalHeight) { totalHeight = it },
-		FloatField("rto", ::ratio) { ratio = it },
-		FloatField("scr", ::scroll) { scroll = it },
-		GameObjectField("scb", ::scrollBar) { }
-	)
-
 	override fun init() {
 		super.init()
 

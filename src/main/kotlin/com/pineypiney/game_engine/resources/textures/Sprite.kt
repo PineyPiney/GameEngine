@@ -5,7 +5,13 @@ import com.pineypiney.game_engine.objects.util.shapes.SquareMesh
 import glm_.vec2.Vec2
 import kotlin.math.max
 
-class Sprite(val texture: Texture, ppu: Float, val spriteCenter: Vec2 = Vec2(.5f), val origin: Vec2 = Vec2(), val size: Vec2 = Vec2(1f), var flipX: Boolean = false, var flipY: Boolean = false) {
+class Sprite(texture: Texture, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), origin: Vec2 = Vec2(), size: Vec2 = Vec2(1f), flipX: Boolean = false, flipY: Boolean = false) {
+
+	var texture: Texture = texture
+		set(value) {
+			field = value
+			mesh = calculateMesh()
+		}
 
 	var pixelsPerUnit: Float = ppu
 		set(value) {
@@ -15,6 +21,35 @@ class Sprite(val texture: Texture, ppu: Float, val spriteCenter: Vec2 = Vec2(.5f
 		}
 	var pixelSize: Float = 1f / pixelsPerUnit; private set
 
+	var spriteCenter: Vec2 = spriteCenter
+		set(value) {
+			field = value
+			mesh = calculateMesh()
+		}
+
+	var origin: Vec2 = origin
+		set(value) {
+			field = value
+			mesh = calculateMesh()
+		}
+
+	var size: Vec2 = size
+		set(value) {
+			field = value
+			mesh = calculateMesh()
+		}
+
+	var flipX: Boolean = flipX
+		set(value) {
+			field = value
+			mesh = calculateMesh()
+		}
+
+	var flipY: Boolean = flipY
+		set(value) {
+			field = value
+			mesh = calculateMesh()
+		}
 
 	val pixelWidth get() = texture.width * size.x
 	val pixelHeight get() = texture.height * size.y
@@ -22,18 +57,7 @@ class Sprite(val texture: Texture, ppu: Float, val spriteCenter: Vec2 = Vec2(.5f
 	val renderWidth get() = texture.width * size.x * pixelSize
 	val renderHeight get() = texture.height * size.y * pixelSize
 
-	var mesh: Mesh = calculateMesh()
-
-	fun positionMesh(spriteCenter: Vec2, origin: Vec2, size: Vec2, flipX: Boolean = this.flipX, flipY: Boolean = this.flipY){
-		this.spriteCenter.put(spriteCenter)
-		this.origin.put(origin)
-		this.size.put(size)
-
-		this.flipX = flipX
-		this.flipY = flipY
-
-		mesh = calculateMesh()
-	}
+	var mesh: Mesh = calculateMesh(); private set
 
 	fun calculateMesh(): Mesh {
 		val renderSize = Vec2(renderWidth, renderHeight)

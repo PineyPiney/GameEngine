@@ -11,8 +11,6 @@ class TextureMapsComponent(parent: GameObject, val textures: Map<String, Texture
 
 	constructor(parent: GameObject) : this(parent, emptyMap())
 
-	override val fields: Array<Field<*>> = arrayOf()
-
 	val renderer by lazy { parent.getComponent<ShaderRenderedComponent>() }
 	override val whenVisible: Boolean = true
 

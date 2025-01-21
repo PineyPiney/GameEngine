@@ -11,10 +11,6 @@ open class Collider3DComponent(parent: GameObject, open val shape: Shape3D) : Co
 	val transformedShape get() = shape transformedBy parent.worldModel
 	var active = true
 
-	override val fields: Array<Field<*>> = arrayOf(
-		BooleanField("atv", ::active) { a -> active = a }
-	)
-
 	infix fun collidesWith(other: Collider3DComponent): Boolean {
 		return this.parent != other.parent && active && other.active && shape intersects other.shape
 	}

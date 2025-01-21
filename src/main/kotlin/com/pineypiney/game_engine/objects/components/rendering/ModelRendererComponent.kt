@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.objects.components.rendering
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.LightComponent
+import com.pineypiney.game_engine.objects.components.fields.IntFieldRange
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox2DRenderer
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
@@ -11,7 +12,6 @@ import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.resources.models.Bone
 import com.pineypiney.game_engine.resources.models.Model
-import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -21,7 +21,7 @@ import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import kotlin.math.min
 
-open class ModelRendererComponent(parent: GameObject, var model: Model, shader: Shader = defaultShader) :
+open class ModelRendererComponent(parent: GameObject, var model: Model = Model.brokeModel, shader: Shader = defaultShader) :
 	ShaderRenderedComponent(parent, shader) {
 
 	override val renderSize: Vec2 get() = Vec2(1f)
@@ -34,26 +34,8 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
 
 	var erp: String = "lerp"
 
+	@IntFieldRange(0, 7)
 	var debug = 0
-
-	val colliderRenderer = CollisionBox2DRenderer(parent)
-
-	constructor(parent: GameObject) : this(parent, Model.brokeModel)
-
-	override val fields: Array<Field<*>> = arrayOf(
-		Field(
-			"mdl",
-			::DefaultFieldEditor,
-			::model,
-			{ model = it },
-			{ it.name.substringBefore('.') },
-			{ _, s -> ModelLoader[ResourceKey(s)] })
-	)
-
-	override fun init() {
-		super.init()
-		parent.addChild(colliderRenderer)
-	}
 
 	override fun setUniforms() {
 		super.setUniforms()
@@ -78,7 +60,12 @@ open class ModelRendererComponent(parent: GameObject, var model: Model, shader: 
 		}
 
 		if (debug and Model.DEBUG_BONES > 0) renderBones(parent, renderer.view, renderer.projection)
-		colliderRenderer.renderer?.visible = debug and Model.DEBUG_COLLIDER > 0
+		val renderer = parent.getChild(parent.name + " Collider Renderer")?.renderer
+		if(debug and Model.DEBUG_COLLIDER > 0){
+			if(renderer == null) parent.addChild(CollisionBox2DRenderer(parent))
+			else renderer.visible = true
+		}
+		else renderer?.visible = false
 	}
 
 	fun setLightUniforms() {

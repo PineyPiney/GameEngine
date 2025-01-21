@@ -28,15 +28,15 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 
 			val xArrow = MenuItem("X Arrow")
 			xArrow.translate(Vec3(-2 * ip, 0f, .02f))
-			xArrow.components.add(ColouredSpriteComponent(xArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 320f, Vec2(0f, .5f)), { head.red }))
+			xArrow.components.add(ColouredSpriteComponent(xArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 320f, Vec2(0f, .5f)), head.red))
 
 			val yArrow = MenuItem("Y Arrow")
 			yArrow.translate(Vec3(0f, -2 * ip, .01f))
 			yArrow.rotate(Vec3(0f, 0f, PIF * .5f))
-			yArrow.components.add(ColouredSpriteComponent(yArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 320f, Vec2(0f, .5f)), { head.green }))
+			yArrow.components.add(ColouredSpriteComponent(yArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 320f, Vec2(0f, .5f)), head.green))
 
 			val box = MenuItem("Box")
-			box.components.add(ColouredSpriteComponent(box, Sprite(TextureLoader[ResourceKey("editor/box")], 160f, Vec2(0f)), { head.blue }))
+			box.components.add(ColouredSpriteComponent(box, Sprite(TextureLoader[ResourceKey("editor/box")], 160f, Vec2(0f)), head.blue))
 
 			o.addChild(xArrow, yArrow, box)
 		}
@@ -74,16 +74,16 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 
 			val xArrow = MenuItem("X Arrow")
 			xArrow.translate(Vec3(-2 * ip, 0f, .02f))
-			xArrow.components.add(ColouredSpriteComponent(xArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 320f, Vec2(0f, .5f)), { head.red }))
+			xArrow.components.add(ColouredSpriteComponent(xArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 320f, Vec2(0f, .5f)), head.red))
 
 			val yArrow = MenuItem("Y Arrow")
 			yArrow.translate(Vec3(0f, -2 * ip, .01f))
 			yArrow.rotate(Vec3(0f, 0f, PIF * .5f))
-			yArrow.components.add(ColouredSpriteComponent(yArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 320f, Vec2(0f, .5f)), { head.green }))
+			yArrow.components.add(ColouredSpriteComponent(yArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 320f, Vec2(0f, .5f)), head.green))
 
 			val box = MenuItem("Box")
 			box.position = Vec3(.1f, .1f, 0f)
-			box.components.add(ColouredSpriteComponent(box, Sprite(TextureLoader[ResourceKey("editor/box")], 160f, Vec2(0f)), { head.blue }))
+			box.components.add(ColouredSpriteComponent(box, Sprite(TextureLoader[ResourceKey("editor/box")], 160f, Vec2(0f)), head.blue))
 
 			o.addChild(xArrow, yArrow, box)
 		}

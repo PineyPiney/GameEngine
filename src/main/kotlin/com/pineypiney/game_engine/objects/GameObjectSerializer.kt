@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.objects
 
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.Components
+import com.pineypiney.game_engine.objects.components.getAllNewFieldsExt
 import com.pineypiney.game_engine.util.extension_functions.toByteString
 import glm_.getInt
 import glm_.int
@@ -103,11 +104,15 @@ class GameObjectSerializer {
 					continue
 				}
 
+				val fields = component.getAllNewFieldsExt()
+
 				for (fn in 1..numFields) {
-					val fieldName = head.readNBytes(3).toString(Charset.defaultCharset())
+					val fieldNameSize = head.read()
+					val fieldName = head.readNBytes(fieldNameSize).toString(Charset.defaultCharset())
 					val fieldSize = head.int()
 					val value = data.readNBytes(fieldSize).toString(Charsets.ISO_8859_1)
-					component.setValue(fieldName, value)
+					fields.firstOrNull { it.id == fieldName }?.set(value)
+					//component.setValue(fieldName, value)
 				}
 				parent.components.add(component)
 			}

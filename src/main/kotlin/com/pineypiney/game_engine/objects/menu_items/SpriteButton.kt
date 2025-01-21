@@ -15,8 +15,8 @@ open class SpriteButton(
 	origin: Vec3 = Vec3(0f),
 	size: Vec2 = Vec2(1f),
 	val shader: Shader = ColouredSpriteComponent.colouredMenuShader,
-	override val action: (ButtonComponent, Vec2) -> Unit
-) : AbstractButton(name) {
+	val action: (ButtonComponent, Vec2) -> Unit
+) : MenuItem(name) {
 
 	constructor(
 		name: String,
@@ -31,6 +31,7 @@ open class SpriteButton(
 	var baseTint = Vec4(1f)
 	var hoverTint = Vec4(.95f)
 	var clickTint = Vec4(.9f)
+	val tint = baseTint
 
 	init {
 		os(origin, size)
@@ -38,7 +39,8 @@ open class SpriteButton(
 
 	override fun addComponents() {
 		super.addComponents()
-		components.add(ColouredSpriteComponent(this, sprite, ::selectColour, shader))
+		components.add(ButtonComponent(this, { b, v -> action(b, v); tint.put(selectColour()) }, { b, v -> tint.put(selectColour())}, { _, _, _ -> tint.put(selectColour())}, { _, _, _ -> tint.put(selectColour())}))
+		components.add(ColouredSpriteComponent(this, sprite, tint, shader))
 	}
 
 	fun selectColour(): Vec4 {

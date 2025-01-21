@@ -1,11 +1,13 @@
 package com.pineypiney.game_engine.apps
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.apps.editor.FieldEditor
+import com.pineypiney.game_engine.apps.editor.createEditor
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
 import com.pineypiney.game_engine.objects.components.applied
+import com.pineypiney.game_engine.objects.components.getAllNewFieldsExt
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.init
@@ -41,8 +43,8 @@ class ComponentEditor(
 	}
 
 	fun generateFields() {
-		val flds = editingComponent::class.supertypes
-		var i = editingComponent.fields.size
+		val fields = editingComponent.getAllNewFieldsExt()
+		var i = fields.size
 		val h = 0.06f
 
 		position = Vec3(position.x, -0.5f * h * i, 0f)
@@ -56,24 +58,17 @@ class ComponentEditor(
 		}
 
 		val s = 1f / i
-		for (f in editingComponent.fields) {
+		for (f in fields) {
 			val fieldID = id + editingComponent.id + '.' + f.id
-			addChild(
-				f.editor(
-					MenuItem("Field Editor $fieldID"),
-					editingComponent,
-					fieldID,
-					Vec2(0f, ((s * --i))),
-					Vec2(1f, s),
-					callback
-				).applied().parent
-			)
+			addChild(createEditor(MenuItem("Field Editor $fieldID"),
+					f, Vec2(0f, ((s * --i))), Vec2(1f, s), callback
+			)?.applied()?.parent ?: continue)
 		}
 		children.init()
 	}
 
 	fun updateField(id: String) {
-		val fe = children.filterIsInstance<Component.FieldEditor<*, *>>().firstOrNull { it.fieldID == id }
+		val fe = children.filterIsInstance<FieldEditor<*, *>>().firstOrNull { it.field.id == id }
 		if (fe != null) fe.update()
 		else GameEngineI.logger.warn("Could not find FieldEditor $id")
 	}

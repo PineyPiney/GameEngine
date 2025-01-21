@@ -16,7 +16,7 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
 class CollisionBox2DRenderer(val obj: GameObject, val width: Float = .05f, val colour: Vec4 = Vec4(1f), val shader: Shader = defaultShader) :
-	GameObject() {
+	GameObject(obj.name + " Collider Renderer") {
 
 	override fun addComponents() {
 		super.addComponents()

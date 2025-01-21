@@ -8,9 +8,6 @@ class CheckBoxComponent(parent: GameObject, val action: (Boolean) -> Unit) : Def
 
 	var ticked = false
 
-	override val fields: Array<Field<*>>
-		get() = super.fields + BooleanField("tkd", ::ticked) { ticked = it }
-
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
 		if (action == 1) toggle()
 		return super.onPrimary(window, action, mods, cursorPos)

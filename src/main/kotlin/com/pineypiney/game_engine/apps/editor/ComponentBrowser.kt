@@ -67,18 +67,18 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			val compText = Text.makeMenuText(c::class.simpleName ?: "")
 			compText.position = Vec3(0f, y + .025f, .01f)
 			compText.scale = Vec3(1f, .05f, 1f)
-			compText.init()
 			componentContainer.addChild(compText)
+			compText.init()
 
 			// Add all component fields
-			for(f in c.fields){
+			for(f in c.getAllNewFieldsExt()){
 				val fieldID = "${c.id}.${f.id}"
-				val editor = f.editor(MenuItem("Field Editor $fieldID"), c, fieldID, Vec2(0f, y), Vec2(1f, .05f), c::setValue).applied().parent
+				val editor = createEditor(MenuItem("Field Editor $fieldID"), f, Vec2(0f, y), Vec2(1f, .05f), { _, v -> f.set(v)})?.applied()?.parent ?: continue
 				val dy = editor.scale.y
 				editor.translate(Vec3(0f, -dy, 0f))
 				y -= dy
-				editor.init()
 				componentContainer.addChild(editor)
+				editor.init()
 			}
 		}
 	}

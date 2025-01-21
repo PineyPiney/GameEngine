@@ -10,40 +10,15 @@ import glm_.vec4.Vec4
 
 open class ColouredSpriteComponent(
 	parent: GameObject,
-	sprite: Sprite,
-	var tint: () -> Vec4 = { Vec4(1f, 1f, 1f, 1f) },
+	sprite: Sprite = Sprite(Texture.broke, 100f),
+	var tint: Vec4 = Vec4(1f, 1f, 1f, 1f),
 	shader: Shader = colouredMenuShader,
 	val setUniforms: ColouredSpriteComponent.() -> Unit = {}
 ) : SpriteComponent(parent, sprite, shader) {
 
-	constructor(
-		parent: GameObject,
-		texture: Texture,
-		pixelsPerUnit: Float = 100f,
-		tint: () -> Vec4 = { Vec4(1f, 1f, 1f, 1f) },
-		shader: Shader = colouredMenuShader,
-		setUniforms: ColouredSpriteComponent.() -> Unit = {}
-	) : this(parent, Sprite(texture, pixelsPerUnit), tint, shader, setUniforms)
-
-	constructor(
-		parent: GameObject,
-		texture: Texture,
-		pixelsPerUnit: Float = 100f,
-		tint: Vec4 = Vec4(1f, 1f, 1f, 1f),
-		shader: Shader = colouredMenuShader,
-		setUniforms: ColouredSpriteComponent.() -> Unit = {}
-	) : this(parent, Sprite(texture, pixelsPerUnit), { tint }, shader, setUniforms)
-
-	constructor(parent: GameObject) : this(parent, Sprite(Texture.broke, 100f), { Vec4(1f) })
-
-	override val fields: Array<Field<*>> = super.fields + arrayOf(
-		Vec4Field("tnt", tint) { tint = { it } },
-		ShaderField("sdr", shadUn::shader) { shadUn.shader = it }
-	)
-
 	override fun setUniforms() {
 		super.setUniforms()
-		uniforms.setVec4Uniform("tint") { this.tint() }
+		uniforms.setVec4Uniform("tint") { tint }
 		setUniforms.invoke(this)
 	}
 

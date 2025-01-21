@@ -13,13 +13,6 @@ class Rigidbody3DComponent(parent: GameObject) : Component(parent, "RGB"), Updat
 
 	var stepBias: Vec3? = null
 
-	override val fields: Array<Field<*>> = arrayOf(
-		Vec3Field("vlc", ::velocity) { velocity = it },
-		Vec3Field("acc", ::acceleration) { acceleration = it },
-		Vec3Field("grv", ::gravity) { gravity = it },
-		Vec3Field("spb", { stepBias ?: Vec3() }) { stepBias = it },
-	)
-
 	override fun update(interval: Float) {
 		acceleration plusAssign gravity
 		velocity plusAssign acceleration * interval

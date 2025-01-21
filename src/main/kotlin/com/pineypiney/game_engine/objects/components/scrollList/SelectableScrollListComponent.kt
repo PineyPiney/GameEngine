@@ -9,8 +9,5 @@ abstract class SelectableScrollListComponent(parent: GameObject) : ScrollListCom
 
 	open var selectedEntry: Int = -1
 
-	override val fields: Array<Field<*>> = super.fields +
-			IntField("sle", ::selectedEntry) { selectedEntry = it }
-
 	open fun getSelectedEntry(): SelectableScrollListEntryComponent? = items.getOrNull(selectedEntry)?.getComponent()
 }

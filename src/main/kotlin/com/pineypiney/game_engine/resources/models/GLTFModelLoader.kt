@@ -210,7 +210,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
 		val collider =
 			if (min.z == max.z) Collider2D(Rect2D(Vec2(min), Vec2(max - min)))
 			else Collider3D(Cuboid((min + max) * .5f, Quat.identity, max - min))
-		return Model(fileName.substringAfterLast('/'), meshes.toTypedArray(), null, animations.toTypedArray(), collider)
+		return Model(fileName, meshes.toTypedArray(), null, animations.toTypedArray(), collider)
 	}
 
 	fun loadGLTFFile(fileName: String, stream: InputStream): Model {

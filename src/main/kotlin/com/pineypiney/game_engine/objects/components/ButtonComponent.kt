@@ -18,8 +18,6 @@ class ButtonComponent(
 
 	var active: Boolean = true
 
-	override val fields: Array<Field<*>> = super.fields + BooleanField("act", ::active) { active = it }
-
 	override fun onInput(window: WindowI, input: InputState, action: Int, cursorPos: Vec2): Int {
 		super.onInput(window, input, action, cursorPos)
 		if (input == InputState(GLFW.GLFW_GAMEPAD_BUTTON_A, ControlType.GAMEPAD_BUTTON) && active) {

@@ -5,9 +5,11 @@ import com.pineypiney.game_engine.objects.components.colliders.BoxCollider3DComp
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
 import com.pineypiney.game_engine.objects.components.colliders.CompoundCollider3DComponent
+import com.pineypiney.game_engine.objects.components.fields.*
 import com.pineypiney.game_engine.objects.components.rendering.*
 import com.pineypiney.game_engine.objects.components.scrollList.ScrollBarComponent
 import com.pineypiney.game_engine.objects.components.slider.*
+import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
 import glm_.quat.Quat
@@ -20,6 +22,7 @@ import glm_.vec4.Vec4i
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.javaType
 
 class Components {
@@ -108,28 +111,29 @@ class Components {
 			"Texture" to { Texture.broke },
 		)
 
-		fun<C: ComponentI> getDefaultField(property: KMutableProperty1<C, Any>, component: C): Component.Field<*>?{
+		@Suppress("UNCHECKED_CAST")
+		fun<C: Any> getNewDefaultField(property: KMutableProperty1<C, Any>, component: C, parent: String = ""): ComponentField<*>?{
 			return when(property.returnType.javaType.typeName){
-				"int" -> Component.IntField("aaa", { property.get(component) as Int }){ property.set(component, it)}
-				"kotlin.UInt" -> Component.UIntField("aaa", { property.get(component) as UInt }){ property.set(component, it)}
-				"float" -> Component.FloatField("aaa", { property.get(component) as Float }){ property.set(component, it)}
-				"double" -> Component.DoubleField("aaa", { property.get(component) as Double }){ property.set(component, it)}
-				"glm_.vec2.Vec2" -> Component.Vec2Field("aaa", { property.get(component) as Vec2 }){ property.set(component, it)}
-				"glm_.vec3.Vec3" -> Component.Vec3Field("aaa", { property.get(component) as Vec3 }){ property.set(component, it)}
-				"glm_.vec4.Vec4" -> Component.Vec4Field("aaa", { property.get(component) as Vec4 }){ property.set(component, it)}
-				"glm_.quat.Quat" -> Component.QuatField("aaa", { property.get(component) as Quat }){ property.set(component, it)}
+				"boolean" -> BoolField(parent + property.name, { property.get(component) as Boolean }){ property.set(component, it)}
+				"int" -> {
+					val range = property.findAnnotation<IntFieldRange>()
+					if(range == null) IntField(parent + property.name, { property.get(component) as Int }){ property.set(component, it)}
+					else IntRangeField(parent + property.name, IntRange(range.min, range.max), { property.get(component) as Int }
+					){ property.set(component, it)}
+				}
+				"kotlin.UInt" -> UIntField(parent + property.name, { property.get(component) as UInt }){ property.set(component, it)}
+				"float" -> FloatField(parent + property.name, { property.get(component) as Float }){ property.set(component, it)}
+				"double" -> DoubleField(parent + property.name, { property.get(component) as Double }){ property.set(component, it)}
+				"glm_.vec2.Vec2" -> Vec2Field(parent + property.name, { property.get(component) as Vec2 }){ property.set(component, it)}
+				"glm_.vec3.Vec3" -> Vec3Field(parent + property.name, { property.get(component) as Vec3 }){ property.set(component, it)}
+				"glm_.vec4.Vec4" -> Vec4Field(parent + property.name, { property.get(component) as Vec4 }){ property.set(component, it)}
+				"glm_.quat.Quat" -> QuatField(parent + property.name, { property.get(component) as Quat }){ property.set(component, it)}
+
+				"com.pineypiney.game_engine.resources.shaders.Shader" -> ShaderField(parent + property.name, { property.get(component) as Shader }){ property.set(component, it)}
+				"com.pineypiney.game_engine.resources.textures.Texture" -> TextureField(parent + property.name, {property.get(component) as Texture}){ property.set(component, it)}
+				"com.pineypiney.game_engine.resources.models.Model" -> ModelField(parent + property.name, {property.get(component) as Model}){ property.set(component, it)}
 				else -> null
 			}
 		}
-
-		val defaultFields: Map<String, (property: KMutableProperty1<ComponentI, Any>, component: ComponentI) -> Component.Field<*>> = mapOf(
-			"Int" to { property, component -> Component.IntField("aaa", { property.get(component) as Int }){ property.set(component, it)} }
-			//"UInt" to { 1u },
-			//"Float" to { 1f },
-			//"Double" to { 1.0 },
-			//"Vec2" to { Vec2() },
-			//"Vec3" to { Vec3() },
-			//"Vec4" to { Vec4() },
-		)
 	}
 }

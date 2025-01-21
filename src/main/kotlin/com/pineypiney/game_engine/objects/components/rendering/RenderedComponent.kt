@@ -7,7 +7,4 @@ abstract class RenderedComponent(parent: GameObject) : Component(parent, "RND"),
 
 	final override var visible = true
 
-	override val fields: Array<Field<*>> = arrayOf(
-		BooleanField("vsb", ::visible) { visible = it }
-	)
 }

@@ -79,6 +79,6 @@ class 	Translator2D(parent: GameObject, screen: EditorScreen) : Transformer(pare
 		val newWorldPos = Vec3(Vec2(screen.renderer.camera.screenToWorld(Vec2(parent.position.x / window.aspectRatio, parent.position.y))), screen.editingObject!!.position.z)
 		screen.editingObject?.transformComponent?.worldPosition = newWorldPos
 		//screen.editingObject?.transformComponent?.worldModel?.let{ it.setTranslation(newWorldPos, it) }
-		screen.componentBrowser.refreshField("T2D.pos")
+		screen.componentBrowser.refreshField("T2D.position")
 	}
 }

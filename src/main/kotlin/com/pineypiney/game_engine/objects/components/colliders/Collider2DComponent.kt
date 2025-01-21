@@ -16,10 +16,6 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D, val flags: Mut
 	val transformedShape get() = shape transformedBy parent.worldModel
 	var active = true
 
-	override val fields: Array<Field<*>> = arrayOf(
-		BooleanField("atv", ::active) { a -> active = a }
-	)
-
 	infix fun collidesWith(other: Collider2DComponent): Boolean {
 		return this.parent != other.parent && active && other.active && shape intersects other.shape
 	}

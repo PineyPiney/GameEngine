@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.apps.editor.transformers.Transformers
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.GameObjectSerializer
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.objects.components.FPSCounter
 import com.pineypiney.game_engine.objects.components.applied
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
@@ -53,7 +52,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 
 	// What the mouse is dragging, can be anything from any of the browsers e.g. Texture, GameObject
 	var dragging: DraggedElement? = null
-	var draggedField: Component.FieldEditor<*, *>? = null
+	var draggedField: FieldEditor<*, *>? = null
 
 	private val saveButton = TextButton("Save", Vec2(0.45f, -0.9f), Vec2(0.2f, 0.2f)) { _, _ ->
 		save()
@@ -82,7 +81,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 	override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
 		super.onCursorMove(cursorPos, cursorDelta)
 		val element = dragging?.element ?: return
-		val editor = componentBrowser.parent.getChild("Component Container")?.children?.firstNotNullOfOrNull({ it.getComponent<Component.FieldEditor<*, *>>() }){ it.hover }
+		val editor = componentBrowser.parent.getChild("Component Container")?.children?.firstNotNullOfOrNull({ it.getComponent<FieldEditor<*, *>>() }){ it.hover }
 		if(editor == null){
 			if(draggedField != null) {
 				draggedField?.onHoverElement(-1, cursorPos)

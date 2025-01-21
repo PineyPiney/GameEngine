@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.fields.EditorIgnore
 import com.pineypiney.game_engine.objects.transforms.Transform3D
 import com.pineypiney.game_engine.util.extension_functions.*
 import com.pineypiney.game_engine.util.maths.I
@@ -13,7 +14,7 @@ open class TransformComponent(parent: GameObject) : Component(parent, "T2D") {
 	protected val transform: Transform3D = Transform3D.origin
 
 	private var dirtyWorldModel = true
-	var worldModel: Mat4 = I //TODO make private again
+	private var worldModel: Mat4 = I
 
 	@EditingField
 	var position: Vec3
@@ -36,6 +37,7 @@ open class TransformComponent(parent: GameObject) : Component(parent, "T2D") {
 			transform.scale = value; dirtyWorldModel()
 		}
 
+	@EditorIgnore
 	var worldPosition: Vec3
 		get() = if (parent.parent == null) transform.position else parent.worldModel.getTranslation()
 		set(value) {
@@ -47,6 +49,7 @@ open class TransformComponent(parent: GameObject) : Component(parent, "T2D") {
 				parent.position = newModel.getTranslation()
 			}
 		}
+	@EditorIgnore
 	var worldRotation: Quat
 		get() = if (parent.parent == null) transform.rotation else parent.worldModel.getRotation()
 		set(value) {
@@ -54,6 +57,7 @@ open class TransformComponent(parent: GameObject) : Component(parent, "T2D") {
 			if (p == null) parent.rotation = value
 			else parent.rotation = (parent.worldModel.setRotation(value) / p).getRotation()
 		}
+	@EditorIgnore
 	var worldScale: Vec3
 		get() = if (parent.parent == null) transform.scale else parent.worldModel.getScale()
 		set(value) {
@@ -61,12 +65,6 @@ open class TransformComponent(parent: GameObject) : Component(parent, "T2D") {
 			if (p == null) parent.scale = value
 			else parent.scale = (parent.worldModel.setScale(value) / p).getScale()
 		}
-
-	override val fields: Array<Field<*>> = arrayOf(
-		Vec3Field("pos", transform::position) { position = it },
-		Vec3Field("scl", transform::scale) { scale = it },
-		QuatField("rtn", transform::rotation) { rotation = it }
-	)
 
 
 	init {

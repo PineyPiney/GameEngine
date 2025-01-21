@@ -12,8 +12,6 @@ class LightComponent(parent: GameObject, val light: Light) : Component(parent, "
 			light.on = value
 		}
 
-	override val fields: Array<Field<*>> = arrayOf()
-
 	fun setShaderUniforms(shader: Shader, name: String) {
 
 

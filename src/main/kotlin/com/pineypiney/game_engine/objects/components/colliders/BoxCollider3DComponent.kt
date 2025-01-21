@@ -9,9 +9,4 @@ class BoxCollider3DComponent(parent: GameObject, override val shape: Cuboid) : C
 
 	constructor(parent: GameObject) : this(parent, Cuboid(Vec3(), Quat.identity, Vec3(1)))
 
-	override val fields: Array<Field<*>> = super.fields + arrayOf(
-		Vec3Field("ogn", shape::center) { o -> shape.center = o },
-		Vec3Field("sze", shape::size) { s -> shape.size = s },
-		QuatField("rtn", shape::rotation) { r -> shape.rotation = r }
-	)
 }

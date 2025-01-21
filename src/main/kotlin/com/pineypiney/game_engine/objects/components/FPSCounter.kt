@@ -15,13 +15,6 @@ class FPSCounter(parent: GameObject, var period: Double, val callback: (Double) 
 	var tally: Int = 0
 	var nextUpdate: Double = .0
 
-	override val fields: Array<Field<*>> = arrayOf(
-		DoubleField("prd", ::period) { period = it },
-		DoubleField("FPS", ::FPS) { FPS = it },
-		IntField("tly", ::tally) { tally = it },
-		DoubleField("nxt", ::nextUpdate) { nextUpdate = it },
-	)
-
 	override fun preRender(tickDelta: Double) {
 		tally++
 		if (Timer.time > nextUpdate) {

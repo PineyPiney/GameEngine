@@ -24,6 +24,11 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 
 	override var forceUpdate: Boolean = true
 
+	override fun startAt(obj: GameObject, screen: EditorScreen) {
+		super.startAt(obj, screen)
+		parent.rotation = obj.transformComponent.worldRotation
+	}
+
 	override fun onCursorMove(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		if(pressed) return
@@ -81,11 +86,6 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 			}
 		}
 		screen.editingObject?.transformComponent?.worldRotation = parent.rotation
-		screen.componentBrowser.refreshField("T2D.rtn")
-	}
-
-	override fun startAt(obj: GameObject, screen: EditorScreen) {
-		super.startAt(obj, screen)
-		parent.rotation = obj.transformComponent.worldRotation
+		screen.componentBrowser.refreshField("T2D.rotation")
 	}
 }
