@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Shape
-import glm_.vec2.Vec2
 
 open class MeshedTextureComponent(
 	parent: GameObject,
@@ -16,8 +15,6 @@ open class MeshedTextureComponent(
 	shader: Shader = default2DShader,
 	val vShape: Mesh = Mesh.centerSquareShape
 ) : ShaderRenderedComponent(parent, shader) {
-
-	override val renderSize: Vec2 get() = Vec2(1f)
 
 	override val shape: Shape<*> = vShape.shape
 

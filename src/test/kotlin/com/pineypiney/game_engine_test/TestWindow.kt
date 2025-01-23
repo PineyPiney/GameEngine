@@ -27,7 +27,6 @@ class TestWindow(width: Int = 960, height: Int = 540): Window("Example Window", 
 		val hints = defaultHints + mapOf(
 			GLFW.GLFW_CONTEXT_VERSION_MAJOR to 3,
 			GLFW.GLFW_CONTEXT_VERSION_MINOR to 3,
-			GLFW.GLFW_SAMPLES to 4
 		)
 
 		val INSTANCE = TestWindow()

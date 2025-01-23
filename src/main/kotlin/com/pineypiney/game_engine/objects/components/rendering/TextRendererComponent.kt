@@ -9,18 +9,15 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 
 open class TextRendererComponent(parent: GameObject, val text: Text, shader: Shader) :
 	ShaderRenderedComponent(parent, shader), UpdatingAspectRatioComponent {
 
-	override val renderSize: Vec2 get() = Vec2(text.getWidth(), text.getHeight())
+	override val shape: Rect2D get() = Rect2D(Vec2(), Vec2(text.getWidth(), text.getHeight()))
 
-	override val shape: Shape<*> get() = Rect2D(Vec2(), renderSize)
-
-	override fun setUniforms() {
+		override fun setUniforms() {
 		super.setUniforms()
 		uniforms.setMat4Uniform("model"){ parent.worldModel.let { it.scale(text.size * it[1, 1] / it[0, 0], text.size, 1f) } }
 		uniforms.setVec4Uniform("colour", text::colour)

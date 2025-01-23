@@ -7,7 +7,6 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Shape
-import glm_.vec2.Vec2
 import glm_.vec2.Vec2t
 import glm_.vec4.Vec4
 
@@ -20,7 +19,6 @@ class BezierDisplay(parent: GameObject, val points: Array<Vec2t<*>>) : ShaderRen
 ) {
 
 	val vShape = Mesh.cornerSquareShape
-	override val renderSize: Vec2 = Vec2(1f)
 	override val shape: Shape<*> = vShape.shape
 
 	override fun setUniforms() {

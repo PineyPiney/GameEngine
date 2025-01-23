@@ -10,7 +10,6 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.shapes.Shape
-import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
 class CollisionBox3DRenderer(
@@ -26,7 +25,6 @@ class CollisionBox3DRenderer(
 
 			val vShape = Mesh.centerCubeShape
 			override val shape: Shape<*> = vShape.shape
-			override val renderSize: Vec2 = Vec2(1f)
 
 			override fun setUniforms() {
 				super.setUniforms()
@@ -34,7 +32,7 @@ class CollisionBox3DRenderer(
 					(this@CollisionBox3DRenderer.obj.getShape() as Cuboid).run {
 						(I.translate(
 							center
-						) * rotation.toMat4()).scale(size)
+						) * rotation.toMat4()).scale(sides)
 					}
 				}
 				uniforms.setVec4Uniform("colour", ::colour)

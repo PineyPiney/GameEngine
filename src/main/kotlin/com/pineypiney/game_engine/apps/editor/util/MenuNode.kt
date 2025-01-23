@@ -14,7 +14,7 @@ abstract class MenuNode<T>(parent: GameObject, val obj: T) : DefaultInteractorCo
 		parent.transformComponent.worldPosition = Vec3(currentX, currentY - yShift, .01f)
 		if(open){
 			for(c in parent.children){
-				c.getComponent<ObjectNode>()?.let { yShift += it.position(currentX + .02f, currentY - yShift) }
+				c.getComponent<ObjectNode>()?.let { yShift += it.position(currentX + (parent.transformComponent.worldScale.x * .02f), currentY - yShift) }
 			}
 		}
 		return yShift

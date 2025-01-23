@@ -8,6 +8,9 @@ import kotlin.math.sqrt
 
 class Circle3D(override val center: Vec3, val normal: Vec3, val radius: Float) : Shape3D() {
 
+	override val min: Vec3 = center - Vec3(radius)
+	override val max: Vec3 = center + Vec3(radius)
+
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
 		val planeIntersection = Plane(center, normal).intersectedBy(ray).getOrNull(0) ?: return arrayOf()
 		return if((planeIntersection - center).length2() > radius * radius) emptyArray()

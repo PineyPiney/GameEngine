@@ -26,10 +26,8 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-open class TextFieldComponent(parent: GameObject, startText: String = "", textSize: Float = 1f) : DefaultInteractorComponent(
-	parent
-),
-	UpdatingComponent {
+open class TextFieldComponent(parent: GameObject, startText: String = "", textSize: Float = 1f) :
+	DefaultInteractorComponent(parent), UpdatingComponent {
 
 	open var allowed = all
 
@@ -188,7 +186,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		val relativeX =
 			(cursorPos.x - textBox.transformComponent.worldPosition.x) / parent.transformComponent.worldScale.x
 		val ar =
-			(parent.getComponent<RenderedComponent>()!!.renderSize * Vec2(parent.transformComponent.worldScale)).run { x / y }
+			(parent.getComponent<RenderedComponent>()!!.shape.size.run { Vec2(x, y) } * Vec2(parent.transformComponent.worldScale)).run { x / y }
 		val scaledX = relativeX * ar
 		while (i < text.length && (textRenderer.text.getWidth(text.substring(0, i)) < scaledX)) i++
 

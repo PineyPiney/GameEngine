@@ -17,4 +17,8 @@ class DirectionalLight(
 		shader.setVec3("${name}Direction", direction)
 		shader.setVec3("$name.direction", direction)
 	}
+
+	companion object {
+
+	}
 }

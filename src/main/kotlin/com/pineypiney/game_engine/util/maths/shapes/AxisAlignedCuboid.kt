@@ -7,18 +7,18 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec3.operators.div
 
-class AxisAlignedCuboid(override val center: Vec3, val size: Vec3) : Shape3D() {
+class AxisAlignedCuboid(override val center: Vec3, val sides: Vec3) : Shape3D() {
 
-	val min = center - (size / 2)
-	val max = min + size
+	override val min = center - (sides / 2)
+	override val max = min + sides
 
 	val points: Array<Vec3>
 		get() {
 			return Array(8) {
 				center + (Vec3(
-					if (it >= 4) size.x else -size.x,
-					if ((it % 4) >= 2) size.y else -size.y,
-					if ((it % 2) == 1) size.z else -size.z
+					if (it >= 4) sides.x else -sides.x,
+					if ((it % 4) >= 2) sides.y else -sides.y,
+					if ((it % 2) == 1) sides.z else -sides.z
 				) * .5f)
 			}
 		}
@@ -66,7 +66,7 @@ class AxisAlignedCuboid(override val center: Vec3, val size: Vec3) : Shape3D() {
 		val scale = model.getScale()
 		val rotation = model.getRotation()
 		//return Rect2D((origin.rotate(rotation) * scale) + Vec2(model.getTranslation()), size * scale, angle - rotation)
-		return Cuboid(center.rotate(rotation) * scale + model.getTranslation(), rotation, size * scale)
+		return Cuboid(center.rotate(rotation) * scale + model.getTranslation(), rotation, sides * scale)
 	}
 
 	override fun vectorTo(point: Vec3): Vec3 {

@@ -34,7 +34,6 @@ import org.lwjgl.opengl.GL11C
 class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInteractorComponent(parent), RenderedComponentI {
 
 	override var visible: Boolean = true
-	override val renderSize: Vec2 = Vec2(1f)
 	val mesh = Mesh.cornerSquareShape
 	override val shape: Shape<*> = mesh.shape
 

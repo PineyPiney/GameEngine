@@ -8,14 +8,12 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Shape
-import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
 open class ColourSliderRendererComponent(parent: GameObject, shader: Shader, val colours: MutableMap<String, Float>) :
 	ShaderRenderedComponent(parent, shader) {
 
 	val vShape = Mesh.cornerSquareShape
-	override val renderSize: Vec2 = Vec2()
 	override val shape: Shape<*> = vShape.shape
 
 	override fun setUniforms() {

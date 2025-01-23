@@ -23,8 +23,6 @@ open class SpriteComponent(
 				spriteCenter: Vec2 = Vec2(.5f)
 	): this(parent, Sprite(texture, pixelsPerUnit, spriteCenter), shader)
 
-	override val renderSize: Vec2 get() = Vec2(sprite.renderWidth, sprite.renderHeight)
-
 	override val shape: Shape<*> get() = sprite.mesh.shape
 
 	constructor(parent: GameObject) : this(parent, Texture.broke)

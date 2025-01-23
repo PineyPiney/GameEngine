@@ -24,6 +24,25 @@ inline fun <S, T> Iterable<T>.reduceA(acc: S, operation: (acc: S, T) -> S): S {
 }
 
 /**
+ * Reduce function that passes function to retrieve reducing values from elements
+ *
+ * @param get Function to get a variable class [S] from each element.
+ * @param operation Operatiom to be applied to the result of [get] from each element
+ *
+ *
+ * @returns The final value of the accumulator
+ */
+inline fun <S, T> Iterable<T>.reduceFields(get: T.() -> S, operation: (acc: S, S) -> S): S {
+	val iterator = this.iterator()
+	if (!iterator.hasNext()) throw UnsupportedOperationException("Empty collection can't be reduced.")
+	var accumulator: S = iterator.next().get()
+	while (iterator.hasNext()) {
+		accumulator = operation(accumulator, iterator.next().get())
+	}
+	return accumulator
+}
+
+/**
  * Initialise all items in a collection of initialisable objects
  */
 fun <E : Initialisable> Iterable<E?>?.init() {

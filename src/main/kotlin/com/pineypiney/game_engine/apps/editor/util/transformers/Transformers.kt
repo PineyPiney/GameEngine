@@ -48,7 +48,6 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 			val rings = MenuItem("Rotator Rings")
 			rings.scale = Vec3(.3f, .3f, 1f)
 			rings.components.add(object : ShaderRenderedComponent(rings, ShaderLoader[ResourceKey("vertex/2D_pass_pos"), ResourceKey("fragment/editor/rotate2D")]){
-				override val renderSize: Vec2 = Vec2(1f)
 				override val shape: Shape2D = Rect2D(Vec2(-.5f), 1f, 1f)
 
 				override fun setUniforms() {

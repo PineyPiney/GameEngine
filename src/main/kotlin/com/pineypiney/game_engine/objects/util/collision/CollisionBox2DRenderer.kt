@@ -11,7 +11,6 @@ import com.pineypiney.game_engine.util.extension_functions.rotate
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape
-import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
@@ -24,7 +23,6 @@ class CollisionBox2DRenderer(val obj: GameObject, val width: Float = .05f, val c
 
 			val vShape = Mesh.cornerSquareShape
 			override val shape: Shape<*> = vShape.shape
-			override val renderSize: Vec2 = Vec2(1f)
 
 			override fun setUniforms() {
 				super.setUniforms()
@@ -32,7 +30,7 @@ class CollisionBox2DRenderer(val obj: GameObject, val width: Float = .05f, val c
 					(this@CollisionBox2DRenderer.obj.getShape() as Rect2D).run {
 						I.translate(
 							Vec3(origin, 0f)
-						).rotate(angle).scale(Vec3(size, 1f))
+						).rotate(angle).scale(Vec3(lengths, 1f))
 					}
 				}
 				uniforms.setVec4Uniform("colour", ::colour)

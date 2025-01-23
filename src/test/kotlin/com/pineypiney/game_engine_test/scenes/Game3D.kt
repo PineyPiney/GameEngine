@@ -66,7 +66,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	}
 
 	private val doughnut = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("broke")], ModelRendererComponent.defaultShader).apply { translate(Vec3(0f, 2f, 0f)) }
-	private val gltf = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/Beating Heart 3")], ModelRendererComponent.defaultLitShader).apply { translate(Vec3(2f, 2f, 0f)); scale(Vec3(0.002f)) }
+	private val gltf = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/Beating Heart 3")], ModelRendererComponent.defaultLitShader).apply { translate(Vec3(2f, 2f, 0f)); resize(Vec3(0.002f)) }
 
 	val sun = GameObject.simpleLightObject(DirectionalLight(Vec3(.1f, -.9f, .1f)))
 	val light = GameObject.simpleLightObject(PointLight())

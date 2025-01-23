@@ -12,6 +12,9 @@ import kotlin.math.sqrt
 
 class Circle(override val center: Vec2, val radius: Float) : Shape2D() {
 
+	override val min: Vec2 = center - Vec2(radius)
+	override val max: Vec2 = center + Vec2(radius)
+
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
 		val planeIntersection = ray.rayOrigin - (ray.rayOrigin projectOn ray.direction)
 		return if ((Vec2(planeIntersection) - center).length2() > radius * radius) emptyArray()

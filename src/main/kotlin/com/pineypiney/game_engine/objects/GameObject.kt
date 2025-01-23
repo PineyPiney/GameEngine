@@ -62,7 +62,6 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 	val worldModel: Mat4 get() = transformComponent.fetchWorldModel()
 
 	val renderer get() = getComponent<RenderedComponentI>()
-	val parentRenderSize get() = parent?.renderer?.renderSize ?: Vec2(1f, 1f)
 
 	var throwKidsAtRenderer = true
 
@@ -96,7 +95,7 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 	}
 
 	infix fun translate(vec: Vec3) = transformComponent translate vec
-	infix fun scale(vec: Vec3) = transformComponent scale vec
+	infix fun resize(vec: Vec3) = transformComponent scale vec
 	infix fun rotate(euler: Vec3) = transformComponent rotate euler
 	infix fun rotate(quat: Quat) = transformComponent rotate quat
 
@@ -182,9 +181,9 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		getComponent<Collider2DComponent>()?.let { return it.transformedShape }
 		getComponent<Collider3DComponent>()?.let { return it.transformedShape }
 
-		val renderer = this.renderer
+		val renderer = renderer
 		if (renderer != null) {
-			return renderer.shape transformedBy worldModel.scale(Vec3(renderer.renderSize, 1f))
+			return renderer.shape transformedBy worldModel
 		}
 
 		return Rect2D(Vec2(), Vec2(1f))
@@ -295,7 +294,6 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 					components.add(object : ShaderRenderedComponent(x, shader) {
 
 						override val shape: Shape<*> = shape.shape
-						override val renderSize: Vec2 = Vec2(1f)
 
 						override fun setUniforms() {
 							super.setUniforms()

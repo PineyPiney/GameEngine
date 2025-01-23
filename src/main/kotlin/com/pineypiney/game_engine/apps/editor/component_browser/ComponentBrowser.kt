@@ -42,7 +42,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		comp.init()
 
 		addComponentFields(comp)
-		positionComponents(1f, 1080f / screen.window.size.y)
+		positionComponents()
 	}
 
 	fun setEditing(obj: GameObject?){
@@ -58,7 +58,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 
 			for(c in obj.components) addComponentFields(c)
 
-			positionComponents(1f, 1080f / screen.window.size.y)
+			positionComponents()
 		}
 	}
 
@@ -114,7 +114,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		compCont.init()
 	}
 
-	fun positionComponents(initialY: Float = 1f, yScale: Float = 1f){
+	fun positionComponents(initialY: Float = 1f, yScale: Float = 840f / (screen.window.size.y - screen.settings.fileBrowserHeight)){
 		var y = initialY
 
 		for(c in componentContainer.children){
@@ -144,9 +144,10 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 
 	override fun updateAspectRatio(renderer: RendererI) {
 		val trans = parent.getComponent<PixelTransformComponent>()
-		trans?.pixelScale = Vec2i(screen.settings.componentBrowserWidth, renderer.viewportSize.y - screen.settings.fileBrowserHeight)
+		val newScale = Vec2i(screen.settings.componentBrowserWidth, renderer.viewportSize.y - screen.settings.fileBrowserHeight)
+		trans?.pixelScale = newScale
 
-		positionComponents(1f, 1080f / renderer.viewportSize.y)
+		positionComponents(1f, 840f / newScale.y)
 	}
 
 	class Container(parent: GameObject, val size: Float): Component(parent)

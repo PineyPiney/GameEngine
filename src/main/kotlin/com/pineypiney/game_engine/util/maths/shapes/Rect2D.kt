@@ -12,9 +12,18 @@ class Rect2D(val origin: Vec2, var length1: Float, var length2: Float, var angle
 	override val center: Vec2
 		get() = origin + (side1 + side2) * .5f
 
+	override val min: Vec2
+	override val max: Vec2
+
+	init {
+		val p = points
+		min = p.reduce { a, b -> Vec2(minOf(a.x, b.x), minOf(a.y, b.y))}
+		max = p.reduce { a, b -> Vec2(maxOf(a.x, b.x), maxOf(a.y, b.y))}
+	}
+
 	constructor(origin: Vec2, size: Vec2, angle: Float = 0f) : this(origin, size.x, size.y, angle)
 
-	var size: Vec2
+	var lengths: Vec2
 		get() = Vec2(length1, length2)
 		set(value) {
 			length1 = value.x; length2 = value.y
@@ -34,7 +43,7 @@ class Rect2D(val origin: Vec2, var length1: Float, var length2: Float, var angle
 	}
 
 	override fun containsPoint(point: Vec2): Boolean {
-		return point.isWithin(origin, size)
+		return point.isWithin(origin, lengths)
 	}
 
 	override fun vectorTo(point: Vec2): Vec2 {
@@ -70,12 +79,12 @@ class Rect2D(val origin: Vec2, var length1: Float, var length2: Float, var angle
 	override fun transformedBy(model: Mat4): Rect2D {
 		val scale = Vec2(model.getScale())
 		val rotation = model.getRotation().eulerAngles().z
-		return Rect2D((origin.rotate(rotation) * scale) + Vec2(model.getTranslation()), size * scale, angle - rotation)
+		return Rect2D((origin.rotate(rotation) * scale) + Vec2(model.getTranslation()), lengths * scale, angle - rotation)
 	}
 
 
 	override fun toString(): String {
-		return "Rect2D[$origin, $size]"
+		return "Rect2D[$origin, $lengths]"
 	}
 
 	companion object {

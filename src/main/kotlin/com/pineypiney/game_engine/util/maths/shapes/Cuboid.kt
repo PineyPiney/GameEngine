@@ -9,16 +9,25 @@ import glm_.vec3.Vec3
 import glm_.vec3.operators.div
 import kotlin.math.abs
 
-class Cuboid(override var center: Vec3, var rotation: Quat, var size: Vec3) : Shape3D() {
+class Cuboid(override var center: Vec3, var rotation: Quat, var sides: Vec3) : Shape3D() {
 
-	val side1 get() = Vec3(size.x, 0f, 0f).rotate(rotation)
-	val side2 get() = Vec3(0f, size.y, 0f).rotate(rotation)
-	val side3 get() = Vec3(0f, 0f, size.z).rotate(rotation)
+	override val min: Vec3
+	override val max: Vec3
+
+	init {
+		val p = points
+		min = p.reduce { a, b -> Vec3(minOf(a.x, b.x), minOf(a.y, b.y), minOf(a.z, b.z))}
+		max = p.reduce { a, b -> Vec3(maxOf(a.x, b.x), maxOf(a.y, b.y), maxOf(a.z, b.z))}
+	}
+
+	val side1 get() = Vec3(sides.x, 0f, 0f).rotate(rotation)
+	val side2 get() = Vec3(0f, sides.y, 0f).rotate(rotation)
+	val side3 get() = Vec3(0f, 0f, sides.z).rotate(rotation)
 
 	val points: Array<Vec3>
 		get() {
 			val sides = arrayOf(side1, side2, side3)
-			val o = center - (size.rotate(rotation) * .5f)
+			val o = center - (this.sides.rotate(rotation) * .5f)
 			return Array(8) {
 				val v = Vec3(o)
 				for (i in 0..2) if (it and (1 shl i) > 0) v += sides[i]
@@ -33,8 +42,8 @@ class Cuboid(override var center: Vec3, var rotation: Quat, var size: Vec3) : Sh
 		val rotatedDir = ray.direction transformedBy rotationMatrix
 
 		val rotatedCenter = center transformedBy rotationMatrix
-		val rotatedMin = rotatedCenter - (size / 2)
-		val rotatedMax = rotatedMin + size
+		val rotatedMin = rotatedCenter - (sides / 2)
+		val rotatedMax = rotatedMin + sides
 
 		val invMag = 1f / rotatedDir
 		// The distances of the ray to the boundaries of the box,
@@ -73,14 +82,14 @@ class Cuboid(override var center: Vec3, var rotation: Quat, var size: Vec3) : Sh
 		val project2 = vec projectOn side2.normalize()
 		val project3 = vec projectOn side3.normalize()
 
-		return project1.length() <= abs(size.x) * .5f &&
-				project2.length() <= abs(size.y) * .5f &&
-				project3.length() <= abs(size.z) * .5f
+		return project1.length() <= abs(sides.x) * .5f &&
+				project2.length() <= abs(sides.y) * .5f &&
+				project3.length() <= abs(sides.z) * .5f
 	}
 
 	// Same as Rect3D with extra dimension
 	override fun vectorTo(point: Vec3): Vec3 {
-		val origin = center - size.rotate(rotation)
+		val origin = center - sides.rotate(rotation)
 		val side1 = side1
 		val side2 = side2
 		val side3 = side3
@@ -122,6 +131,6 @@ class Cuboid(override var center: Vec3, var rotation: Quat, var size: Vec3) : Sh
 		val scale = model.getScale()
 		val rotation = model.getRotation()
 		//return Rect2D((origin.rotate(rotation) * scale) + Vec2(model.getTranslation()), size * scale, angle - rotation)
-		return Cuboid(center.rotate(rotation) * scale + model.getTranslation(), this.rotation * rotation, size * scale)
+		return Cuboid(center.rotate(rotation) * scale + model.getTranslation(), this.rotation * rotation, sides * scale)
 	}
 }

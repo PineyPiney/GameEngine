@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponen
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -28,7 +29,7 @@ class CaretRendererComponent(
 	private fun positionTextAndCaret() {
 		val w = textField.textBox.getComponent<TextRendererComponent>()!!.text.getWidth(0..<textField.caret)
 		val ar =
-			(textField.parent.getComponent<ShaderRenderedComponent>()!!.renderSize * Vec2(textField.parent.transformComponent.worldScale)).run { y / x }
+			((textField.parent.getComponent<ShaderRenderedComponent>()!!.shape as Shape2D).size * Vec2(textField.parent.transformComponent.worldScale)).run { y / x }
 		val x = (w * ar) + textField.textBox.position.x
 		if (x < 0f) {
 			textField.textBox.translate(Vec3(-x, 0f, 0f))

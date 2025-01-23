@@ -19,28 +19,30 @@ interface InteractorComponent : ComponentI {
 
 	val interactableChildren: Collection<InteractorComponent> get() = parent.children.flatMap { it.children.filterIsInstance<InteractorComponent>() }
 
-	val renderSize get() = parent.getComponent<RenderedComponent>()?.renderSize ?: Vec2(1f, 1f)
+	val renderSize get() = parent.getComponent<RenderedComponent>()?.shape?.size ?: Vec2(1f, 1f)
 
 
 	fun checkHover(ray: Ray, screenPos: Vec2): Float {
 		val renderer = parent.getComponent<RenderedComponent>()
-		val shape = renderer?.shape
-		if(shape is Shape2D){
-			val newShape = shape.transformedBy(parent.worldModel)
-			return if(newShape.containsPoint(screenPos)) 5f - parent.transformComponent.worldPosition.z
+
+		if(renderer == null){
+			return if(screenPos.isWithin(
+					Vec2(parent.transformComponent.worldPosition),
+					Vec2(parent.transformComponent.worldScale)
+				)) ray.rayOrigin.z - parent.transformComponent.worldPosition.z
 			else -1f
 		}
-		//if (shape is Rect2D) {
-		//	val unitSize = Vec2(parent.transformComponent.worldScale)
-		//	return if(screenPos.isWithin(
-		//		Vec2(parent.transformComponent.worldPosition) + (shape.origin * unitSize),
-		//		unitSize * shape.size
-		//	)) 5f - parent.transformComponent.worldPosition.z
-		//	else -1f
-		//}
+
+		val shape = renderer.shape
+		if(shape is Shape2D){
+			val newShape = shape.transformedBy(parent.worldModel)
+			return if(newShape.containsPoint(screenPos)) ray.rayOrigin.z - parent.transformComponent.worldPosition.z
+			else -1f
+		}
+
 		return if(screenPos.isWithin(
-			Vec2(parent.transformComponent.worldPosition),
-			Vec2(parent.transformComponent.worldScale) * renderSize
+			Vec2(parent.transformComponent.worldPosition) - (renderer.shape.min.run{ Vec2(x, y) } * Vec2(parent.transformComponent.worldScale)),
+			Vec2(parent.transformComponent.worldScale) * renderer.shape.size.run { Vec2(x, y) }
 		)) ray.rayOrigin.z - parent.transformComponent.worldPosition.z
 		else -1f
 	}

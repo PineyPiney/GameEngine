@@ -12,6 +12,28 @@ import kotlin.math.abs
 class Plane(val point: Vec3, val normal: Vec3) : Shape3D() {
 	override val center: Vec3 get() = point
 
+	override val min: Vec3
+	override val max: Vec3
+
+	init {
+		if(abs(normal.x) == 1f){
+			min = Vec3(center.x, -Float.MAX_VALUE, -Float.MAX_VALUE)
+			max = Vec3(center.x, Float.MAX_VALUE, Float.MAX_VALUE)
+		}
+		else if(abs(normal.y) == 1f){
+			min = Vec3(-Float.MAX_VALUE, center.y, -Float.MAX_VALUE)
+			max = Vec3(Float.MAX_VALUE, center.y, Float.MAX_VALUE)
+		}
+		else if(abs(normal.z) == 1f){
+			min = Vec3(-Float.MAX_VALUE, -Float.MAX_VALUE, center.z)
+			max = Vec3(Float.MAX_VALUE, Float.MAX_VALUE, center.z)
+		}
+		else {
+			min = Vec3(-Float.MAX_VALUE)
+			max = Vec3(Float.MAX_VALUE)
+		}
+	}
+
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
 
 		// https://stackoverflow.com/a/8862483

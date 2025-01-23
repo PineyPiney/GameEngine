@@ -9,6 +9,8 @@ import kotlin.math.abs
 
 abstract class Shape3D : Shape<Vec3>() {
 
+	override val size: Vec3 get() = max - min
+
 	abstract override fun transformedBy(model: Mat4): Shape3D
 
 	/**

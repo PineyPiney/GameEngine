@@ -10,6 +10,10 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
 class Line(val start: Vec3, val end: Vec3) : Shape3D() {
+
+	override val min: Vec3 = Vec3(minOf(start.x, end.x), minOf(start.y, end.y), minOf(start.z, end.z))
+	override val max: Vec3 = Vec3(maxOf(start.x, end.x), maxOf(start.y, end.y), maxOf(start.z, end.z))
+
 	val grad = (end - start).normalize()
 	override val center: Vec3
 		get() = (start + end) * .5f

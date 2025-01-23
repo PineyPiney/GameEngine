@@ -7,7 +7,6 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Shape
-import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
@@ -16,8 +15,6 @@ open class ColourRendererComponent(parent: GameObject, var colour: Vec4, shader:
 	constructor(parent: GameObject, colour: Vec3, shader: Shader = defaultShader, mesh: Mesh = Mesh.centerSquareShape) : this(parent, Vec4(colour, 1f), shader, mesh)
 
 	constructor(parent: GameObject) : this(parent, Vec4(1f, 1f, 1f, 1f))
-
-	override val renderSize: Vec2 = Vec2(1f, 1f)
 
 	override val shape: Shape<*> get() = mesh.shape
 

@@ -10,6 +10,9 @@ import glm_.vec3.Vec3
 abstract class Shape<V : Vec2Vars<Float>> {
 
 	abstract val center: V
+	abstract val min: V
+	abstract val max: V
+	abstract val size: V
 
 	/**
 	 * Get the maximum and minimum points of this shape along the vector [normal]

@@ -20,6 +20,7 @@ import com.pineypiney.game_engine.objects.components.applied
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton
+import com.pineypiney.game_engine.objects.prefabs.Prefab
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
@@ -92,7 +93,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 	override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
 		super.onCursorMove(cursorPos, cursorDelta)
 		val element = dragging?.element ?: return
-		val editor = componentBrowser.parent.getChild("Component Container")?.children?.firstNotNullOfOrNull({ it.getComponent<FieldEditor<*, *>>() }){ it.hover }
+		val editor = componentBrowser.parent.getChild("Component Container")?.children?.firstNotNullOfOrNull{ cont -> cont.children.firstNotNullOfOrNull({ it.getComponent<FieldEditor<*, *>>() }){ it.hover } }
 		if(editor == null){
 			if(draggedField != null) {
 				draggedField?.onHoverElement(-1, cursorPos)
@@ -209,7 +210,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 	}
 
 	fun loadPrefab(file: File){
-		val prefab = GameObjectSerializer.parse(file.inputStream())
+		val prefab = Prefab(file)
 		sceneObjects.addObject(prefab)
 		prefab.init()
 		objectBrowser.reset()

@@ -10,6 +10,10 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
 class Line2D(val start: Vec2, val end: Vec2) : Shape2D() {
+
+	override val min: Vec2 = start.min(end)
+	override val max: Vec2 = start.max(end)
+
 	val grad = (end - start).normalize()
 	override val center: Vec2
 		get() = (start + end) * .5f

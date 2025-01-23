@@ -29,6 +29,7 @@ class EditorRenderer(override val window: WindowI) : BufferedGameRenderer<Editor
 		GLFunc.blend = true
 		GLFunc.blendFunc = Vec2i(GL11C.GL_SRC_ALPHA, GL11C.GL_ONE_MINUS_SRC_ALPHA)
 		GLFunc.clearColour = Vec4(1f)
+		GLFunc.multiSample = true
 	}
 
 	override fun render(game: EditorScreen, tickDelta: Double) {

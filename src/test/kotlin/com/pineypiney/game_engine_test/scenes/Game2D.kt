@@ -180,7 +180,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		model1.getComponent<ModelRendererComponent>()?.setAnimation("Wipe Nose")
 		model2.getComponent<ModelRendererComponent>()?.setAnimation("Magic Trick")
 		model1 translate Vec3(2, -3, 0f)
-		model1 scale Vec3(3f)
+		model1 resize Vec3(3f)
 		model2 translate Vec3(3, -4, 0f)
 		snake translate Vec3(-2, -5, 0f)
 	}

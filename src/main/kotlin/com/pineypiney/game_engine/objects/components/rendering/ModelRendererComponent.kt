@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.objects.util.collision.CollisionBox2DRenderer
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
+import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.resources.models.Bone
@@ -18,13 +19,10 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.mat4x4.Mat4
-import glm_.vec2.Vec2
-import kotlin.math.min
 
 open class ModelRendererComponent(parent: GameObject, var model: Model = Model.brokeModel, shader: Shader = defaultShader) :
 	ShaderRenderedComponent(parent, shader) {
 
-	override val renderSize: Vec2 get() = Vec2(1f)
 	override val shape: Shape<*> = model.box.shape
 	protected var animation: ModelAnimation? = null
 	private var animationStartTime: Double = 0.0
@@ -71,15 +69,20 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 	fun setLightUniforms() {
 		val lights = (parent.objects ?: return).getAllComponents().filterIsInstance<LightComponent>().filter { it.light.on }
 
-		lights.firstOrNull { it.light is DirectionalLight }?.setShaderUniforms(shader, "dirLight")
+		val dirLight = lights.firstOrNull { it.light is DirectionalLight }
+		if(dirLight == null) Light.setShaderUniformsOff(shader, "dirLight")
+		else dirLight.setShaderUniforms(shader, "dirLight")
 
 		val pointLights = lights.associateWith { it.parent.position }.filter{ it.key.light is PointLight }.entries.sortedByDescending { (it.value - parent.position).length() / (it.key.light as PointLight).linear }
-		for (l in 0..<min(4, pointLights.size)) {
+		for (l in 0..<4) {
 			val name = "pointLights[$l]"
-			pointLights[l].key.setShaderUniforms(shader, name)
+			if(l < pointLights.size) pointLights[l].key.setShaderUniforms(shader, name)
+			else Light.setShaderUniformsOff(shader, name)
 		}
 
-		lights.firstOrNull { it.light is SpotLight }?.setShaderUniforms(shader, "spotlight")
+		val spotLight = lights.firstOrNull { it.light is SpotLight }
+		if(spotLight == null) Light.setShaderUniformsOff(shader, "spotlight")
+		else spotLight.setShaderUniforms(shader, "spotlight")
 	}
 
 	fun renderBones(parent: GameObject, view: Mat4, projection: Mat4) {

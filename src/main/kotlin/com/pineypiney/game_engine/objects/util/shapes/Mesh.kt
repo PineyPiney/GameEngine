@@ -39,6 +39,8 @@ abstract class Mesh : Deleteable {
 	
 
 	abstract val shape: Shape<*>
+
+
 	abstract val count: Int
 
 	open fun bind() {

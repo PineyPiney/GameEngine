@@ -12,11 +12,19 @@ class Rect3D(val origin: Vec3, val side1: Vec3, val side2: Vec3) : Shape3D() {
 
 	constructor(rect: Rect2D) : this(
 		Vec3(rect.origin),
-		Vec3(Vec2.fromAngle(rect.angle + (PI.f * 0.5f), rect.size.x)),
-		Vec3(Vec2.fromAngle(rect.angle, rect.size.y))
+		Vec3(Vec2.fromAngle(rect.angle + (PI.f * 0.5f), rect.lengths.x)),
+		Vec3(Vec2.fromAngle(rect.angle, rect.lengths.y))
 	)
 
 	override val center: Vec3 get() = origin + (side1 + side2) * .5f
+	override val min: Vec3
+	override val max: Vec3
+
+	init {
+		val p = points
+		min = p.reduce { a, b -> Vec3(minOf(a.x, b.x), minOf(a.y, b.y), minOf(a.z, b.z))}
+		max = p.reduce { a, b -> Vec3(maxOf(a.x, b.x), maxOf(a.y, b.y), maxOf(a.z, b.z))}
+	}
 
 	val normal = (side1 cross side2).normalizeAssign()
 

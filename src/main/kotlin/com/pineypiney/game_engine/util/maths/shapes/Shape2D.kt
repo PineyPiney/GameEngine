@@ -8,6 +8,8 @@ import kotlin.math.abs
 
 abstract class Shape2D : Shape<Vec2>() {
 
+	override val size: Vec2 get() = max - min
+
 	abstract override fun transformedBy(model: Mat4): Shape2D
 
 	/**

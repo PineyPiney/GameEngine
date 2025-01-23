@@ -25,5 +25,13 @@ abstract class Light {
 			shader.setVec3s("$name.diffuse", lights.values.map { it.diffuse })
 			shader.setVec3s("$name.specular", lights.values.map { it.specular })
 		}
+
+
+		fun setShaderUniformsOff(shader: Shader, name: String) {
+			shader.setVec3("$name.diffuse", Vec3(0f))
+			shader.setVec3("$name.ambient", Vec3(0f))
+			shader.setVec3("$name.specular", Vec3(0f))
+		}
+
 	}
 }

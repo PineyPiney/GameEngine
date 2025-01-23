@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.util.maths.shapes
 
+import com.pineypiney.game_engine.util.extension_functions.reduceFields
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
@@ -12,6 +13,9 @@ class CompoundShape3D(val shapes: MutableSet<Shape3D>) : Shape3D() {
 			for (s in shapes) c += s.center
 			return c / shapes.size
 		}
+
+	override val min: Vec3 = shapes.reduceFields(Shape3D::min) { a, b -> Vec3(minOf(a.x, b.x), minOf(a.y, b.y), minOf(a.z, b.z))}
+	override val max: Vec3 = shapes.reduceFields(Shape3D::max) { a, b -> Vec3(maxOf(a.x, b.x), maxOf(a.y, b.y), maxOf(a.z, b.z))}
 
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
 		val intersections = mutableSetOf<Vec3>()

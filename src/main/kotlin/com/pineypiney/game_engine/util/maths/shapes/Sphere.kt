@@ -9,6 +9,9 @@ import kotlin.math.sqrt
 
 class Sphere(override val center: Vec3, val radius: Float): Shape3D(){
 
+	override val min: Vec3 = center - Vec3(radius)
+	override val max: Vec3 = center + Vec3(radius)
+
 	override fun transformedBy(model: Mat4): Sphere {
 		return Sphere(center + model.getTranslation(), radius * model.getScale().x)
 	}

@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.util.maths.shapes
 
+import com.pineypiney.game_engine.util.extension_functions.reduceFields
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -15,6 +16,9 @@ class CompoundShape2D(val shapes: MutableSet<Shape2D>) : Shape2D() {
 			for (s in shapes) c += s.center
 			return c / shapes.size
 		}
+
+	override val min: Vec2 = shapes.reduceFields(Shape2D::min, Vec2::min)
+	override val max: Vec2 = shapes.reduceFields(Shape2D::max, Vec2::max)
 
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
 		val intersections = mutableSetOf<Vec3>()

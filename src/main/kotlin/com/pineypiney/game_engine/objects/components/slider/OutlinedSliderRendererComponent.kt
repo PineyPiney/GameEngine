@@ -7,7 +7,6 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Shape
-import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
 open class OutlinedSliderRendererComponent(parent: GameObject) : ShaderRenderedComponent(parent, sliderShader) {
@@ -16,7 +15,6 @@ open class OutlinedSliderRendererComponent(parent: GameObject) : ShaderRenderedC
 	open var outlineThickness: Float = 0.06f
 	open var outlineColour: Vec4 = Vec4(0.5, 0.5, 0.5, 1)
 
-	override val renderSize: Vec2 = Vec2(1f, 1f)
 	override val shape: Shape<*> = Mesh.cornerSquareShape.shape
 
 	override fun setUniforms() {

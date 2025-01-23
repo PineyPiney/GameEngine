@@ -82,7 +82,7 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 		return node
 	}
 
-	fun positionNodes(yScale: Float = 1080f / screen.window.size.y){
+	fun positionNodes(yScale: Float = 840f / (screen.window.size.y - screen.settings.fileBrowserHeight)){
 		val x = parent.transformComponent.worldPosition.x + (parent.transformComponent.worldScale.x * .02f)
 		var y = 1f
 		for(c in objectList.children.mapNotNull { it.getComponent<ObjectNode>() }){
@@ -117,8 +117,9 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 
 	override fun updateAspectRatio(renderer: RendererI) {
 		val trans = parent.getComponent<PixelTransformComponent>()
-		trans?.pixelScale = Vec2i(screen.settings.objectBrowserWidth, renderer.viewportSize.y - screen.settings.fileBrowserHeight)
+		val newScale = Vec2i(screen.settings.objectBrowserWidth, renderer.viewportSize.y - screen.settings.fileBrowserHeight)
+		trans?.pixelScale = newScale
 
-		positionNodes(1080f / renderer.viewportSize.y)
+		positionNodes(840f / newScale.y)
 	}
 }
