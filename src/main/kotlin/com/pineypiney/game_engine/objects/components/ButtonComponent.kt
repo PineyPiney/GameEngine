@@ -14,7 +14,7 @@ class ButtonComponent(
 	val onUnClick: (button: ButtonComponent, cursorPos: Vec2) -> Unit = { _, _ -> },
 	val onEnter: (button: ButtonComponent, cursorPos: Vec2, cursorDelta: Vec2) -> Unit = { _, _, _ -> },
 	val onExit: (button: ButtonComponent, cursorPos: Vec2, cursorDelta: Vec2) -> Unit = { _, _, _ -> }
-) : DefaultInteractorComponent(parent, "BTN") {
+) : DefaultInteractorComponent(parent) {
 
 	var active: Boolean = true
 

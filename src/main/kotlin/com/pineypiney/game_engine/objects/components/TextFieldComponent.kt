@@ -26,7 +26,9 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-open class TextFieldComponent(parent: GameObject, startText: String = "", textSize: Float = 1f) : DefaultInteractorComponent(parent, "TXF"),
+open class TextFieldComponent(parent: GameObject, startText: String = "", textSize: Float = 1f) : DefaultInteractorComponent(
+	parent
+),
 	UpdatingComponent {
 
 	open var allowed = all

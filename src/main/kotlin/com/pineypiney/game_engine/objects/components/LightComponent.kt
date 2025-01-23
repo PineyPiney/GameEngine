@@ -2,15 +2,14 @@ package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.rendering.lighting.Light
+import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.resources.shaders.Shader
 
-class LightComponent(parent: GameObject, val light: Light) : Component(parent, "LGT") {
+class LightComponent(parent: GameObject, val light: Light = PointLight()) : Component(parent) {
 
 	var on: Boolean
 		get() = light.on
-		set(value) {
-			light.on = value
-		}
+		set(value) { light.on = value }
 
 	fun setShaderUniforms(shader: Shader, name: String) {
 

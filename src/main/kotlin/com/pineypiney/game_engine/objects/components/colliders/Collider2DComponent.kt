@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import glm_.vec2.Vec2
 
-class Collider2DComponent(parent: GameObject, var shape: Shape2D, val flags: MutableSet<String> = mutableSetOf()) : Component(parent, "C2D") {
+class Collider2DComponent(parent: GameObject, var shape: Shape2D, val flags: MutableSet<String> = mutableSetOf()) : Component(parent) {
 
 	constructor(parent: GameObject, shape: Shape2D, vararg flags: String): this(parent, shape, mutableSetOf(*flags))
 

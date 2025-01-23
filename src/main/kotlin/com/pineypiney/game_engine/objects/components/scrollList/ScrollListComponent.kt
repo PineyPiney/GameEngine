@@ -11,7 +11,7 @@ import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorComponent(parent, "SCL"), PostChildrenInit {
+abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorComponent(parent), PostChildrenInit {
 
 	abstract val entryHeight: Float
 	abstract val scrollerWidth: Float

@@ -13,7 +13,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-abstract class ScrollListEntryComponent(parent: GameObject) : Component(parent, "SLE") {
+abstract class ScrollListEntryComponent(parent: GameObject) : Component(parent) {
 
 	open val list: ScrollListComponent get() = parent.parent?.getComponent<ScrollListComponent>()!!
 

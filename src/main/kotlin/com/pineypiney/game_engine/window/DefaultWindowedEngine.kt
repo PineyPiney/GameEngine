@@ -13,7 +13,7 @@ class DefaultWindowedEngine<E : WindowGameLogic>(
 ) : WindowedGameEngine<E>(resources) {
 	
 	init {
-		GameEngineI.defaultFont = "Large Font"
+		GameEngineI.defaultFont = "Arial Nova Light"
 		FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)
 	}
 

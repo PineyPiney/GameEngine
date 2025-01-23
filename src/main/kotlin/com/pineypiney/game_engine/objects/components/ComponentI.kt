@@ -6,8 +6,8 @@ import com.pineypiney.game_engine.objects.components.fields.ComponentField
 
 interface ComponentI : Initialisable {
 
-	val parent: GameObject
 	val id: String
+	val parent: GameObject
 
 	fun getAllFields(): Set<ComponentField<*>>
 

@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider2DCompone
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-class Rigidbody2DComponent(parent: GameObject) : Component(parent, "RGB"), UpdatingComponent {
+class Rigidbody2DComponent(parent: GameObject) : Component(parent), UpdatingComponent {
 
 	var velocity = Vec2()
 	var acceleration = Vec2()

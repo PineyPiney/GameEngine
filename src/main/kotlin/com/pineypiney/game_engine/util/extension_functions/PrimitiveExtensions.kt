@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.util.extension_functions
 
+import glm_.i
 import glm_.pow
 import unsigned.Ubyte
 import kotlin.math.*
@@ -223,6 +224,21 @@ fun <E> CharSequence.reduce(initial: E, operation: (acc: E, it: Char) -> E): E {
 
 operator fun String.get(start: Int, end: Int): String = substring(start, end)
 operator fun String.get(range: IntRange): String = substring(range)
+
+fun String.capitalise(): String{
+	val s = toCharArray()
+	if(s[0].isLowerCase()) s[0] = Char(s[0].i - 32)
+	var lim = s.size
+	for(c in 1..lim - 2){
+		if(s[c] == '.' && s[c+1].isLowerCase()) s[c+1] = Char(s[c+1].i - 32)
+		else if(s[c] == '_' && s[c+1].isLowerCase()){
+			s[c] = Char(s[c+1].i - 32)
+			s.copyInto(s, c, c+1)
+			lim--
+		}
+	}
+	return String(s, 0, lim)
+}
 
 operator fun UByte.compareTo(other: Ubyte) = toInt() compareTo other.toInt()
 operator fun Ubyte.compareTo(other: UByte) = toInt() compareTo other.toInt()

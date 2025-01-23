@@ -1,8 +1,10 @@
 package com.pineypiney.game_engine.objects.menu_items
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.PixelTransformComponent
 import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 
 open class MenuItem(name: String = "MenuItem") : GameObject(name) {
@@ -28,5 +30,9 @@ open class MenuItem(name: String = "MenuItem") : GameObject(name) {
 
 	fun relative(origin: Vec3, size: Vec2){
 		components.add(RelativeTransformComponent(this, origin, size))
+	}
+
+	fun pixel(pos: Vec2i, size: Vec2i, origin: Vec2 = Vec2(-1f)){
+		components.add(PixelTransformComponent(this, pos, size, origin))
 	}
 }

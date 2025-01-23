@@ -50,21 +50,26 @@ class GameObjectSerializer {
 			return head to data
 		}
 
-		fun parse(stream: InputStream): GameObject {
+		fun parse(stream: InputStream, dest: GameObject? = null): GameObject {
 			try {
 				val headLen = stream.int()
 				val head = stream.readNBytes(headLen).inputStream()
-				return parseChild(head, stream)
+				return parseChild(head, stream, dest)
 			} catch (e: Exception) {
 				return GameObject("Womp Womp")
 			}
 		}
 
-		fun parseChild(head: InputStream, data: InputStream): GameObject {
+		fun parseChild(head: InputStream, data: InputStream, dest: GameObject? = null): GameObject {
 			val nameLen =
 				head.readNBytes(2).reversed().withIndex().sumOf { (index, byte) -> (byte.toInt() shl (index * 8)) }
 			val name = head.readNBytes(nameLen).toString(Charset.defaultCharset())
-			val o = GameObject(name)
+			val o: GameObject
+			if(dest == null) o = GameObject(name)
+			else {
+				dest.name = name
+				o = dest
+			}
 
 			val active = head.readNBytes(4)
 			val layer = head.readNBytes(7)

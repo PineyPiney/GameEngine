@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.maths.shapes.Shape3D
 import glm_.vec3.Vec3
 
-open class Collider3DComponent(parent: GameObject, open val shape: Shape3D) : Component(parent, "C3D") {
+open class Collider3DComponent(parent: GameObject, open val shape: Shape3D) : Component(parent) {
 
 	val transformedShape get() = shape transformedBy parent.worldModel
 	var active = true

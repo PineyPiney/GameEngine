@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.objects.components.slider.ActionIntSliderCompo
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.CheckBox
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
+import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
@@ -16,6 +17,7 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.extension_functions.capitalise
 import com.pineypiney.game_engine.util.s
 import glm_.quat.Quat
 import glm_.vec2.Vec2
@@ -29,7 +31,7 @@ abstract class FieldEditor<T, out F : ComponentField<T>>(
 	val field: F,
 	origin: Vec2,
 	size: Vec2
-) : DefaultInteractorComponent(parent, "FDE"), PostChildrenInit {
+) : DefaultInteractorComponent(parent), PostChildrenInit {
 
 	init {
 		parent.position = Vec3(origin, 0f)
@@ -53,15 +55,18 @@ abstract class FieldEditor<T, out F : ComponentField<T>>(
 	open fun onHoverElement(element: Any, cursorPos: Vec2): Boolean = false
 
 	open fun onDropElement(element: Any, cursorPos: Vec2, screen: EditorScreen){}
+
+	fun createText(text: String = field.id.capitalise(), alignment: Int = Text.ALIGN_CENTER_RIGHT, pos: Vec2 = Vec2(.18f, .5f), size: Vec2 = Vec2(.18f, 1f)) = Text.makeMenuText(text, alignment = alignment).apply { position = Vec3(pos, .01f); scale = Vec3(size, 1f) }
 }
 
 open class DefaultFieldEditor<T, F : ComponentField<T>>(parent: GameObject, field: F, origin: Vec2,
-	size: Vec2, callback: (String, String) -> Unit) : FieldEditor<T, F>(parent, field, origin, size) {
+	size: Vec2, callback: (String, String, String) -> Unit) : FieldEditor<T, F>(parent, field, origin, size) {
 
 	val textField = ActionTextField<ActionTextFieldComponent<*>>("Text Field", Vec3(0f, 0f, .01f), Vec2(1f, 1f)) { f, _, _ ->
 		try {
+			val oldSer = field.serialise(field.getter())
 			field.parse(f.text)?.let { field.setter(it) }
-			callback(field.id, f.text)
+			callback(field.id, oldSer, f.text)
 		} catch (_: Exception) {
 
 		}
@@ -76,15 +81,17 @@ open class DefaultFieldEditor<T, F : ComponentField<T>>(parent: GameObject, fiel
 	}
 }
 
-open class BoolFieldEditor(parent: GameObject, field: BoolField, origin: Vec2, size: Vec2, callback: (String, String) -> Unit) : FieldEditor<Boolean, BoolField>(parent, field, origin, size), UpdatingAspectRatioComponent{
+open class BoolFieldEditor(parent: GameObject, field: BoolField, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit) : FieldEditor<Boolean, BoolField>(parent, field, origin, size), UpdatingAspectRatioComponent{
+
+	val nameText = createText()
 
 	val checkBox = CheckBox("Bool Checkbox", field.getter()){
 		field.setter(it)
-		callback(field.id, field.serialise(it))
-	}
+		callback(field.id, field.serialise(!it), field.serialise(it))
+	}.apply { position = Vec3(.22f, 0f, .01f) }
 
 	override fun createChildren() {
-		parent.addChild(checkBox)
+		parent.addChild(nameText, checkBox)
 		asp()
 	}
 
@@ -102,21 +109,24 @@ open class BoolFieldEditor(parent: GameObject, field: BoolField, origin: Vec2, s
 }
 
 open class PrimitiveFieldEditor<T: Any, F: ComponentField<T>>(parent: GameObject, field: F,
-															  origin: Vec2, size: Vec2, parse: (String) -> T, callback: (String, String) -> Unit
+															  origin: Vec2, size: Vec2, parse: (String) -> T, callback: (String, String, String) -> Unit
 ) : FieldEditor<T, F>(parent, field, origin, size){
 
-	val textField = ActionTextField<TextFieldComponent>("Number Field", Vec3(0f, 0f, .01f), Vec2(1f, 1f)) { f, _, _ ->
+	val nameText = createText()
+
+	val textField = ActionTextField<TextFieldComponent>("Number Field", Vec3(.2f, 0f, .01f), Vec2(.8f, 1f)) { f, _, _ ->
 		try {
 			val value = parse(f.text)
+			val oldSer = field.serialise(field.getter())
 			field.setter(value)
-			callback(field.id, field.serialise(value))
+			callback(field.id, oldSer, field.serialise(value))
 		} catch (_: NumberFormatException) {
 
 		}
 	}
 
 	override fun createChildren() {
-		parent.addChild(textField)
+		parent.addChild(nameText, textField)
 	}
 
 	override fun update() {
@@ -124,29 +134,32 @@ open class PrimitiveFieldEditor<T: Any, F: ComponentField<T>>(parent: GameObject
 	}
 }
 
-open class IntFieldEditor(parent: GameObject, field: IntField, origin: Vec2, size: Vec2, callback: (String, String) -> Unit): 
+open class IntFieldEditor(parent: GameObject, field: IntField, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit): 
 	PrimitiveFieldEditor<Int, IntField>(parent, field, origin, size, Integer::parseInt, callback)
 
-open class UIntFieldEditor(parent: GameObject, field: UIntField, origin: Vec2, size: Vec2, callback: (String, String) -> Unit):
+open class UIntFieldEditor(parent: GameObject, field: UIntField, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit):
 	PrimitiveFieldEditor<UInt, UIntField>(parent, field, origin, size, { it.toUIntOrNull() ?: 0u }, callback)
 
-open class FloatFieldEditor(parent: GameObject, field: FloatField, origin: Vec2, size: Vec2, callback: (String, String) -> Unit):
+open class FloatFieldEditor(parent: GameObject, field: FloatField, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit):
 	PrimitiveFieldEditor<Float, FloatField>(parent, field, origin, size, java.lang.Float::parseFloat, callback)
 
-open class DoubleFieldEditor(parent: GameObject, field: DoubleField, origin: Vec2, size: Vec2, callback: (String, String) -> Unit):
+open class DoubleFieldEditor(parent: GameObject, field: DoubleField, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit):
 	PrimitiveFieldEditor<Double, DoubleField>(parent, field, origin, size, java.lang.Double::parseDouble, callback)
 
-open class IntRangeFieldEditor(parent: GameObject, field: IntRangeField, origin: Vec2, size: Vec2, callback: (String, String) -> Unit)
+open class IntRangeFieldEditor(parent: GameObject, field: IntRangeField, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit)
 	: FieldEditor<Int, IntRangeField>(parent, field, origin, size){
 
-	val slider = BasicActionSlider("Int Slider", field.range.first, field.range.last, field.getter()){
+	val nameText = createText()
+
+	val slider = BasicActionSlider("Int Slider", Vec2(.22f, 0f), Vec2(.78f, 1f), field.range.first, field.range.last, field.getter()){
+		val oldSer = field.serialise(field.getter())
 		field.setter(it.value)
-		callback(field.id, field.serialise(it.value))
+		callback(field.id, oldSer, field.serialise(it.value))
 
 	}
 
 	override fun createChildren() {
-		parent.addChild(slider)
+		parent.addChild(nameText, slider)
 	}
 
 	override fun update() {
@@ -155,16 +168,19 @@ open class IntRangeFieldEditor(parent: GameObject, field: IntRangeField, origin:
 
 }
 
-open class ShaderFieldEditor(parent: GameObject, field: ShaderField, origin: Vec2, size: Vec2, val callback: (String, String) -> Unit)
+open class ShaderFieldEditor(parent: GameObject, field: ShaderField, origin: Vec2, size: Vec2, val callback: (String, String, String) -> Unit)
 	: FieldEditor<Shader, ShaderField>(parent, field, origin, Vec2(size.x, size.y * 3)) {
 
-	val vertexField = ActionTextField<ActionTextFieldComponent<*>>("Vertex Field", Vec3(0f, .68f, -0.005f), Vec2(1f, .32f)) { f, _, _ ->
+	val vertexText = createText("Vertex", pos = Vec2(.18f, .84f), size = Vec2(.18f, .32f))
+	val vertexField = ActionTextField<ActionTextFieldComponent<*>>("Vertex Field", Vec3(.2f, .68f, -0.005f), Vec2(.8f, .32f)) { f, _, _ ->
 		updateValue()
 	}
-	val fragmentField = ActionTextField<ActionTextFieldComponent<*>>("Fragment Field", Vec3(0f, .34f, -0.005f), Vec2(1f, .32f)) { f, _, _ ->
+	val fragmentText = createText("Fragment", pos = Vec2(.18f, .5f), size = Vec2(.18f, .32f))
+	val fragmentField = ActionTextField<ActionTextFieldComponent<*>>("Fragment Field", Vec3(.2f, .34f, -0.005f), Vec2(.8f, .32f)) { f, _, _ ->
 		updateValue()
 	}
-	val geometryField = ActionTextField<ActionTextFieldComponent<*>>("Geometry Field", Vec3(0f, 0f, -0.005f), Vec2(1f, .32f)) { f, _, _ ->
+	val geometryText = createText("Geometry", pos = Vec2(.18f, .16f), size = Vec2(.18f, .32f))
+	val geometryField = ActionTextField<ActionTextFieldComponent<*>>("Geometry Field", Vec3(.2f, 0f, -0.005f), Vec2(.8f, .32f)) { f, _, _ ->
 		updateValue()
 	}
 
@@ -172,15 +188,16 @@ open class ShaderFieldEditor(parent: GameObject, field: ShaderField, origin: Vec
 		try {
 			val newS = if(geometryField.text.isEmpty()) ShaderLoader[ResourceKey(vertexField.text), ResourceKey(fragmentField.text)]
 			else ShaderLoader[ResourceKey(vertexField.text), ResourceKey(fragmentField.text), ResourceKey(geometryField.text)]
+			val oldSer = field.serialise(field.getter())
 			field.setter(newS)
-			callback(field.id, ShaderField.serialise(newS))
+			callback(field.id, oldSer, field.serialise(newS))
 		} catch (_: Exception) {
 
 		}
 	}
 
 	override fun createChildren() {
-		parent.addChild(vertexField, fragmentField, geometryField)
+		parent.addChild(vertexText, vertexField, fragmentText, fragmentField, geometryText, geometryField)
 	}
 
 	override fun update() {
@@ -222,20 +239,23 @@ open class ShaderFieldEditor(parent: GameObject, field: ShaderField, origin: Vec
 	}
 }
 
-open class TextureFieldEditor(parent: GameObject, field: TextureField, origin: Vec2, size: Vec2, callback: (String, String) -> Unit)
+open class TextureFieldEditor(parent: GameObject, field: TextureField, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit)
 	: FieldEditor<Texture, TextureField>(parent, field, origin, size) {
 
-	val textField = ActionTextField<ActionTextFieldComponent<*>>("Texture Field", Vec3(0f, 0f, -0.005f), Vec2(1f, 1f)) { f, _, _ ->
+	val nameText = createText()
+
+	val textField = ActionTextField<ActionTextFieldComponent<*>>("Texture Field", Vec3(.2f, 0f, 0.01f), Vec2(.8f, 1f)) { f, _, _ ->
 		try {
+			val oldSer = field.serialise(field.getter())
 			field.parse(f.text)?.let { field.setter(it) }
-			callback(field.id, f.text)
+			callback(field.id, oldSer, f.text)
 		} catch (_: Exception) {
 
 		}
 	}
 
 	override fun createChildren() {
-		parent.addChild(textField)
+		parent.addChild(nameText, textField)
 	}
 
 	override fun update() {
@@ -258,20 +278,23 @@ open class TextureFieldEditor(parent: GameObject, field: TextureField, origin: V
 	}
 }
 
-open class ModelFieldEditor(parent: GameObject, field: ModelField, origin: Vec2, size: Vec2, callback: (String, String) -> Unit)
+open class ModelFieldEditor(parent: GameObject, field: ModelField, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit)
 	: FieldEditor<Model, ModelField>(parent, field, origin, size) {
 
-	val textField = ActionTextField<ActionTextFieldComponent<*>>("Model Field", Vec3(0f, 0f, -0.005f), Vec2(1f, 1f)) { f, _, _ ->
+	val nameText = createText()
+
+	val textField = ActionTextField<ActionTextFieldComponent<*>>("Model Field", Vec3(.2f, 0f, 0.01f), Vec2(.8f, 1f)) { f, _, _ ->
 		try {
+			val oldSer = field.serialise(field.getter())
 			field.parse(f.text)?.let { field.setter(it) }
-			callback(field.id, f.text)
+			callback(field.id, oldSer, f.text)
 		} catch (_: Exception) {
 
 		}
 	}
 
 	override fun createChildren() {
-		parent.addChild(textField)
+		parent.addChild(nameText, textField)
 	}
 
 	override fun update() {
@@ -302,7 +325,7 @@ class CollectionFieldEditor<T, C : Collection<T>>(
 	origin: Vec2,
 	size: Vec2,
 	val editor: FieldCreator<T>,
-	callback: (String, String) -> Unit
+	callback: (String, String, String) -> Unit
 ) : FieldEditor<C, CollectionField<T, C>>(parent, field, origin, size) {
 
 	val coll = field.getter()
@@ -332,24 +355,29 @@ open class VecFieldEditor<T, out F : ComponentField<T>>(
 	
 	origin: Vec2,
 	size: Vec2,
-	callback: (String, String) -> Unit,
+	callback: (String, String, String) -> Unit,
 	vecSize: Int,
 	copy: (T) -> T,
 	val inGet: T.(Int) -> Float,
 	inSet: T.(Int, Float) -> Unit
 ) : FieldEditor<T, F>(parent, field, origin, size) {
 
+	val nameField = createText()
+
+	val x = ((size.x * .8f) - ((vecSize - 1) * .01f)) / vecSize
 	val textFields = Array<ActionTextField<*>>(vecSize) {
 		ActionTextField<ActionTextFieldComponent<*>>(
 			"Vec Field $it",
-			Vec3((size.x * it / vecSize), 0f, .01f),
-			Vec2(size.x / vecSize, 1f)
+			Vec3(.2f + it * (x + .01f), 0f, .01f),
+			Vec2(x, 1f),
+			textSize = .9f
 		) { f, _, _ ->
 			try {
 				val newVal = copy(field.getter())
+				val oldSer = field.serialise(newVal)
 				newVal.inSet(it, java.lang.Float.parseFloat(f.text))
 				field.setter(newVal)
-				callback(field.id, field.serialise(newVal))
+				callback(field.id, oldSer, field.serialise(newVal))
 			} catch (_: NumberFormatException) {
 
 			}
@@ -357,7 +385,7 @@ open class VecFieldEditor<T, out F : ComponentField<T>>(
 	}
 
 	override fun createChildren() {
-		parent.addChild(*textFields)
+		parent.addChild(nameField, *textFields)
 	}
 
 	override fun update() {
@@ -372,42 +400,19 @@ open class VecFieldEditor<T, out F : ComponentField<T>>(
 	}
 }
 
-open class Vec2FieldEditor(parent: GameObject,
-	field: Vec2Field,
-	
-	origin: Vec2,
-	size: Vec2,
-	callback: (String, String) -> Unit
-) : VecFieldEditor<Vec2, Vec2Field>(parent, field, origin, size, callback, 2, ::Vec2, Vec2::get, Vec2::set)
+open class Vec2FieldEditor(parent: GameObject, field: Vec2Field, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit) : 
+	VecFieldEditor<Vec2, Vec2Field>(parent, field, origin, size, callback, 2, ::Vec2, Vec2::get, Vec2::set)
 
-open class Vec3FieldEditor(
-	parent: GameObject,
-	field: Vec3Field,
-	
-	origin: Vec2,
-	size: Vec2,
-	callback: (String, String) -> Unit
-) : VecFieldEditor<Vec3, Vec3Field>(parent, field, origin, size, callback, 3, ::Vec3, Vec3::get, Vec3::set)
+open class Vec3FieldEditor(parent: GameObject, field: Vec3Field, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit) : 
+	VecFieldEditor<Vec3, Vec3Field>(parent, field, origin, size, callback, 3, ::Vec3, Vec3::get, Vec3::set)
 
-open class Vec4FieldEditor(
-	parent: GameObject,
-	field: Vec4Field,
-	
-	origin: Vec2,
-	size: Vec2,
-	callback: (String, String) -> Unit
-) : VecFieldEditor<Vec4, Vec4Field>(parent, field, origin, size, callback, 4, ::Vec4, Vec4::get, Vec4::set)
+open class Vec4FieldEditor(parent: GameObject, field: Vec4Field, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit) : 
+	VecFieldEditor<Vec4, Vec4Field>(parent, field, origin, size, callback, 4, ::Vec4, Vec4::get, Vec4::set)
 
-open class QuatFieldEditor(
-	parent: GameObject,
-	field: QuatField,
-	
-	origin: Vec2,
-	size: Vec2,
-	callback: (String, String) -> Unit
-) : VecFieldEditor<Quat, QuatField>(parent, field, origin, size, callback, 4, ::Quat, Quat::get, Quat::set)
+open class QuatFieldEditor(parent: GameObject, field: QuatField, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit) : 
+	VecFieldEditor<Quat, QuatField>(parent, field, origin, size, callback, 4, ::Quat, Quat::get, Quat::set)
 
-fun <F: ComponentField<*>> createEditor(parent: GameObject, field: F, origin: Vec2, size: Vec2, callback: (String, String) -> Unit): FieldEditor<*, *>?{
+fun <T, F: ComponentField<T>> createEditor(parent: GameObject, field: F, origin: Vec2, size: Vec2, callback: (String, String, String) -> Unit): FieldEditor<*, *>?{
 	return when(field){
 		is BoolField -> BoolFieldEditor(parent, field, origin, size, callback)
 		is IntField -> IntFieldEditor(parent, field, origin, size, callback)
@@ -422,7 +427,7 @@ fun <F: ComponentField<*>> createEditor(parent: GameObject, field: F, origin: Ve
 		is ShaderField -> ShaderFieldEditor(parent, field, origin, size, callback)
 		is TextureField -> TextureFieldEditor(parent, field, origin, size, callback)
 		is ModelField -> ModelFieldEditor(parent, field, origin, size, callback)
-		else -> null
+		else -> DefaultFieldEditor<T, F>(parent, field, origin, size, callback)
 	}
 }
 

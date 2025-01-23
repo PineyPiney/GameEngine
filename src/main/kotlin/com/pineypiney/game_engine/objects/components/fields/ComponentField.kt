@@ -66,30 +66,23 @@ class DoubleField(id: String, getter: () -> Double, setter: (Double) -> Unit) : 
 	getter, setter,
 	ByteData::double2String, { s -> ByteData.string2Double(s) })
 
-class Vec2Field(id: String, getter: () -> Vec2, setter: (Vec2) -> Unit) : ComponentField<Vec2>(id,
-	getter, setter, { v -> v.toString(",", ByteData::float2String) }, { s ->
+open class VecField<T>(id: String, getter: () -> T, setter: (T) -> Unit, serialise: T.(String, Float.() -> String) -> String, parse: (String, Boolean, String.() -> Float) -> T, default: () -> T, copy: (T) -> T) : ComponentField<T>(id,
+	getter, setter, { v -> v.serialise(",", ByteData::float2String) }, { s ->
 		try {
-			Vec2.fromString(s, false, ByteData::string2Float)
+			parse(s, false, ByteData::string2Float)
 		} catch (_: NumberFormatException) {
-			Vec2()
+			default()
 		}
-	}, { Vec2(it.x, it.y) })
+	}, copy)
 
-class Vec3Field(id: String, getter: () -> Vec3, setter: (Vec3) -> Unit) : ComponentField<Vec3>(id,
-	getter, setter, { v -> v.toString(",", ByteData::float2String) }, { s ->
-		Vec3.fromString(
-			s, false,
-			ByteData::string2Float
-		)
-	}, { Vec3(it.x, it.y, it.z) })
+class Vec2Field(id: String, getter: () -> Vec2, setter: (Vec2) -> Unit) : 
+	VecField<Vec2>(id, getter, setter, Vec2::toString, Vec2::fromString, ::Vec2, ::Vec2)
 
-class Vec4Field(id: String, getter: () -> Vec4, setter: (Vec4) -> Unit) : ComponentField<Vec4>(id,
-	getter, setter, { v -> v.toString(",", ByteData::float2String) }, { s ->
-		Vec4.fromString(
-			s, false,
-			ByteData::string2Float
-		)
-	}, { Vec4(it.x, it.y, it.z, it.w) })
+class Vec3Field(id: String, getter: () -> Vec3, setter: (Vec3) -> Unit) :
+	VecField<Vec3>(id, getter, setter, Vec3::toString, Vec3::fromString, ::Vec3, ::Vec3)
+
+class Vec4Field(id: String, getter: () -> Vec4, setter: (Vec4) -> Unit) :
+	VecField<Vec4>(id, getter, setter, Vec4::toString, Vec4::fromString, ::Vec4, ::Vec4)
 
 class QuatField(id: String, getter: () -> Quat, setter: (Quat) -> Unit) : ComponentField<Quat>(id,
 	getter, setter, { q -> q.toString(",", ByteData::float2String) }, { s ->

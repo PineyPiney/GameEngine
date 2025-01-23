@@ -5,9 +5,10 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.rendering.RendererI
 
 class FPSCounter(parent: GameObject, var period: Double, val callback: (Double) -> Unit = {}) :
-	Component(parent, "FPS"),
+	Component(parent),
 	PreRenderComponent {
 
 	override val whenVisible: Boolean = false
@@ -15,7 +16,7 @@ class FPSCounter(parent: GameObject, var period: Double, val callback: (Double) 
 	var tally: Int = 0
 	var nextUpdate: Double = .0
 
-	override fun preRender(tickDelta: Double) {
+	override fun preRender(renderer: RendererI, tickDelta: Double) {
 		tally++
 		if (Timer.time > nextUpdate) {
 			FPS = tally / period

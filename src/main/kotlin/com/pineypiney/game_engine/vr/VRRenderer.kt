@@ -56,7 +56,7 @@ abstract class VRRenderer<E : GameLogicI>(w: Int, h: Int) : GameRendererI<E> {
 		for (o in game.gameObjects.gameItems.flatMap { it.allActiveDescendants() }) {
 			val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
 			if (renderedComponents.isNotEmpty()) {
-				for (c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
+				for (c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
 				for (c in renderedComponents) c.render(this, tickDelta)
 			}
 		}
@@ -65,7 +65,7 @@ abstract class VRRenderer<E : GameLogicI>(w: Int, h: Int) : GameRendererI<E> {
 		for (o in game.gameObjects.guiItems.flatMap { it.allActiveDescendants() }) {
 			val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
 			if (renderedComponents.isNotEmpty()) {
-				for (c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
+				for (c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
 				for (c in renderedComponents) c.render(this, tickDelta)
 			}
 		}

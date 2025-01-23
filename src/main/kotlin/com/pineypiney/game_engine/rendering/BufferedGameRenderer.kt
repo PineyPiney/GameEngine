@@ -14,7 +14,7 @@ abstract class BufferedGameRenderer<E : GameLogicI> : WindowRendererI<E> {
 	val buffer = FrameBuffer(0, 0)
 
 	override val viewPos: Vec3 get() = camera.cameraPos
-	override var viewportSize: Vec2i = Vec2i(1)
+	override lateinit var viewportSize: Vec2i
 	override var aspectRatio: Float = 1f
 
 	override val numPointLights: Int = 4
@@ -22,6 +22,7 @@ abstract class BufferedGameRenderer<E : GameLogicI> : WindowRendererI<E> {
 	override fun init() {
 		camera.init()
 		buffer.setSize(window.framebufferSize)
+		viewportSize = window.framebufferSize
 	}
 
 	open fun clearFrameBuffer(buffer: FrameBuffer = this.buffer) {
@@ -34,6 +35,7 @@ abstract class BufferedGameRenderer<E : GameLogicI> : WindowRendererI<E> {
 	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
 		camera.updateAspectRatio(window.aspectRatio)
 		buffer.setSize(window.framebufferSize)
+		viewportSize = window.size
 		aspectRatio = window.aspectRatio
 	}
 

@@ -1,7 +1,5 @@
 package com.pineypiney.game_engine.apps.animator
 
-import com.pineypiney.game_engine.apps.ComponentEditor
-import com.pineypiney.game_engine.apps.ComponentSelector
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.GameObjectSerializer
 import com.pineypiney.game_engine.objects.ObjectCollection
@@ -64,7 +62,7 @@ class AnimatorLogic(
 			for (o in game.gameObjects.map.flatMap { it.value.flatMap { it.allActiveDescendants() } }) {
 				val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
 				if (renderedComponents.isNotEmpty()) {
-					for (c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
+					for (c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
 					for (c in renderedComponents) c.render(this, tickDelta)
 				}
 			}
@@ -232,7 +230,7 @@ class AnimatorLogic(
 		o.getComponent<AnimatedComponent>()?.let { a -> properties.putAll(a.getProperties()) }
 	}
 
-	private fun updateKeyFrameField(key: String, value: String) {
+	private fun updateKeyFrameField(key: String, oldValue: String, value: String) {
 		val animation = animationSelector.item?.animation ?: return
 		animation.frames[animation.lastFrame]?.properties?.set(key, value)
 	}

@@ -4,12 +4,12 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import glm_.vec3.Vec3
 
 class PointLight(
-	override val ambient: Vec3 = Vec3(0.1f),
-	override val diffuse: Vec3 = Vec3(1f),
-	override val specular: Vec3 = Vec3(1f),
-	val constant: Float = 1f,
-	val linear: Float = .022f,
-	val quadratic: Float = .0019f
+	override var ambient: Vec3 = Vec3(0.1f),
+	override var diffuse: Vec3 = Vec3(1f),
+	override var specular: Vec3 = Vec3(1f),
+	var constant: Float = 1f,
+	var linear: Float = .022f,
+	var quadratic: Float = .0019f
 ) : Light() {
 
 	override fun setShaderUniforms(shader: Shader, name: String) {

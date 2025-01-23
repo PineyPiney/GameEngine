@@ -15,8 +15,9 @@ import kotlin.reflect.full.isSupertypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaType
 
-abstract class Component(final override val parent: GameObject, override val id: String) : ComponentI {
+abstract class Component(final override val parent: GameObject) : ComponentI {
 
+	override val id: String get() = this::class.simpleName ?: "Anon"
 	val parentPath = parent
 
 	override fun init() {
@@ -131,7 +132,7 @@ abstract class Component(final override val parent: GameObject, override val id:
 	}
 
 	override fun toString(): String {
-		return "Component[$id]"
+		return "Component[${this::class.simpleName}]"
 	}
 
 	override fun serialise(head: StringBuilder, data: StringBuilder) {

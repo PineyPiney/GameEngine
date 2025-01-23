@@ -9,7 +9,7 @@ import glm_.mat4x4.Mat4
 import glm_.quat.Quat
 import glm_.vec3.Vec3
 
-open class TransformComponent(parent: GameObject) : Component(parent, "T2D") {
+open class TransformComponent(parent: GameObject) : Component(parent) {
 
 	protected val transform: Transform3D = Transform3D.origin
 

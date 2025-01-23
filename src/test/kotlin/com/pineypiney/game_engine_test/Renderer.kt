@@ -39,7 +39,7 @@ class Renderer<R: CameraI>(override val window: WindowI, override val camera: R)
 		for(o in game.gameObjects.gameItems.flatMap { it.allActiveDescendants() }) {
 			val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
 			if(renderedComponents.isNotEmpty()){
-				for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
+				for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
 				for(c in renderedComponents) c.render(this, tickDelta)
 			}
 		}
@@ -48,7 +48,7 @@ class Renderer<R: CameraI>(override val window: WindowI, override val camera: R)
 		for(o in game.gameObjects.guiItems.flatMap { it.allActiveDescendants() }) {
 			val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
 			if(renderedComponents.isNotEmpty()){
-				for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
+				for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
 				for(c in renderedComponents) c.render(this, tickDelta)
 			}
 		}

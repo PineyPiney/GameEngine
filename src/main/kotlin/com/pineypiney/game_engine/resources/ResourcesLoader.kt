@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.video.VideoLoader
 import com.pineypiney.game_engine.util.extension_functions.removeNullValues
@@ -18,7 +19,7 @@ abstract class ResourcesLoader(val location: String) {
 
 	open val shaderLocation = "shaders/"
 	open val textureLocation = "textures/"
-	open val fontLocation = "textures/fonts/"
+	open val fontLocation = "fonts/"
 	open val audioLocation = "audio/"
 	open val videoLocation = "videos/"
 	open val modelLocation = "models/"
@@ -39,6 +40,7 @@ abstract class ResourcesLoader(val location: String) {
 		GameEngineI.info("Loaded Audio in ${timeActionM { loadAudio(streamMap) }.round(2)} ms")
 		GameEngineI.info("Loaded Videos in ${timeActionM { loadVideos() }.round(2)} ms")
 		GameEngineI.info("Loaded Models in ${timeActionM { loadModels(streamMap) }.round(2)} ms")
+		GameEngineI.info("Loaded Fonts in ${timeActionM { loadFonts(streamMap) }.round(2)} ms")
 
 		for ((_, stream) in streamMap) {
 			stream.close()
@@ -74,6 +76,11 @@ abstract class ResourcesLoader(val location: String) {
 	fun loadModels(streamMap: Map<String, InputStream>) {
 		ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }
 			.mapKeys { it.key.removePrefix(modelLocation) })
+	}
+
+	fun loadFonts(streamMap: Map<String, InputStream>) {
+		FontLoader.INSTANCE.loadFonts(streamMap.filter { it.key.startsWith(fontLocation) }
+			.mapKeys { it.key.removePrefix(fontLocation) })
 	}
 
 

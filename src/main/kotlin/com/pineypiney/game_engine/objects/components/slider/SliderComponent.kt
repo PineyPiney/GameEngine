@@ -11,7 +11,7 @@ import kotlin.math.min
 abstract class SliderComponent<T: Number>(
 	parent: GameObject,
 	value: T
-) : DefaultInteractorComponent(parent, "SLD") {
+) : DefaultInteractorComponent(parent) {
 
 	protected abstract val low: T
 	protected abstract val high: T

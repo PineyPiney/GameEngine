@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 
-class CheckBoxComponent(parent: GameObject, val action: (Boolean) -> Unit) : DefaultInteractorComponent(parent, "CBX") {
+class CheckBoxComponent(parent: GameObject, val action: (Boolean) -> Unit) : DefaultInteractorComponent(parent) {
 
 	var ticked = false
 

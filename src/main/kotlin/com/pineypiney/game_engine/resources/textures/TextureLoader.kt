@@ -98,7 +98,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 		fun findTexture(name: String): Texture = INSTANCE.findTexture(name)
 
 
-		fun createPointer(params: TextureParameters): Int {
+		fun createPointer(params: TextureParameters = TextureParameters.default): Int {
 			if (!GLFunc.isLoaded) {
 				GameEngineI.warn("Could not create texture pointer because OpenGL has not been loaded")
 				return -1
@@ -173,7 +173,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			return data to Vec3i(widthA[0], heightA[0], if (numChan == 0) numChannelsA[0] else numChan)
 		}
 
-		private fun writeTextureToPointer(
+		fun writeTextureToPointer(
 			data: ByteBuffer?,
 			width: Int,
 			height: Int,

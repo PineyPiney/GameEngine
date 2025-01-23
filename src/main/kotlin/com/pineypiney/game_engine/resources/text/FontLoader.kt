@@ -7,12 +7,10 @@ import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.resources.textures.TextureParameters
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.length
-import glm_.and
-import glm_.b
-import glm_.c
-import glm_.i
+import glm_.*
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
@@ -30,6 +28,14 @@ import java.awt.Font as JavaFont
 class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 
 	override val missing: Font = BitMapFont("broke", Texture.broke, null, mapOf(), null)
+
+	fun loadFonts(streams: Map<String, InputStream>){
+		for((fileName, stream) in streams){
+			if(fileName.substringAfter('.') == "bff"){
+				loadFontFromBFF(fileName, stream)
+			}
+		}
+	}
 
 	/**
 	 * Load and save a BitMap font from an image file
@@ -55,7 +61,7 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 		shader: Shader = Font.fontShader
 	) {
 
-		val location = resourcesLoader.fontLocation + fontName
+		val location = resourcesLoader.textureLocation + "fonts/" + fontName
 		val stream: InputStream = resourcesLoader.getStream(location) ?: return
 
 		if (stream.available() < 1) {
@@ -118,13 +124,8 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 		)
 	}
 
-	fun getCharDimensions(
-		image: ByteArray,
-		rows: Int,
-		columns: Int,
-		letterWidth: Int,
-		letterHeight: Int,
-		firstLetter: Int
+	fun getCharDimensions(image: ByteArray, rows: Int, columns: Int,
+		letterWidth: Int, letterHeight: Int, firstLetter: Int
 	): Map<Char, Vec4i> {
 
 		var index = firstLetter
@@ -157,6 +158,39 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 			}
 		}
 		return charMap.toMap()
+	}
+
+	fun loadFontFromBFF(fontName: String, stream: InputStream){
+		val header = stream.readNBytes(2)
+		if(header[0] != 0xBF.toByte() || header[1] != 0xF2.toByte()) {
+			GameEngineI.logger.warn("Could not load BBF File $fontName, invalid header")
+			return
+		}
+		val texWidth = stream.int(false)
+		val texHeight = stream.int(false)
+		val charWidth = stream.int(false)
+		val charHeight = stream.int(false)
+
+		if(charWidth <= 0 || charHeight <= 0){
+			GameEngineI.logger.warn("Could not load BBF file $fontName, char size was invalid")
+		}
+
+		val channels = stream.read() / 8
+		val format = TextureLoader.channelsToFormat(channels)
+		val firstChar = stream.read()
+
+		val charOffsets = stream.readNBytes(256)
+
+		val buffer = ByteBuffer(texWidth * texHeight * channels)
+		for(y in 1..texHeight){
+			buffer.put(buffer.lim - (y * texWidth * channels), stream.readNBytes(texWidth * channels))
+		}
+
+		val pointer = TextureLoader.createTexture(buffer, texWidth, texHeight, format, GL11C.GL_RED, params = TextureParameters(flip = false))
+
+		val key = fontName.substringBefore('.')
+		map[ResourceKey(key)] = BitMapFont(key, Texture(key, pointer), null, charOffsets.withIndex().associate { (i, w) ->
+			Char(i) to Vec4i(0, charHeight * .05, w, charHeight * .6f) }, null, charWidth, charHeight, 0f, 1f, firstChar)
 	}
 
 	/**

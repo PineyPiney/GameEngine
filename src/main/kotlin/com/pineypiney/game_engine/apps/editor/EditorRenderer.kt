@@ -54,11 +54,11 @@ class EditorRenderer(override val window: WindowI) : BufferedGameRenderer<Editor
 		for(o in objects.flatMap { it.catchRenderingComponents() }){
 			val renderedComponents = o.components.filterIsInstance<RenderedComponentI>().filter { it.visible }
 			if (renderedComponents.isNotEmpty()) {
-				for (c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(tickDelta)
+				for (c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
 				for (c in renderedComponents) c.render(this, tickDelta)
 			}
 			else for(c in o.components.filterIsInstance<PreRenderComponent>()){
-				if(!c.whenVisible) c.preRender(tickDelta)
+				if(!c.whenVisible) c.preRender(this, tickDelta)
 			}
 		}
 	}

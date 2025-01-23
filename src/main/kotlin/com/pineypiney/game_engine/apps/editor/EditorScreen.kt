@@ -1,10 +1,17 @@
 package com.pineypiney.game_engine.apps.editor
 
-import com.pineypiney.game_engine.apps.editor.context_menus.ContextMenu
-import com.pineypiney.game_engine.apps.editor.context_menus.ContextMenuComponent
-import com.pineypiney.game_engine.apps.editor.transformers.Transformer
-import com.pineypiney.game_engine.apps.editor.transformers.TransformerSelector
-import com.pineypiney.game_engine.apps.editor.transformers.Transformers
+import com.pineypiney.game_engine.apps.editor.component_browser.ComponentBrowser
+import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser
+import com.pineypiney.game_engine.apps.editor.object_browser.ObjectBrowser
+import com.pineypiney.game_engine.apps.editor.util.DraggedElement
+import com.pineypiney.game_engine.apps.editor.util.EditorSettings
+import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenu
+import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenuComponent
+import com.pineypiney.game_engine.apps.editor.util.edits.ComponentFieldEdit
+import com.pineypiney.game_engine.apps.editor.util.edits.EditManager
+import com.pineypiney.game_engine.apps.editor.util.transformers.Transformer
+import com.pineypiney.game_engine.apps.editor.util.transformers.TransformerSelector
+import com.pineypiney.game_engine.apps.editor.util.transformers.Transformers
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.GameObjectSerializer
 import com.pineypiney.game_engine.objects.ObjectCollection
@@ -20,6 +27,7 @@ import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowedGameEngineI
+import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -29,12 +37,15 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 
 	override val renderer = EditorRenderer(window)
 
+	val settings = EditorSettings()
+
 	private val fileBrowser = FileBrowser(MenuItem("File Browser"), this).applied()
-	private val objectBrowser = ObjectBrowser(MenuItem("Object Browser"), this).applied()
+	val objectBrowser = ObjectBrowser(MenuItem("Object Browser"), this).applied()
 	val componentBrowser = ComponentBrowser(MenuItem("Component Browser"), this).applied()
 
 	var openFile = File("src/main/resources/MainScene.${format.extension}")
 	val sceneObjects = ObjectCollection()
+	val editManager = EditManager()
 
 	var editingObject: GameObject? = null
 		set(value) {
@@ -58,8 +69,8 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 		save()
 	}
 
-	private val fpsText = FPSCounter.createCounterWithText(MenuItem("FPS Text").apply { relative(Vec2(-.7f, 1f), Vec2(1f)) }, 5.0, "FPS: $",
-		Text.Params().withAlignment(Text.ALIGN_TOP_LEFT).withFontSize(.05f))
+	private val fpsText = FPSCounter.createCounterWithText(MenuItem("FPS Text").apply { pixel(Vec2i(288, 0), Vec2i(64, 20), Vec2(-1f, 1f)) }, 5.0, "FPS: $",
+		Text.Params().withAlignment(Text.ALIGN_TOP_LEFT).withFontSize(1f))
 
 	private val properties = mutableMapOf<String, String>()
 
@@ -111,25 +122,30 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 						save()
 					}
 				}
+				'Z' -> {
+					if(state.control){
+						if(state.shift) editManager.redo()
+						else editManager.undo()
+
+						repositionTransformer()
+					}
+				}
 			}
 		}
 		return super.onInput(state, action)
 	}
 
-	fun setDragging(element: Any, addRender: (GameObject) -> Unit): GameObject{
+	// DRAGGING ELEMENT
+
+	fun setDragging(element: Any, addRender: (GameObject) -> Unit, position: (GameObject, Vec2) -> Unit): GameObject{
 		val o = MenuItem("Dragged Element")
 		o.position = Vec3(input.mouse.lastPos, 1f)
-		val comp = DraggedElement(o, element).applied()
+		val comp = DraggedElement(o, element, position).applied()
 		addRender(o)
 		o.init()
 		dragging = comp
 		add(o)
 		return o
-	}
-
-	fun setEditingName(newName: String){
-		val text = objectBrowser.selected?.parent?.children?.firstNotNullOfOrNull { it.getComponent<TextRendererComponent>() }
-		text?.text?.text = newName
 	}
 
 	fun clearDragging(cursorPos: Vec2){
@@ -146,6 +162,8 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 		dragging = null
 	}
 
+	// TRANSFORMER
+
 	fun setTransformer(t: Transformers, obj: GameObject? = editingObject){
 		if(obj == null) return
 		transformer?.delete()
@@ -155,6 +173,15 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 		o.getComponent<Transformer>()?.startAt(obj, this)
 		o.init()
 		add(o)
+	}
+
+	fun repositionTransformer(){
+		editingObject?.let{ transformer?.getComponent<Transformer>()?.startAt(it, this) }
+	}
+
+	fun setEditingName(newName: String){
+		val text = objectBrowser.selected?.parent?.children?.firstNotNullOfOrNull { it.getComponent<TextRendererComponent>() }
+		text?.text?.text = newName
 	}
 
 	fun <C> setContextMenu(context: C, menu: ContextMenu<C>, pos: Vec2){
@@ -188,6 +215,37 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 		objectBrowser.reset()
 		editingObject = null
 		openFile = file
+	}
+
+	fun setEditingWorldPos(newPos: Vec3){
+		editingObject?.let {
+			val oldPos = it.position
+			it.transformComponent.worldPosition = newPos
+			editManager.addEdit(ComponentFieldEdit.moveEdit(it, this, it.position, oldPos))
+		}
+	}
+
+	fun setEditingWorldRot(newRot: Quat){
+		editingObject?.let {
+			val oldRot = it.rotation
+			it.transformComponent.worldRotation = newRot
+			editManager.addEdit(ComponentFieldEdit.rotateEdit(it, this, it.rotation, oldRot))
+		}
+	}
+
+	fun setEditingScale(newScale: Vec3){
+		editingObject?.let {
+			editManager.addEdit(ComponentFieldEdit.scaleEdit(it, this, newScale, it.transformComponent.scale))
+			it.transformComponent.scale = newScale
+		}
+	}
+
+	fun setEditingWorldScale(newScale: Vec3){
+		editingObject?.let {
+			val oldScale = it.scale
+			it.transformComponent.worldScale = newScale
+			editManager.addEdit(ComponentFieldEdit.scaleEdit(it, this, it.scale, oldScale))
+		}
 	}
 
 	fun setAnimating(o: GameObject) {

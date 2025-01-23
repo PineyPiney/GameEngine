@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 
 class HoverComponent(parent: GameObject, val onEnter: (HoverComponent) -> Unit, val onExit: (HoverComponent) -> Unit) :
-	DefaultInteractorComponent(parent, "HVR") {
+	DefaultInteractorComponent(parent) {
 
 	override fun onCursorEnter(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
 		onEnter(this)

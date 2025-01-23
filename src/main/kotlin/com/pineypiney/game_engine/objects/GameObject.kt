@@ -83,13 +83,15 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 	}
 
 	fun setProperty(key: String, value: String) {
-		val keys = key.split('.')
-		if (keys.size > 2) {
-			val childName = keys[0]
+		val dolI = key.indexOf('$')
+		if(dolI != -1) {
+			val childName = key.substring(0, dolI)
 			val child = objects?.getAllObjects()?.firstOrNull { it.name == childName }
-			child?.setProperty(key.substringAfter('.'), value)
-		} else if (keys.size == 2) {
-			components.firstOrNull { it.id == keys[0] }?.setValue(keys[1], value)
+			child?.setProperty(key.substring(dolI + 1), value)
+		}
+		else {
+			val dotI = key.indexOf('.')
+			components.firstOrNull { it.id == key.substring(0, dotI) }?.setValue(key.substring(dotI + 1), value)
 		}
 	}
 
