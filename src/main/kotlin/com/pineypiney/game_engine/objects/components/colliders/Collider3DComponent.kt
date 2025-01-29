@@ -21,7 +21,7 @@ open class Collider3DComponent(parent: GameObject, open val shape: Shape3D) : Co
 		return false
 	}
 
-	fun checkAllCollisions(movement: Vec3, stepBias: Vec3? = null): Vec3 {
+	fun checkAllCollisions(movement: Vec3, stepBias: Vec3 = Vec3(0f)): Vec3 {
 
 		val collidedMove = movement.copy()
 

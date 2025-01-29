@@ -11,7 +11,7 @@ class Rigidbody3DComponent(parent: GameObject) : Component(parent), UpdatingComp
 
 	var gravity = Vec3(0f, -9.81f, 0f)
 
-	var stepBias: Vec3? = null
+	var stepBias: Vec3 = Vec3(0f)
 
 	override fun update(interval: Float) {
 		acceleration plusAssign gravity

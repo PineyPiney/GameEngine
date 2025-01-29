@@ -6,7 +6,7 @@ abstract class PrefabEdit(val parentLoc: String) {
 
 	fun findDescendant(obj: GameObject): GameObject?{
 		if(parentLoc.isEmpty()) return obj
-		val parts = parentLoc.split('.')
+		val parts = parentLoc.split('$')
 		var child = obj
 		for(i in 0..<parts.size){
 			child = child.getChild(parts[i]) ?: return null
@@ -15,4 +15,6 @@ abstract class PrefabEdit(val parentLoc: String) {
 	}
 
 	abstract fun execute(obj: GameObject)
+
+	abstract fun serialise(head: StringBuilder, data: StringBuilder)
 }

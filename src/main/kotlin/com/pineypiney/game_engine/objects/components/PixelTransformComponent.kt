@@ -7,10 +7,11 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 
-open class PixelTransformComponent(
-	parent: GameObject, pixelPos: Vec2i, pixelScale: Vec2i, origin: Vec2 = Vec2(-1f), var frameSize: Vec2i = Vec2i(-1)
-) : TransformComponent(parent), PreRenderComponent, UpdatingAspectRatioComponent {
+open class PixelTransformComponent(parent: GameObject, pixelPos: Vec2i, pixelScale: Vec2i, origin: Vec2 = Vec2(-1f), var screenRelative: Boolean = false) :
+	TransformComponent(parent), PreRenderComponent, UpdatingAspectRatioComponent
+{
 
+	var frameSize: Vec2i = Vec2i(-1)
 	override val whenVisible: Boolean = false
 
 	var pixelPos: Vec2i = pixelPos
@@ -34,14 +35,18 @@ open class PixelTransformComponent(
 	val aspectRatio get() = frameSize.x.toFloat() / frameSize.y
 
 	fun recalculateScale(){
-		worldScale = Vec3(pixelToRel(pixelScale), transform.scale.z)
+		if(screenRelative || parent.parent == null) worldScale = Vec3(pixelToRel(pixelScale), worldScale.z)
+		else scale = Vec3(pixelToRel(pixelScale), scale.z)
 	}
 	fun recalculatePosition() {
-		worldPosition = Vec3(pixelToRel(pixelPos) + Vec2(origin.x * aspectRatio, origin.y), position.z)
+		if(screenRelative || parent.parent == null) worldPosition = Vec3(pixelToRel(pixelPos) + Vec2(origin.x * aspectRatio, origin.y), worldPosition.z)
+		else position = Vec3(pixelToRel(pixelPos) + origin, position.z)
 	}
 
 	fun pixelToRel(pix: Vec2i): Vec2{
-		return Vec2(2f * pix.x * aspectRatio / frameSize.x, 2f * pix.y / frameSize.y)
+		val p = parent.parent
+		return if(screenRelative || p == null) Vec2(2f * pix.x * aspectRatio / frameSize.x, 2f * pix.y / frameSize.y)
+		else Vec2(2f * pix.x / (frameSize.x * p.transformComponent.worldScale.x), 2f * pix.y / (frameSize.y * p.transformComponent.worldScale.y))
 	}
 
 	fun updateSize(size: Vec2i){

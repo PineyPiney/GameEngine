@@ -140,6 +140,13 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		}
 	}
 
+	fun removeAndDeleteChild(name: String): Boolean {
+		val child = getChild(name) ?: return false
+		child.parent = null
+		child.delete()
+		return children.remove(child)
+	}
+
 	fun removeChildren(children: Iterable<GameObject>) {
 		this.children.removeAll(children.toSet())
 		for (c in children) c.parent = null

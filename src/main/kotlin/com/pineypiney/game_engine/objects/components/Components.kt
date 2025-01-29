@@ -112,7 +112,7 @@ class Components {
 		)
 
 		@Suppress("UNCHECKED_CAST")
-		fun<C: Any> getNewDefaultField(property: KMutableProperty1<C, Any>, component: C, parent: String = ""): ComponentField<*>?{
+		fun<C: Any> getDefaultField(property: KMutableProperty1<C, Any>, component: C, parent: String = ""): ComponentField<*>?{
 			return when(property.returnType.javaType.typeName){
 				"boolean" -> BoolField(parent + property.name, { property.get(component) as Boolean }){ property.set(component, it)}
 				"int" -> {
@@ -121,18 +121,27 @@ class Components {
 					else IntRangeField(parent + property.name, IntRange(range.min, range.max), { property.get(component) as Int }
 					){ property.set(component, it)}
 				}
-				"kotlin.UInt" -> UIntField(parent + property.name, { property.get(component) as UInt }){ property.set(component, it)}
-				"float" -> FloatField(parent + property.name, { property.get(component) as Float }){ property.set(component, it)}
-				"double" -> DoubleField(parent + property.name, { property.get(component) as Double }){ property.set(component, it)}
-				"glm_.vec2.Vec2" -> Vec2Field(parent + property.name, { property.get(component) as Vec2 }){ property.set(component, it)}
-				"glm_.vec3.Vec3" -> Vec3Field(parent + property.name, { property.get(component) as Vec3 }){ property.set(component, it)}
-				"glm_.vec4.Vec4" -> Vec4Field(parent + property.name, { property.get(component) as Vec4 }){ property.set(component, it)}
-				"glm_.quat.Quat" -> QuatField(parent + property.name, { property.get(component) as Quat }){ property.set(component, it)}
+				"kotlin.UInt" -> UIntField(parent + property.name, { get<UInt, C>(property, component) }){ property.set(component, it)}
+				"float" -> FloatField(parent + property.name, { get<Float, C>(property, component) }){ property.set(component, it)}
+				"double" -> DoubleField(parent + property.name, { get<Double, C>(property, component) }){ property.set(component, it)}
+				"glm_.vec2.Vec2" -> Vec2Field(parent + property.name, { get<Vec2, C>(property, component) }){ property.set(component, it)}
+				"glm_.vec3.Vec3" -> Vec3Field(parent + property.name, { get<Vec3, C>(property, component) }){ property.set(component, it)}
+				"glm_.vec4.Vec4" -> Vec4Field(parent + property.name, { get<Vec4, C>(property, component) }){ property.set(component, it)}
+				"glm_.quat.Quat" -> QuatField(parent + property.name, { get<Quat, C>(property, component) }){ property.set(component, it)}
 
 				"com.pineypiney.game_engine.resources.shaders.Shader" -> ShaderField(parent + property.name, { property.get(component) as Shader }){ property.set(component, it)}
 				"com.pineypiney.game_engine.resources.textures.Texture" -> TextureField(parent + property.name, {property.get(component) as Texture}){ property.set(component, it)}
 				"com.pineypiney.game_engine.resources.models.Model" -> ModelField(parent + property.name, {property.get(component) as Model}){ property.set(component, it)}
 				else -> null
+			}
+		}
+
+		inline fun <reified T, C: Any> get(property: KMutableProperty1<C, Any>, component: C): T{
+			try {
+				return property.get(component) as T
+			}
+			catch (e: NullPointerException){
+				throw e
 			}
 		}
 	}

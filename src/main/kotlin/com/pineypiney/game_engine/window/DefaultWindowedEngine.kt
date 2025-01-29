@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.window
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.FileResourcesLoader
-import com.pineypiney.game_engine.resources.text.FontLoader
 
 class DefaultWindowedEngine<E : WindowGameLogic>(
 	override val window: Window,
@@ -14,7 +13,7 @@ class DefaultWindowedEngine<E : WindowGameLogic>(
 	
 	init {
 		GameEngineI.defaultFont = "Simplified Hans Light"
-		FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)
+		//FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)
 	}
 
 	override val activeScreen: E = screen(this)

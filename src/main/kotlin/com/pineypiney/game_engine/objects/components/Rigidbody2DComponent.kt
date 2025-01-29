@@ -12,7 +12,7 @@ class Rigidbody2DComponent(parent: GameObject) : Component(parent), UpdatingComp
 
 	var gravity = Vec2(0f, -9.81f)
 
-	var stepBias: Vec2? = null
+	var stepBias: Vec2 = Vec2(0f)
 
 	override fun update(interval: Float) {
 		acceleration plusAssign gravity

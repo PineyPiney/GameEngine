@@ -6,8 +6,11 @@ import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser.Companion
 import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser.Companion.fileContextMenu
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.GameObjectSerializer
+import com.pineypiney.game_engine.objects.components.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
+import com.pineypiney.game_engine.objects.components.TextFieldComponent
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
+import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.rendering.ObjectRenderer
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -30,7 +33,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 	var fileSelect = 0.0
 
 	init {
-		parent.components.add(SpriteComponent(parent, getIcon(Vec2(.5f)), SpriteComponent.menuShader))
+		parent.components.add(SpriteComponent(parent, getIcon(Vec2(.5f, .25f)), SpriteComponent.menuShader))
 	}
 
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
@@ -55,10 +58,22 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
 		super.onSecondary(window, action, mods, cursorPos)
 		if(action == 1) {
-			browser.screen.setContextMenu(FileContext(browser, file), fileContextMenu, cursorPos)
+			browser.screen.setContextMenu(FileContext(browser, this), fileContextMenu, cursorPos)
 			return INTERRUPT
 		}
 		return action
+	}
+
+	fun rename(){
+		parent.removeAndDeleteChild(file.name + " Text Object")
+
+		val textField = ActionTextField<ActionTextFieldComponent<*>>(file.name + " Naming Field", Vec3(-.75f, -.4f, .01f), Vec2(1.5f, .25f), file.nameWithoutExtension, .9f){ f, _, _ ->
+			file.renameTo(File(file.parentFile, f.text + '.' + file.extension))
+			browser.refreshDirectory()
+		}
+		parent.addChild(textField)
+		textField.init()
+		textField.getComponent<TextFieldComponent>()?.forceUpdate = true
 	}
 
 	open fun open(){
@@ -83,7 +98,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 		browser.loadedTextures[ext]?.let { return it }
 
 		// Get icon
-		val image = FileSystemView.getFileSystemView().getSystemIcon(file, width, height) ?: return Sprite(Texture.broke, 64f)
+		val image = FileSystemView.getFileSystemView().getSystemIcon(file, width, height) ?: return Sprite(Texture.broke, 64f, center)
 
 		// Convert icon to BufferedImage
 		val imBuf = BufferedImage(image.iconWidth, image.iconHeight, BufferedImage.TYPE_INT_ARGB)

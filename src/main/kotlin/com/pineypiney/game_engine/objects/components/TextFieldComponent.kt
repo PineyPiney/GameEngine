@@ -64,7 +64,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		}
 	}
 
-	var caret: Int = 0; private set
+	var caret: Int = startText.length; private set
 
 	val limits: Vec2 get() = Vec2(
 		parent.transformComponent.worldPosition.x,

@@ -95,7 +95,7 @@ abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorCompon
 	fun onDragBar(window: WindowI, cursorDelta: Float, ray: Ray) {
 		// If the scroller item is taller, then the same scroll value should move the bar by a smaller amount
 		// (Remember that scroll is proportional, a value between 0 and (1-ratio))
-		scroll -= (cursorDelta / (parent.scale.y))
+		scroll -= (cursorDelta / (parent.transformComponent.worldScale.y))
 		for (i in items) {
 			val entry = i.getComponent<InteractorComponent>() ?: continue
 			entry.hover = entry.checkHover(ray, window.input.mouse.lastPos) >= 0f

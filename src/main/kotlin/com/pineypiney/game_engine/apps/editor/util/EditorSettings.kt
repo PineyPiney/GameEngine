@@ -2,9 +2,9 @@ package com.pineypiney.game_engine.apps.editor.util
 
 class EditorSettings {
 
-	var fileBrowserHeight = 240
-	var fileBrowserIconSize = 60
-	var fileBrowserIconSpace = 100
+	var fileBrowserHeight = 320
+	var fileBrowserIconSize = 80
+	var fileBrowserIconSpace = 120
 
 	var objectBrowserWidth = 288
 

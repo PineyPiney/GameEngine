@@ -20,17 +20,21 @@ class SceneFormat(val extension: String, val serialise: (OutputStream, EditorScr
 			for(o in objects){
 				val s = GameObjectSerializer.serialise(o)
 				val f = s.length.toByteString() + s
-				stream.write(f.toByteArray(Charsets.ISO_8859_1))
+				val a = f.toByteArray(Charsets.ISO_8859_1)
+				stream.write(a)
 			}
 		}
 
 		fun parse(stream: InputStream, scene: EditorScreen){
 			val numObjects = stream.int()
 			for(i in 1..numObjects){
-				val objSize = stream.int()
-				val objData = stream.readNBytes(objSize)
-				val o = GameObjectSerializer.parse(ByteArrayInputStream(objData))
-				scene.sceneObjects.addObject(o)
+				try {
+					val objSize = stream.int()
+					val objData = stream.readNBytes(objSize)
+					val o = GameObjectSerializer.parse(ByteArrayInputStream(objData))
+					scene.sceneObjects.addObject(o)
+				}
+				catch (_: Exception){}
 			}
 		}
 	}

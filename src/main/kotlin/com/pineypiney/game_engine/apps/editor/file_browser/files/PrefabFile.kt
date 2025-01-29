@@ -34,11 +34,12 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 	override fun addRenderer(parent: GameObject) {
 		val prefab = Prefab(file)
 		parent.addChild(prefab)
+		prefab.parseAndEdit()
 		prefab.init()
 	}
 
 	override fun getIcon(center: Vec2, width: Int, height: Int): Sprite {
-		val prefab = Prefab(file).apply { init() }
+		val prefab = Prefab(file).apply { parseAndEdit(); init(); position = Vec3(0f) }
 		val renderers = prefab.allActiveDescendants().mapNotNull { it.getComponent<RenderedComponentI>() }
 		if(renderers.isEmpty()) return super.getIcon(center, width, height)
 		
@@ -70,13 +71,14 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		renderer.render(prefab)
 
 		val texture = Texture(file.path, renderer.frameBuffer.TCB)
-		return Sprite(texture, 64f)
+		return Sprite(texture, 64f, center)
 	}
 
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if(action == 0 && Timer.time - fileSelect > .5){
 			val obj = Prefab(file)
+			obj.parseAndEdit()
 			obj.init()
 			obj.position = Vec3(Vec2(browser.screen.renderer.camera.screenToWorld(Vec2(cursorPos.x / browser.screen.window.aspectRatio, cursorPos.y))), obj.position.z)
 			browser.screen.objectBrowser.let {

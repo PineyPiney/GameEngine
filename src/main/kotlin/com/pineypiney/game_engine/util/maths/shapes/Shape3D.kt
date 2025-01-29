@@ -51,7 +51,7 @@ abstract class Shape3D : Shape<Vec3>() {
 	 *
 	 * @return Returns the offset to movement to stop this from intersecting with other
 	 */
-	fun getEjection(other: Shape3D, movement: Vec3, stepBias: Vec3? = null): Vec3 {
+	fun getEjection(other: Shape3D, movement: Vec3, stepBias: Vec3 = Vec3(0f)): Vec3 {
 		val still = movement == Vec3(0f)
 		val lengths = (getNormals() + other.getNormals()).associateWith {
 			// The overlap in each direction of the normal
@@ -76,7 +76,7 @@ abstract class Shape3D : Shape<Vec3>() {
 		//if(lengths.any { it.value == 0f }) return Vec3(0f)
 
 		if (!still) {
-			if (stepBias != null) {
+			if (stepBias != Vec3(0f)) {
 				val stepMag = stepBias.length()
 				for ((normal, mult) in lengths) {
 					val dot = normal dot stepBias

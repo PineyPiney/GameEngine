@@ -9,7 +9,6 @@ import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.fromString
 import com.pineypiney.game_engine.util.extension_functions.toByteString
 import com.pineypiney.game_engine.util.extension_functions.toString
 import glm_.asHexString
@@ -39,8 +38,10 @@ open class ComponentField<T>(
 		return "ComponentField[$id]"
 	}
 
+	fun serialiseValue() = serialise(getter())
+
 	fun serialise(head: StringBuilder, data: StringBuilder) {
-		val s = serialise(getter())
+		val s = serialiseValue()
 		head.append(id.length.toByteString(1) + id + s.length.toByteString())
 		data.append(s)
 	}
@@ -66,31 +67,26 @@ class DoubleField(id: String, getter: () -> Double, setter: (Double) -> Unit) : 
 	getter, setter,
 	ByteData::double2String, { s -> ByteData.string2Double(s) })
 
-open class VecField<T>(id: String, getter: () -> T, setter: (T) -> Unit, serialise: T.(String, Float.() -> String) -> String, parse: (String, Boolean, String.() -> Float) -> T, default: () -> T, copy: (T) -> T) : ComponentField<T>(id,
-	getter, setter, { v -> v.serialise(",", ByteData::float2String) }, { s ->
+open class VecField<T>(id: String, getter: () -> T, setter: (T) -> Unit, serialise: T.(String, Float.() -> String) -> String, parse: (String) -> T, default: () -> T, copy: (T) -> T) : ComponentField<T>(id,
+	getter, setter, { v -> v.serialise("", ByteData::float2String) }, { s ->
 		try {
-			parse(s, false, ByteData::string2Float)
+			parse(s)
 		} catch (_: NumberFormatException) {
 			default()
 		}
 	}, copy)
 
 class Vec2Field(id: String, getter: () -> Vec2, setter: (Vec2) -> Unit) : 
-	VecField<Vec2>(id, getter, setter, Vec2::toString, Vec2::fromString, ::Vec2, ::Vec2)
+	VecField<Vec2>(id, getter, setter, Vec2::toString, ByteData::string2Vec2, ::Vec2, ::Vec2)
 
 class Vec3Field(id: String, getter: () -> Vec3, setter: (Vec3) -> Unit) :
-	VecField<Vec3>(id, getter, setter, Vec3::toString, Vec3::fromString, ::Vec3, ::Vec3)
+	VecField<Vec3>(id, getter, setter, Vec3::toString, ByteData::string2Vec3, ::Vec3, ::Vec3)
 
 class Vec4Field(id: String, getter: () -> Vec4, setter: (Vec4) -> Unit) :
-	VecField<Vec4>(id, getter, setter, Vec4::toString, Vec4::fromString, ::Vec4, ::Vec4)
+	VecField<Vec4>(id, getter, setter, Vec4::toString, ByteData::string2Vec4, ::Vec4, ::Vec4)
 
 class QuatField(id: String, getter: () -> Quat, setter: (Quat) -> Unit) : ComponentField<Quat>(id,
-	getter, setter, { q -> q.toString(",", ByteData::float2String) }, { s ->
-		Quat.fromString(
-			s, false, true,
-			ByteData::string2Float
-		)
-	}, { Quat(it.w, it.x, it.y, it.z) })
+	getter, setter, { q -> q.toString("", ByteData::float2String) }, ByteData::string2Quat, { Quat(it.w, it.x, it.y, it.z) })
 
 class ShaderField(id: String, getter: () -> Shader, setter: (Shader) -> Unit): ComponentField<Shader>(id,
 	getter, setter, ::serialise, ::parse){

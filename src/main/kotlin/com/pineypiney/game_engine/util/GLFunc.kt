@@ -106,6 +106,12 @@ class GLFunc {
 		val stencilFunc: Int get() = glGetInteger(GL_STENCIL_FUNC)
 		val stencilRef: Int get() = glGetInteger(GL_STENCIL_REF)
 		val stencilMask: Int get() = glGetInteger(GL_STENCIL_VALUE_MASK)
+
+		/**
+		 * @param x Comparison function
+		 * @param y Reference value
+		 * @param z Comparison mask
+		 */
 		var stencilFRM: Vec3i
 			get() = Vec3i(stencilFunc, stencilRef, stencilMask)
 			set(value) = glStencilFunc(value.x, value.y, value.z)
@@ -116,6 +122,12 @@ class GLFunc {
 		val stencilOpFail: Int get() = glGetInteger(GL_STENCIL_FAIL)
 		val stencilOpPassFail: Int get() = glGetInteger(GL_STENCIL_PASS_DEPTH_FAIL)
 		val stencilOpPass: Int get() = glGetInteger(GL_STENCIL_PASS_DEPTH_PASS)
+
+		/**
+		 * @param x: Stencil fails
+		 * @param y: Stencil passes, depth fails
+		 * @param z: Stencil and Depth pass
+		 */
 		var stencilOp: Vec3i
 			get() = Vec3i(stencilOpFail, stencilOpPassFail, stencilOpPass)
 			set(value) {

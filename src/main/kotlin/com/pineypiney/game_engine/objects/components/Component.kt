@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.fields.EditorIgnore
-import com.pineypiney.game_engine.util.extension_functions.toByteString
+import com.pineypiney.game_engine.util.ByteData
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KParameter
@@ -25,17 +25,17 @@ abstract class Component(final override val parent: GameObject) : ComponentI {
 	}
 
 	override fun getAllFields(): Set<ComponentField<*>> {
-		return getAllNewFieldsExt()
+		return getAllFieldsExt()
 	}
 
 	override fun setValue(key: String, value: String) {
-		val field = getAllNewFieldsExt().firstOrNull { it.id == key } ?: return
+		val field = getAllFieldsExt().firstOrNull { it.id == key } ?: return
 		field.set(value)
 	}
 
 	@Suppress("UNCHECKED_CAST")
 	override fun <F : ComponentField<*>> getField(id: String): F? {
-		val f = getAllNewFieldsExt().firstOrNull { it.id == id } ?: return null
+		val f = getAllFieldsExt().firstOrNull { it.id == id } ?: return null
 		return f as? F
 	}
 
@@ -104,8 +104,8 @@ abstract class Component(final override val parent: GameObject) : ComponentI {
 	}
 
 	override fun copyFieldsTo(dst: ComponentI) {
-		for (f in getAllNewFieldsExt()) {
-			copyFieldTo(dst.getAllNewFieldsExt(), f)
+		for (f in getAllFieldsExt()) {
+			copyFieldTo(dst.getAllFieldsExt(), f)
 		}
 	}
 
@@ -137,8 +137,8 @@ abstract class Component(final override val parent: GameObject) : ComponentI {
 
 	override fun serialise(head: StringBuilder, data: StringBuilder) {
 		val nameStr = this::class.simpleName ?: "Anon"
-		val properties = getAllNewFieldsExt()
-		head.append(nameStr.length.toByteString(1) + nameStr + properties.size.toByteString(1))
+		val properties = getAllFieldsExt()
+		head.append(ByteData.int2String(nameStr.length, 1) + nameStr + ByteData.int2String(properties.size, 1))
 		properties.forEach { it.serialise(head, data) }
 	}
 }
@@ -148,16 +148,16 @@ fun <C : Component> C.applied(): C {
 	return this
 }
 
-fun <C: Any> C.getAllNewFieldsExt(parent: String = ""): Set<ComponentField<*>> {
+fun <C: Any> C.getAllFieldsExt(parent: String = ""): Set<ComponentField<*>> {
 	val properties = this::class.memberProperties.filterIsInstance<KMutableProperty1<C, Any>>()
 	val fields = mutableSetOf<ComponentField<*>>()
 	for(p in properties){
-		if(p.visibility != KVisibility.PUBLIC || p.setter.visibility != KVisibility.PUBLIC || p.hasAnnotation<EditorIgnore>()) continue
-		val field = Components.getNewDefaultField(p, this, parent)
+		if(p.visibility != KVisibility.PUBLIC || p.setter.visibility != KVisibility.PUBLIC || p.returnType.isMarkedNullable || p.hasAnnotation<EditorIgnore>()) continue
+		val field = Components.getDefaultField(p, this, parent)
 		if(field != null) fields.add(field)
 		else {
 			val value = p.get(this)
-			fields.addAll(value.getAllNewFieldsExt(parent + p.name + '.'))
+			fields.addAll(value.getAllFieldsExt(parent + p.name + '.'))
 		}
 	}
 	return fields

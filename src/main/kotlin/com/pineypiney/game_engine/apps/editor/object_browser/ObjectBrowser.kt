@@ -5,26 +5,24 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.PixelTransformComponent
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
+import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
-import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
-import glm_.vec4.Vec4
-import kotlin.math.sign
 
 class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultInteractorComponent(parent), UpdatingAspectRatioComponent {
 
 	val objectList = MenuItem("Object List")
 	var selected: ObjectNode? = null
 
-	val colour = ColourRendererComponent(parent, Vec3(.7f), ColourRendererComponent.menuShader, Mesh.cornerSquareShape)
+	val colour = ChildContainingRenderer(parent, Mesh.cornerSquareShape, Vec3(.7f))
 
 	init {
 		parent.components.add(PixelTransformComponent(parent, Vec2i(0f, screen.settings.fileBrowserHeight), Vec2i(screen.settings.objectBrowserWidth, 324), Vec2(-1f)))
@@ -105,14 +103,6 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 			positionNodes()
 		}
 		return super.onSecondary(window, action, mods, cursorPos)
-	}
-
-	override fun onCursorEnter(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
-		colour.colour = Vec4(cursorPos.y,  .5f + (.5f * cursorDelta.y.sign), 0f, 1f)
-	}
-
-	override fun onCursorExit(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
-		colour.colour = Vec4(.7f,  .7f, .7f, 1f)
 	}
 
 	override fun updateAspectRatio(renderer: RendererI) {

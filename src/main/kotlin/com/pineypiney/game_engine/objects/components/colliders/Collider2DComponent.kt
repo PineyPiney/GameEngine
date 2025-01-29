@@ -26,7 +26,7 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D, val flags: Mut
 		return false
 	}
 
-	fun checkAllCollisions(movement: Vec2, stepBias: Vec2? = null): Vec2 {
+	fun checkAllCollisions(movement: Vec2, stepBias: Vec2 = Vec2(0f)): Vec2 {
 
 		val collidedMove = movement.copy()
 

@@ -11,12 +11,13 @@ import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
-import com.pineypiney.game_engine.resources.models.ModelMesh
 import com.pineypiney.game_engine.resources.models.ModelLoader
+import com.pineypiney.game_engine.resources.models.ModelMesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -28,7 +29,6 @@ import com.pineypiney.game_engine.util.maths.vectorToEuler
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
-import com.pineypiney.game_engine_test.Renderer
 import glm_.f
 import glm_.quat.Quat
 import glm_.s
@@ -40,7 +40,7 @@ import kotlin.math.PI
 
 class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
 
-	override val renderer = Renderer(window, PerspectiveCamera(window))
+	override val renderer = DefaultWindowRenderer<Game3D, PerspectiveCamera>(window, PerspectiveCamera(window))
 	private val camera get() = renderer.camera
 
 	private val pressedKeys = mutableSetOf<Short>()

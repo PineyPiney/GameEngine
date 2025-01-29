@@ -51,7 +51,7 @@ abstract class Shape2D : Shape<Vec2>() {
 	 *
 	 * @return Returns the offset to movement to stop this from intersecting with other
 	 */
-	fun getEjection(other: Shape2D, movement: Vec2, stepBias: Vec2? = null): Vec2 {
+	fun getEjection(other: Shape2D, movement: Vec2, stepBias: Vec2 = Vec2(0f)): Vec2 {
 		val still = movement == Vec2(0f)
 		val lengths = (getNormals() + other.getNormals() + (center - other.center).normalize()).associateWith {
 			// The overlap in each direction of the normal
@@ -76,7 +76,7 @@ abstract class Shape2D : Shape<Vec2>() {
 		//if(lengths.any { it.value == 0f }) return Vec3(0f)
 
 		if (!still) {
-			if (stepBias != null) {
+			if (stepBias != Vec2(0f)) {
 				val stepMag = stepBias.length()
 				for ((normal, mult) in lengths) {
 					val dot = normal dot stepBias

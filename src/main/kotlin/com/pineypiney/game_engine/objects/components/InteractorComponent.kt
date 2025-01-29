@@ -17,11 +17,6 @@ interface InteractorComponent : ComponentI {
 	var forceUpdate: Boolean
 	var passThrough: Boolean
 
-	val interactableChildren: Collection<InteractorComponent> get() = parent.children.flatMap { it.children.filterIsInstance<InteractorComponent>() }
-
-	val renderSize get() = parent.getComponent<RenderedComponent>()?.shape?.size ?: Vec2(1f, 1f)
-
-
 	fun checkHover(ray: Ray, screenPos: Vec2): Float {
 		val renderer = parent.getComponent<RenderedComponent>()
 

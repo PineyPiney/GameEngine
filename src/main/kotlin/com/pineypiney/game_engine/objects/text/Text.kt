@@ -86,34 +86,68 @@ open class Text(
 	fun generateLines(parentAspect: Float): Array<String> {
 		val maxWidth = this.maxWidth * parentAspect
 		val lines = mutableListOf<String>()
-		var currentText = ""
+		var lastBreak = 0
+		var lastWord = 0
 		var i = 0
-		var lastBreak = -1
-		while (i < text.length) {
-			while (i < text.length - 1 && !" \n".contains(text[i])) {
-				i++
+
+		while(i <= text.length){
+
+			if(getHeight(lines.joinToString("\n")) > maxHeight){
+				lines.removeLast()
+				val line = lines.removeLast()
+				var d = line.length
+				while(d > 0){
+					if(getWidth(line.substring(0, d) + "...") < maxWidth) break
+					d--
+				}
+				lines.add(line.substring(0, d) + "...")
+				break
 			}
+			if(i == text.length) break
 
-			val word = text.slice(lastBreak + 1..i)
-
-			val width = getWidth(currentText + word.removeSuffix(" "))
-
-			if (width > maxWidth) {
-				lines.add(currentText)
-				currentText = ""
-			}
-
-			if (text[i] == '\n') {
-				lines.add(currentText + word.substring(0, word.length - 1))
-				currentText = ""
-			} else {
-				currentText += word
-			}
-
+			// Set values
+			lastWord = i
 			lastBreak = i
-			i++
+
+			// Get first word in this line
+			while(i < text.length){
+				if(" \n".contains(text[i])) break
+				i++
+				if(text[i - 1] == '-') break
+			}
+
+			val firstWordWidth = getWidth(text.substring(lastBreak, i))
+			// If the first word in the line if too lang then it has to be cut in half
+			if(firstWordWidth > maxWidth){
+				i--
+				// Find the maximum amount of the word that can fit on one line,
+				// add it and continue from the rest of the word for the next line
+				while(i > lastBreak + 1){
+					if(getWidth(text.substring(lastBreak, i)) < maxWidth) break
+					i--
+				}
+				lines.add(text.substring(lastBreak, i))
+				continue
+			}
+
+			// If at least one word can fit, then no other words will be truncated for this line
+			lastWord = i
+			word@while(i <= text.length && getWidth(text.substring(lastBreak, i)) < maxWidth){
+				lastWord = i
+				// Reached the end of the string or forced new line
+				if(i == text.length || text[i] == '\n') break
+
+				i++
+				// Search for the next character that can cause a line break
+				while(i < text.length && !" \n".contains(text[i])){
+					i++
+					if(text[i - 1] == '-') break
+				}
+			}
+			// Add this line to the collection, and set i to start at the end of this line
+			i = lastWord
+			lines.add(text.substring(lastBreak, lastWord))
 		}
-		lines.add(currentText)
 		lines.removeAll { it.replaceWhiteSpaces() == "" }
 		return lines.toTypedArray()
 	}
@@ -142,7 +176,7 @@ open class Text(
 		return "Text[\"$text\"]"
 	}
 
-	data class Params(var colour: Vec4 = Vec4(0f, 0f, 0f, 1f), var maxWidth: Float = 2f, var maxHeight: Float = 2f,
+	data class Params(var colour: Vec4 = Vec4(0f, 0f, 0f, 1f), var maxWidth: Float = 1f, var maxHeight: Float = 1f,
 					  var fontSize: Float = 1f, var alignment: Int = ALIGN_CENTER_LEFT,
 					  var shader: Shader = Font.fontShader, var font: Font = Font.defaultFont,
 					  var italic: Float = 0f, var underlineThickness: Float = 0f,
@@ -181,8 +215,8 @@ open class Text(
 		fun makeMenuText(
 			text: String,
 			colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
-			maxWidth: Float = 2f,
-			maxHeight: Float = 2f,
+			maxWidth: Float = 1f,
+			maxHeight: Float = 1f,
 			fontSize: Float = 1f,
 			alignment: Int = ALIGN_CENTER_LEFT,
 			shader: Shader = Font.fontShader,

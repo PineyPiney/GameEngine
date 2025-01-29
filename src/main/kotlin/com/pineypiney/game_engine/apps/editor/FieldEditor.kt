@@ -21,6 +21,7 @@ import com.pineypiney.game_engine.util.extension_functions.capitalise
 import com.pineypiney.game_engine.util.s
 import glm_.quat.Quat
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import glm_.vec4.swizzle.xyz
@@ -56,13 +57,13 @@ abstract class FieldEditor<T, out F : ComponentField<T>>(
 
 	open fun onDropElement(element: Any, cursorPos: Vec2, screen: EditorScreen){}
 
-	fun createText(text: String = field.id.capitalise(), alignment: Int = Text.ALIGN_CENTER_RIGHT, pos: Vec2 = Vec2(.18f, .5f), size: Vec2 = Vec2(.18f, 1f)) = Text.makeMenuText(text, alignment = alignment).apply { position = Vec3(pos, .01f); scale = Vec3(size, 1f) }
+	fun createText(text: String = field.id.substringAfterLast('.').capitalise(), alignment: Int = Text.ALIGN_CENTER_RIGHT, pos: Vec2 = Vec2(.25f, .5f), size: Vec2 = Vec2(.25f, 1f)) = Text.makeMenuText(text, maxWidth = 1f, maxHeight = 1f, alignment = alignment).apply { position = Vec3(pos, .01f); scale = Vec3(size, 1f) }
 }
 
 open class DefaultFieldEditor<T, F : ComponentField<T>>(parent: GameObject, field: F, origin: Vec2,
 	size: Vec2, callback: (String, String, String) -> Unit) : FieldEditor<T, F>(parent, field, origin, size) {
 
-	val textField = ActionTextField<ActionTextFieldComponent<*>>("Text Field", Vec3(0f, 0f, .01f), Vec2(1f, 1f)) { f, _, _ ->
+	val textField = ActionTextField<ActionTextFieldComponent<*>>("Text Field", Vec3(0f, 0f, 0f), Vec2(1f, 1f)) { f, _, _ ->
 		try {
 			val oldSer = field.serialise(field.getter())
 			field.parse(f.text)?.let { field.setter(it) }
@@ -88,7 +89,7 @@ open class BoolFieldEditor(parent: GameObject, field: BoolField, origin: Vec2, s
 	val checkBox = CheckBox("Bool Checkbox", field.getter()){
 		field.setter(it)
 		callback(field.id, field.serialise(!it), field.serialise(it))
-	}.apply { position = Vec3(.22f, 0f, .01f) }
+	}.apply { position = Vec3(.27f, 0f, 0f); pixel(Vec2i(0), Vec2i(16), Vec2(.27, 0f)) }
 
 	override fun createChildren() {
 		parent.addChild(nameText, checkBox)
@@ -114,7 +115,7 @@ open class PrimitiveFieldEditor<T: Any, F: ComponentField<T>>(parent: GameObject
 
 	val nameText = createText()
 
-	val textField = ActionTextField<TextFieldComponent>("Number Field", Vec3(.2f, 0f, .01f), Vec2(.8f, 1f)) { f, _, _ ->
+	val textField = ActionTextField<TextFieldComponent>("Number Field", Vec3(.27f, 0f, 0f), Vec2(.73f, 1f)) { f, _, _ ->
 		try {
 			val value = parse(f.text)
 			val oldSer = field.serialise(field.getter())
@@ -151,7 +152,7 @@ open class IntRangeFieldEditor(parent: GameObject, field: IntRangeField, origin:
 
 	val nameText = createText()
 
-	val slider = BasicActionSlider("Int Slider", Vec2(.22f, 0f), Vec2(.78f, 1f), field.range.first, field.range.last, field.getter()){
+	val slider = BasicActionSlider("Int Slider", Vec2(.27f, 0f), Vec2(.73f, 1f), field.range.first, field.range.last, field.getter()){
 		val oldSer = field.serialise(field.getter())
 		field.setter(it.value)
 		callback(field.id, oldSer, field.serialise(it.value))
@@ -171,16 +172,16 @@ open class IntRangeFieldEditor(parent: GameObject, field: IntRangeField, origin:
 open class ShaderFieldEditor(parent: GameObject, field: ShaderField, origin: Vec2, size: Vec2, val callback: (String, String, String) -> Unit)
 	: FieldEditor<Shader, ShaderField>(parent, field, origin, Vec2(size.x, size.y * 3)) {
 
-	val vertexText = createText("Vertex", pos = Vec2(.18f, .84f), size = Vec2(.18f, .32f))
-	val vertexField = ActionTextField<ActionTextFieldComponent<*>>("Vertex Field", Vec3(.2f, .68f, -0.005f), Vec2(.8f, .32f)) { f, _, _ ->
+	val vertexText = createText("Vertex", pos = Vec2(.25f, .84f), size = Vec2(.25f, .32f))
+	val vertexField = ActionTextField<ActionTextFieldComponent<*>>("Vertex Field", Vec3(.27f, .68f, 0f), Vec2(.73f, .32f)) { f, _, _ ->
 		updateValue()
 	}
-	val fragmentText = createText("Fragment", pos = Vec2(.18f, .5f), size = Vec2(.18f, .32f))
-	val fragmentField = ActionTextField<ActionTextFieldComponent<*>>("Fragment Field", Vec3(.2f, .34f, -0.005f), Vec2(.8f, .32f)) { f, _, _ ->
+	val fragmentText = createText("Fragment", pos = Vec2(.25f, .5f), size = Vec2(.25f, .32f))
+	val fragmentField = ActionTextField<ActionTextFieldComponent<*>>("Fragment Field", Vec3(.27f, .34f, 0f), Vec2(.73f, .32f)) { f, _, _ ->
 		updateValue()
 	}
-	val geometryText = createText("Geometry", pos = Vec2(.18f, .16f), size = Vec2(.18f, .32f))
-	val geometryField = ActionTextField<ActionTextFieldComponent<*>>("Geometry Field", Vec3(.2f, 0f, -0.005f), Vec2(.8f, .32f)) { f, _, _ ->
+	val geometryText = createText("Geometry", pos = Vec2(.25f, .16f), size = Vec2(.25f, .32f))
+	val geometryField = ActionTextField<ActionTextFieldComponent<*>>("Geometry Field", Vec3(.27f, 0f, 0f), Vec2(.73f, .32f)) { f, _, _ ->
 		updateValue()
 	}
 
@@ -244,7 +245,7 @@ open class TextureFieldEditor(parent: GameObject, field: TextureField, origin: V
 
 	val nameText = createText()
 
-	val textField = ActionTextField<ActionTextFieldComponent<*>>("Texture Field", Vec3(.2f, 0f, 0.01f), Vec2(.8f, 1f)) { f, _, _ ->
+	val textField = ActionTextField<ActionTextFieldComponent<*>>("Texture Field", Vec3(.27f, 0f, 0f), Vec2(.73f, 1f)) { f, _, _ ->
 		try {
 			val oldSer = field.serialise(field.getter())
 			field.parse(f.text)?.let { field.setter(it) }
@@ -283,7 +284,7 @@ open class ModelFieldEditor(parent: GameObject, field: ModelField, origin: Vec2,
 
 	val nameText = createText()
 
-	val textField = ActionTextField<ActionTextFieldComponent<*>>("Model Field", Vec3(.2f, 0f, 0.01f), Vec2(.8f, 1f)) { f, _, _ ->
+	val textField = ActionTextField<ActionTextFieldComponent<*>>("Model Field", Vec3(.27f, 0f, 0f), Vec2(.73f, 1f)) { f, _, _ ->
 		try {
 			val oldSer = field.serialise(field.getter())
 			field.parse(f.text)?.let { field.setter(it) }
@@ -364,11 +365,11 @@ open class VecFieldEditor<T, out F : ComponentField<T>>(
 
 	val nameField = createText()
 
-	val x = ((size.x * .8f) - ((vecSize - 1) * .01f)) / vecSize
+	val x = (.73f - ((vecSize - 1) * .01f)) / vecSize
 	val textFields = Array<ActionTextField<*>>(vecSize) {
 		ActionTextField<ActionTextFieldComponent<*>>(
 			"Vec Field $it",
-			Vec3(.2f + it * (x + .01f), 0f, .01f),
+			Vec3(.27f + it * (x + .01f), 0f, 0f),
 			Vec2(x, 1f),
 			textSize = .9f
 		) { f, _, _ ->
@@ -389,7 +390,12 @@ open class VecFieldEditor<T, out F : ComponentField<T>>(
 	}
 
 	override fun update() {
-		val v = field.getter()
+		val v = try {
+			field.getter()
+		}
+		catch (e: NullPointerException){
+			return
+		}
 		textFields.forEachIndexed { index, actionTextField ->
 			actionTextField.text = v.inGet(index).toString()
 		}

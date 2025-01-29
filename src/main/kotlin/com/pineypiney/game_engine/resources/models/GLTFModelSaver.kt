@@ -87,20 +87,20 @@ class GLTFModelSaver(val model: Model){
 
 			attributes.put("POSITION", accessors.length())
 			addAccessor("VEC3", FLOAT, numVert, bufferViews.length())
-			addBufferView(mesh.vertices.flatMap { ByteData.vec32bytes<Float>(it.position, false).toList() })
+			addBufferView(mesh.vertices.flatMap { ByteData.vec32Bytes<Float>(it.position, false).toList() })
 
 			attributes.put("NORMAL", accessors.length())
 			addAccessor("VEC3", FLOAT, numVert, bufferViews.length())
-			addBufferView(mesh.vertices.flatMap { ByteData.vec32bytes<Float>(it.normal, false).toList() })
+			addBufferView(mesh.vertices.flatMap { ByteData.vec32Bytes<Float>(it.normal, false).toList() })
 
 			attributes.put("TEXCOORD_0", accessors.length())
 			addAccessor("VEC2", FLOAT, numVert, bufferViews.length())
-			addBufferView(mesh.vertices.flatMap { ByteData.vec22bytes<Float>(it.texCoord, false).toList() })
+			addBufferView(mesh.vertices.flatMap { ByteData.vec22Bytes<Float>(it.texCoord, false).toList() })
 
 			if(mesh is ModelTangentMesh){
 				attributes.put("TANGENT", accessors.length())
 				addAccessor("VEC3", FLOAT, numVert, bufferViews.length())
-				addBufferView(mesh.vertices.filterIsInstance<ModelTangentMesh.TangentMeshVertex>().flatMap { ByteData.vec32bytes<Float>(it.tangent, false).toList() })
+				addBufferView(mesh.vertices.filterIsInstance<ModelTangentMesh.TangentMeshVertex>().flatMap { ByteData.vec32Bytes<Float>(it.tangent, false).toList() })
 			}
 
 			primitive.put("attributes", attributes)

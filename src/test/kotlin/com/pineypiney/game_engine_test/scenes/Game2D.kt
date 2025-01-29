@@ -5,7 +5,9 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.audio.AudioSource
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.*
+import com.pineypiney.game_engine.objects.components.ActionTextFieldComponent
+import com.pineypiney.game_engine.objects.components.AnimatedComponent
+import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
@@ -18,6 +20,7 @@ import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollLis
 import com.pineypiney.game_engine.objects.menu_items.slider.ColourSlider
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.Animation
+import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
@@ -37,7 +40,6 @@ import com.pineypiney.game_engine.util.maths.shapes.Rect3D
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
-import com.pineypiney.game_engine_test.Renderer
 import glm_.f
 import glm_.s
 import glm_.vec2.Vec2
@@ -52,7 +54,7 @@ import kotlin.math.sign
 
 class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
 
-	override val renderer = Renderer(window, OrthographicCamera(window))
+	override val renderer = DefaultWindowRenderer<Game2D, OrthographicCamera>(window, OrthographicCamera(window))
 	val camera get() = renderer.camera
 
 	private val pressedKeys = mutableSetOf<Short>()

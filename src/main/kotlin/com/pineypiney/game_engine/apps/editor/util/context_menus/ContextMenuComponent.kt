@@ -114,7 +114,7 @@ class ContextMenuComponent<C>(parent: GameObject, val context: C, val menu: Cont
 
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
 		super.onPrimary(window, action, mods, cursorPos)
-		if(action == 1) {
+		if(action == 0) {
 			if(hover) hoveredEntry?.action(context)
 			parent.delete()
 		}

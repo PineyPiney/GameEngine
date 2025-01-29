@@ -6,11 +6,12 @@ import java.io.File
 
 class Prefab(val file: File, val edits: MutableList<PrefabEdit> = mutableListOf()) : GameObject("$file Prefab") {
 
-	override fun init() {
-		GameObjectSerializer.Companion.parse(file.inputStream(), this)
+	fun parseAndEdit(){
+		parse(this)
 		for (edit in edits) {
 			edit.execute(this)
 		}
-		super.init()
 	}
+
+	fun parse(obj: GameObject? = null) = GameObjectSerializer.parse(file.inputStream(), obj)
 }

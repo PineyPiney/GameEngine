@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
 import com.pineypiney.game_engine.objects.components.applied
-import com.pineypiney.game_engine.objects.components.getAllNewFieldsExt
+import com.pineypiney.game_engine.objects.components.getAllFieldsExt
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.init
@@ -43,7 +43,7 @@ class ComponentEditor(
 	}
 
 	fun generateFields() {
-		val fields = editingComponent.getAllNewFieldsExt()
+		val fields = editingComponent.getAllFieldsExt()
 		var i = fields.size
 		val h = 0.06f
 

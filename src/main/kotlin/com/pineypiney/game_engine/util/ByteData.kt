@@ -2,8 +2,13 @@ package com.pineypiney.game_engine.util
 
 import com.pineypiney.game_engine.GameEngineI
 import glm_.asLongBits
-import glm_.vec2.Vec2t
-import glm_.vec3.Vec3t
+import glm_.quat.Quat
+import glm_.quat.QuatD
+import glm_.quat.QuatT
+import glm_.vec2.*
+import glm_.vec3.*
+import glm_.vec4.*
+import unsigned.toUint
 import kotlin.math.min
 
 class ByteData {
@@ -20,6 +25,10 @@ class ByteData {
 			val a = CharArray(bytes) { x -> ((i shr ((bytes - (x + 1)) * 8)) and 255).toChar() }
 			return String(a)
 		}
+		fun string2Int(s: String, length: Int = minOf(4, s.length), bigEndian: Boolean = true): Int{
+			return if(bigEndian) (0..<length).sumOf { s[it].code shl (24 - (8 * it)) }
+			else (0..<length).sumOf { s[it].code shl (8 * it) }
+		}
 		fun uint2Bytes(i: UInt, bytes: Int = 4): ByteArray {
 			val numBytes = min(bytes, 4)
 			return ByteArray(numBytes) { x -> ((i shr ((numBytes - (x + 1)) * 8)) and 255u).toByte() }
@@ -29,6 +38,10 @@ class ByteData {
 			val bytes = min(chars, 4)
 			val a = CharArray(bytes) { x -> ((i shr ((bytes - (x + 1)) * 8)) and 255u).toInt().toChar() }
 			return String(a)
+		}
+		fun string2UInt(s: String, length: Int = minOf(4, s.length), bigEndian: Boolean = true): UInt{
+			return if(bigEndian) (0..<length).sumOf { s[it].code.toUInt() shl (24 - (8 * it)) }
+			else (0..<length).sumOf { s[it].code.toUInt() shl (8 * it) }
 		}
 
 		fun long2Bytes(l: Long, bytes: Int = 8): ByteArray {
@@ -40,6 +53,10 @@ class ByteData {
 			val bytes = min(chars, 8)
 			val a = CharArray(bytes) { x -> ((l shr ((bytes - (x + 1)) * 8)) and 255).toInt().toChar() }
 			return String(a)
+		}
+		fun string2Long(s: String, length: Int = minOf(8, s.length), bigEndian: Boolean = true): Long{
+			return if(bigEndian) (0..<length).sumOf { s[it].code.toLong() shl (56 - (8 * it)) }
+			else (0..<length).sumOf { s[it].code.toLong() shl (8 * it) }
 		}
 
 		fun float2Bytes(f: Float): ByteArray{
@@ -65,15 +82,8 @@ class ByteData {
 			return Float.fromBits(i)
 		}
 
-		fun string2Float(s: String): Float {
-			var i = 0
-			for (a in 0..3) {
-				try {
-					i += s[a].code shl (24 - (a * 8))
-				} catch (e: StringIndexOutOfBoundsException) {
-					GameEngineI.logger.warn("Couldn't parse encoded float string $s length ${s.length}")
-				}
-			}
+		fun string2Float(s: String, bigEndian: Boolean = true): Float {
+			val i = string2Int(s, bigEndian = bigEndian)
 			return Float.fromBits(i)
 		}
 
@@ -100,26 +110,80 @@ class ByteData {
 			return Double.fromBits(i)
 		}
 
-		fun string2Double(s: String): Double {
-			var i = 0L
-			for (a in 0..7) {
-				try {
-					i += s[a].code shl (56 - (a * 8))
-				} catch (e: StringIndexOutOfBoundsException) {
-					GameEngineI.logger.warn("Couldn't parse encoded double string $s length ${s.length}")
-				}
-			}
+		fun string2Double(s: String, bigEndian: Boolean = true): Double {
+			val i = string2Long(s, bigEndian = bigEndian)
 			return Double.fromBits(i)
 		}
 
-		fun <T: Number> vec22bytes(vec: Vec2t<T>, bigEndian: Boolean = true): ByteArray{
+		fun <T: Number> vec22Bytes(vec: Vec2t<T>, bigEndian: Boolean = true): ByteArray{
 			val bytes = ByteArray(8)
 			return vec.to(bytes, bigEndian)
 		}
+		
+		fun <T: Number, V: Vec2t<T>> string2Vec2t(string: String, tSize: Int, string2t: (String) -> T, construct: (T, T) -> V, default: V): V{
+			return if(string.length == tSize * 2 + 1) construct(string2t(string.substring(0, tSize)), string2t(string.substring(tSize + 1..2 * tSize)))
+			else if(string.length == tSize * 2) construct(string2t(string.substring(0, tSize)), string2t(string.substring(tSize, 2 * tSize)))
+			else default
+		}
 
-		fun <T: Number> vec32bytes(vec: Vec3t<T>, bigEndian: Boolean = true): ByteArray{
+		fun string2Vec2i(string: String): Vec2i = string2Vec2t(string, 4, ::string2Int, ::Vec2i, Vec2i(0))
+		fun string2Vec2ui(string: String): Vec2ui = string2Vec2t(string, 4, { string2UInt(it).toInt().toUint() }, ::Vec2ui, Vec2ui())
+		fun string2Vec2(string: String): Vec2 = string2Vec2t(string, 4, ::string2Float, ::Vec2, Vec2(0f))
+		fun string2Vec2d(string: String): Vec2d = string2Vec2t(string, 8, ::string2Double, ::Vec2d, Vec2d(0.0))
+
+		fun <T: Number> vec32Bytes(vec: Vec3t<T>, bigEndian: Boolean = true): ByteArray{
 			val bytes = ByteArray(12)
 			return vec.to(bytes, bigEndian)
 		}
+
+		fun <T: Number, V: Vec3t<T>> string2Vec3t(string: String, tSize: Int, string2t: (String) -> T, construct: (T, T, T) -> V, default: V): V{
+			return if(string.length == tSize * 3 + 2) construct(string2t(string.substring(0, tSize)), string2t(string.substring(tSize + 1..2 * tSize)), string2t(string.substring(2 * tSize + 2, 3 * tSize + 2)))
+			else if(string.length == tSize * 3) construct(string2t(string.substring(0, tSize)), string2t(string.substring(tSize, 2 * tSize)), string2t(string.substring(2 * tSize, 3 * tSize)))
+			else default
+		}
+
+		fun string2Vec3i(string: String): Vec3i = string2Vec3t(string, 4, ::string2Int, ::Vec3i, Vec3i(0))
+		fun string2Vec3ui(string: String): Vec3ui = string2Vec3t(string, 4, { string2UInt(it).toInt().toUint() }, ::Vec3ui, Vec3ui())
+		fun string2Vec3(string: String): Vec3 = string2Vec3t(string, 4, ::string2Float, ::Vec3, Vec3(0f))
+		fun string2Vec3d(string: String): Vec3d = string2Vec3t(string, 8, ::string2Double, ::Vec3d, Vec3d(0.0))
+
+		fun <T: Number, V: Vec4t<T>> string2Vec4t(string: String, tSize: Int, string2t: (String) -> T, construct: (T, T, T, T) -> V, default: V): V{
+			return if(string.length == tSize * 4 + 3) construct(string2t(string.substring(0, tSize)), string2t(string.substring(tSize + 1..2 * tSize)), string2t(string.substring(2 * tSize + 2, 3 * tSize + 2)), string2t(string.substring(3 * tSize + 3, 4 * tSize + 3)))
+			else if(string.length == tSize * 4) construct(string2t(string.substring(0, tSize)), string2t(string.substring(tSize, 2 * tSize)), string2t(string.substring(2 * tSize, 3 * tSize)), string2t(string.substring(3 * tSize, 4 * tSize)))
+			else default
+		}
+
+		fun string2Vec4i(string: String): Vec4i = string2Vec4t(string, 4, ::string2Int, ::Vec4i, Vec4i(0))
+		fun string2Vec4ui(string: String): Vec4ui = string2Vec4t(string, 4, { string2UInt(it).toInt().toUint() }, ::Vec4ui, Vec4ui())
+		fun string2Vec4(string: String): Vec4 = string2Vec4t(string, 4, ::string2Float, ::Vec4, Vec4(0f))
+		fun string2Vec4d(string: String): Vec4d = string2Vec4t(string, 8, ::string2Double, ::Vec4d, Vec4d(0.0))
+
+		fun <T: Number, V: QuatT<T>> string2QuatT(string: String, tSize: Int, string2t: (String) -> T, construct: (T, T, T, T) -> V, default: V, wLast: Boolean = true): V{
+
+			return if(string.length == tSize * 4 + 3) {
+				if(wLast){
+					construct(string2t(string.substring(3 * tSize + 3, 4 * tSize + 3)), string2t(string.substring(0, tSize)),
+						string2t(string.substring(tSize + 1..2 * tSize)), string2t(string.substring(2 * tSize + 2, 3 * tSize + 2)))
+				}
+				else {
+					construct(string2t(string.substring(0, tSize)), string2t(string.substring(tSize + 1..2 * tSize)),
+						string2t(string.substring(2 * tSize + 2, 3 * tSize + 2)), string2t(string.substring(3 * tSize + 3, 4 * tSize + 3)))
+				}
+			}
+			else if(string.length == tSize * 4) {
+				if(wLast){
+					construct(string2t(string.substring(3 * tSize, 4 * tSize)), string2t(string.substring(0, tSize)),
+						string2t(string.substring(tSize, 2 * tSize)), string2t(string.substring(2 * tSize, 3 * tSize)))
+				}
+				else {
+					construct(string2t(string.substring(0, tSize)), string2t(string.substring(tSize, 2 * tSize)),
+						string2t(string.substring(2 * tSize, 3 * tSize)), string2t(string.substring(3 * tSize, 4 * tSize)))
+				}
+			}
+			else default
+		}
+
+		fun string2Quat(string: String, wLast: Boolean = true): Quat = string2QuatT(string, 4, ::string2Float, ::Quat, Quat())
+		fun string2QuatD(string: String, wLast: Boolean = true): QuatD = string2QuatT(string, 8, ::string2Double, ::QuatD, QuatD())
 	}
 }

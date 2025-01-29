@@ -20,7 +20,6 @@ import com.pineypiney.game_engine.objects.components.applied
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton
-import com.pineypiney.game_engine.objects.prefabs.Prefab
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
@@ -71,7 +70,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 	}
 
 	private val fpsText = FPSCounter.createCounterWithText(MenuItem("FPS Text").apply { pixel(Vec2i(288, 0), Vec2i(64, 20), Vec2(-1f, 1f)) }, 5.0, "FPS: $",
-		Text.Params().withAlignment(Text.ALIGN_TOP_LEFT).withFontSize(1f))
+		Text.Params().withAlignment(Text.ALIGN_TOP_LEFT))
 
 	private val properties = mutableMapOf<String, String>()
 
@@ -210,7 +209,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, v
 	}
 
 	fun loadPrefab(file: File){
-		val prefab = Prefab(file)
+		val prefab = GameObjectSerializer.parse(file.inputStream())
 		sceneObjects.addObject(prefab)
 		prefab.init()
 		objectBrowser.reset()

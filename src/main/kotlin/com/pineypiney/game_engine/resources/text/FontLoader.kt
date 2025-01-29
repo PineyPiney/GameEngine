@@ -55,7 +55,7 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 		letterWidth: Int,
 		letterHeight: Int,
 		charSpacing: Float,
-		loadBold: Boolean = true,
+		loadBold: Boolean = false,
 		firstLetter: Int = 32,
 		lineSpacing: Float = 1.2f,
 		shader: Shader = Font.fontShader
@@ -98,7 +98,7 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 			true -> {
 				boldTexture = loadBoldFromTexture(fontName, image, columns, rows, 3, 5)
 				boldMap = charMap.mapValues { it.value + Vec4i(-4, -4, 4, 4) }
-				boldTexture.savePNG("src/main/resources/${resourcesLoader.fontLocation}${boldTexture.fileName}.png")
+				//boldTexture.savePNG("src/main/resources/${resourcesLoader.fontLocation}${boldTexture.fileName}.png")
 			}
 
 			false -> {

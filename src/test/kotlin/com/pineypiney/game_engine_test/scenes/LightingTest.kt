@@ -9,6 +9,7 @@ import com.pineypiney.game_engine.objects.components.rendering.TextRendererCompo
 import com.pineypiney.game_engine.objects.menu_items.CheckBox
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.PointLight
@@ -29,7 +30,6 @@ import com.pineypiney.game_engine.util.maths.shapes.AxisAlignedCuboid
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
-import com.pineypiney.game_engine_test.Renderer
 import glm_.mat2x2.Mat2
 import glm_.pow
 import glm_.s
@@ -47,7 +47,7 @@ import kotlin.math.sqrt
 
 class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
 
-	override val renderer = Renderer(window, PerspectiveCamera(window))
+	override val renderer = DefaultWindowRenderer<LightingTest, PerspectiveCamera>(window, PerspectiveCamera(window))
 	private val camera get() = renderer.camera
 	val vel = Vec3(0f)
 
