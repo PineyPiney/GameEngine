@@ -60,7 +60,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 		if (debug and Model.DEBUG_BONES > 0) renderBones(parent, renderer.view, renderer.projection)
 		val renderer = parent.getChild(parent.name + " Collider Renderer")?.renderer
 		if(debug and Model.DEBUG_COLLIDER > 0){
-			if(renderer == null) parent.addChild(CollisionBox2DRenderer(parent))
+			if(renderer == null) parent.addChild(CollisionBox2DRenderer(parent).apply { init() })
 			else renderer.visible = true
 		}
 		else renderer?.visible = false

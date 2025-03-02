@@ -89,6 +89,18 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 		}
 	}
 
+	fun setSelectedObject(obj: GameObject){
+		val line = obj.getAncestry().reversed()
+		var nodeObj = parent
+		var i = 0
+		while(i < line.size){
+			val nextCompare = line.getOrNull(i++) ?: return
+			nodeObj = nodeObj.children.firstOrNull { it.getComponent<ObjectNode>()?.obj == nextCompare } ?: return
+		}
+
+		selected = nodeObj.children.firstNotNullOfOrNull({it.getComponent<ObjectNode>()}) { it.obj == obj } ?: return
+	}
+
 	fun reset(){
 		objectList.deleteAllChildren()
 		for(o in screen.sceneObjects.map.flatMap { it.value }){

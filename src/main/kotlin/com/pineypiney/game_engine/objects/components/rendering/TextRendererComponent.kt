@@ -11,10 +11,12 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
+import org.lwjgl.opengl.GL11C
 
 open class TextRendererComponent(parent: GameObject, val text: Text, shader: Shader) :
-	ShaderRenderedComponent(parent, shader), UpdatingAspectRatioComponent {
+	ShaderRenderedComponent(parent, shader), UpdatingAspectRatioComponent, PreRenderComponent {
 
+	override val whenVisible: Boolean = true
 	override val shape: Rect2D get() = Rect2D(Vec2(), Vec2(text.getWidth(), text.getHeight()))
 
 		override fun setUniforms() {
@@ -29,11 +31,14 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 		text.init()
 	}
 
-	override fun render(renderer: RendererI, tickDelta: Double) {
+	override fun preRender(renderer: RendererI, tickDelta: Double) {
 		if (text.textChanged) {
 			text.updateLines(parent.transformComponent.worldScale.let { it.x / it.y })
 			text.textChanged = false
 		}
+	}
+
+	override fun render(renderer: RendererI, tickDelta: Double) {
 		if (text.lines.isEmpty()) return
 
 
@@ -41,6 +46,8 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 		shader.setUniforms(uniforms, renderer)
 		text.mesh.texture.bind()
 		text.mesh.bindAndDraw()
+
+		GL11C.glFinish()
 	}
 
 	fun renderUnderline(

@@ -12,6 +12,7 @@ import com.pineypiney.game_engine.window.WindowI
 import glm_.glm
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL30C
 
 open class DefaultWindowRenderer<G: WindowGameLogic, R: CameraI>(override val window: WindowI, override val camera: R): BufferedGameRenderer<G>() {
 
@@ -36,10 +37,10 @@ open class DefaultWindowRenderer<G: WindowGameLogic, R: CameraI>(override val wi
 		clearFrameBuffer()
 
 		GLFunc.depthTest = true
-		renderLayer(0, game, tickDelta)
+		renderLayer(0, game, tickDelta, buffer)
 
 		GLFunc.depthTest = false
-		renderLayer(1, game, tickDelta)
+		renderLayer(1, game, tickDelta, buffer){ transformComponent.worldPosition.z }
 
 		// This draws the buffer onto the screen
 		FrameBuffer.unbind()
@@ -49,13 +50,14 @@ open class DefaultWindowRenderer<G: WindowGameLogic, R: CameraI>(override val wi
 		glClear(GL_DEPTH_BUFFER_BIT)
 	}
 
-	fun renderLayer(layer: Int, game: G, tickDelta: Double) = renderLayer(game.gameObjects[layer], tickDelta)
+	fun renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: FrameBuffer? = null, sort: GameObject.() -> Float = { -(transformComponent.worldPosition - camera.cameraPos).length2() }) = renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0, sort)
 
-	open fun renderLayer(layer: Collection<GameObject>, tickDelta: Double){
-		for(o in layer.flatMap { it.catchRenderingComponents() }) {
+	open fun renderLayer(layer: Collection<GameObject>, tickDelta: Double, framebuffer: Int = 0, sort: GameObject.() -> Float = { -(transformComponent.worldPosition - camera.cameraPos).length2() }){
+		for(o in layer.flatMap { it.catchRenderingComponents() }.sortedBy(sort)) {
 			val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
 			if(renderedComponents.isNotEmpty()){
 				for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
+				GL30C.glBindFramebuffer(GL30C.GL_FRAMEBUFFER, framebuffer)
 				for(c in renderedComponents) c.render(this, tickDelta)
 			}
 			else for(c in o.components.filterIsInstance<PreRenderComponent>()){

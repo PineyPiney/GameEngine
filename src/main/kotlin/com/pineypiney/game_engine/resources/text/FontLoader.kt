@@ -21,6 +21,7 @@ import java.awt.font.FontRenderContext
 import java.awt.image.BufferedImage
 import java.io.InputStream
 import javax.imageio.ImageIO
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import java.awt.Font as JavaFont
@@ -222,23 +223,26 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 			val offset = shape.bounds2D.let { Vec2d(it.x, it.y) }
 			val size = shape.bounds2D.let { Vec2i(it.width * res, it.height * res) }
 
-			val pixels = List(size.x * size.y) {
-				val pos = Vec2d((it % size.x).toDouble(), size.y - (it / size.x).toDouble()) * pixSize + offset
-				val pixel = shape.contains(pos.x, pos.y)
+			// Round the texture dimensions up to the nearest multiple of 8
+			// To avoid texture loading issues
+			val textureSize = Vec2i(ceil(size.x * .125f) * 8, ceil(size.y * .125f) * 8)
+
+			val pixels = List(textureSize.x * textureSize.y) {
+				val posX = (it % textureSize.x) * pixSize + offset.x
+				val posY = (size.y - (it / textureSize.x)) * pixSize + offset.y
+				val pixel = shape.contains(posX, posY)
 				if (pixel) {
-					val strength = (shape.contains(pos.x + pixSize, pos.y).i +
-							shape.contains(pos.x - pixSize, pos.y).i +
-							shape.contains(pos.x, pos.y + pixSize).i +
-							shape.contains(pos.x, pos.y - pixSize).i) * .25f
-					List(3) { (strength * 255).b }
-				} else listOf(0.b, 0.b, 0.b)
+					val strength = (shape.contains(posX + pixSize, posY).i +
+							shape.contains(posX - pixSize, posY).i +
+							shape.contains(posX, posY + pixSize).i +
+							shape.contains(posX, posY - pixSize).i) * .25f
+					(strength * 255f).toInt().toByte()
+				} else 0.toByte()
 			}
-			val buffer = pixels.flatten().toByteArray().toBuffer()
-			if(char == '5'){
-				GameEngineI.debug("Creating character 5, using buffer: $buffer, size: $size")
-			}
+			val buffer = pixels.toByteArray().toBuffer()
+
 			//GameEngineI.debug("Loading character $char, code ${char.code.asHexString}")
-			Texture("", TextureLoader.createTexture(buffer, size.x, size.y, GL12C.GL_RGB, debug = char in '4'..'6'))
+			Texture("", TextureLoader.createTexture(buffer, textureSize.x, textureSize.y, GL12C.GL_RED))
 		}
 
 		val name = fontName.substringBefore('.')

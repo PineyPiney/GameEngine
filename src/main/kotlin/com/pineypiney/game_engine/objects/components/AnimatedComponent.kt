@@ -15,8 +15,6 @@ class AnimatedComponent(
 	parent
 ), PreRenderComponent {
 
-	constructor(parent: GameObject) : this(parent, Animation.default)
-
 	override val whenVisible: Boolean = true
 	var animationTime: Float = 0f
 	var playing: Boolean = true

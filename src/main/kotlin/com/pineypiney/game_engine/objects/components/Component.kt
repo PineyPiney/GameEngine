@@ -152,13 +152,17 @@ fun <C: Any> C.getAllFieldsExt(parent: String = ""): Set<ComponentField<*>> {
 	val properties = this::class.memberProperties.filterIsInstance<KMutableProperty1<C, Any>>()
 	val fields = mutableSetOf<ComponentField<*>>()
 	for(p in properties){
-		if(p.visibility != KVisibility.PUBLIC || p.setter.visibility != KVisibility.PUBLIC || p.returnType.isMarkedNullable || p.hasAnnotation<EditorIgnore>()) continue
-		val field = Components.getDefaultField(p, this, parent)
-		if(field != null) fields.add(field)
-		else {
-			val value = p.get(this)
-			fields.addAll(value.getAllFieldsExt(parent + p.name + '.'))
-		}
+		p.getFieldExt(parent, this, fields)
 	}
 	return fields
+}
+
+fun <C, T> KMutableProperty1<C, T>.getFieldExt(parent: String, component: C, fields: MutableSet<ComponentField<*>>){
+	if(visibility != KVisibility.PUBLIC || setter.visibility != KVisibility.PUBLIC || returnType.isMarkedNullable || hasAnnotation<EditorIgnore>()) return
+	val field = Components.getNewDefaultField(this, component, parent)
+	if(field != null) fields.add(field)
+	else {
+		val value = get(component) ?: return
+		fields.addAll(value.getAllFieldsExt("$parent$name."))
+	}
 }

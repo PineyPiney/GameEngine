@@ -89,6 +89,17 @@ fun <T> Iterable<T>.sumOf(selector: (T) -> Float): Float {
 	return sum
 }
 
+fun <T, N> Iterable<T>.orOf(init: N, or: (N, N) -> N, selector: (T) -> N): N{
+	var sum = init
+	for(element in this){
+		sum = or(sum, selector(element))
+	}
+	return sum
+}
+fun <T> Iterable<T>.orOfInt(selector: (T) -> Int): Int = orOf<T, Int>(0, Int::or, selector)
+fun <T> Iterable<T>.orOfUInt(selector: (T) -> UInt): UInt = orOf<T, UInt>(0u, UInt::or, selector)
+fun <T> Iterable<T>.orOfLong(selector: (T) -> Long): Long = orOf<T, Long>(0L, Long::or, selector)
+
 fun <E, K, V> Iterable<E>.associateIndexed(transform: (Int, E) -> Pair<K, V>): Map<K, V> {
 	val it = iterator()
 	var i = 0;

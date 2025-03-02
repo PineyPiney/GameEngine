@@ -25,7 +25,7 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 
 	val grab = Vec2(-1f)
 
-	val closeButton = SpriteButton("Close Button", Sprite(TextureLoader[ResourceKey("menu_items/icons")], 40f, Vec2(0f), Vec2(0f), Vec2(.25f, 1f)), Vec3(.875f, .9f, .01f), Vec2(.125f, .1f), ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/background_texture")]){ _, _ ->
+	val closeButton = SpriteButton("Close Button", Sprite(TextureLoader[ResourceKey("editor/icons")], 40f, Vec2(0f), Vec2(0f), Vec2(.25f, 1f)), Vec3(.875f, .9f, .01f), Vec2(.125f, .1f), ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/background_texture")]){ _, _ ->
 		browser.adderPos = this.parent.position
 		this.parent.delete()
 	}

@@ -2,12 +2,14 @@ package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.util.shapes.TextMesh
+import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import glm_.c
 import glm_.f
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 import glm_.vec4.swizzle.xy
 import glm_.vec4.swizzle.zw
@@ -15,6 +17,7 @@ import kool.ByteBuffer
 import org.lwjgl.opengl.GL11C
 import java.awt.Shape
 import java.awt.font.FontRenderContext
+import java.awt.geom.Rectangle2D
 import java.awt.Font as JavaFont
 
 class TrueTypeFont(
@@ -59,13 +62,19 @@ class TrueTypeFont(
 	override fun getShape(text: String, bold: Boolean, alignment: Int): TextMesh {
 		val list = mutableListOf<TextMesh.CharacterMesh>()
 		val glyph = font.createGlyphVector(ctx, text)
+
 		val (alignX, alignY) = getAlignmentOffset(text, alignment)
 		val (texture, dimensions) = createTexture(text.toSet())
 		var line = 0
+		var xOffset = 0f
 		for (i in text.indices) {
-			if(text[i] == '\n') line++
-			val shape = glyph.getGlyphOutline(i)
-			list.add(createChar(shape, Vec2(alignX[line], alignY), dimensions[text[i]] ?: continue))
+
+			if(text[i] == '\n') {
+				line++
+				xOffset = -glyph.getGlyphPosition(i).x.toFloat()
+			}
+			val bounds = glyph.getGlyphOutline(i).bounds2D
+			list.add(createChar(bounds, Vec2(alignX[line] + xOffset, alignY - line.toFloat()), dimensions[text[i]] ?: continue))
 		}
 
 		return TextMesh(list.toTypedArray(), texture, true)
@@ -89,24 +98,34 @@ class TrueTypeFont(
 		var x = 0
 		val dimensions = mutableMapOf<Char, Vec4>()
 
+		val copier = TextureCopyFrameBuffer()
+		copier.init()
+		copier.setDst(texture)
 		for((c, t) in textures){
+			if(t.width == 0 || t.height == 0) continue
 			try {
-				texture.setSubData(t.getData(), x, 0, t.width, t.height, t.format)
+				copier.copyOntoDst(t, Vec2i(x, 0))
+
+//				texture.setSubData(t.getData(), x, 0, t.width, t.height, t.format)
 			}
 			catch (e: Exception){
 				GameEngineI.logger.error("Couldn't get texture data for TrueTypeFont $name, character $c")
 			}
-			dimensions[c] = Vec4(x * invWidth, 0f, (x + t.width) * invWidth, t.height * invHeight)
+
+			val glyph = font.createGlyphVector(ctx, c.toString())
+			val charBounds = glyph.outline.bounds2D
+			dimensions[c] = Vec4(x * invWidth, 0f, (x + charBounds.width.toFloat() * 200f) * invWidth, charBounds.height.toFloat() * 200f * invHeight)
 			x += t.width
 		}
+		copier.delete()
 
 		return texture to dimensions
 	}
 
-	fun createChar(shape: Shape, offset: Vec2, textureDimensions: Vec4): TextMesh.CharacterMesh {
-		val width = shape.bounds2D.width.f.let { if (it == 0f) 0.2f else it }
-		val height = shape.bounds2D.height.f.let { if (it == 0f) 0.2f else it }
-		val pos = Vec2(shape.bounds2D.x, -(shape.bounds2D.y + shape.bounds2D.height)) + offset
+	fun createChar(bounds: Rectangle2D, offset: Vec2, textureDimensions: Vec4): TextMesh.CharacterMesh {
+		val width = bounds.width.f.let { if (it == 0f) 0.2f else it }
+		val height = bounds.height.f.let { if (it == 0f) 0.2f else it }
+		val pos = Vec2(bounds.x, -(bounds.y + bounds.height)) + offset
 		return TextMesh.CharacterMesh(pos, Vec2(width, height) + pos, textureDimensions.xy, textureDimensions.zw)
 	}
 

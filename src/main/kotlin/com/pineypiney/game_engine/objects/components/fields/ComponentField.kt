@@ -15,8 +15,11 @@ import glm_.asHexString
 import glm_.intValue
 import glm_.quat.Quat
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
+import glm_.vec4.Vec4i
 
 open class ComponentField<T>(
 	val id: String,
@@ -67,14 +70,29 @@ class DoubleField(id: String, getter: () -> Double, setter: (Double) -> Unit) : 
 	getter, setter,
 	ByteData::double2String, { s -> ByteData.string2Double(s) })
 
-open class VecField<T>(id: String, getter: () -> T, setter: (T) -> Unit, serialise: T.(String, Float.() -> String) -> String, parse: (String) -> T, default: () -> T, copy: (T) -> T) : ComponentField<T>(id,
-	getter, setter, { v -> v.serialise("", ByteData::float2String) }, { s ->
+open class VecTField<T, V>(id: String, getter: () -> V, setter: (V) -> Unit, t2string: T.() -> String, serialise: V.(String, T.() -> String) -> String, parse: (String) -> V, default: () -> V, copy: (V) -> V):
+	ComponentField<V>(id, getter, setter, { v -> v.serialise("", t2string) }, { s ->
 		try {
 			parse(s)
-		} catch (_: NumberFormatException) {
-			default()
 		}
-	}, copy)
+		catch (_: NumberFormatException){
+			default()
+		}}, copy)
+
+open class VeciField<V>(id: String, getter: () -> V, setter: (V) -> Unit, serialise: V.(String, Int.() -> String) -> String, parse: (String) -> V, default: () -> V, copy: (V) -> V) : VecTField<Int, V>(
+	id, getter, setter, ByteData::int2String, serialise, parse, default, copy)
+
+class Vec2iField(id: String, getter: () -> Vec2i, setter: (Vec2i) -> Unit) :
+	VeciField<Vec2i>(id, getter, setter, Vec2i::toString, ByteData::string2Vec2i, ::Vec2i, ::Vec2i)
+
+class Vec3iField(id: String, getter: () -> Vec3i, setter: (Vec3i) -> Unit) :
+	VeciField<Vec3i>(id, getter, setter, Vec3i::toString, ByteData::string2Vec3i, ::Vec3i, ::Vec3i)
+
+class Vec4iField(id: String, getter: () -> Vec4i, setter: (Vec4i) -> Unit) :
+	VeciField<Vec4i>(id, getter, setter, Vec4i::toString, ByteData::string2Vec4i, ::Vec4i, ::Vec4i)
+
+open class VecField<V>(id: String, getter: () -> V, setter: (V) -> Unit, serialise: V.(String, Float.() -> String) -> String, parse: (String) -> V, default: () -> V, copy: (V) -> V) : VecTField<Float, V>(
+	id, getter, setter, ByteData::float2String, serialise, parse, default, copy)
 
 class Vec2Field(id: String, getter: () -> Vec2, setter: (Vec2) -> Unit) : 
 	VecField<Vec2>(id, getter, setter, Vec2::toString, ByteData::string2Vec2, ::Vec2, ::Vec2)

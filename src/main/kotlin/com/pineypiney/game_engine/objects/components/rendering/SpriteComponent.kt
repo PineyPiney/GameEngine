@@ -12,9 +12,15 @@ import glm_.vec2.Vec2
 
 open class SpriteComponent(
 	parent: GameObject,
-	var sprite: Sprite,
+	sprite: Sprite,
 	shader: Shader = defaultShader,
 ) : ShaderRenderedComponent(parent, shader) {
+
+	var sprite: Sprite = sprite
+		set(value) {
+			field.mesh.delete()
+			field = value
+		}
 
 	constructor(parent: GameObject,
 				texture: Texture = Texture.broke,

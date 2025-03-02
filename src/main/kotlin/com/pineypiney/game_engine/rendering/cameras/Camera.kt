@@ -25,7 +25,7 @@ abstract class Camera(
 	override var cameraMinPos = Vec3(-Float.MAX_VALUE)
 	override var cameraMaxPos = Vec3(Float.MAX_VALUE)
 
-	override var range = Vec2(0.1, 1000)
+	override var range = Vec2(0.1f, 1000f)
 
 	var cameraYaw = yaw
 	var cameraPitch = pitch

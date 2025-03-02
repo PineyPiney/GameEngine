@@ -5,7 +5,6 @@ import com.pineypiney.game_engine.apps.editor.FieldEditor
 import com.pineypiney.game_engine.apps.editor.createEditor
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenu
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenuEntry
-import com.pineypiney.game_engine.apps.editor.util.edits.ComponentFieldEdit
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
@@ -93,9 +92,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 				Vec2(.01f, 0f),
 				Vec2(.98f, .02f)
 			) { _, ov, v ->
-				f.set(v)
-				screen.repositionTransformer()
-				screen.editManager.addEdit(ComponentFieldEdit(component.parent, screen, fieldID, ov, v))
+				screen.setFieldValue(fieldID, f, ov, v)
 			}?.applied()?.parent ?: continue
 			compCont.addChild(editor)
 		}

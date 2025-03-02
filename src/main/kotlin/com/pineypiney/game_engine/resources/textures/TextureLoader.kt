@@ -187,7 +187,6 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 				return
 			}
 			val d = Debug().start()
-			if(data == null) GameEngineI.warn("write null data to texture")
 			if(debug) GameEngineI.debug("Calling texImage2D with internalFormat: $internalFormat, width: $width, height: $height, format: $format, type: $type and data: $data")
 			try { glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data) }
 			catch (e: Exception){ "TEXTURE FAILURE" }

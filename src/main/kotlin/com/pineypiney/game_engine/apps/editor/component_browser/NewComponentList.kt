@@ -24,7 +24,7 @@ class NewComponentList(parent: GameObject, val browser: ComponentBrowser): Scrol
 		}
 
 	override fun createEntries(): List<GameObject> {
-		return Components.Companion.getAllComponentNames().filter { it.contains(search) }.map { n ->
+		return Components.getAllComponentNames().filter { it.contains(search) }.map { n ->
 			NewComponentEntry(MenuItem("Component Entry $n"), n).applied().parent
 		}
 	}

@@ -12,6 +12,7 @@ import com.pineypiney.game_engine.objects.components.slider.*
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -23,15 +24,25 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.findAnnotations
 import kotlin.reflect.jvm.javaType
 
 class Components {
 
 	companion object {
 		private val components: MutableSet<KClass<out ComponentI>> = mutableSetOf()
+		private val fieldTypes: MutableSet<FieldType<*>> = mutableSetOf()
 
 		fun addComponent(component: KClass<out ComponentI>) {
 			if (!component.isAbstract) components.add(component)
+		}
+
+		fun addFieldType(fieldType: FieldType<*>){
+			fieldTypes.add(fieldType)
+		}
+
+		fun <T> addFieldType(default: () -> T, fieldCreator: (id: String, getter: () -> T, setter: (T) -> Unit) -> ComponentField<T>){
+			fieldTypes.add(FieldType(default, fieldCreator))
 		}
 
 		fun getAllComponentNames() = components.mapNotNull { it.simpleName }
@@ -50,7 +61,10 @@ class Components {
 				for (param in constructor.parameters) {
 					if (param.name == "parent" && param.type.javaType == GameObject::class.java) params[param] = parent
 					else if (param.isOptional) continue
-					else params[param] = defaultParameters[param.type.javaClass.simpleName]?.invoke() ?: continue@const
+					else {
+						val value = fieldTypes.firstNotNullOfOrNull({it.default()}) { d -> d::class == param.type.classifier } ?: continue@const
+						params[param] = value
+					} // defaultParameters[param.type.javaClass.simpleName]?.invoke() ?: continue@const
 				}
 				return constructor.callBy(params)
 			}
@@ -94,22 +108,28 @@ class Components {
 			addComponent(TextFieldComponent::class)
 			addComponent(TextureMapsComponent::class)
 			addComponent(TransformComponent::class)
-		}
 
-		val defaultParameters: Map<String, () -> Any> = mapOf(
-			"Int" to { 1 },
-			"UInt" to { 1u },
-			"Float" to { 1f },
-			"Double" to { 1.0 },
-			"Vec2" to { Vec2() },
-			"Vec3" to { Vec3() },
-			"Vec4" to { Vec4() },
-			"Vec2i" to { Vec2i() },
-			"Vec3i" to { Vec3i() },
-			"Vec4i" to { Vec4i() },
-			"Shader" to { Shader.brokeShader },
-			"Texture" to { Texture.broke },
-		)
+			addFieldType({ true }, ::BoolField)
+			addFieldType({1}, ::IntField)
+			addFieldType(FieldType({1}, setOf(IntFieldRange::class)) { i, g, s, a ->
+				val rangeA = a.firstOrNull { it is IntFieldRange } as? IntFieldRange
+				val range = rangeA?.let { IntRange(it.min, it.max) } ?: 0..1
+				IntRangeField(i, range, g, s)
+			})
+			addFieldType({1u}, ::UIntField)
+			addFieldType({1f}, ::FloatField)
+			addFieldType({1.0}, ::DoubleField)
+			addFieldType({Vec2i()}, ::Vec2iField)
+			addFieldType({Vec3i()}, ::Vec3iField)
+			addFieldType({Vec4i()}, ::Vec4iField)
+			addFieldType({Vec2()}, ::Vec2Field)
+			addFieldType({Vec3()}, ::Vec3Field)
+			addFieldType({Vec4()}, ::Vec4Field)
+			addFieldType({Quat()}, ::QuatField)
+			addFieldType({Shader.brokeShader}, ::ShaderField)
+			addFieldType({Texture.broke}, ::TextureField)
+			addFieldType({Model.brokeModel}, ::ModelField)
+		}
 
 		@Suppress("UNCHECKED_CAST")
 		fun<C: Any> getDefaultField(property: KMutableProperty1<C, Any>, component: C, parent: String = ""): ComponentField<*>?{
@@ -134,6 +154,20 @@ class Components {
 				"com.pineypiney.game_engine.resources.models.Model" -> ModelField(parent + property.name, {property.get(component) as Model}){ property.set(component, it)}
 				else -> null
 			}
+		}
+
+		fun <C, T> getNewDefaultField(property: KMutableProperty1<C, T>, component: C, parent: String = ""): ComponentField<*>?{
+
+			@Suppress("SENSELESS_COMPARISON")
+			val fieldsOfType = fieldTypes.filter { it.default()?.let{ it::class == property.returnType.classifier } == true }.filterIsInstance<FieldType<T>>()
+			for(i in fieldsOfType){
+				if(i.annotations.isNotEmpty() && i.annotations.all { property.findAnnotations(it).isNotEmpty() }){
+					return i.fieldCreator(parent + property.name, { property.get(component) }, { property.set(component, it)}, property.annotations.toSet())
+				}
+			}
+			val defaultField = fieldsOfType.firstOrNull { it.annotations.isEmpty() }
+			return if(defaultField == null) null
+			else defaultField.fieldCreator(parent + property.name, {property.get(component)}, { property.set(component, it)}, emptySet())
 		}
 
 		inline fun <reified T, C: Any> get(property: KMutableProperty1<C, Any>, component: C): T{

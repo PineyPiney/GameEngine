@@ -20,8 +20,8 @@ abstract class GameLogic : GameLogicI {
 	abstract fun addObjects()
 
 	override fun open() {
-		// Force update everything
-		gameObjects.update(0f)
+		// Force update everything, really don't think this is necessary because everything's being constantly updated anyway???
+		//gameObjects.update(0f)
 
 		// Reset textures so that the last bound texture isn't carried over
 		Texture.broke.bind()

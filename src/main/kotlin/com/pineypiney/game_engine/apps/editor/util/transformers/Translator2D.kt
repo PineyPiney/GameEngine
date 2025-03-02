@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.apps.editor.util.transformers
 
 import com.pineypiney.game_engine.apps.editor.EditorScreen
+import com.pineypiney.game_engine.apps.editor.util.EditorPositioningComponent
 import com.pineypiney.game_engine.apps.editor.util.edits.ComponentFieldEdit
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteComponent
@@ -24,6 +25,7 @@ class 	Translator2D(parent: GameObject, screen: EditorScreen) : Transformer(pare
 	}
 
 
+	var grabPoint = Vec2(-1f)
 	var oldPos = Vec3(Float.MAX_VALUE)
 	var selected = 0
 
@@ -70,6 +72,8 @@ class 	Translator2D(parent: GameObject, screen: EditorScreen) : Transformer(pare
 				blue.z -> 3
 				else -> 0
 			}
+
+			if(selected > 0) grabPoint = cursorPos - Vec2(parent.position)
 		}
 
 		if(selected > 0) {
@@ -81,20 +85,29 @@ class 	Translator2D(parent: GameObject, screen: EditorScreen) : Transformer(pare
 					))
 				}
 			}
+			return INTERRUPT
 		}
 
 		return action
 	}
 
 	override fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
+		val dragPoint = cursorPos - grabPoint
 		when(selected){
 			0 -> return
-			1 -> parent.translate(Vec3(cursorDelta.x, 0f, 0f))
-			2 -> parent.translate(Vec3(0f, cursorDelta.y, 0f))
-			3 -> parent.translate(Vec3(cursorDelta, 0f))
+			1 -> parent.position = Vec3(dragPoint.x, parent.position.y, parent.position.z)
+			2 -> parent.position = Vec3(parent.position.x, dragPoint.y, parent.position.z)
+			3 -> parent.position = Vec3(dragPoint, parent.position.z)
 		}
-		val newWorldPos = Vec3(Vec2(screen.renderer.camera.screenToWorld(Vec2(parent.position.x / window.aspectRatio, parent.position.y))), screen.editingObject!!.position.z)
-		screen.editingObject?.transformComponent?.worldPosition = newWorldPos
-		screen.componentBrowser.refreshField("TransformComponent.position")
+		screen.editingObject?.let {
+			val placingComponent = it.getComponent<EditorPositioningComponent>()
+			var newWorldPos = Vec3(Vec2(screen.renderer.camera.screenToWorld(Vec2(parent.position.x / window.aspectRatio, parent.position.y))), screen.editingObject!!.position.z)
+			if(placingComponent != null) {
+				newWorldPos = placingComponent.place(it.transformComponent.worldPosition, newWorldPos)
+				screen.repositionTransformer()
+			}
+			it.transformComponent.worldPosition = newWorldPos
+			screen.componentBrowser.refreshField("TransformComponent.position")
+		}
 	}
 }

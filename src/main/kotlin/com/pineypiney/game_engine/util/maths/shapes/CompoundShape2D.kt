@@ -47,6 +47,10 @@ class CompoundShape2D(val shapes: MutableSet<Shape2D>) : Shape2D() {
 		return shapes.flatMap { it.projectToNormal(normal) }.toSet()
 	}
 
+	override fun getBoundingCircle(): Circle {
+		return Circle((min + max) * .5f, (max - min).length() * .5f)
+	}
+
 	override fun translate(move: Vec2) {
 		for (shape in shapes) shape.translate(move)
 	}

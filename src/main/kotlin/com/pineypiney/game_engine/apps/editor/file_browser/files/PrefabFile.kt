@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.apps.editor.file_browser.files
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser
+import com.pineypiney.game_engine.apps.editor.util.EditorPositioningComponent
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponentI
 import com.pineypiney.game_engine.objects.prefabs.Prefab
@@ -21,13 +22,10 @@ import kotlin.math.min
 
 class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComponent(parent, file, browser) {
 
-	override fun open() {
-		browser.screen.sceneObjects.delete()
-		browser.screen.loadPrefab(file)
-	}
-
 	override fun position(obj: GameObject, cursorPos: Vec2) {
-		val newWorldPos = Vec3(Vec2(browser.screen.renderer.camera.screenToWorld(Vec2(cursorPos.x / browser.screen.window.aspectRatio, cursorPos.y))), obj.position.z)
+		val placingComponent = obj.children.firstOrNull()?.getComponent<EditorPositioningComponent>()
+		var newWorldPos = Vec3(Vec2(browser.screen.renderer.camera.screenToWorld(Vec2(cursorPos.x / browser.screen.window.aspectRatio, cursorPos.y))), obj.position.z)
+		if(placingComponent != null) newWorldPos = placingComponent.place(obj.transformComponent.worldPosition, newWorldPos)
 		obj.transformComponent.worldPosition = newWorldPos
 	}
 
@@ -80,7 +78,12 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 			val obj = Prefab(file)
 			obj.parseAndEdit()
 			obj.init()
-			obj.position = Vec3(Vec2(browser.screen.renderer.camera.screenToWorld(Vec2(cursorPos.x / browser.screen.window.aspectRatio, cursorPos.y))), obj.position.z)
+
+			val placingComponent = obj.getComponent<EditorPositioningComponent>()
+			var newWorldPos = Vec3(Vec2(browser.screen.renderer.camera.screenToWorld(Vec2(cursorPos.x / browser.screen.window.aspectRatio, cursorPos.y))), obj.position.z)
+			if(placingComponent != null) newWorldPos = placingComponent.place(obj.transformComponent.worldPosition, newWorldPos)
+			obj.position = newWorldPos
+
 			browser.screen.objectBrowser.let {
 				it.addRootObject(obj)
 				it.positionNodes()

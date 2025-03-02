@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
 import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.repeat
@@ -45,6 +46,7 @@ class Texture(
 	fun getData(): ByteBuffer {
 		bind()
 		val buffer = ByteBuffer(bytes)
+		glFinish()
 		glGetTexImage(target, 0, format, GL_UNSIGNED_BYTE, buffer)
 		return buffer
 	}
@@ -120,6 +122,26 @@ class Texture(
 		d.limit(d.capacity())
 		val numChannels = TextureLoader.formatToChannels(format)
 		return STBImageWrite.stbi_write_png(file, width, height, numChannels, d, numChannels * width)
+	}
+
+	/**
+	 *  Returns a new Texture containing a cropped version of this
+	 *
+	 *  @param origin The pixel coordinate of the bottom left of the cropping
+	 *  @param tr The exclusive pixel coordinate of the top right of the cropping
+	 *
+	 *  @returns A new texture of size ([tr] - [origin]), containing the pixels between [origin] and [tr] - (1, 1)
+	 */
+	fun crop(origin: Vec2i, tr: Vec2i): Texture{
+		val size = tr - origin
+		val texture = Texture("Cropping of $fileLocation", TextureLoader.createTexture(Buffer(size.x * size.y * numChannels), size.x, size.y, format))
+		val copier = TextureCopyFrameBuffer()
+		copier.init()
+		copier.setDst(texture)
+		copier.setSrc(this)
+		copier.copyTexture(origin, tr)
+		copier.delete()
+		return texture
 	}
 
 	override fun delete() {

@@ -35,4 +35,8 @@ open class MenuItem(name: String = "MenuItem") : GameObject(name) {
 	fun pixel(pos: Vec2i, size: Vec2i, origin: Vec2 = Vec2(-1f), screenRelative: Boolean = false){
 		components.add(PixelTransformComponent(this, pos, size, origin, screenRelative))
 	}
+
+	fun pixel(posX: Int, posY: Int, sizeX: Int, sizeY: Int, originX: Float = -1f, originY: Float = -1f, screenRelative: Boolean = false){
+		components.add(PixelTransformComponent(this, Vec2i(posX, posY), Vec2i(sizeX, sizeY), Vec2(originX, originY), screenRelative))
+	}
 }

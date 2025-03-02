@@ -88,7 +88,7 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 			}
 		}
 
-		return action
+		return INTERRUPT
 	}
 
 	override fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {

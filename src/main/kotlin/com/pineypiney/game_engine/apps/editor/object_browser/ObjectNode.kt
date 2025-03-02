@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.apps.editor.util.MenuNode
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenu
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenuEntry
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
@@ -39,6 +40,10 @@ class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(pare
 			}
 		}
 		return super.onSecondary(window, action, mods, cursorPos)
+	}
+
+	override fun checkHover(ray: Ray, screenPos: Vec2): Float {
+		return if(browser?.checkHover(ray, screenPos) != -1f) super.checkHover(ray, screenPos) else -1f
 	}
 
 	companion object {

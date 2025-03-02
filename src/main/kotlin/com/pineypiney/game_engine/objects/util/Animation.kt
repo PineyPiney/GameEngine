@@ -73,8 +73,6 @@ class Animation(
 
 	companion object {
 
-		val default = Animation("default", mutableMapOf(), 1f, 0)
-
 		fun fullPath(relative: String) = "src/main/resources/animations/$relative.anim"
 		operator fun invoke(file: String): Animation {
 			val lines = File(fullPath(file)).readLines()

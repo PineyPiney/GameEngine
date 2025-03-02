@@ -2,11 +2,12 @@ package com.pineypiney.game_engine.window
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.FileResourcesLoader
+import com.pineypiney.game_engine.resources.ResourcesLoader
 
 class DefaultWindowedEngine<E : WindowGameLogic>(
-	override val window: Window,
+	override val window: WindowI,
 	screen: (DefaultWindowedEngine<E>) -> E,
-	resources: FileResourcesLoader = FileResourcesLoader(),
+	resources: ResourcesLoader = FileResourcesLoader(),
 	ups: Int = 20,
 	fps: Int = 2000
 ) : WindowedGameEngine<E>(resources) {

@@ -1,7 +1,10 @@
 package com.pineypiney.game_engine.util
 
-import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.util.extension_functions.orOfInt
+import com.pineypiney.game_engine.util.extension_functions.orOfLong
+import com.pineypiney.game_engine.util.extension_functions.orOfUInt
 import glm_.asLongBits
+import glm_.getInt
 import glm_.quat.Quat
 import glm_.quat.QuatD
 import glm_.quat.QuatT
@@ -25,9 +28,13 @@ class ByteData {
 			val a = CharArray(bytes) { x -> ((i shr ((bytes - (x + 1)) * 8)) and 255).toChar() }
 			return String(a)
 		}
+		fun bytes2Int(bytes: ByteArray, offset: Int = 0, length: Int = minOf(4, bytes.size - offset), bigEndian: Boolean = true): Int{
+			return if(bigEndian) (offset..<offset + length).orOfInt { bytes[it].toInt() shl (8 * (length - (it + 1))) }
+			else (offset..<offset + length).orOfInt { bytes[it].toInt() shl (8 * it) }
+		}
 		fun string2Int(s: String, length: Int = minOf(4, s.length), bigEndian: Boolean = true): Int{
-			return if(bigEndian) (0..<length).sumOf { s[it].code shl (24 - (8 * it)) }
-			else (0..<length).sumOf { s[it].code shl (8 * it) }
+			return if(bigEndian) (0..<length).orOfInt { s[it].code shl (24 - (8 * it)) }
+			else (0..<length).orOfInt { s[it].code shl (8 * it) }
 		}
 		fun uint2Bytes(i: UInt, bytes: Int = 4): ByteArray {
 			val numBytes = min(bytes, 4)
@@ -39,9 +46,13 @@ class ByteData {
 			val a = CharArray(bytes) { x -> ((i shr ((bytes - (x + 1)) * 8)) and 255u).toInt().toChar() }
 			return String(a)
 		}
+		fun bytes2UInt(bytes: ByteArray, offset: Int, length: Int = minOf(4, bytes.size - offset), bigEndian: Boolean = true): UInt{
+			return if(bigEndian) (offset..<offset + length).orOfUInt { bytes[it].toUInt() shl (24 - (8 * it)) }
+			else (offset ..<offset + length).orOfUInt { bytes[it].toUInt() shl (8 * it) }
+		}
 		fun string2UInt(s: String, length: Int = minOf(4, s.length), bigEndian: Boolean = true): UInt{
-			return if(bigEndian) (0..<length).sumOf { s[it].code.toUInt() shl (24 - (8 * it)) }
-			else (0..<length).sumOf { s[it].code.toUInt() shl (8 * it) }
+			return if(bigEndian) (0..<length).orOfUInt { s[it].code.toUInt() shl (24 - (8 * it)) }
+			else (0..<length).orOfUInt { s[it].code.toUInt() shl (8 * it) }
 		}
 
 		fun long2Bytes(l: Long, bytes: Int = 8): ByteArray {
@@ -54,9 +65,13 @@ class ByteData {
 			val a = CharArray(bytes) { x -> ((l shr ((bytes - (x + 1)) * 8)) and 255).toInt().toChar() }
 			return String(a)
 		}
+		fun bytes2Long(bytes: ByteArray, offset: Int, length: Int = minOf(8, bytes.size - offset), bigEndian: Boolean = true): Long{
+			return if(bigEndian) (offset ..<offset + length).orOfLong { bytes[it].toLong() shl (56 - (8 * it)) }
+			else (offset..<offset + length).orOfLong { bytes[it].toLong() shl (8 * it) }
+		}
 		fun string2Long(s: String, length: Int = minOf(8, s.length), bigEndian: Boolean = true): Long{
-			return if(bigEndian) (0..<length).sumOf { s[it].code.toLong() shl (56 - (8 * it)) }
-			else (0..<length).sumOf { s[it].code.toLong() shl (8 * it) }
+			return if(bigEndian) (0..<length).orOfLong { s[it].code.toLong() shl (56 - (8 * it)) }
+			else (0..<length).orOfLong { s[it].code.toLong() shl (8 * it) }
 		}
 
 		fun float2Bytes(f: Float): ByteArray{
@@ -70,15 +85,8 @@ class ByteData {
 			return String(a)
 		}
 
-		fun bytes2Float(b: ByteArray): Float {
-			var i = 0
-			for (a in 0..3) {
-				try {
-					i += b[a].toInt() shl (24 - (a * 8))
-				} catch (e: StringIndexOutOfBoundsException) {
-					GameEngineI.logger.warn("Couldn't parse encoded float string $b length ${b.size}")
-				}
-			}
+		fun bytes2Float(b: ByteArray, offset: Int = 0): Float {
+			val i = bytes2Int(b, offset)
 			return Float.fromBits(i)
 		}
 
@@ -98,15 +106,8 @@ class ByteData {
 			return String(a)
 		}
 
-		fun bytes2Double(bytes: ByteArray): Double {
-			var i = 0L
-			for (a in 0..7) {
-				try {
-					i += bytes[a].toInt() shl (56 - (a * 8))
-				} catch (e: StringIndexOutOfBoundsException) {
-					GameEngineI.logger.warn("Couldn't parse encoded double string $bytes length ${bytes.size}")
-				}
-			}
+		fun bytes2Double(bytes: ByteArray, offset: Int): Double {
+			val i = bytes2Long(bytes, offset)
 			return Double.fromBits(i)
 		}
 
@@ -119,7 +120,18 @@ class ByteData {
 			val bytes = ByteArray(8)
 			return vec.to(bytes, bigEndian)
 		}
-		
+
+		fun <T: Number, V: Vec2t<T>> bytes2Vec2t(bytes: ByteArray, tSize: Int, bytes2t: (ByteArray, Int) -> T, construct: (T, T) -> V, default: V): V{
+			return if(bytes.size == tSize * 2 + 1) construct(bytes2t(bytes, 0), bytes2t(bytes, tSize + 1))
+			else if(bytes.size == tSize * 2) construct(bytes2t(bytes, 0), bytes2t(bytes, tSize))
+			else default
+		}
+
+		fun bytes2Vec2i(bytes: ByteArray): Vec2i = bytes2Vec2t(bytes, 4, ByteArray::getInt, ::Vec2i, Vec2i(0))
+		fun bytes2Vec2ui(bytes: ByteArray): Vec2ui = bytes2Vec2t(bytes, 4, { a, o -> bytes2UInt(a, o).toInt().toUint() }, ::Vec2ui, Vec2ui())
+		fun bytes2Vec2(bytes: ByteArray): Vec2 = bytes2Vec2t(bytes, 4, ::bytes2Float, ::Vec2, Vec2(0f))
+		fun bytes2Vec2d(bytes: ByteArray): Vec2d = bytes2Vec2t(bytes, 8, ::bytes2Double, ::Vec2d, Vec2d(0.0))
+
 		fun <T: Number, V: Vec2t<T>> string2Vec2t(string: String, tSize: Int, string2t: (String) -> T, construct: (T, T) -> V, default: V): V{
 			return if(string.length == tSize * 2 + 1) construct(string2t(string.substring(0, tSize)), string2t(string.substring(tSize + 1..2 * tSize)))
 			else if(string.length == tSize * 2) construct(string2t(string.substring(0, tSize)), string2t(string.substring(tSize, 2 * tSize)))

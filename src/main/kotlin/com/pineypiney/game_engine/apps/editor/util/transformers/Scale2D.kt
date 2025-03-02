@@ -87,7 +87,7 @@ class Scale2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, sc
 			}
 		}
 
-		return action
+		return INTERRUPT
 	}
 
 	override fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {

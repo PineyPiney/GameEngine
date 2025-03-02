@@ -30,7 +30,7 @@ open class Text(
 	var lengths = floatArrayOf()
 	var size: Float = 1f
 
-	var mesh: TextMesh = TextMesh(emptyArray())
+	var mesh: TextMesh = TextMesh(emptyArray()); private set
 
 	// Initialise as true so the text is generated before it's first render call
 	var textChanged = true
@@ -62,6 +62,7 @@ open class Text(
 	}
 
 	fun getWidth(s: String): Float {
+		// TODO("Might not need to split by \n because font does it for you")
 		return s.split('\n').maxOf { font.getWidth(s) } * size
 	}
 
@@ -108,6 +109,7 @@ open class Text(
 			// Set values
 			lastWord = i
 			lastBreak = i
+			i++
 
 			// Get first word in this line
 			while(i < text.length){
@@ -126,13 +128,14 @@ open class Text(
 					if(getWidth(text.substring(lastBreak, i)) < maxWidth) break
 					i--
 				}
+				if(i == lastBreak) break // This isn't going anywhere, the text bounds are awful and not worth dealing with
 				lines.add(text.substring(lastBreak, i))
 				continue
 			}
 
 			// If at least one word can fit, then no other words will be truncated for this line
 			lastWord = i
-			word@while(i <= text.length && getWidth(text.substring(lastBreak, i)) < maxWidth){
+			word@while(i <= text.length && getWidth(text.substring(lastBreak, i)) <= maxWidth){
 				lastWord = i
 				// Reached the end of the string or forced new line
 				if(i == text.length || text[i] == '\n') break
@@ -145,8 +148,9 @@ open class Text(
 				}
 			}
 			// Add this line to the collection, and set i to start at the end of this line
-			i = lastWord
 			lines.add(text.substring(lastBreak, lastWord))
+			if(i < text.length - 1 && text[i] == '\n') lastWord++
+			i = lastWord
 		}
 		lines.removeAll { it.replaceWhiteSpaces() == "" }
 		return lines.toTypedArray()
@@ -228,8 +232,7 @@ open class Text(
 		): MenuItem {
 			return object : MenuItem("$text Text Object") {
 
-				override fun addComponents() {
-					super.addComponents()
+				init {
 					components.add(
 						TextRendererComponent(this, Text(text, colour, maxWidth, maxHeight, font, italic,
 							underlineThickness, underlineOffset, underlineAmount, fontSize, alignment), shader)
@@ -241,8 +244,7 @@ open class Text(
 		fun makeMenuText(text: String, params: Params): MenuItem{
 			return object : MenuItem("$text Text Object") {
 
-				override fun addComponents() {
-					super.addComponents()
+				init{
 					components.add(
 						TextRendererComponent(this, Text(text, params.colour, params.maxWidth,
 							params.maxHeight, params.font, params.italic, params.underlineThickness,
@@ -269,8 +271,7 @@ open class Text(
 		): GameObject {
 			return object : GameObject() {
 
-				override fun addComponents() {
-					super.addComponents()
+				init {
 					components.add(
 						TextRendererComponent(
 							this,

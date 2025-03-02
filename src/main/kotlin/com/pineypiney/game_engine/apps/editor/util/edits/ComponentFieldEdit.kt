@@ -11,10 +11,16 @@ class ComponentFieldEdit(obj: GameObject, screen: EditorScreen, val field: Strin
 
 	override fun undo() {
 		obj.setProperty(field, oldVal)
+		if(screen.editingObject == obj){
+			screen.componentBrowser.refreshField(field)
+		}
 	}
 
 	override fun redo() {
 		obj.setProperty(field, newVal)
+		if(screen.editingObject == obj){
+			screen.componentBrowser.refreshField(field)
+		}
 	}
 
 	companion object {

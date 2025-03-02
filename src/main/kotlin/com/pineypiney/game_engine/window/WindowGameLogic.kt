@@ -5,7 +5,6 @@ import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
 import com.pineypiney.game_engine.rendering.WindowRendererI
-import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.raycasting.Ray
@@ -21,11 +20,7 @@ abstract class WindowGameLogic : GameLogic() {
 	abstract override val renderer: WindowRendererI<*>
 
 	override fun open() {
-		// Force update everything
-		gameObjects.update(0f)
-
-		// Reset textures so that the last bound texture isn't carried over
-		Texture.broke.bind()
+		super.open()
 
 		updateAspectRatio(window)
 		onCursorMove(gameEngine.input.mouse.lastPos, Vec2(0f))

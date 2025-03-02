@@ -1,7 +1,8 @@
 package com.pineypiney.game_engine.apps.editor.file_browser
 
 import com.pineypiney.game_engine.apps.editor.EditorScreen
-import com.pineypiney.game_engine.apps.editor.file_browser.files.*
+import com.pineypiney.game_engine.apps.editor.file_browser.files.FileComponent
+import com.pineypiney.game_engine.apps.editor.file_browser.files.SavableFiles
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenu
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenuEntry
 import com.pineypiney.game_engine.objects.GameObject
@@ -22,6 +23,10 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import java.io.File
+import kotlin.io.path.Path
+import kotlin.io.path.createDirectory
+import kotlin.io.path.isDirectory
+import kotlin.io.path.name
 import kotlin.math.ceil
 
 class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = File("src/main/resources")): DefaultInteractorComponent(
@@ -33,7 +38,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 
 	private val filesContainer = MenuItem("Files")
 	private val parentFileButton =
-		SpriteButton("Parent File Button", TextureLoader.Companion[ResourceKey("menu_items/up_arrow")], 64f) { _, _ ->
+		SpriteButton("Parent File Button", TextureLoader.Companion[ResourceKey("editor/up_arrow")], 64f) { _, _ ->
 			if (currentDirectory == root) return@SpriteButton
 			currentDirectory = currentDirectory.parentFile ?: return@SpriteButton
 			refreshDirectory()
@@ -64,13 +69,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 			filesContainer.addChild(child)
 			child.pixel(Vec2i(60, 166), Vec2i(screen.settings.fileBrowserIconSize), screenRelative = true)
 
-			val button = when(subFile.extension){
-				"" -> ::FolderFile
-				"png" -> ::ImageFile
-				"pfb" -> ::PrefabFile
-				"scn" -> ::SceneFile
-				else -> ::FileComponent
-			}
+			val button = FileComponent.fileTypes[subFile.extension] ?: ::FileComponent
 			child.components.add(button(child, subFile, this))
 
 			placeChild(child, i, cols)
@@ -140,32 +139,37 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 		val fileBrowserContextMenu = ContextMenu<FileBrowserContext>(
 			arrayOf(
 				ContextMenuEntry(
-				"New", arrayOf(
-					ContextMenuEntry("Prefab File") {
+				"New", (SavableFiles.list.map { type ->
+					ContextMenuEntry<FileBrowserContext>("${type.name} File") {
 						val directory = browser.currentDirectory.path
-						val fileName = "$directory/prefab_"
+						val fileName = "$directory/${type.name.lowercase()}_"
 						var i = 0
-						while (File("$fileName$i.pfb").exists()) i++
+						while (File("$fileName$i.${type.ext}").exists()) i++
 
-						val newFile = File("$fileName$i.pfb")
+						val newFile = File("$fileName$i.${type.ext}")
 						newFile.createNewFile()
-						newFile.writeBytes(ByteArray(4))
+						newFile.writeBytes(type.defaultContents)
 
 						browser.refreshDirectory()
-					},
-					ContextMenuEntry("Scene File") {
-						val directory = browser.currentDirectory.path
-						val fileName = "$directory/scene_"
-						var i = 0
-						while (File("$fileName$i.scn").exists()) i++
 
-						val newFile = File("$fileName$i.scn")
-						newFile.createNewFile()
-						newFile.writeBytes(ByteArray(4))
-
-						browser.refreshDirectory()
+						val item = browser.filesContainer.getChild("File ${newFile.name}")?.getComponent<FileComponent>()
+						item?.rename()
 					}
-			))
+				} + ContextMenuEntry("Folder") {
+					val directory = browser.currentDirectory.path
+					val fileName = "$directory/New Folder "
+					var i = 0
+					while (Path("$fileName($i)").isDirectory()) i++
+
+					val newDirectory = Path("$fileName($i)")
+					newDirectory.createDirectory()
+
+					browser.refreshDirectory()
+
+					val item = browser.filesContainer.getChild("File ${newDirectory.name}")?.getComponent<FileComponent>()
+					item?.rename()
+				}
+			).toTypedArray())
 		))
 
 		val fileContextMenu = ContextMenu<FileContext>(

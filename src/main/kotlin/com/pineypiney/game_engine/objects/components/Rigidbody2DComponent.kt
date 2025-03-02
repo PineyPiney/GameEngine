@@ -15,19 +15,19 @@ class Rigidbody2DComponent(parent: GameObject) : Component(parent), UpdatingComp
 	var stepBias: Vec2 = Vec2(0f)
 
 	override fun update(interval: Float) {
+		// If no time has passed then don't bother doing anything
+		if(interval == 0f) return
+
 		acceleration plusAssign gravity
 		velocity plusAssign acceleration * interval
 		val collider = parent.getComponent<Collider2DComponent>()
 		val movement = velocity * interval
 		if (collider != null && collider.active) {
-			val collidedMove = collider.checkAllCollisions(movement, stepBias)
+			val endMovement = Vec2(movement)
+			val collidedMove = collider.checkAllCollisionsNew(movement, endMovement, stepBias)
 			parent.translate(Vec3(collidedMove, 0f))
 
-			// If a collision is detected in either direction then set the velocity to 0
-			if ((collidedMove.x < movement.x && velocity.x > 0) || (collidedMove.x > movement.x && velocity.x < 0)) velocity.x =
-				0f
-			if ((collidedMove.y < movement.y && velocity.y > 0) || (collidedMove.y > movement.y && velocity.y < 0)) velocity.y =
-				0f
+			velocity = endMovement / interval
 		} else parent.translate(Vec3(movement, 0f))
 
 		acceleration = Vec2(0f)

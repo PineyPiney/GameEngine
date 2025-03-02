@@ -5,18 +5,21 @@ import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.LibrarySetUp
 import com.pineypiney.game_engine.apps.animator.ObjectAnimator
 import com.pineypiney.game_engine.apps.editor.EditorScreen
-import com.pineypiney.game_engine.apps.editor.SceneFormat
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.util.Animation
+import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.util.maths.shapes.Circle
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.window.DefaultWindow
 import com.pineypiney.game_engine.window.DefaultWindowedEngine
+import com.pineypiney.game_engine_test.scenes.CollisionTest
 import com.pineypiney.game_engine_test.scenes.Game2D
 import com.pineypiney.game_engine_test.scenes.Game3D
 import com.pineypiney.game_engine_test.scenes.LightingTest
@@ -28,6 +31,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import org.junit.Test
 import kotlin.math.PI
+import kotlin.random.Random
 
 fun main() {
 	EngineTest().test3D()
@@ -55,11 +59,11 @@ class EngineTest{
 	}
 
 	companion object {
-		fun <G : GameLogicI, E : GameEngineI<G>> run(engine: ((E) -> G) -> E, screen: (E) -> G) {
+		fun <G : GameLogicI, E : GameEngineI<G>> run(engine: ((E) -> G, Int, Int) -> E, screen: (E) -> G, ups: Int = 20, fps: Int = 2000) {
 			LibrarySetUp.initLibraries()
 
 			TestWindow.INSTANCE.init()
-			engine(screen).run()
+			engine(screen, ups, fps).run()
 		}
 	}
 
@@ -73,7 +77,7 @@ class EngineTest{
 	fun testEditor(){
 		LibrarySetUp.initLibraries()
 		val window = DefaultWindow("Editor").apply { init() }
-		DefaultWindowedEngine(window, { EditorScreen(it, SceneFormat.nativeFormat) }).run()
+		DefaultWindowedEngine(window, { EditorScreen(it) }).run()
 	}
 
 	@Test
@@ -101,6 +105,87 @@ class EngineTest{
 		val point = Vec3(3.3f, -3.9f, 1.0f)
 		val c = box containsPoint point
 		println(c)
+	}
+
+	@Test
+	fun testCollision(){
+		val rect1 = Rect2D(0f, 0f, 1f, 1f)
+		val rect2 = Rect2D(.5f, 1.5f, 1f, 1f)
+		val c = rect2.calculateCollision(rect1, Vec2(-1f, -2f))
+		c?.removeShape1FromShape2
+	}
+
+	@Test
+	fun testCollisionVisual(){
+		run(::TestEngine, ::CollisionTest, 100)
+	}
+
+	@Suppress("UNUSED_VARIABLE")
+	@Test
+	fun colourTest(){
+		val colour = Colour(45.075f, 22.799f, 22.102f, 1f, Colour.ColourModel.CIEXYZ)
+		val rgb = colour.rgbValue
+		val hsv = colour.hsvValue
+		val hsl = colour.hslValue
+		val cie = colour.cieValue
+		val oklab = colour.oklabValue
+		val oklch = colour.oklchValue
+	}
+
+	@Test
+	@Suppress("UNUSED_VARIABLE")
+	fun testIntersections(){
+		val random = Random(2934875623498652L)
+		val iters = 3e2.toInt()
+		val combos = (iters * iters + iters) / 2
+		val circles = MutableList(iters){ Circle(Vec2(random.nextFloat() * 5f, random.nextFloat() * 5f), random.nextFloat() * 2f) }
+
+		val circleTime = ResourcesLoader.timeAction {
+			for(i in 0..<iters - 1){
+				val circle1 = circles[i]
+				for(j in (i+1)..<iters) {
+					val circle2 = circles[j]
+					val touching = (circle1.center - circle2.center).length() <= (circle1.radius + circle2.radius)
+					//if(circle1.intersects(circle2) != touching){
+					//	println("Uh Oh!")
+					//}
+				}
+			}
+		}
+		val circlesSquaredTime = ResourcesLoader.timeAction {
+			for(i in 0..<iters - 1){
+				val circle1 = circles[i]
+				for(j in (i+1)..<iters) {
+					val circle2 = circles[j]
+					val touching = (circle1.center - circle2.center).length2() < (circle1.radius + circle2.radius).let { it * it }
+					//if(circle1.intersects(circle2) != touching){
+					//	println("Uh Oh Squared!")
+					//}
+				}
+			}
+		}
+		circles.clear()
+
+		val rects = Array(iters) { Rect2D(Vec2(random.nextFloat() * 5f, random.nextFloat() * 5f), random.nextFloat() * 2f, random.nextFloat() * 2) }
+		val rectTime = ResourcesLoader.timeAction {
+			for(i in 0..<iters - 1){
+				val rect1 = rects[i]
+				for(j in (i+1)..<iters) {
+					val rect2 = rects[j]
+					val touching =
+						(if (rect1.origin.x > rect2.origin.x) rect2.origin.x + rect2.length1 > rect1.origin.x else rect1.origin.x + rect1.length1 > rect2.origin.x) &&
+								if (rect1.origin.y > rect2.origin.y) rect2.origin.y + rect2.length2 > rect1.origin.y else rect1.origin.y + rect1.length2 > rect2.origin.y
+					//if(rect1.intersects(rect2) != touching){
+					//	println("Uh Oh Rect!")
+					//}
+				}
+			}
+		}
+
+		println("Calculated $combos Combinations")
+		println("Circle time is $circleTime ns, average ${circleTime / combos} ns")
+		println("CircleSquared time is $circlesSquaredTime ns, average ${circlesSquaredTime / combos} ns")
+		println("Rect time is $rectTime ns, average ${rectTime / combos} ns")
 	}
 
 	@Test

@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.util.maths.shapes
 
+import com.pineypiney.game_engine.objects.components.colliders.Collision2D
 import com.pineypiney.game_engine.util.extension_functions.absMinOf
 import glm_.func.common.abs
 import glm_.mat4x4.Mat4
@@ -37,8 +38,65 @@ abstract class Shape2D : Shape<Vec2>() {
 	}
 
 	// https://gamedev.stackexchange.com/questions/25397/obb-vs-obb-collision-detection
-	infix fun intersects(other: Shape2D): Boolean {
-		return (getNormals() + other.getNormals()).all { overlap1D(it, other).x != 0f }
+	open infix fun intersects(other: Shape2D): Boolean {
+		return getNormals().all { overlap1D(it, other).x != 0f } &&
+				other.getNormals().all { overlap1D(it, other).x != 0f } &&
+				overlap1D((center - other.center).normalize(), other).x != 0f
+	}
+
+	abstract fun getBoundingCircle(): Circle
+
+	fun calculateCollision(other: Shape2D, movement: Vec2, stepBias: Vec2 = Vec2(0f)): Collision2D?{
+		val still = movement == Vec2(0f)
+		val normals = (getNormals() + other.getNormals() + (center - other.center).normalize()).toSet()
+		val lengths = normals.associateWith {
+			// The overlap in each direction of the normal
+			val overlaps = overlap1D(it, other)
+
+			// If any of the normals don't overlap then the shapes also don't overlap so no collision occurs
+			if (overlaps.x == 0f) return null
+
+			// If there is no movement then just pick the smallest movement
+			if (still) {
+				absMinOf(overlaps.x, overlaps.y)
+			}
+			// Otherwise pick the one to move back against the original movement
+			else {
+				val dot = it dot movement
+				// If the movement is in the other direction to the normal then use the positive magnitude (x)
+				// otherwise use the negative version
+				overlaps.run { if (dot < 0f) x else y }
+			}
+		}
+
+		//if(lengths.any { it.value == 0f }) return Vec3(0f)
+
+		if (!still) {
+			if (stepBias != Vec2(0f)) {
+				val stepMag = stepBias.length()
+				for ((normal, mult) in lengths) {
+					val dot = normal dot stepBias
+
+					if (abs(dot) > stepMag * .9f && abs(mult) <= stepMag) return Collision2D(this, movement, other, Vec2(0f), Vec2(0f), normal, normal * mult)// TODO calculate collision point
+				}
+			}
+
+			// If there is movement then move the smallest amount necessary back along that movement vector
+			val moveMag = movement.length()
+			var smallestEjection = Float.MAX_VALUE
+			var collisionNormal = Vec2(0f)
+			for ((normal, mult) in lengths) {
+				val cosT = -(normal dot movement) / moveMag
+				val ejectSize = mult / cosT
+				if(ejectSize > 0f && ejectSize < smallestEjection) {
+					smallestEjection = ejectSize
+					collisionNormal = normal
+				}
+			}
+			return Collision2D(this, movement, other, Vec2(0f), Vec2(0f), collisionNormal, -movement * smallestEjection / moveMag)
+		}
+		val (normal, mult) = lengths.minBy { it.value.abs }
+		return Collision2D(this, movement, other, Vec2(0f), Vec2(0f), normal, normal * mult)
 	}
 
 	/**

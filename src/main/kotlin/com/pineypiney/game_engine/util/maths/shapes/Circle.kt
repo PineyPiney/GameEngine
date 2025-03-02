@@ -15,6 +15,10 @@ class Circle(override val center: Vec2, val radius: Float) : Shape2D() {
 	override val min: Vec2 = center - Vec2(radius)
 	override val max: Vec2 = center + Vec2(radius)
 
+	fun distanceTo(other: Circle): Float{
+		return (center - other.center).length() - radius - other.radius
+	}
+
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
 		val planeIntersection = ray.rayOrigin - (ray.rayOrigin projectOn ray.direction)
 		return if ((Vec2(planeIntersection) - center).length2() > radius * radius) emptyArray()
@@ -41,11 +45,26 @@ class Circle(override val center: Vec2, val radius: Float) : Shape2D() {
 		return setOf(normalProj + radius, normalProj - radius)
 	}
 
+	override fun intersects(other: Shape2D): Boolean {
+		return if(other is Circle){
+			(center - other.center).length2() < (radius + other.radius).let { it * it }
+		}
+		else super.intersects(other)
+	}
+
+	override fun getBoundingCircle(): Circle {
+		return this
+	}
+
 	override fun translate(move: Vec2) {
 		center += move
 	}
 
 	override fun transformedBy(model: Mat4): Shape2D {
 		return Circle(center + Vec2(model.getTranslation()), abs(radius * model.getScale().x))
+	}
+
+	override fun toString(): String {
+		return "Circle[$center, $radius]"
 	}
 }

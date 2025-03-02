@@ -21,11 +21,15 @@ import com.pineypiney.game_engine.objects.menu_items.slider.ColourSlider
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
+import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
+import com.pineypiney.game_engine.resources.text.Font
+import com.pineypiney.game_engine.resources.text.TrueTypeFont
 import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
@@ -36,7 +40,6 @@ import com.pineypiney.game_engine.util.extension_functions.wrap
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.util.maths.shapes.Rect3D
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
@@ -47,8 +50,10 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec3.swizzle.xy
 import glm_.vec4.Vec4
+import kool.Buffer
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.openal.AL10
+import org.lwjgl.opengl.GL11C
 import kotlin.math.PI
 import kotlin.math.sign
 
@@ -119,14 +124,14 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	private val siGameText = Text.makeGameText(
 		"This is some Sized Game Text",
 		Vec4(0.0, 1.0, 1.0, 1.0),
-		7f,
+		8.9f,
 		10f,
 		alignment = Text.ALIGN_CENTER_LEFT,
 	)
 	private val testText = Text.makeMenuText(
 		"[ [",
 		Vec4(0f, 0f, 0f, 1f),
-		0.01f,
+		1f,
 		2f,
 		.2f,
 		Text.ALIGN_CENTER_LEFT
@@ -185,19 +190,37 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		model1 resize Vec3(3f)
 		model2 translate Vec3(3, -4, 0f)
 		snake translate Vec3(-2, -5, 0f)
+
+		val font = Font.defaultFont as? TrueTypeFont
+
+		if(font != null) {
+			val buffer = Buffer(4 * 640 * 1280) { -1 }
+			val texture = Texture("Dst", TextureLoader.createTexture(buffer, 640, 1280, GL11C.GL_RGBA))
+			val copier = TextureCopyFrameBuffer()
+			copier.init()
+			copier.setDst(texture)
+
+
+			for (i in 48..111) {
+				val letter = font.getTexture(Char(i))
+				copier.copyOntoDst(letter, Vec2i(80 * (i % 8), 2080 - 160 * (i / 8)))
+			}
+
+			copier.delete()
+			texture.savePNG("Dst.png")
+		}
 	}
 
 	private fun rotateGoblin() {
 
 		val ray = camera.getRay(input.mouse.screenSpaceCursor())
 		val model = model1.getShape() as Rect2D
-		val model1Rect = Rect3D(model)
-		val point = model1Rect.intersectedBy(ray).getOrNull(0)
+		val point = model.intersectedBy(ray).getOrNull(0)
 
 		if(point != null) {
-			val pA = (Vec2(point) - model1.position.xy).angle()
-			val a = -(model1.rotation.eulerAngles().z + pA).wrap(-PI.f, PI.f)
-			model1.rotate(Vec3(0f, 0f, -a.sign * 0.05f))
+			val pA = (Vec2(point) - (model.origin + model.side1 * .5f)).angle()
+			val a = (model1.rotation.eulerAngles().z + pA).wrap(-PI.f, PI.f)
+			model1.rotate(Vec3(0f, 0f, a.sign * 0.05f))
 
 			window.setCursor(customCursor)
 		}

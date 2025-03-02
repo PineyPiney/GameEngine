@@ -47,8 +47,14 @@ abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: Re
 
 		input()
 
-		// Render screen regardless of the accumulator
-		render(accumulator / interval)
+		try {
+			// Render screen regardless of the accumulator
+			render(accumulator / interval)
+		}
+		catch (e: Exception){
+			GameEngineI.error("Error rendering frame")
+			e.printStackTrace()
+		}
 	}
 
 	override fun update(interval: Float) {

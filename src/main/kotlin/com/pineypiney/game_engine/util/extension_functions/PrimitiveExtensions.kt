@@ -28,7 +28,12 @@ fun Double.round(places: Int): Double {
  */
 fun Float.round(places: Int): Float {
 	val mult = 10f.pow(places)
-	return (mult * this).roundToInt() / mult
+	return try{
+		(mult * this).roundToInt() / mult
+	}
+	catch (e: IllegalArgumentException){
+		this
+	}
 }
 
 /**
@@ -174,7 +179,7 @@ fun Float.wrap(min: Float, max: Float): Float {
  * Returns the position [this] would be on a circle that starts at [min] and ends at [max]
  */
 fun Int.wrap(min: Int, max: Int): Int {
-	val ran = abs(max - min)
+	val ran = abs(max - min) + 1
 	var rem = (this - min) % ran
 	if (rem < 0) rem += ran
 	return min + rem

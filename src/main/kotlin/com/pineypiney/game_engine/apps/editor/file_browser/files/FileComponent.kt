@@ -77,7 +77,11 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 	}
 
 	open fun open(){
+		val saveType = SavableFiles.list.firstOrNull { it.ext == file.extension } ?: return
 
+		browser.screen.sceneObjects.delete()
+		saveType.load(file, browser.screen)
+		browser.screen.loadedFile(file)
 	}
 
 	open fun position(obj: GameObject, cursorPos: Vec2){
@@ -127,5 +131,13 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 			}
 			else -> getIcon(Vec2(.5f))
 		}
+	}
+
+	companion object {
+		val fileTypes = mutableMapOf(
+			Pair("", ::FolderFile),
+			Pair("png", ::ImageFile),
+			Pair("pfb", ::PrefabFile),
+		)
 	}
 }

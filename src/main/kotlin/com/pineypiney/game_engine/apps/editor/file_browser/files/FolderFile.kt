@@ -21,6 +21,6 @@ class FolderFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		else if(numChildren <= 3) 0.33333334f
 		else 0f
 
-		return Sprite(TextureLoader[ResourceKey("menu_items/folders")], 138f, center, Vec2(start, 0f), Vec2(0.33333334f, 1f))
+		return Sprite(TextureLoader[ResourceKey("editor/folders")], 138f, center, Vec2(start, 0f), Vec2(0.33333334f, 1f))
 	}
 }

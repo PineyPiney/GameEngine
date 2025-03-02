@@ -45,6 +45,10 @@ class Line2D(val start: Vec2, val end: Vec2) : Shape2D() {
 		return setOf(start dot normal, end dot normal)
 	}
 
+	override fun getBoundingCircle(): Circle {
+		return Circle((start + end) * .5f, (end - start).length() * .5f)
+	}
+
 	override fun translate(move: Vec2) {
 		start += move
 		end += move

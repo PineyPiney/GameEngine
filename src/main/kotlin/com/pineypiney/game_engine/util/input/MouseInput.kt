@@ -14,6 +14,7 @@ open class MouseInput(val input: Inputs) {
 
 	// Cursor
 	var lastPos = Vec2(); private set
+
 	private var firstMouse = true
 
 	var transformCoords: (windowSize: Vec2i, xpos: Double, ypos: Double) -> Vec2 = { windowSize, xpos, ypos ->

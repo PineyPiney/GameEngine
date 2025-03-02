@@ -15,7 +15,7 @@ import java.nio.ByteBuffer
 open class FrameBuffer(var width: Int, var height: Int, var format: Int = GL_RGB, var internalFormat: Int = format) :
 	Deleteable {
 
-	constructor(size: Vec2t<*>) : this(size.x.i, size.y.i)
+	constructor(size: Vec2t<*>, format: Int = GL_RGB, internalFormat: Int = format) : this(size.x.i, size.y.i, format, internalFormat)
 
 	val FBO = glGenFramebuffers()
 	val TCB = glGenTextures()

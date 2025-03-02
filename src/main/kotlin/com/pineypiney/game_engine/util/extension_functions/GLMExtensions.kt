@@ -13,6 +13,8 @@ import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import kotlin.math.*
 
+
+
 /**
  * The distance between [this] and [other]
  */
@@ -226,7 +228,7 @@ fun Mat4.rotationComponent(): Mat4 {
 }
 
 
-fun Vec1Vars<Float>.toString(separator: String = ", ", serialise: Float.() -> String = Float::toString): String {
+fun <T: Number> Vec1Vars<T>.toString(separator: String = ", ", serialise: T.() -> String): String {
 	var s = this[0].serialise()
 	for (i in 1..3) {
 		try {
