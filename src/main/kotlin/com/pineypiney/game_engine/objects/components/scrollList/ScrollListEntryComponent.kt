@@ -32,8 +32,6 @@ abstract class ScrollListEntryComponent(parent: GameObject) : Component(parent) 
 		fun makeScrollerText(
 			text: String,
 			colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
-			maxWidth: Float = 1f,
-			maxHeight: Float = 1f,
 			font: Font = Font.defaultFont,
 			italic: Float = 0f,
 			underlineThickness: Float = 0f,
@@ -52,8 +50,6 @@ abstract class ScrollListEntryComponent(parent: GameObject) : Component(parent) 
 						Text(
 							text,
 							colour,
-							maxWidth,
-							maxHeight,
 							font,
 							italic,
 							underlineThickness,

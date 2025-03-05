@@ -21,7 +21,6 @@ class GameClickerComponent(parent: GameObject, val primaryClick: () -> Unit = {}
 	}
 
 	override fun checkHover(ray: Ray, screenPos: Vec2): Float {
-		val s = parent.getShape()
-		return s.intersectedBy(ray).minOfOrNull { (it - ray.rayOrigin).length() } ?: -1f
+		return ray.distanceTo(parent.getShape())
 	}
 }

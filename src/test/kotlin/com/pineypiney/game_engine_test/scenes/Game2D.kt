@@ -69,7 +69,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 	private val audio get() = AudioLoader[(ResourceKey("clair_de_lune"))]
 
-	private val b = TextButton("Button", Vec2(-0.3, 0.6), Vec2(0.6, 0.2)){ _, _ ->
+	private val b = TextButton("Button", Vec2i(-150, -200), Vec2i(300, 100), Vec2(0f, 1f)){
 		val device = AudioEngine.getAllOutputDevices().random()
 		window.setAudioOutput(device)
 		GameEngineI.info("Setting audio out device to ${window.audioOutputDevice}")
@@ -77,6 +77,12 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		window.vSync = !window.vSync
 		println("Window vSync: ${window.vSync}")
 	}
+	private val button = TextButton("button", Vec2i(-200, -100), Vec2i(200, 100), Vec2(1f)){
+		println("Pressed!")
+		AudioSource(audio).play()
+		window.setCursor(standardCursors.random())
+	}
+
 	private val bc = Rect2D(b.position.xy, 0.6f, 0.2f)
 
 	var squareColour = Vec4()
@@ -84,11 +90,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		uniforms.setVec4Uniform("colour", ::squareColour)
 	}
 
-	private val button = TextButton("button", Vec2(window.aspectRatio - .4f, .8f), Vec2(.4f, .2f)){ _, _ ->
-		println("Pressed!")
-		AudioSource(audio).play()
-		window.setCursor(standardCursors.random())
-	}
 	private val textField = ActionTextField<ActionTextFieldComponent<*>>("Text Field", Vec2(-window.aspectRatio, -1f), Vec2(window.aspectRatio, 0.2)){ _, _, _ ->
 //        AudioSource(audio).play()
 		window.setCursor(0L)
@@ -109,30 +110,23 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	private val text = Text.makeMenuText(
 		"X Part: 0.00 \nY Part: 0.00",
 		Vec4(0f, 0f, 0f, 1f),
-		1f,
-		1f,
 		.16f,
 		Text.ALIGN_CENTER_LEFT
 	)
 	private val gameText = Text.makeGameText(
 		"This is some Stretchy Game Text",
 		Vec4(0.0, 1.0, 1.0, 1.0),
-		8.88f,
-		10f,
 		0f,
 	)
 	private val siGameText = Text.makeGameText(
 		"This is some Sized Game Text",
 		Vec4(0.0, 1.0, 1.0, 1.0),
-		8.9f,
-		10f,
+		1f,
 		alignment = Text.ALIGN_CENTER_LEFT,
 	)
 	private val testText = Text.makeMenuText(
 		"[ [",
 		Vec4(0f, 0f, 0f, 1f),
-		1f,
-		2f,
 		.2f,
 		Text.ALIGN_CENTER_LEFT
 	)
@@ -162,23 +156,25 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		add(model2)
 		add(snake)
 
-		add(button)
+		add(button, b)
 		add(textField)
-		add(slider)
 		add(list)
+		add(slider)
 
-		add(text, gameText, siGameText, testText)
 		text.position = Vec3(-window.aspectRatio, 0f, 0f)
 		testText.position = Vec3(-window.aspectRatio, -.3f, 0f)
 
-		add(b)
+		gameText.position = Vec3(0, 2)
+		gameText.scale = Vec3(8,9f, 1f)
+		siGameText.scale = Vec3(8f, 3f)
+
+		add(testText, text, gameText, siGameText)
+
 		add(cursorSquare)
 	}
 
 	override fun init() {
 		super.init()
-
-		gameText.transformComponent.position = Vec3(0, 2)
 
 //        video.init()
 //        video.play()
@@ -311,9 +307,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		super.updateAspectRatio(window)
 		GLFunc.viewportO = Vec2i(window.width, window.height)
 
-		button.run {
-			position = Vec3(window.aspectRatio - .4f, .8f, 0f)
-		}
 		textField.run {
 			position = Vec3(-window.aspectRatio, -1f, 0f)
 			scale = Vec3(window.aspectRatio, .2f, 1f)

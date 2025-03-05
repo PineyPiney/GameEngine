@@ -55,15 +55,14 @@ class TrueTypeFont(
 	}
 
 	override fun getHeight(text: String): Float {
-		val bounds = getOutline(text).bounds2D
-		return bounds.height.f
+		return 1f + text.count { it == '\n' }
 	}
 
-	override fun getShape(text: String, bold: Boolean, alignment: Int): TextMesh {
+	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextMesh {
 		val list = mutableListOf<TextMesh.CharacterMesh>()
 		val glyph = font.createGlyphVector(ctx, text)
 
-		val (alignX, alignY) = getAlignmentOffset(text, alignment)
+		val (alignX, alignY) = getAlignmentOffset(text, bounds, alignment)
 		val (texture, dimensions) = createTexture(text.toSet())
 		var line = 0
 		var xOffset = 0f
@@ -87,7 +86,7 @@ class TrueTypeFont(
 	fun getOutline(char: Char) = getOutline(char.toString())
 
 	fun createTexture(chars: Set<Char>): Pair<Texture, Map<Char, Vec4>>{
-		if(chars.isEmpty()) return Texture.broke to emptyMap()
+		if(chars.isEmpty()) return Texture.none to emptyMap()
 
 		val textures = chars.associateWith { getTexture(it) }
 		val width = textures.values.sumOf { it.width }
@@ -118,6 +117,7 @@ class TrueTypeFont(
 			x += t.width
 		}
 		copier.delete()
+		texture.unbind()
 
 		return texture to dimensions
 	}

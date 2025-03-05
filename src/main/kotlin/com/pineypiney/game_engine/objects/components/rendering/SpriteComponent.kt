@@ -39,6 +39,11 @@ open class SpriteComponent(
 		sprite.mesh.bindAndDraw()
 	}
 
+	override fun delete() {
+		super.delete()
+		sprite.mesh.delete()
+	}
+
 	companion object {
 		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/2D"), ResourceKey("fragment/texture"))
 		val menuShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/texture")]

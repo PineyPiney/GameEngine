@@ -22,7 +22,6 @@ abstract class ShaderRenderedComponent(parent: GameObject, s: Shader) : Rendered
 		}
 
 	override fun init() {
-		super.init()
 		setUniforms()
 	}
 

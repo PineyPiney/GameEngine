@@ -27,14 +27,20 @@ class CaretRendererComponent(
 	}
 
 	private fun positionTextAndCaret() {
+		// w is the distance from the start of the text to where the caret is
 		val w = textField.textBox.getComponent<TextRendererComponent>()!!.text.getWidth(0..<textField.caret)
+		// ar is the inverse aspect ratio of the text field
 		val ar =
-			((textField.parent.getComponent<ShaderRenderedComponent>()!!.shape as Shape2D).size * Vec2(textField.parent.transformComponent.worldScale)).run { y / x }
+			((textField.parent.getComponent<ShaderRenderedComponent>()!!.shape as Shape2D).size * Vec2(textField.parent.transformComponent.worldScale)).run { 1f / x }
+		// x is the relative point where the caret should be along the text field
 		val x = (w * ar) + textField.textBox.position.x
+		// If x < 0 then the caret has moved too far left, and the text should be moved back right to put the caret back in the text field
 		if (x < 0f) {
 			textField.textBox.translate(Vec3(-x, 0f, 0f))
 			parent.position = Vec3(0f, 0f, 0f)
-		} else if (x > 1f) {
+		}
+		// Else if x > 1 then the caret has moved too far right, and the opposite applies
+		else if (x > 1f) {
 			textField.textBox.translate(Vec3(1f - x, 0f, 0f))
 			parent.position = Vec3(1f, 0f, 0f)
 		} else {

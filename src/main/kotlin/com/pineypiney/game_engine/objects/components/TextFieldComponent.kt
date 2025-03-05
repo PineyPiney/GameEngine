@@ -39,9 +39,13 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		}
 
 	var textBox = object : MenuItem("${parent.name} text") {
+		override fun init() {
+			super.init()
+			scale = Vec3(1e12f, 1f, 1f)
+		}
 		override fun addComponents() {
 			super.addComponents()
-			components.add(TextFieldText(this, Text(startText, maxWidth = Float.MAX_VALUE, fontSize = textSize), fieldShader))
+			components.add(TextFieldText(this, Text(startText, fontSize = this@TextFieldComponent.parent.transformComponent.worldScale.y * textSize, alignment = Text.ALIGN_CENTER_LEFT), fieldShader))
 		}
 	}
 
@@ -74,7 +78,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 	override fun init() {
 		super.init()
 
-		textBox.position = Vec3(0f, .5f, .01f)
+		textBox.position = Vec3(0f, 0f, .01f)
 		parent.addChild(textBox, caretObject)
 	}
 
@@ -183,17 +187,14 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		}
 		var i = 1
 		val textRenderer = textBox.getComponent<TextRendererComponent>()!!
-		val relativeX =
-			(cursorPos.x - textBox.transformComponent.worldPosition.x) / parent.transformComponent.worldScale.x
-		val ar =
-			(parent.getComponent<RenderedComponent>()!!.shape.size.run { Vec2(x, y) } * Vec2(parent.transformComponent.worldScale)).run { x / y }
-		val scaledX = relativeX * ar
-		while (i < text.length && (textRenderer.text.getWidth(text.substring(0, i)) < scaledX)) i++
+		// This is the relative x coordinate of the cursor from the left edge of the text field
+		val relativeX = (cursorPos.x - textBox.transformComponent.worldPosition.x)
+		while (i < text.length && (textRenderer.text.getWidth(text.substring(0, i)) < relativeX)) i++
 
 		val pos1 = textRenderer.text.getWidth(text.substring(0, i - 1))
 		val pos2 = textRenderer.text.getWidth(text.substring(0, i))
 
-		caret = if (abs(scaledX - pos1) < abs(scaledX - pos2)) i - 1
+		caret = if (abs(relativeX - pos1) < abs(relativeX - pos2)) i - 1
 		else i
 	}
 

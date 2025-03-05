@@ -79,7 +79,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 	var draggedField: FieldEditor<*, *>? = null
 
 	private val fpsText = FPSCounter.createCounterWithText(MenuItem("FPS Text").apply { pixel(Vec2i(288, 0), Vec2i(64, 20), Vec2(-1f, 1f)) }, 5.0, "FPS: $",
-		Text.Params().withMaxWidth(2f).withAlignment(Text.ALIGN_TOP_LEFT))
+		Text.Params().withAlignment(Text.ALIGN_TOP_LEFT))
 
 	private val properties = mutableMapOf<String, String>()
 

@@ -11,7 +11,6 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
-import org.lwjgl.opengl.GL11C
 
 open class TextRendererComponent(parent: GameObject, val text: Text, shader: Shader) :
 	ShaderRenderedComponent(parent, shader), UpdatingAspectRatioComponent, PreRenderComponent {
@@ -21,7 +20,7 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 
 		override fun setUniforms() {
 		super.setUniforms()
-		uniforms.setMat4Uniform("model"){ parent.worldModel.let { it.scale(text.size * it[1, 1] / it[0, 0], text.size, 1f) } }
+		uniforms.setMat4Uniform("model"){ parent.worldModel.let { it.scale(text.size / it[0, 0], text.size / it[1, 1], 1f) } }
 		uniforms.setVec4Uniform("colour", text::colour)
 		uniforms.setFloatUniform("italic", text::italic)
 	}
@@ -33,7 +32,7 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 
 	override fun preRender(renderer: RendererI, tickDelta: Double) {
 		if (text.textChanged) {
-			text.updateLines(parent.transformComponent.worldScale.let { it.x / it.y })
+			text.updateLines(Vec2(parent.transformComponent.worldScale))
 			text.textChanged = false
 		}
 	}
@@ -46,8 +45,6 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 		shader.setUniforms(uniforms, renderer)
 		text.mesh.texture.bind()
 		text.mesh.bindAndDraw()
-
-		GL11C.glFinish()
 	}
 
 	fun renderUnderline(
@@ -88,7 +85,7 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 	}
 
 	override fun updateAspectRatio(renderer: RendererI) {
-		if (!shader.hasProj) text.updateLines(parent.transformComponent.worldScale.run { x / y })
+		if (!shader.hasProj) text.updateLines(Vec2(parent.transformComponent.worldScale))
 	}
 
 	override fun delete() {

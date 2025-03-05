@@ -20,9 +20,9 @@ abstract class Font {
 	abstract fun getHeight(text: String): Float
 	fun getSize(text: String): Vec2 = Vec2(getWidth(text), getHeight(text))
 
-	abstract fun getShape(text: String, bold: Boolean, alignment: Int): TextMesh
+	abstract fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextMesh
 
-	fun getAlignmentOffset(text: String, alignment: Int): Pair<FloatArray, Float>{
+	fun getAlignmentOffset(text: String, bounds: Vec2, alignment: Int): Pair<FloatArray, Float>{
 
 		val alignX = alignment and 7
 		val alignY = alignment and 0x70
@@ -31,16 +31,16 @@ abstract class Font {
 		val offsetX = FloatArray(lines.size){
 			val width = getWidth(lines[it])
 			when(alignX){
-				Text.ALIGN_RIGHT -> -width
-				Text.ALIGN_CENTER_H -> width * -.5f
+				Text.ALIGN_RIGHT -> bounds.x - width
+				Text.ALIGN_CENTER_H -> (bounds.x - width) * .5f
 				else -> 0f
 			}
 		}
 
 		val height = getHeight(text)
 		val offsetY = when(alignY){
-			Text.ALIGN_TOP -> -height
-			Text.ALIGN_CENTER_V -> height * -.5f
+			Text.ALIGN_TOP -> bounds.y - height
+			Text.ALIGN_CENTER_V -> (bounds.y - height) * .5f
 			else -> 0f
 		}
 

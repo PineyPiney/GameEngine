@@ -15,8 +15,6 @@ import kotlin.math.min
 open class Text(
 	text: String,
 	val colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
-	var maxWidth: Float = 2f,
-	var maxHeight: Float = 2f,
 	val font: Font = Font.defaultFont,
 	var italic: Float = 0f,
 	var underlineThickness: Float = 0f,
@@ -46,14 +44,15 @@ open class Text(
 
 	}
 
-	fun updateLines(parentAspect: Float) {
+	fun updateLines(bounds: Vec2) {
+		if(bounds.y == 0f) return
 		if (fontSize > 0f) size = fontSize
-		else fitWithin(Vec2(maxWidth * parentAspect, maxHeight))
+		else fitWithin(bounds)
 
-		lines = generateLines(parentAspect)
+		lines = generateLines(bounds)
 		lengths = lines.map { getWidth(it) }.toFloatArray()
 		mesh.delete()
-		mesh = font.getShape(lines.joinToString("\n"), false, alignment)
+		mesh = font.getShape(lines.joinToString("\n"), false, bounds / size, alignment)
 		textChanged = false
 	}
 
@@ -84,8 +83,8 @@ open class Text(
 		size = min(fits.x, fits.y)
 	}
 
-	fun generateLines(parentAspect: Float): Array<String> {
-		val maxWidth = this.maxWidth * parentAspect
+	fun generateLines(bounds: Vec2): Array<String> {
+		if(text.trim() == "") return emptyArray()
 		val lines = mutableListOf<String>()
 		var lastBreak = 0
 		var lastWord = 0
@@ -93,12 +92,17 @@ open class Text(
 
 		while(i <= text.length){
 
-			if(getHeight(lines.joinToString("\n")) > maxHeight){
-				lines.removeLast()
-				val line = lines.removeLast()
+			if(getHeight(lines.joinToString("\n")) > bounds.y){
+				val line = try {
+					lines.removeLast()
+					lines.removeLast()
+				}
+				catch (e: Exception){
+					""
+				}
 				var d = line.length
 				while(d > 0){
-					if(getWidth(line.substring(0, d) + "...") < maxWidth) break
+					if(getWidth(line.substring(0, d) + "...") < bounds.x) break
 					d--
 				}
 				lines.add(line.substring(0, d) + "...")
@@ -119,13 +123,13 @@ open class Text(
 			}
 
 			val firstWordWidth = getWidth(text.substring(lastBreak, i))
-			// If the first word in the line if too lang then it has to be cut in half
-			if(firstWordWidth > maxWidth){
+			// If the first word in the line if too long then it has to be split up
+			if(firstWordWidth > bounds.x){
 				i--
 				// Find the maximum amount of the word that can fit on one line,
 				// add it and continue from the rest of the word for the next line
 				while(i > lastBreak + 1){
-					if(getWidth(text.substring(lastBreak, i)) < maxWidth) break
+					if(getWidth(text.substring(lastBreak, i)) < bounds.x) break
 					i--
 				}
 				if(i == lastBreak) break // This isn't going anywhere, the text bounds are awful and not worth dealing with
@@ -135,7 +139,7 @@ open class Text(
 
 			// If at least one word can fit, then no other words will be truncated for this line
 			lastWord = i
-			word@while(i <= text.length && getWidth(text.substring(lastBreak, i)) <= maxWidth){
+			word@while(i <= text.length && getWidth(text.substring(lastBreak, i)) <= bounds.x){
 				lastWord = i
 				// Reached the end of the string or forced new line
 				if(i == text.length || text[i] == '\n') break
@@ -180,15 +184,13 @@ open class Text(
 		return "Text[\"$text\"]"
 	}
 
-	data class Params(var colour: Vec4 = Vec4(0f, 0f, 0f, 1f), var maxWidth: Float = 1f, var maxHeight: Float = 1f,
+	data class Params(var colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
 					  var fontSize: Float = 1f, var alignment: Int = ALIGN_CENTER_LEFT,
 					  var shader: Shader = Font.fontShader, var font: Font = Font.defaultFont,
 					  var italic: Float = 0f, var underlineThickness: Float = 0f,
 					  var underlineOffset: Float = -0.2f, var underlineAmount: Float = 1f){
 
 		fun withColour(c: Vec4) = this.apply { colour = c }
-		fun withMaxWidth(c: Float) = this.apply { maxWidth = c }
-		fun withMaxHeight(c: Float) = this.apply { maxHeight = c }
 		fun withFontSize(c: Float) = this.apply { fontSize = c }
 		fun withAlignment(c: Int) = this.apply { alignment = c }
 		fun withShader(c: Shader) = this.apply { shader = c }
@@ -219,8 +221,6 @@ open class Text(
 		fun makeMenuText(
 			text: String,
 			colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
-			maxWidth: Float = 1f,
-			maxHeight: Float = 1f,
 			fontSize: Float = 1f,
 			alignment: Int = ALIGN_CENTER_LEFT,
 			shader: Shader = Font.fontShader,
@@ -234,7 +234,7 @@ open class Text(
 
 				init {
 					components.add(
-						TextRendererComponent(this, Text(text, colour, maxWidth, maxHeight, font, italic,
+						TextRendererComponent(this, Text(text, colour, font, italic,
 							underlineThickness, underlineOffset, underlineAmount, fontSize, alignment), shader)
 					)
 				}
@@ -246,8 +246,7 @@ open class Text(
 
 				init{
 					components.add(
-						TextRendererComponent(this, Text(text, params.colour, params.maxWidth,
-							params.maxHeight, params.font, params.italic, params.underlineThickness,
+						TextRendererComponent(this, Text(text, params.colour, params.font, params.italic, params.underlineThickness,
 							params.underlineOffset, params.underlineAmount, params.fontSize, params.alignment),
 							params.shader)
 					)
@@ -258,8 +257,6 @@ open class Text(
 		fun makeGameText(
 			text: String,
 			colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
-			maxWidth: Float = 2f,
-			maxHeight: Float = 2f,
 			fontSize: Float = 1f,
 			alignment: Int = ALIGN_CENTER_LEFT,
 			shader: Shader = TextRendererComponent.gameTextShader,
@@ -278,8 +275,6 @@ open class Text(
 							Text(
 								text,
 								colour,
-								maxWidth,
-								maxHeight,
 								font,
 								italic,
 								underlineThickness,

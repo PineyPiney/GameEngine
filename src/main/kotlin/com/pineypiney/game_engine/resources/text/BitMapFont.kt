@@ -49,13 +49,13 @@ class BitMapFont(
 		return 1f + lineSpacing * (text.count { it == '\n' })
 	}
 
-	override fun getShape(text: String, bold: Boolean, alignment: Int): TextMesh{
+	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextMesh{
 		val dimensions = getPixelSize(text)
 		var letterX = characterSpacing
 		var letterY = lineSpacing * text.count { it == '\n' }
 		val quads = mutableSetOf<TextMesh.CharacterMesh>()
 
-		val (alignX, alignY) = getAlignmentOffset(text, alignment)
+		val (alignX, alignY) = getAlignmentOffset(text, bounds, alignment)
 		var line = 0
 
 		for (char in text) {

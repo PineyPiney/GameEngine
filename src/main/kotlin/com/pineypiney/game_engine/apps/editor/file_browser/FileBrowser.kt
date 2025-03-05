@@ -74,8 +74,9 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 
 			placeChild(child, i, cols)
 
-			val textChild = Text.Companion.makeMenuText(subFile.name, maxWidth = 1.5f, maxHeight = .6f, fontSize = .22f, alignment = Text.Companion.ALIGN_TOP_CENTER)
-			textChild.position = Vec3(0f, -.25f, .01f)
+			val textChild = Text.Companion.makeMenuText(subFile.name, fontSize = .22f, alignment = Text.Companion.ALIGN_TOP_CENTER)
+			textChild.position = Vec3(-.75f, -.85f, .01f)
+			textChild.scale = Vec3(1.5f, .6f, 1f)
 			child.addChild(textChild)
 
 			child.init()

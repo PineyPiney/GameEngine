@@ -9,6 +9,12 @@ class TextMesh(chars: Array<CharacterMesh>, val texture: Texture = Texture.broke
 
 	override val shape: Shape<*> = Rect2D(Vec2(0f), 1f, 1f)
 
+	init {
+		positionSize = 2
+		textureSize = 2
+		textureOffset = 2
+	}
+
 	override fun delete() {
 		super.delete()
 		if(deleteTexture) texture.delete()

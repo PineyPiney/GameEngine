@@ -60,7 +60,7 @@ abstract class FieldEditor<T, out F : ComponentField<T>>(
 
 	open fun onDropElement(element: Any, cursorPos: Vec2, screen: EditorScreen){}
 
-	fun createText(text: String = field.id.substringAfterLast('.').capitalise(), alignment: Int = Text.ALIGN_CENTER_RIGHT, pos: Vec2 = Vec2(.25f, .5f), size: Vec2 = Vec2(.25f, 1f)) = Text.makeMenuText(text, maxWidth = 1f, maxHeight = 1f, alignment = alignment).apply { position = Vec3(pos, .01f); scale = Vec3(size, 1f) }
+	fun createText(text: String = field.id.substringAfterLast('.').capitalise(), alignment: Int = Text.ALIGN_CENTER_RIGHT, pos: Vec2 = Vec2(0f), size: Vec2 = Vec2(.25f, 1f)) = Text.makeMenuText(text, alignment = alignment).apply { position = Vec3(pos, .01f); scale = Vec3(size, 1f) }
 
 	companion object {
 		init {
@@ -183,15 +183,15 @@ open class IntRangeFieldEditor(parent: GameObject, field: IntRangeField, origin:
 open class ShaderFieldEditor(parent: GameObject, field: ShaderField, origin: Vec2, size: Vec2, val callback: (String, String, String) -> Unit)
 	: FieldEditor<Shader, ShaderField>(parent, field, origin, Vec2(size.x, size.y * 3)) {
 
-	val vertexText = createText("Vertex", pos = Vec2(.25f, .84f), size = Vec2(.25f, .32f))
+	val vertexText = createText("Vertex", pos = Vec2(0f, .68f), size = Vec2(.25f, .32f))
 	val vertexField = ActionTextField<ActionTextFieldComponent<*>>("Vertex Field", Vec3(.27f, .68f, 0f), Vec2(.73f, .32f)) { f, _, _ ->
 		updateValue()
 	}
-	val fragmentText = createText("Fragment", pos = Vec2(.25f, .5f), size = Vec2(.25f, .32f))
+	val fragmentText = createText("Fragment", pos = Vec2(0f, .34f), size = Vec2(.25f, .32f))
 	val fragmentField = ActionTextField<ActionTextFieldComponent<*>>("Fragment Field", Vec3(.27f, .34f, 0f), Vec2(.73f, .32f)) { f, _, _ ->
 		updateValue()
 	}
-	val geometryText = createText("Geometry", pos = Vec2(.25f, .16f), size = Vec2(.25f, .32f))
+	val geometryText = createText("Geometry", pos = Vec2(0f, .0f), size = Vec2(.25f, .32f))
 	val geometryField = ActionTextField<ActionTextFieldComponent<*>>("Geometry Field", Vec3(.27f, 0f, 0f), Vec2(.73f, .32f)) { f, _, _ ->
 		updateValue()
 	}

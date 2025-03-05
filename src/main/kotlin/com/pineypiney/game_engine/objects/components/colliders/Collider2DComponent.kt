@@ -9,20 +9,20 @@ import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import glm_.vec2.Vec2
 
-class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f, 1f, 1f), val flags: MutableSet<String> = mutableSetOf()) : Component(parent) {
+class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f, 1f, 1f), val layer: Layer = defaultLayer, val flags: MutableSet<String> = mutableSetOf()) : Component(parent) {
 
-	constructor(parent: GameObject, shape: Shape2D, vararg flags: String): this(parent, shape, mutableSetOf(*flags))
+	constructor(parent: GameObject, shape: Shape2D, layer: Layer, vararg flags: String): this(parent, shape, layer, mutableSetOf(*flags))
 
 	val transformedShape get() = shape transformedBy parent.worldModel
 	var active = true
 
-	infix fun collidesWith(other: Collider2DComponent): Boolean {
-		return this.parent != other.parent && active && other.active && shape intersects other.shape
+	infix fun canCollide(other: Collider2DComponent): Boolean {
+		return this.parent != other.parent && active && other.active && layer.shouldCollide(other.layer.id) && other.layer.shouldCollide(layer.id)
 	}
 
 	fun isColliding(collisions: Collection<Collider2DComponent>? = parent.objects?.getAll2DCollisions()): Boolean {
 		if (collisions.isNullOrEmpty()) return false
-		for (c in collisions.toSet()) if (this collidesWith c) return true
+		for (c in collisions.toSet()) if (this canCollide c && shape intersects c.shape) return true
 		return false
 	}
 
@@ -37,7 +37,7 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 
 		val circle = newCollision.getBoundingCircle()
 		val nearbyColliders = parent.objects?.getAll2DCollisions()?.filter {
-			it.active && it != this && it.transformedShape.getBoundingCircle().distanceTo(circle) < moveDist
+			canCollide(it) && it.transformedShape.getBoundingCircle().distanceTo(circle) < moveDist
 		} ?: return remainingMovement
 
 		// Iterate over all collision boxes sharing object collections and
@@ -47,7 +47,8 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 			newCollision translate remainingMovement
 			// Get all collisions with nearby colliders
 			val allCollisions = nearbyColliders.associateWith{ newCollision.calculateCollision(it.transformedShape, remainingMovement, stepBias) }.removeNullValues()
-			// Get the first collision
+
+			// Get the first collision, or if there are no collisions then break out of the collision detecting loop
 			val (collider, collision) = allCollisions.maxByOrNull { it.value.removeShape1FromShape2.length2() } ?: break
 
 			// Adjust the movement that will be returned by the functions and move
@@ -62,9 +63,10 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 			val newMovement = collision.collisionNormal.normal()
 			if(newMovement dot remainingMovement < 0f) newMovement(-newMovement)
 
-			val moveCos = newMovement dot movement
-			// If the new movement is facing against the original movement then stop moving
-			if(moveCos < 0f) {
+			val moveCos = newMovement dot remainingMovement
+			// If the new movement is facing against the current movement then stop moving
+			if(moveCos <= 0f) {
+				remainingMovement(0f)
 				endMovement(0f, 0f)
 				break
 			}
@@ -107,10 +109,16 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 		return collidedMove
 	}
 
-	fun isGrounded(): Boolean {
+	fun isGrounded(direction: Vec2 = Vec2(0f, -.01f)): Collider2DComponent? {
 		val b = transformedShape
-		b translate Vec2(0f, -0.01f)
+		b translate direction
 
-		return (parent.objects?.getAll2DCollisions()?.minus(this))?.any { it.transformedShape.intersects(b) } ?: false
+		return parent.objects?.getAll2DCollisions()?.firstOrNull { canCollide(it) && it.transformedShape.intersects(b) }
+	}
+
+	class Layer(val id: String, val shouldCollide: (other: String) -> Boolean)
+
+	companion object {
+		val defaultLayer = Layer("Default"){ true }
 	}
 }

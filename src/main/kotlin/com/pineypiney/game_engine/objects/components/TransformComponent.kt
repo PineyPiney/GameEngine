@@ -42,11 +42,11 @@ open class TransformComponent(parent: GameObject) : Component(parent) {
 		get() = if (parent.parent == null) transform.position else parent.worldModel.getTranslation()
 		set(value) {
 			val p = parent.parent?.worldModel
-			if (p == null) parent.position = value
+			position = if (p == null) value
 			else {
-				val newWorldModel = parent.worldModel.setTranslation(value)
+				val newWorldModel = fetchWorldModel().setTranslation(value)
 				val newModel = p.inverse() * newWorldModel
-				parent.position = newModel.getTranslation()
+				newModel.getTranslation()
 			}
 		}
 	@EditorIgnore
@@ -54,16 +54,16 @@ open class TransformComponent(parent: GameObject) : Component(parent) {
 		get() = if (parent.parent == null) transform.rotation else parent.worldModel.getRotation()
 		set(value) {
 			val p = parent.parent?.worldModel
-			if (p == null) parent.rotation = value
-			else parent.rotation = (parent.worldModel.setRotation(value) / p).getRotation()
+			rotation = if (p == null) value
+			else (fetchWorldModel().setRotation(value) / p).getRotation()
 		}
 	@EditorIgnore
 	var worldScale: Vec3
 		get() = if (parent.parent == null) transform.scale else parent.worldModel.getScale()
 		set(value) {
 			val p = parent.parent?.worldModel
-			if (p == null) parent.scale = value
-			else parent.scale = (parent.worldModel.setScale(value) / p).getScale()
+			scale = if (p == null) value
+			else (fetchWorldModel().setScale(value) / p).getScale()
 		}
 
 

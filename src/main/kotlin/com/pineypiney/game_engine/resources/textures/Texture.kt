@@ -40,7 +40,8 @@ class Texture(
 	}
 
 	fun unbind() {
-		broke.bind()
+		glActiveTexture(GL_TEXTURE0 + binding)
+		glBindTexture(target, 0)
 	}
 
 	fun getData(): ByteBuffer {
@@ -163,6 +164,7 @@ class Texture(
 	}
 
 	companion object {
+		val none: Texture = Texture("None", 0)
 		val broke: Texture = Texture("missing", TextureLoader.createTexture(createArray().toBuffer(), 32, 32))
 
 		fun createArray(): ByteArray {

@@ -30,11 +30,12 @@ class ContextMenuComponent<C>(parent: GameObject, val context: C, val menu: Cont
 
 		forceUpdate = true
 
-		val entries = menu.entries.map { Text(it.name, fontSize = .05f).apply { updateLines(1f) } }
+		val entries = menu.entries.map { Text(it.name, fontSize = .05f).apply { updateLines(Vec2(1f)) } }
 		val width = entries.maxOf { it.getWidth() }
 		val height = entries.sumOf { it.getHeight() }
 		sections.add(MenuSection(Vec2(0f), Vec2(width, height), entries.size))
 
+		// Make sure the menu doesn't get too close to the top of the screen
 		val top = parent.position.y + sections.maxOf { it.origin.y + it.size.y }
 		if(top > .98f) parent.translate(Vec3(0f, .98f - top))
 
@@ -43,7 +44,9 @@ class ContextMenuComponent<C>(parent: GameObject, val context: C, val menu: Cont
 		rootChild.addChild(MenuItem("ContextMenuBackground").apply { components.add(ColourRendererComponent(this, Vec3(.6f),
 			ColourRendererComponent.menuShader, Mesh.cornerSquareShape)); scale = Vec3(width, height, 1f) })
 
-		entries.forEachIndexed { i, it -> rootChild.addChild(MenuItem("Context Entry ${it.text}").apply { components.add(TextRendererComponent(this, it, Font.fontShader)); position = Vec3(0f, height - (.05f * (i + .5f)), .01f) }) }
+		entries.forEachIndexed { i, it ->
+			rootChild.addChild(MenuItem("Context Entry ${it.text}").apply { components.add(TextRendererComponent(this, it, Font.fontShader)); position = Vec3(0f, height - (.05f * (i + 1f)), .01f) })
+		}
 	}
 
 	override fun onCursorMove(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
@@ -91,7 +94,7 @@ class ContextMenuComponent<C>(parent: GameObject, val context: C, val menu: Cont
 				val origin = sec.origin + Vec2(sec.size.x + .01f, (sec.sections - (hoveredIndex + 1)) * 20f)
 				menuTree.add(hoveredIndex)
 
-				val entries = newSubmenu.children.map { Text(it.name, fontSize = .05f).apply { updateLines(1f) } }
+				val entries = newSubmenu.children.map { Text(it.name, fontSize = .05f).apply { updateLines(Vec2(1f)) } }
 				val width = entries.maxOf { it.getWidth() }
 				val height = entries.sumOf { it.getHeight() }
 				val newSection = MenuSection(origin, Vec2(width, height), entries.size)
@@ -105,7 +108,7 @@ class ContextMenuComponent<C>(parent: GameObject, val context: C, val menu: Cont
 				subchild.position = Vec3(newSection.origin, 0f)
 				subchild.addChild(MenuItem("ContextMenuBackground").apply { components.add(ColourRendererComponent(this, Vec3(.6f),
 					ColourRendererComponent.menuShader, Mesh.cornerSquareShape)); scale = Vec3(width, height, 1f) })
-				entries.forEachIndexed { i, it -> subchild.addChild(MenuItem("Context Entry ${it.text}").apply { components.add(TextRendererComponent(this, it, Font.fontShader)); position = Vec3(0f, height - (.05f * (i + .5f)), .01f) }) }
+				entries.forEachIndexed { i, it -> subchild.addChild(MenuItem("Context Entry ${it.text}").apply { components.add(TextRendererComponent(this, it, Font.fontShader)); position = Vec3(0f, height - (.05f * (i + 1f)), .01f) }) }
 
 				subchild.init()
 			}
