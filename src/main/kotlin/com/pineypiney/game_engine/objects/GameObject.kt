@@ -183,14 +183,14 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		return components.firstOrNull { it is T } as? T
 	}
 
-	fun getShape(): Shape<*> {
+	fun  getShape(): Shape<*> {
 
 		getComponent<Collider2DComponent>()?.let { return it.transformedShape }
 		getComponent<Collider3DComponent>()?.let { return it.transformedShape }
 
 		val renderer = renderer
 		if (renderer != null) {
-			return renderer.shape transformedBy worldModel
+			return renderer.getScreenShape() transformedBy worldModel
 		}
 
 		return Rect2D(Vec2(), Vec2(1f))
@@ -233,6 +233,18 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		while (true) {
 			o = o.parent ?: return set
 			set.add(o)
+		}
+	}
+
+	fun forAllDescendants(action: GameObject.() -> Unit){
+		this.action()
+		for(c in children) c.forAllDescendants(action)
+	}
+
+	fun forAllActiveDescendants(action: GameObject.() -> Unit){
+		if(active) {
+			this.action()
+			for (c in children) c.forAllActiveDescendants(action)
 		}
 	}
 
@@ -290,7 +302,7 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 			shader: Shader,
 			position: Vec3 = Vec3(),
 			scale: Vec3 = Vec3(1f),
-			shape: Mesh = Mesh.centerSquareShape,
+			mesh: Mesh = Mesh.centerSquareShape,
 			setUniformsFunc: ShaderRenderedComponent.() -> Unit
 		): GameObject {
 			return object : GameObject() {
@@ -300,8 +312,6 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 					val x: GameObject = this // Literally no clue, intellij explain yourself
 					components.add(object : ShaderRenderedComponent(x, shader) {
 
-						override val shape: Shape<*> = shape.shape
-
 						override fun setUniforms() {
 							super.setUniforms()
 							setUniformsFunc()
@@ -309,8 +319,13 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 
 						override fun render(renderer: RendererI, tickDelta: Double) {
 							shader.setUp(uniforms, renderer)
-							shape.bindAndDraw()
+							mesh.bindAndDraw()
 						}
+
+						override fun getScreenShape(): Shape<*> {
+							return mesh.shape
+						}
+
 					})
 				}
 

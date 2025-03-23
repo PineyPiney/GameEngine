@@ -6,8 +6,7 @@ import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponen
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.util.maths.shapes.Shape2D
-import glm_.vec2.Vec2
+import com.pineypiney.game_engine.window.Viewport
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
@@ -22,18 +21,18 @@ class CaretRendererComponent(
 	val textField get() = parent.parent?.getComponent<TextFieldComponent>()!!
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
-		positionTextAndCaret()
+		positionTextAndCaret(renderer.getViewport())
 		super.render(renderer, tickDelta)
 	}
 
-	private fun positionTextAndCaret() {
-		// w is the distance from the start of the text to where the caret is
-		val w = textField.textBox.getComponent<TextRendererComponent>()!!.text.getWidth(0..<textField.caret)
-		// ar is the inverse aspect ratio of the text field
-		val ar =
-			((textField.parent.getComponent<ShaderRenderedComponent>()!!.shape as Shape2D).size * Vec2(textField.parent.transformComponent.worldScale)).run { 1f / x }
+	private fun positionTextAndCaret(view: Viewport) {
+		val textRenderer = textField.textBox.getComponent<TextRendererComponent>()!!
+		// w is the distance from the start of the text to where the caret is relative to half the screens height
+		val w = textRenderer.getWidth(textField.text.substring(0..<textField.caret)) * textRenderer.size * 2f / view.size.y
+
+		val width = textField.parent.transformComponent.worldScale.x
 		// x is the relative point where the caret should be along the text field
-		val x = (w * ar) + textField.textBox.position.x
+		val x = (w / width) + textField.textBox.position.x
 		// If x < 0 then the caret has moved too far left, and the text should be moved back right to put the caret back in the text field
 		if (x < 0f) {
 			textField.textBox.translate(Vec3(-x, 0f, 0f))
@@ -48,7 +47,7 @@ class CaretRendererComponent(
 		}
 	}
 
-	override fun updateAspectRatio(renderer: RendererI) {
-		positionTextAndCaret()
+	override fun updateAspectRatio(view: Viewport) {
+		positionTextAndCaret(view)
 	}
 }

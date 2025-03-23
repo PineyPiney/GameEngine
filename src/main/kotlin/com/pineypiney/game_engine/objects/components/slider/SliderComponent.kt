@@ -3,8 +3,8 @@ package com.pineypiney.game_engine.objects.components.slider
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicSliderPointer
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
-import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import kotlin.math.min
 
@@ -44,7 +44,7 @@ abstract class SliderComponent<T: Number>(
 	abstract fun getDelta(): Float
 	abstract fun valueFromDelta(delta: Float): T
 
-	override fun checkHover(ray: Ray, screenPos: Vec2): Float {
+	override fun checkHover(ray: Ray, screenPos: CursorPosition): Float {
 		val slider = super.checkHover(ray, screenPos)
 		val pointer = pointer.getComponent<DefaultInteractorComponent>()!!
 			.checkHover(ray, screenPos)

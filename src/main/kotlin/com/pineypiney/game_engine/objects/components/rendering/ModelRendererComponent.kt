@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.LightComponent
 import com.pineypiney.game_engine.objects.components.fields.IntFieldRange
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox2DRenderer
+import com.pineypiney.game_engine.objects.util.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
@@ -17,13 +18,13 @@ import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.maths.Collider2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.mat4x4.Mat4
 
 open class ModelRendererComponent(parent: GameObject, var model: Model = Model.brokeModel, shader: Shader = defaultShader) :
 	ShaderRenderedComponent(parent, shader) {
 
-	override val shape: Shape<*> = model.box.shape
 	protected var animation: ModelAnimation? = null
 	private var animationStartTime: Double = 0.0
 	private var animationEndTime: Double = 0.0
@@ -60,10 +61,17 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 		if (debug and Model.DEBUG_BONES > 0) renderBones(parent, renderer.view, renderer.projection)
 		val renderer = parent.getChild(parent.name + " Collider Renderer")?.renderer
 		if(debug and Model.DEBUG_COLLIDER > 0){
-			if(renderer == null) parent.addChild(CollisionBox2DRenderer(parent).apply { init() })
+			if(renderer == null) {
+				if(model.box is Collider2D) parent.addChild(CollisionBox2DRenderer.create(parent).apply { init() })
+				else parent.addChild(CollisionBox3DRenderer.create(parent).apply { init() })
+			}
 			else renderer.visible = true
 		}
 		else renderer?.visible = false
+	}
+
+	override fun getScreenShape(): Shape<*> {
+		return model.box.shape
 	}
 
 	fun setLightUniforms() {

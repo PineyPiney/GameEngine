@@ -14,14 +14,16 @@ import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.SpriteButton
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
-import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.resources.textures.Sprite
+import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import glm_.vec4.Vec4
 import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectory
@@ -34,7 +36,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 ), UpdatingAspectRatioComponent {
 
 	var currentDirectory = root
-	val loadedTextures = mutableMapOf<String, Sprite>()
+	val loadedTextures = mutableMapOf<String, Texture>()
 
 	private val filesContainer = MenuItem("Files")
 	private val parentFileButton =
@@ -74,7 +76,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 
 			placeChild(child, i, cols)
 
-			val textChild = Text.Companion.makeMenuText(subFile.name, fontSize = .22f, alignment = Text.Companion.ALIGN_TOP_CENTER)
+			val textChild = Text.makeMenuText(subFile.name, Vec4(0f, 0f, 0f, 1f), 16, Text.ALIGN_TOP_CENTER)
 			textChild.position = Vec3(-.75f, -.85f, .01f)
 			textChild.scale = Vec3(1.5f, .6f, 1f)
 			child.addChild(textChild)
@@ -84,10 +86,10 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 		maxScroll = maxOf(0, (ceil(files.size.toFloat() / cols).toInt() * screen.settings.fileBrowserIconSpace) - screen.settings.fileBrowserHeight)
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onSecondary(window, action, mods, cursorPos)
 		if(action == 1) {
-			screen.setContextMenu(FileBrowserContext(this), fileBrowserContextMenu, cursorPos)
+			screen.setContextMenu(FileBrowserContext(this), fileBrowserContextMenu, cursorPos.position)
 			return INTERRUPT
 		}
 		return action
@@ -110,10 +112,10 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 		trans.pixelPos = Vec2i((screen.settings.fileBrowserIconSpace * ((i % cols) + .5f)).toInt(), height + scroll - (screen.settings.fileBrowserIconSpace * ((i / cols) + .5f)).toInt())
 	}
 
-	override fun updateAspectRatio(renderer: RendererI) {
-		parent.getComponent<PixelTransformComponent>()?.pixelScale = Vec2i(renderer.viewportSize.x, height)
+	override fun updateAspectRatio(view: Viewport) {
+		parent.getComponent<PixelTransformComponent>()?.pixelScale = Vec2i(view.size.x, height)
 
-		val invAsp = 1f / renderer.aspectRatio
+		val invAsp = view.inverseAspectRatio
 		val cols = parent.getComponent<PixelTransformComponent>()?.let { it.pixelScale.x / screen.settings.fileBrowserIconSpace } ?: 10
 
 		val files = filesContainer.children
@@ -129,13 +131,13 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 
 	override fun delete() {
 		super.delete()
-		for((_, s) in loadedTextures) s.texture.delete()
+		for((_, texture) in loadedTextures) texture.delete()
 	}
 
 
 	companion object {
-		data class FileBrowserContext(val browser: FileBrowser)
-		data class FileContext(val browser: FileBrowser, val file: FileComponent)
+		data class FileBrowserContext(val browser: FileBrowser): ContextMenu.Context(browser.screen.settings, browser.screen.renderer.viewportSize)
+		data class FileContext(val browser: FileBrowser, val file: FileComponent): ContextMenu.Context(browser.screen.settings, browser.screen.renderer.viewportSize)
 
 		val fileBrowserContextMenu = ContextMenu<FileBrowserContext>(
 			arrayOf(

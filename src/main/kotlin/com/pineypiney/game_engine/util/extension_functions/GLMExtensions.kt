@@ -36,6 +36,24 @@ fun Vec2.angleBetween(other: Vec2): Float {
 	return (angle() - other.angle()).wrap(-PIF, PIF)
 }
 
+fun minOf(a: Vec2, vararg b: Vec2): Vec2{
+	val r = Vec2(a)
+	for(v in b){
+		r.x = min(r.x, v.x)
+		r.y = min(r.y, v.y)
+	}
+	return r
+}
+
+fun maxOf(a: Vec2, vararg b: Vec2): Vec2{
+	val r = Vec2(a)
+	for(v in b){
+		r.x = max(r.x, v.x)
+		r.y = max(r.y, v.y)
+	}
+	return r
+}
+
 /**
  * Function to return the normal of the Vector
  */
@@ -83,6 +101,10 @@ fun Vec2.isWithin(origin: Vec2, size: Vec2): Boolean {
  * Check if the xy values of [this] are larger than those of [bl] and smaller than those of [tr]
  */
 fun Vec2.isBetween(bl: Vec2, tr: Vec2): Boolean {
+	return x.isBetween(bl.x, tr.x) &&
+			y.isBetween(bl.y, tr.y)
+}
+fun Vec2i.isBetween(bl: Vec2i, tr: Vec2i): Boolean {
 	return x.isBetween(bl.x, tr.x) &&
 			y.isBetween(bl.y, tr.y)
 }
@@ -179,8 +201,17 @@ fun Mat4.getTranslation(): Vec3 {
 	return Vec3(this[3])
 }
 
+fun Mat4.getTranslation(index: Int): Float{
+	return this[3][index]
+}
+
 fun Mat4.setTranslation(translation: Vec3, res: Mat4 = Mat4(this)): Mat4 {
 	translation.to(res.array, 12)
+	return res
+}
+
+fun Mat4.setTranslation(translation: Float, index: Int, res: Mat4 = Mat4(this)): Mat4{
+	res[3][index] = translation
 	return res
 }
 
@@ -201,12 +232,27 @@ fun Mat4.getScale(): Vec3 {
 	return Vec3(Vec3(this[0]).length(), Vec3(this[1]).length(), Vec3(this[2]).length())
 }
 
+fun Mat4.getScale(index: Int): Float{
+	return Vec3(this[index]).length()
+}
+
 fun Mat4.setScale(scale: Vec3, res: Mat4 = Mat4(this)): Mat4 {
 	val currentScale = getScale()
 
-	setScale(0, scale, currentScale, res)
-	setScale(1, scale, currentScale, res)
-	setScale(2, scale, currentScale, res)
+	for(index in 0..2){
+		if(currentScale[index] == 0f) res[index] = Vec4(0f)
+		else (Vec3(this[index]) * (scale[index] / currentScale[index])).to(res.array, 4 * index)
+	}
+
+	return res
+}
+
+fun Mat4.setScale(scale: Float, index: Int, res: Mat4 = Mat4(this)): Mat4 {
+	val vec = Vec3(this[index])
+	val currentScale2 = vec.length2()
+
+	if(currentScale2 == 0f) res[index] = Vec4(0f)
+	else (vec * (scale / sqrt(currentScale2))).to(res.array, 4 * index)
 
 	return res
 }

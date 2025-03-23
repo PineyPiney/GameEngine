@@ -18,8 +18,7 @@ class BezierDisplay(parent: GameObject, val points: Array<Vec2t<*>>) : ShaderRen
 	}
 ) {
 
-	val vShape = Mesh.cornerSquareShape
-	override val shape: Shape<*> = vShape.shape
+	val mesh = Mesh.cornerSquareShape
 
 	override fun setUniforms() {
 		super.setUniforms()
@@ -28,9 +27,13 @@ class BezierDisplay(parent: GameObject, val points: Array<Vec2t<*>>) : ShaderRen
 		uniforms.setFloatUniform("width") { 0.0002f }
 	}
 
+	override fun getScreenShape(): Shape<*> {
+		return mesh.shape
+	}
+
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		vShape.bindAndDraw()
+		mesh.bindAndDraw()
 	}
 
 	companion object {

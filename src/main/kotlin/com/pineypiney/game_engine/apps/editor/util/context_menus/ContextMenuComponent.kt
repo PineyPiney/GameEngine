@@ -10,12 +10,15 @@ import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.extension_functions.sumOf
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import kotlin.math.roundToInt
 
-class ContextMenuComponent<C>(parent: GameObject, val context: C, val menu: ContextMenu<C>): DefaultInteractorComponent(
+class ContextMenuComponent<C: ContextMenu.Context>(parent: GameObject, val context: C, val menu: ContextMenu<C>): DefaultInteractorComponent(
 	parent
 ) {
 
@@ -30,26 +33,10 @@ class ContextMenuComponent<C>(parent: GameObject, val context: C, val menu: Cont
 
 		forceUpdate = true
 
-		val entries = menu.entries.map { Text(it.name, fontSize = .05f).apply { updateLines(Vec2(1f)) } }
-		val width = entries.maxOf { it.getWidth() }
-		val height = entries.sumOf { it.getHeight() }
-		sections.add(MenuSection(Vec2(0f), Vec2(width, height), entries.size))
-
-		// Make sure the menu doesn't get too close to the top of the screen
-		val top = parent.position.y + sections.maxOf { it.origin.y + it.size.y }
-		if(top > .98f) parent.translate(Vec3(0f, .98f - top))
-
-		val rootChild = MenuItem("Sub Menu Root")
-		parent.addChild(rootChild)
-		rootChild.addChild(MenuItem("ContextMenuBackground").apply { components.add(ColourRendererComponent(this, Vec3(.6f),
-			ColourRendererComponent.menuShader, Mesh.cornerSquareShape)); scale = Vec3(width, height, 1f) })
-
-		entries.forEachIndexed { i, it ->
-			rootChild.addChild(MenuItem("Context Entry ${it.text}").apply { components.add(TextRendererComponent(this, it, Font.fontShader)); position = Vec3(0f, height - (.05f * (i + 1f)), .01f) })
-		}
+		createNewSection(menu.entries.map { it.name }, "Sub Menu Root", Vec2(0f))
 	}
 
-	override fun onCursorMove(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
+	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		if(hoveredSection == -1) {
 			hoveredIndex = -1
@@ -58,7 +45,7 @@ class ContextMenuComponent<C>(parent: GameObject, val context: C, val menu: Cont
 		}
 
 		val sec = sections[hoveredSection]
-		hoveredIndex = ((sec.size.y + sec.origin.y + parent.position.y - cursorPos.y) * 20f).toInt()
+		hoveredIndex = ((sec.size.y + sec.origin.y + parent.position.y - cursorPos.position.y) * (context.viewport.y * .4f / context.settings.textScale)).toInt()
 		var menuEntry: ContextMenuEntry<C>
 		val childrenToKeep = mutableListOf("Root")
 		if(hoveredSection == 0) {
@@ -94,28 +81,48 @@ class ContextMenuComponent<C>(parent: GameObject, val context: C, val menu: Cont
 				val origin = sec.origin + Vec2(sec.size.x + .01f, (sec.sections - (hoveredIndex + 1)) * 20f)
 				menuTree.add(hoveredIndex)
 
-				val entries = newSubmenu.children.map { Text(it.name, fontSize = .05f).apply { updateLines(Vec2(1f)) } }
-				val width = entries.maxOf { it.getWidth() }
-				val height = entries.sumOf { it.getHeight() }
-				val newSection = MenuSection(origin, Vec2(width, height), entries.size)
-				sections.add(newSection)
+				val subChild = createNewSection(newSubmenu.children.map { it.name }, "Sub Menu ${newSubmenu.name}", origin)
 
-				val top = parent.position.y + newSection.origin.y + newSection.size.y
-				if(top > .98f) newSection.origin.y -= (top - .98f)
-
-				val subchild = MenuItem("Sub Menu ${newSubmenu.name}")
-				parent.addChild(subchild)
-				subchild.position = Vec3(newSection.origin, 0f)
-				subchild.addChild(MenuItem("ContextMenuBackground").apply { components.add(ColourRendererComponent(this, Vec3(.6f),
-					ColourRendererComponent.menuShader, Mesh.cornerSquareShape)); scale = Vec3(width, height, 1f) })
-				entries.forEachIndexed { i, it -> subchild.addChild(MenuItem("Context Entry ${it.text}").apply { components.add(TextRendererComponent(this, it, Font.fontShader)); position = Vec3(0f, height - (.05f * (i + 1f)), .01f) }) }
-
-				subchild.init()
+				subChild.init()
 			}
 		}
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	fun createNewSection(texts: List<String>, name: String, position: Vec2): GameObject{
+		val lineHeight = (context.settings.textScale * 1.25f).roundToInt()
+		val entries = texts.map { Text(it, alignment = Text.ALIGN_BOTTOM_LEFT).apply { updateLines(Vec2(8f, 2f)) } }
+		val pixelWidth = entries.maxOf { it.getWidth() } * context.settings.textScale * 1.02f
+		val pixelHeight = entries.sumOf { it.getHeight() } * lineHeight
+
+		val pixelSize = 2f / context.viewport.y
+		val newSection = MenuSection(position, Vec2(pixelWidth * pixelSize, pixelHeight * pixelSize), entries.size)
+		sections.add(newSection)
+
+		// Make sure the menu doesn't get too close to the top of the screen
+		val top = parent.position.y + newSection.origin.y + newSection.size.y
+		if(top > .98f) newSection.origin.y -= (top - .98f)
+
+		val rootChild = MenuItem(name)
+		parent.addChild(rootChild)
+		rootChild.position = Vec3(position, 0f)
+		rootChild.addChild(MenuItem("ContextMenuBackground").apply {
+			pixel(Vec2i(0, 0), Vec2i(pixelWidth, pixelHeight), Vec2(0f))
+			components.add(ColourRendererComponent(this, Vec3(.6f), ColourRendererComponent.menuShader, Mesh.cornerSquareShape)) })
+
+		var lineY = pixelHeight + (lineHeight * .1f)
+		entries.forEach { entry ->
+			val entryHeight = entry.getHeight() * lineHeight
+			lineY -= entryHeight
+			rootChild.addChild(MenuItem("Context Entry(\"${entry.text}\")").apply {
+				pixel(Vec2i(0, lineY), Vec2i(pixelWidth, entryHeight), Vec2(0f))
+				components.add(TextRendererComponent(this, entry, context.settings.textScale, Font.fontShader))
+			})
+		}
+
+		return rootChild
+	}
+
+	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if(action == 0) {
 			if(hover) hoveredEntry?.action(context)
@@ -124,8 +131,8 @@ class ContextMenuComponent<C>(parent: GameObject, val context: C, val menu: Cont
 		return action
 	}
 
-	override fun checkHover(ray: Ray, screenPos: Vec2): Float {
-		val relativePos = screenPos - Vec2(parent.transformComponent.worldPosition)
+	override fun checkHover(ray: Ray, screenPos: CursorPosition): Float {
+		val relativePos = screenPos.position - Vec2(parent.transformComponent.worldPosition)
 		for((i, sec) in sections.withIndex()) {
 			if (relativePos.isWithin(sec.origin, sec.size)) {
 				hoveredSection = i

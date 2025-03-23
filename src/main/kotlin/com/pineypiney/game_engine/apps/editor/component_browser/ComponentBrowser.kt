@@ -13,20 +13,22 @@ import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
-import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.fromHex
-import com.pineypiney.game_engine.util.extension_functions.sumOf
+import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
+import kotlin.math.ceil
 import kotlin.random.Random
 
 class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInteractorComponent(parent), UpdatingAspectRatioComponent {
 
 	val componentContainer = MenuItem("Component Container")
-	var adderPos = Vec3(.6f, .5f, 0f)
+	var adderPos = Vec2(.6f, .5f)
 
 	var height = 1f
 	var scroll: Float = 0f
@@ -55,7 +57,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		componentContainer.deleteAllChildren()
 
 		if(obj != null) {
-			val text = ActionTextField<TextFieldComponent>("Object Name Field", Vec2(.05f, .965f), Vec2(.9f, .03f), obj.name){ f, _, _ ->
+			val text = ActionTextField<TextFieldComponent>("Object Name Field", Vec2i(10, -30), Vec2i(screen.settings.componentBrowserWidth - 20, 20), Vec2(0f, 1f), obj.name, 16){ f, _, _ ->
 				obj.name = f.text
 				screen.setEditingName(f.text)
 			}
@@ -74,14 +76,22 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		obj.getComponent<FieldEditor<*, *>>()?.update()
 	}
 
+	/**
+	 *  Create a section in the component browser for [component]
+	 */
 	fun addComponentFields(component: ComponentI){
 		val name = component.id
 		val compCont = MenuItem("$name Container")
+		val textHeight = screen.settings.textScale
+		val spacing = ceil(textHeight * 1.1f).toInt()
 
-		val compText = Text.makeMenuText(name, alignment = Text.ALIGN_BOTTOM_LEFT)
-		compText.position = Vec3(.01f, 0f, 0f)
-		compText.scale = Vec3(1f, .025f, 1f)
+		// Displays the name of the component
+		val compText = Text.makeMenuText(name, Vec4(0f, 0f, 0f, 1f), textHeight, Text.ALIGN_CENTER_LEFT)
+		compText.pixel(Vec2i(0, -textHeight * 2), Vec2i(screen.settings.componentBrowserWidth, textHeight * 2), Vec2(0f, 1f))
 		compCont.addChild(compText)
+
+		// Tallies the pixel height of the whole component section
+		var pixelHeight = textHeight * 2
 
 		// Add all component fields
 		for(f in component.getAllFieldsExt()){
@@ -89,28 +99,20 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			val editor = createEditor(
 				MenuItem("Field Editor $fieldID"),
 				f,
-				Vec2(.01f, 0f),
-				Vec2(.98f, .02f)
+				Vec2i(0, -pixelHeight),
+				Vec2i(screen.settings.componentBrowserWidth, spacing)
 			) { _, ov, v ->
 				screen.setFieldValue(fieldID, f, ov, v)
 			}?.applied()?.parent ?: continue
+
+			pixelHeight += editor.getComponent<PixelTransformComponent>()!!.pixelScale.y
 			compCont.addChild(editor)
 		}
+		pixelHeight += textHeight / 2
+		compCont.pixel(0, -pixelHeight, screen.settings.componentBrowserWidth, pixelHeight, 0f, 1f)
+		compCont.components.add(Container(compCont, this, component))
 
-		val totalHeight = (compCont.children.sumOf { it.scale.y } * 1.1f) + .01f
-		compCont.scale = Vec3(1f, totalHeight, 1f)
-		compCont.components.add(Container(compCont, this, component, totalHeight))
-
-		var y = 1f - (.005f / totalHeight)
-		for(c in compCont.children){
-			c.scale = Vec3(c.scale.x, c.scale.y / totalHeight, c.scale.z)
-			y -= c.scale.y * 1.1f
-
-			//if(c.name == "$name Text Object") continue
-			c.position = Vec3(c.position.x, y, 0f)
-		}
-		//compText.position = Vec3(.05f, 1f - (compText.scale.y * .5f), .01f)
-
+		// Colour the background for each component based on it's name
 		val r = Random(name.hashCode())
 		val col = Vec3(r.nextFloat(), r.nextFloat(), r.nextFloat())
 		compCont.components.add(ColourRendererComponent(compCont, col, ColourRendererComponent.menuShader, Mesh.cornerSquareShape))
@@ -119,28 +121,26 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		compCont.init()
 	}
 
-	fun positionComponents(yScale: Float = 840f / (screen.window.size.y - screen.settings.fileBrowserHeight)){
-		val initialY = 1f + scroll
-		var y = initialY
-
+	fun positionComponents(){
+		var y = 0
 		for(c in componentContainer.children){
+			val pixel = c.getComponent<PixelTransformComponent>() ?: continue
 
-			val cont = c.getComponent<Container>()
-			if(cont != null) {
-				c.scale = Vec3(c.scale.x, cont.size * yScale, c.scale.z)
-			}
-			else c.scale = Vec3(c.scale.x, yScale * .03f, 1f)
-
-			y -= (c.scale.y + (yScale * .01f))
-			c.position = Vec3(c.position.x, y, 0f)
+			y -= 10
+			y -= pixel.pixelScale.y
+			pixel.pixelPos = Vec2i(pixel.pixelPos.x, y)
 		}
 
-		height = initialY - y
+		height = -y.toFloat() / parent.getComponent<PixelTransformComponent>()!!.pixelScale.y
+		scroll = if(height <= 1) 0f
+		else scroll.coerceIn(0f, height - 1f)
+
+		componentContainer.position = Vec3(0f, scroll, 0f)
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		if(action == 1){
-			screen.setContextMenu(ComponentBrowserContext(this), componentBrowserContextMenu, cursorPos)
+			screen.setContextMenu(ComponentBrowserContext(this), componentBrowserContextMenu, cursorPos.position)
 			return INTERRUPT
 		}
 		return super.onSecondary(window, action, mods, cursorPos)
@@ -156,22 +156,18 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		return INTERRUPT
 	}
 
-	override fun updateAspectRatio(renderer: RendererI) {
+	override fun updateAspectRatio(view: Viewport) {
 		val trans = parent.getComponent<PixelTransformComponent>()
-		val newScale = Vec2i(screen.settings.componentBrowserWidth, renderer.viewportSize.y - screen.settings.fileBrowserHeight)
+		val newScale = Vec2i(screen.settings.componentBrowserWidth, view.size.y - screen.settings.fileBrowserHeight)
 		trans?.pixelScale = newScale
 
-		val yScale = 840f / newScale.y
-		height = componentContainer.children.sumOf { (it.getComponent<Container>()?.size ?: .03f) + .01f } * 840f / newScale.y
-		scroll = if(height <= 1) 0f
-		else scroll.coerceIn(0f, height - 1f)
-		positionComponents(yScale)
+		positionComponents()
 	}
 
-	class Container(parent: GameObject, val browser: ComponentBrowser, val component: ComponentI, val size: Float): DefaultInteractorComponent(parent){
-		override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	class Container(parent: GameObject, val browser: ComponentBrowser, val component: ComponentI): DefaultInteractorComponent(parent){
+		override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 			if(action == 1){
-				browser.screen.setContextMenu(ComponentContext(browser, this), componentContextMenu, cursorPos)
+				browser.screen.setContextMenu(ComponentContext(browser, this), componentContextMenu, cursorPos.position)
 				return INTERRUPT
 			}
 			return super.onSecondary(window, action, mods, cursorPos)
@@ -180,19 +176,21 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 
 	companion object {
 
-		data class ComponentBrowserContext(val browser: ComponentBrowser)
-		data class ComponentContext(val browser: ComponentBrowser, val container: Container)
+		data class ComponentBrowserContext(val browser: ComponentBrowser): ContextMenu.Context(browser.screen.settings, browser.screen.renderer.viewportSize)
+		data class ComponentContext(val browser: ComponentBrowser, val container: Container): ContextMenu.Context(browser.screen.settings, browser.screen.renderer.viewportSize)
 
 		val componentBrowserContextMenu = ContextMenu<ComponentBrowserContext>(
 			arrayOf(
 				ContextMenuEntry("New Component"){
 					if(browser.screen.gameObjects.findTop("Component Adder", 1) == null) {
-						val componentAdder = ComponentAdder(MenuItem("Component Adder"), browser).applied().parent
-						componentAdder.components.add(ChildContainingRenderer(componentAdder, Mesh.cornerSquareShape, Vec4.fromHex(0xCFA2B0, 1f)))
-						componentAdder.position = browser.adderPos
-						componentAdder.scale = Vec3(.4f, .5f, 1f)
-						componentAdder.init()
-						browser.screen.add(componentAdder)
+						val obj = MenuItem("Component Adder")
+						obj.pixel(Vec2i(0, -240), Vec2i(192, 240), Vec2(browser.adderPos))
+						obj.components.addAll(
+							ComponentAdder(obj, browser),
+							ChildContainingRenderer(obj, Mesh.cornerSquareShape, Vec4.fromHex(0xCFA2B0, 1f))
+						)
+						obj.init()
+						browser.screen.add(obj)
 					}
 				}
 			)

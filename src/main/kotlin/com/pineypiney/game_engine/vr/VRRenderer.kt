@@ -9,6 +9,7 @@ import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.vr.util.logCompositorError
+import com.pineypiney.game_engine.window.Viewport
 import glm_.L
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2i
@@ -34,8 +35,6 @@ abstract class VRRenderer<E : GameLogicI>(w: Int, h: Int) : GameRendererI<E> {
 	override val guiProjection: Mat4 = I
 	override var viewportSize: Vec2i = Vec2i(1)
 	override val aspectRatio: Float = w.toFloat() / h
-
-	override val numPointLights: Int = 4
 
 	override fun init() {
 		leftBuffer.generate()
@@ -90,6 +89,10 @@ abstract class VRRenderer<E : GameLogicI>(w: Int, h: Int) : GameRendererI<E> {
 
 		GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, 0)
 		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0)
+	}
+
+	override fun getViewport(): Viewport {
+		return Viewport(Vec2i(0), viewportSize)
 	}
 
 	fun clearFrameBuffer(buffer: FrameBuffer) {

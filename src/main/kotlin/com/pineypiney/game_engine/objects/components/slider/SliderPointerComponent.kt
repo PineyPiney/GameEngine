@@ -3,10 +3,10 @@ package com.pineypiney.game_engine.objects.components.slider
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
-import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
+import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
-import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
 class SliderPointerComponent(parent: GameObject) : DefaultInteractorComponent(parent), UpdatingAspectRatioComponent {
@@ -18,12 +18,12 @@ class SliderPointerComponent(parent: GameObject) : DefaultInteractorComponent(pa
 		asp()
 	}
 
-	override fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
+	override fun onDrag(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		super.onDrag(window, cursorPos, cursorDelta, ray)
-		slider?.moveSliderTo(cursorPos.x)
+		slider?.moveSliderTo(cursorPos.position.x)
 	}
 
-	override fun updateAspectRatio(renderer: RendererI) {
+	override fun updateAspectRatio(view: Viewport) {
 		asp()
 	}
 

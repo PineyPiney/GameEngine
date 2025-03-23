@@ -54,15 +54,19 @@ open class DefaultWindowRenderer<G: WindowGameLogic, R: CameraI>(override val wi
 
 	open fun renderLayer(layer: Collection<GameObject>, tickDelta: Double, framebuffer: Int = 0, sort: GameObject.() -> Float = { -(transformComponent.worldPosition - camera.cameraPos).length2() }){
 		for(o in layer.flatMap { it.catchRenderingComponents() }.sortedBy(sort)) {
-			val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
-			if(renderedComponents.isNotEmpty()){
-				for(c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
-				GL30C.glBindFramebuffer(GL30C.GL_FRAMEBUFFER, framebuffer)
-				for(c in renderedComponents) c.render(this, tickDelta)
-			}
-			else for(c in o.components.filterIsInstance<PreRenderComponent>()){
-				if(!c.whenVisible) c.preRender(this, tickDelta)
-			}
+			renderObject(o, tickDelta, framebuffer)
+		}
+	}
+
+	open fun renderObject(obj: GameObject, tickDelta: Double, framebuffer: Int = 0){
+		val renderedComponents = obj.components.filterIsInstance<RenderedComponent>().filter { it.visible }
+		if(renderedComponents.isNotEmpty()){
+			for(c in obj.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
+			GL30C.glBindFramebuffer(GL30C.GL_FRAMEBUFFER, framebuffer)
+			for(c in renderedComponents) c.render(this, tickDelta)
+		}
+		else for(c in obj.components.filterIsInstance<PreRenderComponent>()){
+			if(!c.whenVisible) c.preRender(this, tickDelta)
 		}
 	}
 

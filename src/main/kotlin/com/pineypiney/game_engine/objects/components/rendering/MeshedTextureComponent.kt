@@ -13,17 +13,19 @@ open class MeshedTextureComponent(
 	parent: GameObject,
 	var texture: Texture = Texture.broke,
 	shader: Shader = default2DShader,
-	val vShape: Mesh = Mesh.centerSquareShape
+	val mesh: Mesh = Mesh.centerSquareShape
 ) : ShaderRenderedComponent(parent, shader) {
-
-	override val shape: Shape<*> = vShape.shape
 
 	constructor(parent: GameObject) : this(parent, Texture.broke)
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
 		texture.bind()
-		vShape.bindAndDraw()
+		mesh.bindAndDraw()
+	}
+
+	override fun getScreenShape(): Shape<*> {
+		return mesh.shape
 	}
 
 	companion object {

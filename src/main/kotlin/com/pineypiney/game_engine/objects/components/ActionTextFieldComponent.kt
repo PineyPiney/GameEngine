@@ -7,7 +7,7 @@ import glm_.i
 open class ActionTextFieldComponent<E : TextFieldComponent>(
 	parent: GameObject,
 	startText: String,
-	textSize: Float = 1f,
+	textSize: Int = 12,
 	val updateType: Int = UPDATE_ON_FINISH,
 	val action: (field: E, char: Char, input: Int) -> Unit
 ) : TextFieldComponent(parent, startText, textSize) {

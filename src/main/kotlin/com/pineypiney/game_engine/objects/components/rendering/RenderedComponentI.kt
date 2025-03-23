@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.util.maths.shapes.Shape
 interface RenderedComponentI : ComponentI {
 
 	var visible: Boolean
-	val shape: Shape<*>
 
+	fun getScreenShape(): Shape<*>
 	fun render(renderer: RendererI, tickDelta: Double)
 }

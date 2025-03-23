@@ -3,7 +3,6 @@ package com.pineypiney.game_engine.apps.animator
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
-import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.components.scrollList.ScrollListEntryComponent
 import com.pineypiney.game_engine.objects.components.scrollList.SelectableScrollListComponent
 import com.pineypiney.game_engine.objects.components.scrollList.SelectableScrollListEntryComponent
@@ -39,7 +38,7 @@ class AnimationSelector(item: AnimatedComponent?, origin: Vec2, size: Vec2, pred
 		var item: AnimatedComponent? = animator
 			set(value) {
 				field = value
-				parent.removeAndDeleteChildren(items)
+				clearEntries()
 				if (field != null) {
 					val newItems = field!!.animations.mapIndexed { i, a ->
 						object : GameObject() {
@@ -60,12 +59,7 @@ class AnimationSelector(item: AnimatedComponent?, origin: Vec2, size: Vec2, pred
 
 							override fun addChildren() {
 								super.addChildren()
-								addChild(ScrollListEntryComponent.makeScrollerText(a.name, Vec4(1f), fontSize = 0f))
-							}
-
-							override fun init() {
-								super.init()
-								getComponent<ShaderRenderedComponent>()?.uniforms?.setVec2Uniform("limits", ::limits)
+								addChild(ScrollListEntryComponent.makeScrollerText(a.name, Vec4(1f), fontSize = 0))
 							}
 						}
 					}

@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.TransformComponent
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -16,8 +17,6 @@ class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Ve
 
 	constructor(parent: GameObject, mesh: Mesh, colour: Vec3): this(parent, mesh, Vec4(colour, 1f))
 
-	override val shape: Shape<*> = mesh.shape
-
 	override fun init() {
 		super.init()
 
@@ -28,6 +27,10 @@ class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Ve
 	override fun setUniforms() {
 		super.setUniforms()
 		uniforms.setVec4Uniform("colour", ::colour)
+	}
+
+	override fun getScreenShape(): Shape<*> {
+		return mesh.shape
 	}
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
@@ -56,7 +59,7 @@ class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Ve
 		parent.children.forEach { it.allActiveDescendants(descendants) }
 		for(o in descendants){
 			val renderers = o.components.filterIsInstance<RenderedComponentI>()
-			val preRenderers = o.components.filterIsInstance<PreRenderComponent>()
+			val preRenderers = o.components.filterIsInstance<PreRenderComponent>().sortedByDescending { it is TransformComponent }
 			if(renderers.isEmpty()){
 				preRenderers.forEach { it.preRender(renderer, tickDelta) }
 			}

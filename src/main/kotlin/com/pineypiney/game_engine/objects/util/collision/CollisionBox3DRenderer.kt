@@ -13,41 +13,45 @@ import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec4.Vec4
 
 class CollisionBox3DRenderer(
+	parent: GameObject,
 	val obj: GameObject,
 	val lineThickness: Float = .05f,
 	val colour: Vec4 = Vec4(1f),
-	val shader: Shader = defaultShader
-) : GameObject() {
+	shader: Shader = defaultShader
+) : ShaderRenderedComponent(parent, shader) {
 
-	override fun addComponents() {
-		super.addComponents()
-		components.add(object : ShaderRenderedComponent(this@CollisionBox3DRenderer, shader) {
+	val mesh = Mesh.centerCubeShape
 
-			val vShape = Mesh.centerCubeShape
-			override val shape: Shape<*> = vShape.shape
-
-			override fun setUniforms() {
-				super.setUniforms()
-				uniforms.setMat4Uniform("model") {
-					(this@CollisionBox3DRenderer.obj.getShape() as Cuboid).run {
-						(I.translate(
-							center
-						) * rotation.toMat4()).scale(sides)
-					}
-				}
-				uniforms.setVec4Uniform("colour", ::colour)
-				uniforms.setFloatUniform("thickness", ::lineThickness)
+	override fun setUniforms() {
+		super.setUniforms()
+		uniforms.setMat4Uniform("model") {
+			(this@CollisionBox3DRenderer.obj.getShape() as Cuboid).run {
+				(I.translate(
+					center
+				) * rotation.toMat4()).scale(sides)
 			}
+		}
+		uniforms.setVec4Uniform("colour", ::colour)
+		uniforms.setFloatUniform("thickness", ::lineThickness)
+	}
 
-			override fun render(renderer: RendererI, tickDelta: Double) {
-				shader.setUp(uniforms, renderer)
-				vShape.bindAndDraw()
-			}
-		})
+	override fun render(renderer: RendererI, tickDelta: Double) {
+		shader.setUp(uniforms, renderer)
+		mesh.bindAndDraw()
+	}
+
+	override fun getScreenShape(): Shape<*> {
+		return mesh.shape
 	}
 
 	companion object {
 		val defaultShader =
 			ShaderLoader.getShader(ResourceKey("vertex/pass_pos_3D"), ResourceKey("fragment/collider3D"))
+
+		fun create(obj: GameObject, lineThickness: Float = .05f, colour: Vec4 = Vec4(1f)): GameObject{
+			val par = GameObject(obj.name + " Collider Renderer")
+			par.components.add(CollisionBox3DRenderer(par, obj, lineThickness, colour))
+			return par
+		}
 	}
 }

@@ -3,18 +3,33 @@ package com.pineypiney.game_engine.apps.editor.util
 import com.pineypiney.game_engine.apps.editor.object_browser.ObjectNode
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
-import glm_.vec3.Vec3
+import com.pineypiney.game_engine.objects.components.PixelTransformComponent
+import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
+import kotlin.math.roundToInt
 
 abstract class MenuNode<T>(parent: GameObject, val obj: T) : DefaultInteractorComponent(parent) {
 
 	var open = true
 
-	fun position(currentX: Float, currentY: Float): Float{
-		var yShift = parent.transformComponent.worldScale.y * 1.1f
-		parent.transformComponent.worldPosition = Vec3(currentX, currentY - yShift, .01f)
+	fun position(currentY: Int): Int{
+		val transform = (parent.transformComponent as? PixelTransformComponent) ?: return 0
+		var yShift = (transform.pixelScale.y * -1.1f).roundToInt()
+
+		transform.pixelPos = Vec2i(transform.pixelPos.x, currentY + yShift)
+		transform.origin = Vec2(0f, 1f)
+
+
+		if(open) for(c in parent.children) c.getComponent<ObjectNode>()?.let{ yShift += it.getPixelHeight() }
+		return yShift
+	}
+
+	fun getPixelHeight(): Int{
+		val transform = (parent.transformComponent as? PixelTransformComponent) ?: return 0
+		var yShift = (transform.pixelScale.y * -1.1f).roundToInt()
 		if(open){
 			for(c in parent.children){
-				c.getComponent<ObjectNode>()?.let { yShift += it.position(currentX + (parent.transformComponent.worldScale.x * .02f), currentY - yShift) }
+				c.getComponent<ObjectNode>()?.let { yShift += it.getPixelHeight() }
 			}
 		}
 		return yShift

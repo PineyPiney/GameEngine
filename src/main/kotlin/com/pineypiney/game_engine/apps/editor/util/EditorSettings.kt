@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.apps.editor.util
 
 class EditorSettings {
+	var textScale = 16
 
 	var fileBrowserHeight = 320
 	var fileBrowserIconSize = 80

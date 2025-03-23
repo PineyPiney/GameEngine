@@ -15,8 +15,6 @@ open class OutlinedSliderRendererComponent(parent: GameObject) : ShaderRenderedC
 	open var outlineThickness: Float = 0.06f
 	open var outlineColour: Vec4 = Vec4(0.5, 0.5, 0.5, 1)
 
-	override val shape: Shape<*> = Mesh.cornerSquareShape.shape
-
 	override fun setUniforms() {
 		super.setUniforms()
 
@@ -47,6 +45,10 @@ open class OutlinedSliderRendererComponent(parent: GameObject) : ShaderRenderedC
 		GLFunc.stencilTest = false
 
 		 */
+	}
+
+	override fun getScreenShape(): Shape<*> {
+		return Mesh.cornerSquareShape.shape
 	}
 
 	companion object {

@@ -15,6 +15,7 @@ import com.pineypiney.game_engine.rendering.ObjectRenderer
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -36,7 +37,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 		parent.components.add(SpriteComponent(parent, getIcon(Vec2(.5f, .25f)), SpriteComponent.menuShader))
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 
 		when(action){
@@ -46,7 +47,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 				return INTERRUPT
 			}
 			0 -> {
-				browser.screen.clearDragging(cursorPos)
+				browser.screen.clearDragging(cursorPos.position)
 				if(Timer.time - fileSelect < .5) open()
 				return INTERRUPT
 			}
@@ -55,10 +56,10 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 		return action
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onSecondary(window, action, mods, cursorPos)
 		if(action == 1) {
-			browser.screen.setContextMenu(FileContext(browser, this), fileContextMenu, cursorPos)
+			browser.screen.setContextMenu(FileContext(browser, this), fileContextMenu, cursorPos.position)
 			return INTERRUPT
 		}
 		return action
@@ -67,7 +68,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 	fun rename(){
 		parent.removeAndDeleteChild(file.name + " Text Object")
 
-		val textField = ActionTextField<ActionTextFieldComponent<*>>(file.name + " Naming Field", Vec3(-.75f, -.4f, .01f), Vec2(1.5f, .25f), file.nameWithoutExtension, .9f){ f, _, _ ->
+		val textField = ActionTextField<ActionTextFieldComponent<*>>(file.name + " Naming Field", Vec3(-.75f, -.4f, .01f), Vec2(1.5f, .25f), file.nameWithoutExtension, 20){ f, _, _ ->
 			file.renameTo(File(file.parentFile, f.text + '.' + file.extension))
 			browser.refreshDirectory()
 		}
@@ -99,24 +100,25 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 		val ext = file.extension
 
 		// If this texture is already loaded then don't reload it
-		browser.loadedTextures[ext]?.let { return it }
+		val tex = browser.loadedTextures[ext] ?: let {
 
-		// Get icon
-		val image = FileSystemView.getFileSystemView().getSystemIcon(file, width, height) ?: return Sprite(Texture.broke, 64f, center)
+			// Get icon
+			val image = FileSystemView.getFileSystemView().getSystemIcon(file, width, height) ?: return Sprite(Texture.broke, 64f, center)
 
-		// Convert icon to BufferedImage
-		val imBuf = BufferedImage(image.iconWidth, image.iconHeight, BufferedImage.TYPE_INT_ARGB)
-		val gr = imBuf.graphics
-		image.paintIcon(null, gr, 0, 0)
-		gr.dispose()
+			// Convert icon to BufferedImage
+			val imBuf = BufferedImage(image.iconWidth, image.iconHeight, BufferedImage.TYPE_INT_ARGB)
+			val gr = imBuf.graphics
+			image.paintIcon(null, gr, 0, 0)
+			gr.dispose()
 
-		val bytes = ByteArrayOutputStream()
-		ImageIO.write(imBuf, "png", bytes)
-		val pngBuffer = bytes.toByteArray().toBuffer()
-		val rawBuffer = STBImage.stbi_load_from_memory(pngBuffer, IntArray(1), IntArray(1), IntArray(1), 4)
-		val tex = Texture("$ext Icon", TextureLoader.createTexture(rawBuffer, width, height, GL11C.GL_RGBA))
+			val bytes = ByteArrayOutputStream()
+			ImageIO.write(imBuf, "png", bytes)
+			val pngBuffer = bytes.toByteArray().toBuffer()
+			val rawBuffer = STBImage.stbi_load_from_memory(pngBuffer, IntArray(1), IntArray(1), IntArray(1), 4)
+			Texture("$ext Icon", TextureLoader.createTexture(rawBuffer, width, height, GL11C.GL_RGBA))
+		}
 		val sprite = Sprite(tex, max(width, height).toFloat(), center)
-		browser.loadedTextures[ext] = sprite
+		browser.loadedTextures[ext] = tex
 		return sprite
 	}
 

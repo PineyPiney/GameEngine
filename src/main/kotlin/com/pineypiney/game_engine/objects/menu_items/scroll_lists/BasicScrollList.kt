@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
-import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.components.scrollList.ScrollListComponent
 import com.pineypiney.game_engine.objects.components.scrollList.ScrollListEntryComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
@@ -44,12 +43,7 @@ class BasicScrollList(origin: Vec2, size: Vec2, entryHeight: Float, scrollerWidt
 
 					override fun addChildren() {
 						super.addChildren()
-						addChild(ScrollListEntryComponent.makeScrollerText(e, Vec4(1f), fontSize = 0f).apply { position = Vec3(0f, .5f, .01f) })
-					}
-
-					override fun init() {
-						super.init()
-						getComponent<ShaderRenderedComponent>()?.uniforms?.setVec2Uniform("limits", ::limits)
+						addChild(ScrollListEntryComponent.makeScrollerText(e, Vec4(1f), fontSize = 0).apply { position = Vec3(0f, .2f, .01f) })
 					}
 				}
 			}

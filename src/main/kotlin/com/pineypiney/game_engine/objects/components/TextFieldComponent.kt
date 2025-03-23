@@ -13,10 +13,12 @@ import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.ControlType
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.window.WindowI
 import glm_.c
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
@@ -26,15 +28,15 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-open class TextFieldComponent(parent: GameObject, startText: String = "", textSize: Float = 1f) :
+open class TextFieldComponent(parent: GameObject, startText: String = "", textSize: Int = 12) :
 	DefaultInteractorComponent(parent), UpdatingComponent {
 
 	open var allowed = all
 
 	var text: String
-		get() = textBox.getComponent<TextRendererComponent>()?.text?.text ?: ""
+		get() = textBox.getComponent<TextRendererComponent>()?.getTextContent() ?: ""
 		set(value) {
-			textBox.getComponent<TextRendererComponent>()?.text?.text = value
+			textBox.getComponent<TextRendererComponent>()?.setTextContent(value)
 			caret = max(min(caret, value.length), 0)
 		}
 
@@ -45,7 +47,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		}
 		override fun addComponents() {
 			super.addComponents()
-			components.add(TextFieldText(this, Text(startText, fontSize = this@TextFieldComponent.parent.transformComponent.worldScale.y * textSize, alignment = Text.ALIGN_CENTER_LEFT), fieldShader))
+			components.add(TextFieldText(this, Text(startText, alignment = Text.ALIGN_CENTER_LEFT), textSize, fieldShader))
 		}
 	}
 
@@ -86,18 +88,18 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		caretObject.getComponent<RenderedComponent>()?.visible = this.forceUpdate && Timer.time % 1.0 > 0.5
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if (!this.hover) {
 			finish()
 		} else if (this.pressed) {
 			this.forceUpdate = true
-			placeCaret(cursorPos)
+			placeCaret(cursorPos.position, window.size)
 		}
 		return action
 	}
 
-	override fun onInput(window: WindowI, input: InputState, action: Int, cursorPos: Vec2): Int {
+	override fun onInput(window: WindowI, input: InputState, action: Int, cursorPos: CursorPosition): Int {
 		super.onInput(window, input, action, cursorPos)
 
 		if (input.controlType == ControlType.KEYBOARD && this.forceUpdate) {
@@ -180,19 +182,19 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		}
 	}
 
-	private fun placeCaret(cursorPos: Vec2) {
+	private fun placeCaret(cursorPos: Vec2, viewport: Vec2i) {
 		if (text.isEmpty()) {
 			caret = 0
 			return
 		}
 		var i = 1
 		val textRenderer = textBox.getComponent<TextRendererComponent>()!!
-		// This is the relative x coordinate of the cursor from the left edge of the text field
-		val relativeX = (cursorPos.x - textBox.transformComponent.worldPosition.x)
-		while (i < text.length && (textRenderer.text.getWidth(text.substring(0, i)) < relativeX)) i++
+		// This is the relative x coordinate of the cursor from the left edge of the text field scaled by the text size
+		val relativeX = (cursorPos.x - textBox.transformComponent.worldPosition.x) * .5f * viewport.y / textRenderer.size
+		while (i < text.length && (textRenderer.getWidth(text.substring(0, i)) < relativeX)) i++
 
-		val pos1 = textRenderer.text.getWidth(text.substring(0, i - 1))
-		val pos2 = textRenderer.text.getWidth(text.substring(0, i))
+		val pos1 = textRenderer.getWidth(text.substring(0, i - 1))
+		val pos2 = textRenderer.getWidth(text.substring(0, i))
 
 		caret = if (abs(relativeX - pos1) < abs(relativeX - pos2)) i - 1
 		else i
@@ -216,8 +218,8 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		forceUpdate = false
 	}
 
-	inner class TextFieldText(parent: GameObject, text: Text, shader: Shader) :
-		TextRendererComponent(parent, text, shader) {
+	inner class TextFieldText(parent: GameObject, text: Text, fontSize: Int, shader: Shader) :
+		TextRendererComponent(parent, text, fontSize, shader) {
 
 		override fun setUniforms() {
 			super.setUniforms()

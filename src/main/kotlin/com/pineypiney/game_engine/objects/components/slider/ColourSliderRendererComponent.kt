@@ -13,8 +13,7 @@ import glm_.vec4.Vec4
 open class ColourSliderRendererComponent(parent: GameObject, shader: Shader, val colours: MutableMap<String, Float>) :
 	ShaderRenderedComponent(parent, shader) {
 
-	val vShape = Mesh.cornerSquareShape
-	override val shape: Shape<*> = vShape.shape
+	val mesh = Mesh.cornerSquareShape
 
 	override fun setUniforms() {
 		super.setUniforms()
@@ -28,7 +27,11 @@ open class ColourSliderRendererComponent(parent: GameObject, shader: Shader, val
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		vShape.bindAndDraw()
+		mesh.bindAndDraw()
+	}
+
+	override fun getScreenShape(): Shape<*> {
+		return mesh.shape
 	}
 
 	operator fun get(colour: String) = colours[colour] ?: 0f

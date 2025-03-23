@@ -10,6 +10,7 @@ import com.pineypiney.game_engine.rendering.ObjectRenderer
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.maths.shapes.Shape3D
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
@@ -44,7 +45,7 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		val minPos = Vec3(Float.MAX_VALUE)
 		val maxPos = Vec3(-Float.MAX_VALUE)
 		for(rendComp in renderers){
-			val shape = rendComp.shape transformedBy rendComp.parent.worldModel
+			val shape = rendComp.getScreenShape() transformedBy rendComp.parent.worldModel
 			minPos.xy = Vec2(min(minPos.x, shape.min.x), min(minPos.y, shape.min.y))
 			maxPos.xy = Vec2(max(maxPos.x, shape.max.x), max(maxPos.y, shape.max.y))
 			if(shape is Shape3D){
@@ -72,7 +73,7 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		return Sprite(texture, 64f, center)
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if(action == 0 && Timer.time - fileSelect > .5){
 			val obj = Prefab(file)
@@ -80,7 +81,7 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 			obj.init()
 
 			val placingComponent = obj.getComponent<EditorPositioningComponent>()
-			var newWorldPos = Vec3(Vec2(browser.screen.renderer.camera.screenToWorld(Vec2(cursorPos.x / browser.screen.window.aspectRatio, cursorPos.y))), obj.position.z)
+			var newWorldPos = Vec3(Vec2(browser.screen.renderer.camera.screenToWorld(cursorPos.screenSpace)), obj.position.z)
 			if(placingComponent != null) newWorldPos = placingComponent.place(obj.transformComponent.worldPosition, newWorldPos)
 			obj.position = newWorldPos
 

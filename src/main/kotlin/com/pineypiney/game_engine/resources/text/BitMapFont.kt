@@ -22,7 +22,7 @@ class BitMapFont(
 	val letterWidth: Int = 32,
 	val letterHeight: Int = 64,
 	val characterSpacing: Float = 0.0625f,
-	val lineSpacing: Float = 1.2f,
+	override val lineSpacing: Float = 1.2f,
 	val firstLetter: Int = 32,
 	override val shader: Shader = fontShader
 ) : Font() {
@@ -52,7 +52,7 @@ class BitMapFont(
 	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextMesh{
 		val dimensions = getPixelSize(text)
 		var letterX = characterSpacing
-		var letterY = lineSpacing * text.count { it == '\n' }
+		var letterY = 0f
 		val quads = mutableSetOf<TextMesh.CharacterMesh>()
 
 		val (alignX, alignY) = getAlignmentOffset(text, bounds, alignment)

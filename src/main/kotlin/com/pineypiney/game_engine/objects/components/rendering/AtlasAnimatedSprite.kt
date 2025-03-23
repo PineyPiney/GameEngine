@@ -24,13 +24,16 @@ open class AtlasAnimatedSprite(parent: GameObject, var texture: Texture, var ppu
 	var flipX = false
 	var flipY = false
 
-	override val shape: Shape<*> get() = meshes.getOrNull(currentFrame)?.shape ?: meshes[0].shape
 	protected val meshes = createMeshes()
 
 	fun getFrame(): Int {
 		val f = ((Timer.frameTime - startTime) * fps).toInt()
 		return if(loop) f % numFrames
 		else min(f, numFrames - 1)
+	}
+
+	override fun getScreenShape(): Shape<*> {
+		return meshes.getOrNull(currentFrame)?.shape ?: meshes[0].shape
 	}
 
 	override fun render(renderer: RendererI, tickDelta: Double) {

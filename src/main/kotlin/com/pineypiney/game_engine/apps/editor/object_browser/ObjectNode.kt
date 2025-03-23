@@ -4,9 +4,9 @@ import com.pineypiney.game_engine.apps.editor.util.MenuNode
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenu
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenuEntry
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
-import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
 
 class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(parent, obj) {
@@ -19,7 +19,7 @@ class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(pare
 		browser?.addChildObject(this, obj)
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 
 		if(action == GLFW.GLFW_PRESS){
@@ -32,22 +32,22 @@ class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(pare
 		return action
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		if(action == 1) {
 			browser?.let { browser ->
-				browser.screen.setContextMenu(ObjectNodeContext(browser, this), objectNodeContextMenu, cursorPos)
+				browser.screen.setContextMenu(ObjectNodeContext(browser, this), objectNodeContextMenu, cursorPos.position)
 				return INTERRUPT
 			}
 		}
 		return super.onSecondary(window, action, mods, cursorPos)
 	}
 
-	override fun checkHover(ray: Ray, screenPos: Vec2): Float {
+	override fun checkHover(ray: Ray, screenPos: CursorPosition): Float {
 		return if(browser?.checkHover(ray, screenPos) != -1f) super.checkHover(ray, screenPos) else -1f
 	}
 
 	companion object {
-		data class ObjectNodeContext(val browser: ObjectBrowser, val node: ObjectNode)
+		data class ObjectNodeContext(val browser: ObjectBrowser, val node: ObjectNode): ContextMenu.Context(browser.screen.settings, browser.screen.renderer.viewportSize)
 
 		val objectNodeContextMenu = ContextMenu<ObjectNodeContext>(arrayOf(
 			ContextMenuEntry("Add Child") {

@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.window.Viewport
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
@@ -38,8 +38,8 @@ open class RelativeTransformComponent(
 		position = Vec3(relPos.x * aspectRatio, relPos.y, transform.position.z) - (Vec3(origin, 0) * transform.scale)
 	}
 
-	override fun updateAspectRatio(renderer: RendererI) {
-		aspectRatio = renderer.aspectRatio
+	override fun updateAspectRatio(view: Viewport) {
+		aspectRatio = view.aspectRatio
 		recalculateScale()
 		recalculatePosition()
 	}

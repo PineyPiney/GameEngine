@@ -39,7 +39,7 @@ open class TransformComponent(parent: GameObject) : Component(parent) {
 
 	@EditorIgnore
 	var worldPosition: Vec3
-		get() = if (parent.parent == null) transform.position else parent.worldModel.getTranslation()
+		get() = if (parent.parent == null) transform.position else fetchWorldModel().getTranslation()
 		set(value) {
 			val p = parent.parent?.worldModel
 			position = if (p == null) value
@@ -51,7 +51,7 @@ open class TransformComponent(parent: GameObject) : Component(parent) {
 		}
 	@EditorIgnore
 	var worldRotation: Quat
-		get() = if (parent.parent == null) transform.rotation else parent.worldModel.getRotation()
+		get() = if (parent.parent == null) transform.rotation else fetchWorldModel().getRotation()
 		set(value) {
 			val p = parent.parent?.worldModel
 			rotation = if (p == null) value
@@ -59,7 +59,7 @@ open class TransformComponent(parent: GameObject) : Component(parent) {
 		}
 	@EditorIgnore
 	var worldScale: Vec3
-		get() = if (parent.parent == null) transform.scale else parent.worldModel.getScale()
+		get() = if (parent.parent == null) transform.scale else fetchWorldModel().getScale()
 		set(value) {
 			val p = parent.parent?.worldModel
 			scale = if (p == null) value

@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.InteractorComponent
+import com.pineypiney.game_engine.objects.components.PixelTransformComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
@@ -37,6 +38,7 @@ import com.pineypiney.game_engine.util.extension_functions.angle
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.roundedString
 import com.pineypiney.game_engine.util.extension_functions.wrap
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
@@ -90,7 +92,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		uniforms.setVec4Uniform("colour", ::squareColour)
 	}
 
-	private val textField = ActionTextField<ActionTextFieldComponent<*>>("Text Field", Vec2(-window.aspectRatio, -1f), Vec2(window.aspectRatio, 0.2)){ _, _, _ ->
+	private val textField = ActionTextField<ActionTextFieldComponent<*>>("Text Field", Vec2i(0), Vec2i(540, 72)){ _, _, _ ->
 //        AudioSource(audio).play()
 		window.setCursor(0L)
 
@@ -101,7 +103,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		}
 	}
 
-	private val slider = ColourSlider(Vec2(0.1, -0.9), Vec2(0.8, 0.1), ColourSliderRendererComponent.redShader, mutableMapOf("green" to 0.5f, "blue" to 0.5f))
+	private val slider = ColourSlider("Colour Slider", Vec2i(560, 32), Vec2i(240, 40), Vec2(-1f), ColourSliderRendererComponent.redShader, mutableMapOf("green" to 0.5f, "blue" to 0.5f))
 
 	private val texture = GameObject.simpleTextureGameObject(Texture.broke)
 	private val model1 = GameObject.simpleModelledGameObject(ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
@@ -110,28 +112,28 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	private val text = Text.makeMenuText(
 		"X Part: 0.00 \nY Part: 0.00",
 		Vec4(0f, 0f, 0f, 1f),
-		.16f,
+		70,
+		Text.ALIGN_CENTER_LEFT
+	)
+	private val testText = Text.makeMenuText(
+		"[ [",
+		Vec4(0f, 0f, 0f, 1f),
+		70,
 		Text.ALIGN_CENTER_LEFT
 	)
 	private val gameText = Text.makeGameText(
 		"This is some Stretchy Game Text",
 		Vec4(0.0, 1.0, 1.0, 1.0),
-		0f,
+		0,
 	)
 	private val siGameText = Text.makeGameText(
 		"This is some Sized Game Text",
 		Vec4(0.0, 1.0, 1.0, 1.0),
-		1f,
+		600,
 		alignment = Text.ALIGN_CENTER_LEFT,
 	)
-	private val testText = Text.makeMenuText(
-		"[ [",
-		Vec4(0f, 0f, 0f, 1f),
-		.2f,
-		Text.ALIGN_CENTER_LEFT
-	)
 
-	private val list = BasicScrollList(Vec2(-window.aspectRatio, 0.4), Vec2(1f, 0.6f), 1f, 0.05f, arrayOf("Hello", "World"))
+	private val list = BasicScrollList(Vec2(-window.aspectRatio, 0.4), Vec2(1f, 0.6f), .3f, 0.05f, arrayOf("Hello", "World", "How", "Is", "It", "Going"))
 
 //    val video = VideoPlayer(VideoLoader[ResourceKey("ghost"), gameEngine.resourcesLoader], Vec2(0.5, -0.15), Vec2(0.5, 0.3))
 
@@ -161,14 +163,14 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		add(list)
 		add(slider)
 
-		text.position = Vec3(-window.aspectRatio, 0f, 0f)
-		testText.position = Vec3(-window.aspectRatio, -.3f, 0f)
+		text.components.add(PixelTransformComponent(text, Vec2i(0), Vec2i(960, 140), Vec2(-1f, 0f)))
+		testText.components.add(PixelTransformComponent(testText, Vec2i(0, -70), Vec2i(960, 70), Vec2(-1f, 0f)))
 
 		gameText.position = Vec3(0, 2)
 		gameText.scale = Vec3(8,9f, 1f)
 		siGameText.scale = Vec3(8f, 3f)
 
-		add(testText, text, gameText, siGameText)
+		add(text, testText, gameText, siGameText)
 
 		add(cursorSquare)
 	}
@@ -209,7 +211,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 	private fun rotateGoblin() {
 
-		val ray = camera.getRay(input.mouse.screenSpaceCursor())
+		val ray = camera.getRay(input.mouse.lastPos.screenSpace)
 		val model = model1.getShape() as Rect2D
 		val point = model.intersectedBy(ray).getOrNull(0)
 
@@ -237,15 +239,15 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 		if(travel != Vec2(0)){
 			camera.translate(travel)
-			updateText(input.mouse.lastPos)
+			updateText(input.mouse.lastPos.position)
 		}
 	}
 
-	override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
+	override fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
 		super.onCursorMove(cursorPos, cursorDelta)
-		updateText(cursorPos)
+		updateText(cursorPos.position)
 
-		cursorSquare.position = Vec3(cursorPos, 0f)
+		cursorSquare.position = Vec3(cursorPos.position, 0f)
 
 		val cursorRect = cursorSquare.getShape()
 		squareColour = if((cursorRect as Rect2D) intersects bc) Vec4(0, 1, 0, 0.5) else Vec4(0, 0, 1, 0.5)
@@ -289,32 +291,25 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 			this["blue"] = this["green"]
 		}
 
-		val text = listOf(text, gameText, siGameText).mapNotNull { it.getComponent<TextRendererComponent>()?.text }
-		for (t in text + listOf(*(list.getComponent<ScrollListComponent>()!!.items.mapNotNull { it.children.firstNotNullOfOrNull { it.getComponent<TextRendererComponent>()?.text } }.toTypedArray()))) {
+		val text = listOf(text, gameText, siGameText).mapNotNull { it.getComponent<TextRendererComponent>() }
+		for (t in text + listOf(*(list.getComponent<ScrollListComponent>()!!.items.mapNotNull { it.children.firstNotNullOfOrNull { it.getComponent<TextRendererComponent>() } }.toTypedArray()))) {
 			t.run {
-				underlineThickness = 0.06f
-				underlineAmount = (underlineAmount + 0.3f * Timer.delta.f).mod(1f)
+				setUnderlineThickness(0.06f)
+				setUnderlineAmount((getUnderlineAmount() + 0.3f * Timer.delta.f).mod(1f))
 			}
 		}
 	}
 
 	fun updateText(cursorPos: Vec2){
 		val wp = camera.screenToWorld(cursorPos)
-		text.getComponent<TextRendererComponent>()?.text?.text = wp.roundedString(2).let { "X Part: ${it[0]}\nY Part: ${it[1]}" }
+		text.getComponent<TextRendererComponent>()?.setTextContent(wp.roundedString(2).let { "X Part: ${it[0]}\nY Part: ${it[1]}" })
 	}
 
-	override fun updateAspectRatio(window: WindowI) {
-		super.updateAspectRatio(window)
+	override fun updateAspectRatio() {
+		super.updateAspectRatio()
 		GLFunc.viewportO = Vec2i(window.width, window.height)
 
-		textField.run {
-			position = Vec3(-window.aspectRatio, -1f, 0f)
-			scale = Vec3(window.aspectRatio, .2f, 1f)
-		}
 		list.position = Vec3(-window.aspectRatio, 0.4, 0f)
-
-		text.position = Vec3(-window.aspectRatio, 0f, 0f)
-		testText.position = Vec3(-window.aspectRatio, -.3f, 0f)
 	}
 
 	override fun cleanUp() {

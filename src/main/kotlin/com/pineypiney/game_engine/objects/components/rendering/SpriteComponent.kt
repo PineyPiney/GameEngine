@@ -29,14 +29,16 @@ open class SpriteComponent(
 				spriteCenter: Vec2 = Vec2(.5f)
 	): this(parent, Sprite(texture, pixelsPerUnit, spriteCenter), shader)
 
-	override val shape: Shape<*> get() = sprite.mesh.shape
-
 	constructor(parent: GameObject) : this(parent, Texture.broke)
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
 		sprite.texture.bind()
 		sprite.mesh.bindAndDraw()
+	}
+
+	override fun getScreenShape(): Shape<*> {
+		return sprite.mesh.shape
 	}
 
 	override fun delete() {

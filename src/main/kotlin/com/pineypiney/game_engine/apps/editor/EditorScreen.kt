@@ -19,6 +19,7 @@ import com.pineypiney.game_engine.objects.GameObjectSerializer
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.components.FPSCounter
 import com.pineypiney.game_engine.objects.components.InteractorComponent
+import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
 import com.pineypiney.game_engine.objects.components.applied
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.fields.Vec3Field
@@ -30,8 +31,11 @@ import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
 import com.pineypiney.game_engine.util.extension_functions.init
+import com.pineypiney.game_engine.util.extension_functions.isBetween
 import com.pineypiney.game_engine.util.extension_functions.toByteString
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
@@ -48,9 +52,10 @@ import java.io.OutputStream
 
 class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) : WindowGameLogic() {
 
-	override val renderer = EditorRenderer(window)
-
 	val settings = EditorSettings()
+	var sceneSize = window.size - Vec2i(settings.objectBrowserWidth + settings.componentBrowserWidth, settings.fileBrowserHeight)
+
+	override val renderer = EditorRenderer(window, settings)
 
 	private val fileBrowser = FileBrowser(MenuItem("File Browser"), this).applied()
 	val objectBrowser = ObjectBrowser(MenuItem("Object Browser"), this).applied()
@@ -78,8 +83,8 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 	var dragging: DraggedElement? = null
 	var draggedField: FieldEditor<*, *>? = null
 
-	private val fpsText = FPSCounter.createCounterWithText(MenuItem("FPS Text").apply { pixel(Vec2i(288, 0), Vec2i(64, 20), Vec2(-1f, 1f)) }, 5.0, "FPS: $",
-		Text.Params().withAlignment(Text.ALIGN_TOP_LEFT))
+	private val fpsText = FPSCounter.createCounterWithText(MenuItem("FPS Text").apply { pixel(Vec2i(293, -25), Vec2i(180, 20), Vec2(-1f, 1f)) }, 5.0, "FPS: $",
+		Text.Params().withFontSize(16).withAlignment(Text.ALIGN_TOP_LEFT))
 
 	private val properties = mutableMapOf<String, String>()
 
@@ -98,20 +103,34 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 		renderer.render(this, tickDelta)
 	}
 
-	override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
+	override fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
 		super.onCursorMove(cursorPos, cursorDelta)
+
+		val scenePos = getSceneCursorPosition(cursorPos)
+		val ray = renderer.camera.getRay(scenePos.screenSpace)
+
+		// ScenePos.pixels is (-1, -1) if the cursor is outside the scene screen
+		if(scenePos.pixels.x > 0) {
+			val sceneDelta = getSceneCursorDelta(cursorDelta)
+			val transformerComponent = transformer?.getComponent<InteractorComponent>()
+			if(transformerComponent != null) checkHovers(setOf(transformerComponent), ray, scenePos, sceneDelta)
+		}
+
 		val element = dragging?.element ?: return
+		// Get the field editor currently being hovered over
 		val editor = componentBrowser.parent.getChild("Component Container")?.children?.firstNotNullOfOrNull{ cont -> cont.children.firstNotNullOfOrNull({ it.getComponent<FieldEditor<*, *>>() }){ it.hover } }
+		// If no field editor is being hovered over then make sure to update and old one
 		if(editor == null){
 			if(draggedField != null) {
-				draggedField?.onHoverElement(-1, cursorPos)
+				draggedField?.onHoverElement(-1, cursorPos.position)
 				dragging?.isDroppable = false
 				draggedField = null
 			}
 		}
+		// Else if a new field editor has been hovered over then update the previous and new ones
 		else if(editor != draggedField){
-			draggedField?.onHoverElement(-1, cursorPos)
-			dragging?.isDroppable = editor.onHoverElement(element, cursorPos)
+			draggedField?.onHoverElement(-1, cursorPos.position)
+			dragging?.isDroppable = editor.onHoverElement(element, cursorPos.position)
 			draggedField = editor
 		}
 	}
@@ -141,7 +160,12 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 				}
 			}
 		}
-		return super.onInput(state, action)
+		if(super.onInput(state, action) == InteractorComponent.INTERRUPT) return InteractorComponent.INTERRUPT
+		transformer?.getComponent<InteractorComponent>()?.let {
+			val sceneCursor = getSceneCursorPosition(input.mouse.lastPos)
+			if(componentInput(it, state, action, sceneCursor, false)) return InteractorComponent.INTERRUPT
+		}
+		return action
 	}
 
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte) {
@@ -150,10 +174,12 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 		val allObjects = sceneObjects.map.flatMap { it.value.flatMap { it.catchRenderingComponents() } }
 		var closest: GameObject? = null
 		var minDist: Float = Float.MAX_VALUE
-		val ray = renderer.camera.getRay(window.input.mouse.screenSpaceCursor())
+		val sceneCursor = getSceneCursorPosition(input.mouse.lastPos)
+		if(sceneCursor.pixels.x == -1) return
+		val ray = renderer.camera.getRay(sceneCursor.screenSpace)
 		for(obj in allObjects){
 			val renderer = obj.renderer ?: continue
-			val intersections = (renderer.shape transformedBy obj.worldModel).intersectedBy(ray)
+			val intersections = (renderer.getScreenShape()  transformedBy obj.worldModel).intersectedBy(ray)
 			val dist = -(intersections.firstOrNull()?.z ?: continue)
 			if(dist < minDist){
 				minDist = dist
@@ -168,7 +194,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 
 	override fun onScroll(scrollDelta: Vec2): Int {
 		if(super.onScroll(scrollDelta) == InteractorComponent.INTERRUPT) return -1
-		val mousePos = input.mouse.screenSpaceCursor()
+		val mousePos = getSceneCursorPosition(input.mouse.lastPos).screenSpace
 		val initialMousePos = Vec2(renderer.camera.screenToWorld(mousePos))
 		renderer.camera.height *= .9f.pow(scrollDelta.y)
 		val newMousePos = Vec2(renderer.camera.screenToWorld(mousePos))
@@ -181,7 +207,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 
 	fun setDragging(element: Any, addRender: (GameObject) -> Unit, position: (GameObject, Vec2) -> Unit): GameObject{
 		val o = MenuItem("Dragged Element")
-		o.position = Vec3(input.mouse.lastPos, 1f)
+		o.position = Vec3(input.mouse.lastPos.position, 1f)
 		val comp = DraggedElement(o, element, position).applied()
 		addRender(o)
 		o.init()
@@ -210,11 +236,11 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 		if(obj == null) return
 		transformer?.delete()
 		val o = MenuItem("Transforming Object")
+		o.pixel(Vec2i(0, 0), Vec2i(64), Vec2(0f))
 		transformer = o
 		t.creator(o, this)
 		o.getComponent<Transformer>()?.startAt(obj, this)
 		o.init()
-		add(o)
 	}
 
 	fun repositionTransformer(){
@@ -223,7 +249,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 
 	fun setEditingName(newName: String){
 		val text = objectBrowser.selected?.parent?.children?.firstNotNullOfOrNull { it.getComponent<TextRendererComponent>() }
-		text?.text?.text = newName
+		text?.setTextContent(newName)
 	}
 
 	fun setFieldValue(fieldID: String, field: ComponentField<*>, oldValue: String, value: String){
@@ -248,10 +274,18 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 		editManager.addEdit(ComponentFieldEdit(editingObject ?: return, this, fieldID, oldValue, newValue))
 	}
 
-	fun <C> setContextMenu(context: C, menu: ContextMenu<C>, pos: Vec2){
+	fun <C: ContextMenu.Context> setContextMenu(context: C, menu: ContextMenu<C>, pos: Vec2){
 		gameObjects.findTop("ContextMenu", 1)?.delete()
 		val menu = ContextMenuComponent(MenuItem("ContextMenu"), context, menu).applied()
 		add(menu.parent.apply { position = Vec3(pos, .1f); init() })
+	}
+
+	override fun updateAspectRatio() {
+		super.updateAspectRatio()
+		transformer?.forAllActiveDescendants {
+			getComponent<UpdatingAspectRatioComponent>()?.updateAspectRatio(getSceneBox())
+		}
+		repositionTransformer()
 	}
 
 	fun save(file: File = openFile){
@@ -311,6 +345,34 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 		properties.clear()
 	}
 
+	fun getSceneBox(): Viewport {
+		return Viewport(settings.objectBrowserWidth, settings.fileBrowserHeight, window.width - settings.componentBrowserWidth, window.height)
+	}
+
+	fun getSceneCursorPosition(pos: CursorPosition): CursorPosition{
+		val (bl, tr, sizeI) = getSceneBox()
+		val size = Vec2(sizeI)
+		if(!pos.pixels.isBetween(bl, tr)) return CursorPosition(Vec2(0f), Vec2(0f), Vec2i(-1))
+		val pixels = pos.pixels - bl
+		val aspect = size.x / size.y
+
+		val sceneRelative = Vec2(pixels) / (size * .5f) - Vec2(1f)
+		val scenePos = CursorPosition(Vec2(sceneRelative.x * aspect, sceneRelative.y), sceneRelative, pixels)
+		return scenePos
+	}
+
+	fun getSceneCursorDelta(delta: CursorPosition): CursorPosition{
+		val size = Vec2(getSceneBox().size)
+		val ratio = size / window.size
+		return CursorPosition(delta.position * ratio, delta.screenSpace * ratio, delta.pixels)
+	}
+
+	override fun cleanUp() {
+		super.cleanUp()
+		sceneObjects.delete()
+		transformer?.delete()
+	}
+
 	companion object {
 		init {
 			SavableFiles.add("Prefab", "pfb", ByteArray(4), { file, screen ->
@@ -352,6 +414,10 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 				}
 				catch (_: Exception){}
 			}
+		}
+
+		fun getSceneBox(settings: EditorSettings, window: WindowI): Viewport {
+			return Viewport(settings.objectBrowserWidth, settings.fileBrowserHeight, window.width - settings.componentBrowserWidth, window.height)
 		}
 	}
 }

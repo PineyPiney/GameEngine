@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponentI
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.window.Viewport
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -30,6 +31,10 @@ class ObjectRenderer(override val viewPos: Vec3, override val viewportSize: Vec2
 		for(i in des){
 			i.render(this, 0.0)
 		}
+	}
+
+	override fun getViewport(): Viewport {
+		return Viewport(Vec2i(0), viewportSize)
 	}
 
 	override fun delete() {

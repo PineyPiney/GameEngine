@@ -14,7 +14,7 @@ abstract class WindowedGameEngine<E : WindowGameLogic>(resourcesLoader: Resource
 		super.init()
 
 		activeScreen.open()
-		window.setFrameBufferResizeCallback { activeScreen.updateAspectRatio(this) }
+		window.setFrameBufferResizeCallback { activeScreen.updateAspectRatio() }
 
 		setInputCallbacks()
 	}

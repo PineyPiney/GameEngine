@@ -10,35 +10,22 @@ import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
-import kotlin.math.min
 
 open class Text(
-	text: String,
+	var text: String,
 	val colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
 	val font: Font = Font.defaultFont,
 	var italic: Float = 0f,
 	var underlineThickness: Float = 0f,
 	var underlineOffset: Float = -0.2f,
 	var underlineAmount: Float = 1f,
-	var fontSize: Float = 1f,
 	var alignment: Int = ALIGN_CENTER_LEFT
 ) : Initialisable {
 
 	var lines = arrayOf<String>()
 	var lengths = floatArrayOf()
-	var size: Float = 1f
 
 	var mesh: TextMesh = TextMesh(emptyArray()); private set
-
-	// Initialise as true so the text is generated before it's first render call
-	var textChanged = true
-	var text: String = text
-		set(value) {
-			if(field != value) {
-				field = value
-				textChanged = true
-			}
-		}
 
 	override fun init() {
 
@@ -46,23 +33,20 @@ open class Text(
 
 	fun updateLines(bounds: Vec2) {
 		if(bounds.y == 0f) return
-		if (fontSize > 0f) size = fontSize
-		else fitWithin(bounds)
 
 		lines = generateLines(bounds)
 		lengths = lines.map { getWidth(it) }.toFloatArray()
 		mesh.delete()
-		mesh = font.getShape(lines.joinToString("\n"), false, bounds / size, alignment)
-		textChanged = false
+		mesh = font.getShape(lines.joinToString("\n"), false, bounds, alignment)
 	}
 
 	fun getWidth(): Float {
-		return lines.maxOf { font.getWidth(it) } * size
+		return lines.maxOf { font.getWidth(it) }
 	}
 
 	fun getWidth(s: String): Float {
 		// TODO("Might not need to split by \n because font does it for you")
-		return s.split('\n').maxOf { font.getWidth(s) } * size
+		return s.split('\n').maxOf { font.getWidth(s) }
 	}
 
 	fun getWidth(range: IntRange): Float {
@@ -74,13 +58,7 @@ open class Text(
 	}
 
 	fun getHeight(s: String): Float {
-		return font.getHeight(s) * size
-	}
-
-	fun fitWithin(bounds: Vec2) {
-		val fSize = font.getSize(text)
-		val fits = bounds / fSize
-		size = min(fits.x, fits.y)
+		return font.getHeight(s)
 	}
 
 	fun generateLines(bounds: Vec2): Array<String> {
@@ -185,13 +163,13 @@ open class Text(
 	}
 
 	data class Params(var colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
-					  var fontSize: Float = 1f, var alignment: Int = ALIGN_CENTER_LEFT,
+					  var fontSize: Int = 12, var alignment: Int = ALIGN_CENTER_LEFT,
 					  var shader: Shader = Font.fontShader, var font: Font = Font.defaultFont,
 					  var italic: Float = 0f, var underlineThickness: Float = 0f,
 					  var underlineOffset: Float = -0.2f, var underlineAmount: Float = 1f){
 
 		fun withColour(c: Vec4) = this.apply { colour = c }
-		fun withFontSize(c: Float) = this.apply { fontSize = c }
+		fun withFontSize(c: Int) = this.apply { fontSize = c }
 		fun withAlignment(c: Int) = this.apply { alignment = c }
 		fun withShader(c: Shader) = this.apply { shader = c }
 		fun withFont(c: Font) = this.apply { font = c }
@@ -202,26 +180,26 @@ open class Text(
 	}
 
 	companion object {
-		const val ALIGN_CENTER_H = 1
-		const val ALIGN_LEFT = 2
+		const val ALIGN_LEFT = 1
+		const val ALIGN_CENTER_H = 2
 		const val ALIGN_RIGHT = 4
-		const val ALIGN_CENTER_V = 16
-		const val ALIGN_TOP = 32
-		const val ALIGN_BOTTOM = 64
-		const val ALIGN_CENTER = ALIGN_CENTER_H or ALIGN_CENTER_V
-		const val ALIGN_CENTER_LEFT = ALIGN_CENTER_V or ALIGN_LEFT
-		const val ALIGN_CENTER_RIGHT = ALIGN_CENTER_V or ALIGN_RIGHT
-		const val ALIGN_TOP_CENTER = ALIGN_TOP or ALIGN_CENTER_H
-		const val ALIGN_BOTTOM_CENTER = ALIGN_BOTTOM or ALIGN_CENTER_H
+		const val ALIGN_BOTTOM = 16
+		const val ALIGN_CENTER_V = 32
+		const val ALIGN_TOP = 64
 		const val ALIGN_BOTTOM_LEFT = ALIGN_BOTTOM or ALIGN_LEFT
+		const val ALIGN_BOTTOM_CENTER = ALIGN_BOTTOM or ALIGN_CENTER_H
 		const val ALIGN_BOTTOM_RIGHT = ALIGN_BOTTOM or ALIGN_RIGHT
+		const val ALIGN_CENTER_LEFT = ALIGN_CENTER_V or ALIGN_LEFT
+		const val ALIGN_CENTER = ALIGN_CENTER_V or ALIGN_CENTER_H
+		const val ALIGN_CENTER_RIGHT = ALIGN_CENTER_V or ALIGN_RIGHT
 		const val ALIGN_TOP_LEFT = ALIGN_TOP or ALIGN_LEFT
+		const val ALIGN_TOP_CENTER = ALIGN_TOP or ALIGN_CENTER_H
 		const val ALIGN_TOP_RIGHT = ALIGN_TOP or ALIGN_RIGHT
 
 		fun makeMenuText(
 			text: String,
 			colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
-			fontSize: Float = 1f,
+			fontSize: Int = 12,
 			alignment: Int = ALIGN_CENTER_LEFT,
 			shader: Shader = Font.fontShader,
 			font: Font = Font.defaultFont,
@@ -235,7 +213,7 @@ open class Text(
 				init {
 					components.add(
 						TextRendererComponent(this, Text(text, colour, font, italic,
-							underlineThickness, underlineOffset, underlineAmount, fontSize, alignment), shader)
+							underlineThickness, underlineOffset, underlineAmount, alignment), fontSize, shader)
 					)
 				}
 			}
@@ -247,8 +225,8 @@ open class Text(
 				init{
 					components.add(
 						TextRendererComponent(this, Text(text, params.colour, params.font, params.italic, params.underlineThickness,
-							params.underlineOffset, params.underlineAmount, params.fontSize, params.alignment),
-							params.shader)
+							params.underlineOffset, params.underlineAmount, params.alignment),
+							params.fontSize, params.shader)
 					)
 				}
 			}
@@ -257,7 +235,7 @@ open class Text(
 		fun makeGameText(
 			text: String,
 			colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
-			fontSize: Float = 1f,
+			fontSize: Int = 12,
 			alignment: Int = ALIGN_CENTER_LEFT,
 			shader: Shader = TextRendererComponent.gameTextShader,
 			font: Font = Font.defaultFont,
@@ -280,10 +258,9 @@ open class Text(
 								underlineThickness,
 								underlineOffset,
 								underlineAmount,
-								fontSize,
 								alignment
 							),
-							shader
+							fontSize, shader
 						)
 					)
 				}

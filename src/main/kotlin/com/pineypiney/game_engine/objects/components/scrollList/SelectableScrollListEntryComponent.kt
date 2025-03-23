@@ -2,8 +2,8 @@ package com.pineypiney.game_engine.objects.components.scrollList
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.InteractorComponent
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.window.WindowI
-import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
 
 abstract class SelectableScrollListEntryComponent(parent: GameObject) : ScrollListEntryComponent(parent), InteractorComponent {
@@ -17,7 +17,7 @@ abstract class SelectableScrollListEntryComponent(parent: GameObject) : ScrollLi
 
 	override val list: SelectableScrollListComponent get() = parent.parent?.getComponent<SelectableScrollListComponent>()!!
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 
 		if (action == GLFW.GLFW_RELEASE && this.hover) {

@@ -13,24 +13,28 @@ import org.lwjgl.glfw.GLFW.*
 open class MouseInput(val input: Inputs) {
 
 	// Cursor
-	var lastPos = Vec2(); private set
+	var lastPos = CursorPosition(Vec2(0f), Vec2(0f), input.window.size * .5f); private set
+	private var cursorOffset = CursorPosition(Vec2(0f), Vec2(0f), Vec2i(0))
 
 	private var firstMouse = true
 
 	var transformCoords: (windowSize: Vec2i, xpos: Double, ypos: Double) -> Vec2 = { windowSize, xpos, ypos ->
-		val s = 2.0 / windowSize.y
-		Vec2((xpos * s) - (windowSize.x.toDouble() / windowSize.y), 1.0 - (ypos * s))
+		val s = 2f / windowSize.y
+		Vec2((xpos.toFloat() * s) - (windowSize.x.toFloat() / windowSize.y), 1f - (ypos.toFloat() * s))
 	}
-
-	private var cursorOffset = Vec2(0.0, 0.0)
 
 	private val buttonStates = mutableMapOf<Short, Float>()
 
 	private val cursorPosCallback = { handle: Long, xpos: Double, ypos: Double ->
 		val size = WindowI.getSize(handle)
-		val screenPos = transformCoords(size, xpos, ypos)
-		processCursorPos(screenPos)
-		input.cursorMoveCallback(screenPos, cursorOffset)
+		val xf = xpos.toFloat()
+		val yf = ypos.toFloat()
+
+		val screenSpace = Vec2(xf * 2f / size.x - 1f, 1f - yf * 2f / size.y)
+		val newPos = CursorPosition(Vec2(screenSpace.x * size.x / size.y, screenSpace.y), screenSpace, Vec2i(xpos, size.y - ypos))
+
+		processCursorPos(newPos)
+		input.cursorMoveCallback(newPos, cursorOffset)
 	}
 	private val scrollCallback = { _: Long, xOffset: Double, yOffset: Double ->
 		input.mouseScrollCallback(Vec2(xOffset, yOffset))
@@ -45,13 +49,13 @@ open class MouseInput(val input: Inputs) {
 		glfwSetMouseButtonCallback(input.window.windowHandle, mouseButtonCallback)
 	}
 
-	private fun processCursorPos(pos: Vec2) {
+	private fun processCursorPos(pos: CursorPosition) {
 		if (firstMouse) {
 			lastPos = pos
 			firstMouse = false
 			return
 		}
-		cursorOffset = Vec2(pos.x - lastPos.x, pos.y - lastPos.y)
+		cursorOffset = pos - lastPos
 		lastPos = pos
 	}
 
@@ -70,11 +74,12 @@ open class MouseInput(val input: Inputs) {
 
 	fun getButton(button: Short) = buttonStates[button].let { it != -1f }
 
-	fun setCursorAt(pos: Vec2, drag: Boolean = false) {
-		input.window.cursorPos = Vec2d(Vec2(pos.x + 1, -pos.y + 1) / 2 * input.window.size)
-
+	fun setCursorAt(pos: CursorPosition, drag: Boolean = false) {
+		input.window.cursorPos = Vec2d(pos.pixels.x, input.window.height - pos.pixels.y)
 		if (!drag) lastPos = pos
 	}
 
-	fun screenSpaceCursor(): Vec2 = Vec2(lastPos.x / input.window.aspectRatio, lastPos.y)
+	fun setCursorAt(position: Vec2, drag: Boolean = false){
+		setCursorAt(CursorPosition(position, input.window), drag)
+	}
 }

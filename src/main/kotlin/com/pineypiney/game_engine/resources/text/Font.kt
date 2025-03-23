@@ -12,6 +12,7 @@ abstract class Font {
 
 	abstract val name: String
 	abstract val shader: Shader
+	abstract val lineSpacing: Float
 
 	abstract fun getCharWidth(char: Char): Float
 	abstract fun getCharHeight(char: Char): Vec2
@@ -42,7 +43,7 @@ abstract class Font {
 			Text.ALIGN_TOP -> bounds.y - height
 			Text.ALIGN_CENTER_V -> (bounds.y - height) * .5f
 			else -> 0f
-		}
+		} + (lines.size - 1) * lineSpacing
 
 		return offsetX to offsetY
 	}

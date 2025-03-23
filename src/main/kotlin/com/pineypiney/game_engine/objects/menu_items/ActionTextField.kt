@@ -5,23 +5,29 @@ import com.pineypiney.game_engine.objects.components.TextFieldComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
+import kotlin.math.roundToInt
 
 open class ActionTextField<E : TextFieldComponent>(
 	name: String,
 	val startText: String = "",
-	val textSize: Float = 1f,
+	val textSize: Int = 12,
 	val updateType: Int = ActionTextFieldComponent.UPDATE_ON_FINISH,
 	val action: (field: E, char: Char, input: Int) -> Unit
 ) : MenuItem(name) {
 
-	constructor(name: String, origin: Vec3, size: Vec2, startText: String = "", textSize: Float = 1f, updateType: Int = ActionTextFieldComponent.UPDATE_ON_FINISH, action: (field: E, char: Char, input: Int) -> Unit): this(name, startText, textSize, updateType, action = action){
+	constructor(name: String, origin: Vec3, size: Vec2, startText: String = "", textSize: Int = 12, updateType: Int = ActionTextFieldComponent.UPDATE_ON_FINISH, action: (field: E, char: Char, input: Int) -> Unit): this(name, startText, textSize, updateType, action){
 		os(origin, size)
 	}
 
-	constructor(name: String, origin: Vec2, size: Vec2, startText: String = "", textSize: Float = 1f, updateType: Int = ActionTextFieldComponent.UPDATE_ON_FINISH, action: (field: E, char: Char, input: Int) -> Unit): this(name, startText, textSize, updateType, action = action){
+	constructor(name: String, origin: Vec2, size: Vec2, startText: String = "", textSize: Int = 12, updateType: Int = ActionTextFieldComponent.UPDATE_ON_FINISH, action: (field: E, char: Char, input: Int) -> Unit): this(name, startText, textSize, updateType, action){
 		os(origin, size)
+	}
+
+	constructor(name: String, pos: Vec2i, size: Vec2i, origin: Vec2 = Vec2(-1f), startText: String = "", textString: Int = (size.y * .8f).roundToInt(), updateType: Int = ActionTextFieldComponent.UPDATE_ON_FINISH, action: (E, Char, Int) -> Unit): this(name, startText, textString, updateType, action){
+		pixel(pos, size, origin)
 	}
 
 	var text: String

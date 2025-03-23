@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.objects.util.shapes.Mesh
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 
-open class TextField(origin: Vec2, size: Vec2, val startText: String, val textOffset: Float = 0f, val textSize: Float = 1f) : MenuItem() {
+open class TextField(origin: Vec2, size: Vec2, val startText: String, val textOffset: Float = 0f, val textSize: Int = 12) : MenuItem() {
 
 	init {
 		os(origin, size)

@@ -1,8 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items
 
 import com.pineypiney.game_engine.objects.components.ButtonComponent
-import com.pineypiney.game_engine.objects.components.PixelTransformComponent
-import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
@@ -25,7 +23,7 @@ open class TextButton(
 		textColour: Vec4 = Vec4(0, 0, 0, 1),
 		action: (button: ButtonComponent, cursorPos: Vec2) -> Unit
 	): this(string, textColour, action){
-		if(relative) components.add(RelativeTransformComponent(this, origin, size))
+		if(relative) relative(origin, size)
 		else os(origin, size)
 	}
 
@@ -35,7 +33,7 @@ open class TextButton(
 				screenRelative: Boolean = false, textColour: Vec4 = Vec4(0f, 0f, 0f, 1f),
 				action: (button: ButtonComponent, cursorPos: Vec2) -> Unit
 	): this(string, textColour, action){
-		components.add(PixelTransformComponent(this, pos, size, origin, screenRelative))
+		pixel(pos, size, origin, screenRelative)
 	}
 
 	constructor(string: String, pos: Vec2i, size: Vec2i, origin: Vec2 = Vec2(-1f),
@@ -43,7 +41,7 @@ open class TextButton(
 				action: () -> Unit
 	): this(string, pos, size, origin, screenRelative, textColour, { _, _ -> action() })
 
-	var textObject = Text.makeMenuText(string, textColour, 0f, Text.ALIGN_CENTER)
+	var textObject = Text.makeMenuText(string, textColour, 0, Text.ALIGN_CENTER)
 
 	var baseColour = Vec4.fromHex(0x00BFFF)
 	var hoverColour = Vec4.fromHex(0x008CFF)
@@ -51,7 +49,7 @@ open class TextButton(
 
 	val action: (button: ButtonComponent, cursorPos: Vec2) -> Unit = { b, c ->
 		action(b, c)
-		setColour(b, c)
+		setColour()
 	}
 
 	override fun addComponents() {
@@ -64,7 +62,7 @@ open class TextButton(
 				Mesh.cornerSquareShape
 			)
 		)
-		components.add(ButtonComponent(this, action, ::setColour, ::setColour, ::setColour))
+		components.add(ButtonComponent(this, action, { _, _ -> setColour() }, { _, _, _ -> setColour() }, { _, _, _ -> setColour() }))
 	}
 
 	override fun addChildren() {
@@ -81,11 +79,7 @@ open class TextButton(
 		}
 	}
 
-	open fun setColour(button: ButtonComponent, cursorPos: Vec2) {
-		getComponent<ColourRendererComponent>()?.colour = selectColour()
-	}
-
-	open fun setColour(button: ButtonComponent, cursorPos: Vec2, cursorDelta: Vec2) {
+	open fun setColour() {
 		getComponent<ColourRendererComponent>()?.colour = selectColour()
 	}
 }

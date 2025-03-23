@@ -18,7 +18,7 @@ class DefaultObjects {
 
 				override fun addChildren() {
 					super.addChildren()
-					if(render) addChild(CollisionBox2DRenderer(this))
+					if(render) addChild(CollisionBox2DRenderer.create(this))
 				}
 			}
 		}

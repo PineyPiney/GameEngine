@@ -28,6 +28,7 @@ class TrueTypeFont(
 	override val shader: Shader = fontShader
 ) : Font() {
 
+	override var lineSpacing: Float = 1f
 	val res = 200
 	val missing = textures[127.c] ?: Texture.broke
 
@@ -55,7 +56,7 @@ class TrueTypeFont(
 	}
 
 	override fun getHeight(text: String): Float {
-		return 1f + text.count { it == '\n' }
+		return 1f + (text.count { it == '\n' } * lineSpacing)
 	}
 
 	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextMesh {

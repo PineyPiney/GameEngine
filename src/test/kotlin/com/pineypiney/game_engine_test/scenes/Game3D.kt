@@ -2,11 +2,12 @@ package com.pineypiney.game_engine_test.scenes
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.FPSCounter
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.LightComponent
-import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
 import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComponent
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox3DRenderer
@@ -24,6 +25,7 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.fromAngle
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.maths.vectorToEuler
 import com.pineypiney.game_engine.window.WindowGameLogic
@@ -35,6 +37,7 @@ import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.PI
 
@@ -59,7 +62,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	private val object3D = GameObject.simpleTextureGameObject(TextureLoader[ResourceKey("broke")], Mesh.centerCubeShape, MeshedTextureComponent.default3DShader).apply{ rotation = Quat(Vec3(0.4, PI/4, 1.2)) }
 
 	var blockHover = false
-	private val block = GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/lit")], shape = Mesh.centerCubeShape) {
+	private val block = GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/lit")], mesh = Mesh.centerCubeShape) {
 		uniforms.setFloatUniform("ambient") { 0.1f }
 		uniforms.setVec3Uniform("blockColour") { if (blockHover) Vec3(0.1, 0.9, 0.1) else Vec3(0.7f) }
 		uniforms.setVec3Uniform("lightPosition") { Vec3(1, 5, 2) }
@@ -72,12 +75,12 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	val light = GameObject.simpleLightObject(PointLight())
 	val torch = GameObject.simpleLightObject(SpotLight(camera.cameraFront), false)
 
-	val fpsText = Text.makeMenuText("FPS: 0.0", fontSize = .1f, alignment = Text.ALIGN_TOP_RIGHT)
+	val fpsText = FPSCounter.createCounterWithText(MenuItem("FPS Text").apply { pixel(Vec2i(-200, -100), Vec2i(200, 100), Vec2(1f)) }, 2.0, "FPS: $", Text.Params(Vec4(0f, 0f, 0f, 1f), 32, Text.ALIGN_TOP_RIGHT))
 
 	override fun init() {
 		super.init()
 		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
-		gltf.addChild(CollisionBox3DRenderer(gltf).apply { init() })
+		gltf.addChild(CollisionBox3DRenderer.create(gltf).apply { init() })
 	}
 
 	override fun addObjects() {
@@ -89,7 +92,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		add(gltf)
 		add(light, torch, sun.apply { position = Vec3(0f, 900f, 0f); scale = Vec3(50f) })
 		add(indexSlider)
-		add(fpsText.apply { components.add(RelativeTransformComponent(this, Vec2(1f), Vec2(1f), Vec2(0f), window.aspectRatio)) })
+		add(fpsText)
 	}
 
 	override fun render(tickDelta: Double) {
@@ -114,7 +117,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		light.position = Vec2.fromAngle(Timer.frameTime.mod(PI * 2).toFloat() * 2f, 10f).run { Vec3(x, 2f, y) }
 
 		object3D.rotate(Vec3(0.5, 1, 1.5) * Timer.frameDelta)
-		val ray = camera.getRay(input.mouse.screenSpaceCursor())
+		val ray = camera.getRay(input.mouse.lastPos.screenSpace)
 
 		val shape = object3D.getShape()
 		val hit = shape.intersectedBy(ray).isEmpty()
@@ -164,23 +167,23 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		return action
 	}
 
-	override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
+	override fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
 		super.onCursorMove(cursorPos, cursorDelta)
 
 		if(!moveMouse){
 			input.mouse.setCursorAt(Vec2(0))
-			camera.cameraYaw += cursorDelta.x * 20
-			camera.cameraPitch = (camera.cameraPitch + cursorDelta.y * 20).coerceIn(-89.99, 89.99)
+			camera.cameraYaw += cursorDelta.position.x * 20
+			camera.cameraPitch = (camera.cameraPitch + cursorDelta.position.y * 20).coerceIn(-89.99, 89.99)
 			camera.updateCameraVectors()
 			(torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
 		}
 
-		val ray = camera.getRay(Vec2(cursorPos.x / window.aspectRatio, cursorPos.y))
+		val ray = camera.getRay(cursorPos.screenSpace)
 		blockHover = block.getShape().intersectedBy(ray).isNotEmpty()
 	}
 
-	override fun updateAspectRatio(window: WindowI) {
-		super.updateAspectRatio(window)
+	override fun updateAspectRatio() {
+		super.updateAspectRatio()
 		GLFunc.viewportO = Vec2i(window.width, window.height)
 	}
 

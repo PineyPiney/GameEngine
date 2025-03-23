@@ -8,19 +8,27 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.maths.shapes.Rect2D
+import com.pineypiney.game_engine.util.maths.shapes.Shape
+import com.pineypiney.game_engine.window.Viewport
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
+import kotlin.math.min
 
-open class TextRendererComponent(parent: GameObject, val text: Text, shader: Shader) :
+open class TextRendererComponent(parent: GameObject, protected val text: Text, var fontSize: Int, shader: Shader) :
 	ShaderRenderedComponent(parent, shader), UpdatingAspectRatioComponent, PreRenderComponent {
 
+	// Initialise as true so the text is generated before it's first render call
+	var textChanged = true
 	override val whenVisible: Boolean = true
-	override val shape: Rect2D get() = Rect2D(Vec2(), Vec2(text.getWidth(), text.getHeight()))
 
-		override fun setUniforms() {
+	var size: Int = 12
+
+	override fun setUniforms() {
 		super.setUniforms()
-		uniforms.setMat4Uniform("model"){ parent.worldModel.let { it.scale(text.size / it[0, 0], text.size / it[1, 1], 1f) } }
+		uniforms.setMat4UniformR("model"){ renderer ->
+			val renderSize = 2f * size.toFloat() / renderer.viewportSize.y
+			parent.worldModel.let { it.scale(renderSize / it[0, 0], renderSize / it[1, 1], 1f) }
+		}
 		uniforms.setVec4Uniform("colour", text::colour)
 		uniforms.setFloatUniform("italic", text::italic)
 	}
@@ -31,9 +39,12 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 	}
 
 	override fun preRender(renderer: RendererI, tickDelta: Double) {
-		if (text.textChanged) {
-			text.updateLines(Vec2(parent.transformComponent.worldScale))
-			text.textChanged = false
+		if (textChanged) {
+			val size = Vec2(parent.transformComponent.worldScale)
+			if (fontSize > 0f) this.size = fontSize
+			else fitWithin(renderer.getViewport(), size)
+			text.updateLines(size * renderer.viewportSize.y / (this.size * 2f))
+			textChanged = false
 		}
 	}
 
@@ -64,6 +75,48 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 		Mesh.cornerSquareShape.bindAndDraw()
 	}
 
+	fun getScreenScale(renderer: RendererI) = size * 2f / renderer.viewportSize.y
+
+	fun getRenderSize(renderer: RendererI): Vec2{
+		val scale = getScreenScale(renderer)
+		return Vec2(text.getWidth() * scale, text.getHeight() * scale)
+	}
+
+	override fun getScreenShape(): Shape<*> {
+		return text.mesh.shape
+	}
+
+	fun getTextContent() = text.text
+
+	fun setTextContent(newText: String){
+		text.text = newText
+		textChanged = true
+	}
+
+	fun setAlignment(alignment: Int){
+		text.alignment = alignment
+		textChanged = true
+	}
+
+	fun getWidth(text: String) = this.text.getWidth(text)
+
+	fun setUnderlineThickness(thickness: Float){
+		text.underlineThickness = thickness
+	}
+
+	fun getUnderlineAmount() = text.underlineAmount
+
+	fun setUnderlineAmount(amount: Float){
+		text.underlineAmount = amount
+	}
+
+	fun fitWithin(view: Viewport, bounds: Vec2) {
+		val fSize = text.font.getSize(text.text)
+		val fits = bounds / fSize
+		val minScreenSpace = min(fits.x, fits.y)
+		size = (minScreenSpace * view.size.y * .5f).toInt()
+	}
+
 	fun getFormattedOrigin(w: Float, h: Float): Mat4 {
 		val o = Mat4(parent.worldModel)
 		val a = text.alignment
@@ -84,8 +137,15 @@ open class TextRendererComponent(parent: GameObject, val text: Text, shader: Sha
 		return o
 	}
 
-	override fun updateAspectRatio(renderer: RendererI) {
-		if (!shader.hasProj) text.updateLines(Vec2(parent.transformComponent.worldScale))
+	override fun updateAspectRatio(view: Viewport) {
+		if (!shader.hasProj) {
+			val size = Vec2(parent.transformComponent.worldScale)
+
+			if (fontSize > 0f) this.size = fontSize
+			else fitWithin(view, size)
+
+			text.updateLines(size * view.size.y / (this.size * 2f))
+		}
 	}
 
 	override fun delete() {

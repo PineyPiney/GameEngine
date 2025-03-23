@@ -163,7 +163,7 @@ fun List<Int>.expand(size: Int, entry: Int = 0): List<Int> {
  * Returns a list containing all elements that are both instances of specified type parameter [R] and satisfy [predicate].
  *
  */
-inline fun <E, reified R> Iterable<E>.filterIsInstance(predicate: (E) -> Boolean): List<R> {
+inline fun <E, reified R> Iterable<E>.filterIsInstance(predicate: (R) -> Boolean): List<R> {
 	val a = ArrayList<R>()
 	for (e in this) {
 		if (e is R && predicate(e)) a.add(e)

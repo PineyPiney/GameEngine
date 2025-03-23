@@ -19,10 +19,7 @@ import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.window.DefaultWindow
 import com.pineypiney.game_engine.window.DefaultWindowedEngine
-import com.pineypiney.game_engine_test.scenes.CollisionTest
-import com.pineypiney.game_engine_test.scenes.Game2D
-import com.pineypiney.game_engine_test.scenes.Game3D
-import com.pineypiney.game_engine_test.scenes.LightingTest
+import com.pineypiney.game_engine_test.scenes.*
 import com.pineypiney.game_engine_test.testVR.TestVREngine
 import com.pineypiney.game_engine_test.testVR.TestVRGame
 import glm_.f
@@ -56,6 +53,16 @@ class EngineTest{
 	@Test
 	fun testVR(){
 		run(::TestVREngine, ::TestVRGame)
+	}
+
+	@Test
+	fun testCollisionVisual(){
+		run(::TestEngine, ::CollisionTest, 100)
+	}
+
+	@Test
+	fun testText(){
+		run(::TestEngine, ::TextTest)
 	}
 
 	companion object {
@@ -113,11 +120,6 @@ class EngineTest{
 		val rect2 = Rect2D(.5f, 1.5f, 1f, 1f)
 		val c = rect2.calculateCollision(rect1, Vec2(-1f, -2f))
 		c?.removeShape1FromShape2
-	}
-
-	@Test
-	fun testCollisionVisual(){
-		run(::TestEngine, ::CollisionTest, 100)
 	}
 
 	@Suppress("UNUSED_VARIABLE")

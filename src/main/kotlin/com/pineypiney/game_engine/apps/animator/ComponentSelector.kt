@@ -3,13 +3,11 @@ package com.pineypiney.game_engine.apps.animator
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
-import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.components.scrollList.ScrollListEntryComponent
 import com.pineypiney.game_engine.objects.components.scrollList.SelectableScrollListComponent
 import com.pineypiney.game_engine.objects.components.scrollList.SelectableScrollListEntryComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
-import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.init
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -40,8 +38,7 @@ class ComponentSelector(item: GameObject?, origin: Vec2, size: Vec2, pred: Compo
 		var item: GameObject? = item
 			set(value) {
 				field = value
-				items.delete()
-				parent.removeChildren(items)
+				clearEntries()
 				if (field != null) {
 
 					val newItems = getComponents(field!!, "").mapIndexed { i, c ->
@@ -63,12 +60,7 @@ class ComponentSelector(item: GameObject?, origin: Vec2, size: Vec2, pred: Compo
 
 							override fun addChildren() {
 								super.addChildren()
-								addChild(ScrollListEntryComponent.makeScrollerText(c, Vec4(1f), fontSize = 0f))
-							}
-
-							override fun init() {
-								super.init()
-								getComponent<ShaderRenderedComponent>()?.uniforms?.setVec2Uniform("limits", ::limits)
+								addChild(ScrollListEntryComponent.makeScrollerText(c, Vec4(1f), fontSize = 0))
 							}
 						}
 					}

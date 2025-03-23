@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.apps.editor.util.edits.ComponentFieldEdit
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.util.extension_functions.angle
 import com.pineypiney.game_engine.util.extension_functions.rotationComponent
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.quat.Quat
@@ -31,26 +32,28 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 		parent.rotation = obj.transformComponent.worldRotation
 	}
 
-	override fun onCursorMove(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
+	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		if(pressed) return
 
-		val relX = cursorPos.x - parent.transformComponent.position.x
-		val relY = cursorPos.y - parent.transformComponent.position.y
-		val rad2 = (relX*relX + relY*relY) * 11.1111f
-
+		val relX = (cursorPos.position.x - parent.transformComponent.position.x)/parent.scale.x
+		val relY = (cursorPos.position.y - parent.transformComponent.position.y)/parent.scale.y
+		val rad2 = (relX*relX + relY*relY)
 		val relRot = Vec2(parent.worldModel.rotationComponent() * Vec4(-relX, relY, 0f, 1f))
-		if(abs(rad2 - .23f) < .02f){
+		// Hovering over the blue z circle
+		if(abs(rad2 - .33f) < .06f){
 			red.x = .8f
 			green.y = .8f
 			blue.z = 1f
 		}
-		else if(abs(relRot.x) < .02f){
+		// Hovering over the red x line
+		else if(abs(relRot.x) < .08f){
 			red.x = 1f
 			green.y = .8f
 			blue.z = .8f
 		}
-		else if(abs(relRot.y) < .02f){
+		// Hovering over the green y line
+		else if(abs(relRot.y) < .08f){
 			red.x = .8f
 			green.y = 1f
 			blue.z = .8f
@@ -62,7 +65,7 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 		}
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if(action == 1) {
 			selected = when (1f) {
@@ -70,7 +73,7 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 				green.y -> 2
 				blue.z -> {
 					startingEuler = parent.rotation.eulerAngles()
-					grabbedAngle = (cursorPos - Vec2(parent.position)).angle()
+					grabbedAngle = (cursorPos.position - Vec2(parent.position)).angle()
 					3
 				}
 
@@ -91,13 +94,13 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 		return INTERRUPT
 	}
 
-	override fun onDrag(window: WindowI, cursorPos: Vec2, cursorDelta: Vec2, ray: Ray) {
+	override fun onDrag(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		when(selected){
 			0 -> return
 			//1 -> parent.translate(Vec3(cursorDelta.x, 0f, 0f))
 			//2 -> parent.translate(Vec3(0f, cursorDelta.y, 0f))
 			3 -> {
-				val newGrabAngle = (cursorPos - Vec2(parent.position)).angle()
+				val newGrabAngle = (cursorPos.position - Vec2(parent.position)).angle()
 				parent.rotation = Quat(startingEuler + Vec3(0f, 0f, grabbedAngle - newGrabAngle))
 			}
 		}

@@ -12,7 +12,6 @@ import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.window.WindowGameLogic
-import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.s
 import glm_.vec2.Vec2
@@ -33,7 +32,7 @@ class CollisionTest(override val gameEngine: WindowedGameEngineI<*>): WindowGame
 		components.addAll(
 			Collider2DComponent(this)
 		)
-		addChild(CollisionBox2DRenderer(this))
+		addChild(CollisionBox2DRenderer.create(this))
 	} }
 	val base = GameObject("Base").apply {
 		position = Vec3(-7f, -5f, 0f)
@@ -41,7 +40,7 @@ class CollisionTest(override val gameEngine: WindowedGameEngineI<*>): WindowGame
 		components.addAll(
 			Collider2DComponent(this)
 		)
-		addChild(CollisionBox2DRenderer(this))
+		addChild(CollisionBox2DRenderer.create(this))
 	}
 
 	val item = GameObject("Falling").apply {
@@ -49,7 +48,7 @@ class CollisionTest(override val gameEngine: WindowedGameEngineI<*>): WindowGame
 			Collider2DComponent(this),
 			Rigidbody2DComponent(this)
 		)
-		addChild(CollisionBox2DRenderer(this))
+		addChild(CollisionBox2DRenderer.create(this))
 	}
 	var flip = false
 
@@ -109,8 +108,8 @@ class CollisionTest(override val gameEngine: WindowedGameEngineI<*>): WindowGame
 		flip = !flip
 	}
 
-	override fun updateAspectRatio(window: WindowI) {
-		super.updateAspectRatio(window)
+	override fun updateAspectRatio() {
+		super.updateAspectRatio()
 		GLFunc.viewportO = Vec2i(window.width, window.height)
 	}
 }

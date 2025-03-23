@@ -14,37 +14,40 @@ import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-class CollisionBox2DRenderer(val obj: GameObject, val width: Float = .05f, val colour: Vec4 = Vec4(1f), val shader: Shader = defaultShader) :
-	GameObject(obj.name + " Collider Renderer") {
+class CollisionBox2DRenderer(parent: GameObject, val obj: GameObject, val width: Float = .05f, val colour: Vec4 = Vec4(1f), shader: Shader = defaultShader) :
+	ShaderRenderedComponent(parent, shader) {
 
-	override fun addComponents() {
-		super.addComponents()
-		components.add(object : ShaderRenderedComponent(this@CollisionBox2DRenderer, shader) {
+	val mesh = Mesh.cornerSquareShape
 
-			val vShape = Mesh.cornerSquareShape
-			override val shape: Shape<*> = vShape.shape
-
-			override fun setUniforms() {
-				super.setUniforms()
-				uniforms.setMat4Uniform("model") {
-					(this@CollisionBox2DRenderer.obj.getShape() as Rect2D).run {
-						I.translate(
-							Vec3(origin, 0f)
-						).rotate(angle).scale(Vec3(lengths, 1f))
-					}
-				}
-				uniforms.setVec4Uniform("colour", ::colour)
-				uniforms.setFloatUniform("width", ::width)
+	override fun setUniforms() {
+		super.setUniforms()
+		uniforms.setMat4Uniform("model") {
+			(this@CollisionBox2DRenderer.obj.getShape() as Rect2D).run {
+				I.translate(
+					Vec3(origin, 0f)
+				).rotate(angle).scale(Vec3(lengths, 1f))
 			}
+		}
+		uniforms.setVec4Uniform("colour", ::colour)
+		uniforms.setFloatUniform("width", ::width)
+	}
 
-			override fun render(renderer: RendererI, tickDelta: Double) {
-				shader.setUp(uniforms, renderer)
-				vShape.bindAndDraw()
-			}
-		})
+	override fun render(renderer: RendererI, tickDelta: Double) {
+		shader.setUp(uniforms, renderer)
+		mesh.bindAndDraw()
+	}
+
+	override fun getScreenShape(): Shape<*> {
+		return mesh.shape
 	}
 
 	companion object {
 		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/collider"))
+
+		fun create(obj: GameObject, lineThickness: Float = .05f, colour: Vec4 = Vec4(1f)): GameObject{
+			val par = GameObject(obj.name + " Collider Renderer")
+			par.components.add(CollisionBox2DRenderer(par, obj, lineThickness, colour))
+			return par
+		}
 	}
 }

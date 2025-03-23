@@ -32,7 +32,7 @@ class FPSCounter(parent: GameObject, var period: Double, val callback: (Double) 
 			val textChild = Text.makeMenuText("FPS", params)
 			obj.addChild(textChild)
 			obj.components.add(FPSCounter(obj, period){
-				textChild.getComponent<TextRendererComponent>()?.text?.text = format.replace("$", it.toString())
+				textChild.getComponent<TextRendererComponent>()?.setTextContent(format.replace("$", it.toString()))
 			})
 			return obj
 		}

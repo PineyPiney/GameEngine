@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.util.extension_functions
 
 import glm_.i
 import glm_.pow
-import unsigned.Ubyte
 import kotlin.math.*
 
 const val PIF = PI.toFloat()
@@ -61,7 +60,10 @@ fun Float.isWithin(min: Float, size: Float): Boolean {
 fun Float.isBetween(min: Float, max: Float): Boolean {
 	return min < this && this < max
 }
-
+@Suppress("SENSELESS_COMPARISON")
+fun Int.isBetween(min: Int, max: Int): Boolean {
+	return min < this && this < max
+}
 
 // Interpolation Functions
 
@@ -245,5 +247,5 @@ fun String.capitalise(): String{
 	return String(s, 0, lim)
 }
 
-operator fun UByte.compareTo(other: Ubyte) = toInt() compareTo other.toInt()
-operator fun Ubyte.compareTo(other: UByte) = toInt() compareTo other.toInt()
+//operator fun UByte.compareTo(other: Ubyte) = toInt() compareTo other.toInt()
+//operator fun Ubyte.compareTo(other: UByte) = toInt() compareTo other.toInt()

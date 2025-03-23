@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider2DCompone
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
 import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
 import com.pineypiney.game_engine.util.extension_functions.delete
+import com.pineypiney.game_engine.util.extension_functions.filterIsInstance
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 
 open class ObjectCollection {
@@ -59,6 +60,12 @@ open class ObjectCollection {
 		}
 	}
 
+	open fun forAllObjects(layer: Int? = null, includeInactive: Boolean = false, action: GameObject.() -> Unit){
+		fun processLayer(layer: MutableSet<GameObject>) { for(o in layer) if(includeInactive) o.forAllDescendants(action) else o.forAllActiveDescendants(action) }
+		if(layer == null) for((_, layer) in map) processLayer(layer)
+		else processLayer(get(layer))
+	}
+
 	open fun getAllObjects(layer: Int? = null, includeInactive: Boolean = false): Set<GameObject> {
 		val func: GameObject.() -> Set<GameObject> =
 			if (includeInactive) GameObject::allDescendants else GameObject::allActiveDescendants
@@ -70,12 +77,13 @@ open class ObjectCollection {
 		return map.flatMap { (_, s) -> s.flatMap { o -> o.allActiveDescendants().flatMap { it.components } } }.toSet()
 	}
 
-	inline fun <reified T : ComponentI> getAllComponentInstances(layer: Int? = null): Set<T> {
-		return getAllObjects(layer).mapNotNull { it.getComponent<T>() }.toSet()
+	inline fun <reified T : ComponentI> getAllComponentInstances(layer: Int? = null, predicate: (T) -> Boolean = {true}): Set<T> {
+		return if(layer != null) get(layer).flatMap { o -> o.allActiveDescendants().flatMap { it.components.filterIsInstance<ComponentI, T>(predicate) } }.toSet()
+		else map.flatMap { (_, s) -> s.flatMap { o -> o.allActiveDescendants().flatMap { it.components.filterIsInstance<ComponentI, T>(predicate) } } }.toSet()
 	}
 
 	fun getAllInteractables(sort: Boolean = true): Set<InteractorComponent> {
-		val components = getAllComponents().filterIsInstance<InteractorComponent>()
+		val components = getAllComponentInstances<InteractorComponent>()
 		return (if (sort) components.sortedByDescending { it.passThrough } else components).toSet()
 	}
 

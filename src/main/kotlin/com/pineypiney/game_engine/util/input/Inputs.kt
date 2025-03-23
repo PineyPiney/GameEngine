@@ -15,7 +15,7 @@ abstract class Inputs(val window: WindowI) {
 	abstract val gamepad: GamepadInput
 
 	var cursorMoveCallback =
-		{ _: Vec2, _: Vec2 -> }          // gameEngine.activeScreen.onCursorMove(win, screenPos, cursorOffset)
+		{ _: CursorPosition, _: CursorPosition -> }          // gameEngine.activeScreen.onCursorMove(win, screenPos, cursorOffset)
 	var mouseScrollCallback =
 		{ _: Vec2 -> }                 // gameEngine.activeScreen.onScroll(Window.getWindow(handle), scrollOffset)
 	var keyPressCallback =

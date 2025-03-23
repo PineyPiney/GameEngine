@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -17,8 +18,6 @@ abstract class BufferedGameRenderer<E : GameLogicI> : WindowRendererI<E> {
 	override lateinit var viewportSize: Vec2i
 	override var aspectRatio: Float = 1f
 
-	override val numPointLights: Int = 4
-
 	override fun init() {
 		camera.init()
 		buffer.setSize(window.framebufferSize)
@@ -30,6 +29,10 @@ abstract class BufferedGameRenderer<E : GameLogicI> : WindowRendererI<E> {
 		viewportSize = Vec2i(buffer.width, buffer.height)
 		GLFunc.viewportO = viewportSize
 		clear()
+	}
+
+	override fun getViewport(): Viewport {
+		return Viewport(Vec2i(0), viewportSize)
 	}
 
 	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {

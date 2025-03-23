@@ -10,12 +10,14 @@ import com.pineypiney.game_engine.objects.components.rendering.ColourRendererCom
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.shapes.Mesh
-import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
+import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import glm_.vec4.Vec4
 
 class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultInteractorComponent(parent), UpdatingAspectRatioComponent {
 
@@ -66,26 +68,25 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 
 	fun addNode(nodeParent: GameObject, obj: GameObject): ObjectNode{
 		val item = MenuItem("${obj.name} node")
+		item.pixel(Vec2i(5, -22), Vec2i(screen.settings.objectBrowserWidth * .7f, 20), Vec2(0f, 0f))
 		val node = ObjectNode(item, obj)
 		item.components.add(node)
 		item.components.add(ColourRendererComponent(item, Vec3(.6f), ColourRendererComponent.menuShader, Mesh.cornerSquareShape))
 		nodeParent.addChild(item)
 
-		val textChild = Text.makeMenuText(obj.name)
-		textChild.position = Vec3(.02f, .5f, 0f)
-		textChild.scale = Vec3(.9f)
+		val textChild = Text.makeMenuText(obj.name, Vec4(0f, 0f, 0f, 1f), 16)
+		textChild.position = Vec3(.02f, 0f, .01f)
+		textChild.scale = Vec3(.96f, 1f, 1f)
 		item.addChild(textChild)
 
 		item.init()
 		return node
 	}
 
-	fun positionNodes(yScale: Float = 840f / (screen.window.size.y - screen.settings.fileBrowserHeight)){
-		val x = parent.transformComponent.worldPosition.x + (parent.transformComponent.worldScale.x * .02f)
-		var y = 1f
+	fun positionNodes(){
+		var y = 0
 		for(c in objectList.children.mapNotNull { it.getComponent<ObjectNode>() }){
-			c.parent.scale = Vec3(.7f, .025f * yScale, 1f)
-			y -= c.position(x, y)
+			y += c.position(y)
 		}
 	}
 
@@ -109,7 +110,7 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 		positionNodes()
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: Vec2): Int {
+	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		if(action == 1) {
 			addRootObject(GameObject())
 			positionNodes()
@@ -117,11 +118,11 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 		return super.onSecondary(window, action, mods, cursorPos)
 	}
 
-	override fun updateAspectRatio(renderer: RendererI) {
+	override fun updateAspectRatio(view: Viewport) {
 		val trans = parent.getComponent<PixelTransformComponent>()
-		val newScale = Vec2i(screen.settings.objectBrowserWidth, renderer.viewportSize.y - screen.settings.fileBrowserHeight)
+		val newScale = Vec2i(screen.settings.objectBrowserWidth, view.size.y - screen.settings.fileBrowserHeight)
 		trans?.pixelScale = newScale
 
-		positionNodes(840f / newScale.y)
+		positionNodes()
 	}
 }

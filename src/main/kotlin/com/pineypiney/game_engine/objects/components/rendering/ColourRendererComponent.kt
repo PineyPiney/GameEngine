@@ -14,11 +14,13 @@ open class ColourRendererComponent(parent: GameObject, var colour: Vec4 = Vec4(1
 
 	constructor(parent: GameObject, colour: Vec3, shader: Shader = defaultShader, mesh: Mesh = Mesh.centerSquareShape) : this(parent, Vec4(colour, 1f), shader, mesh)
 
-	override val shape: Shape<*> get() = mesh.shape
-
 	override fun setUniforms() {
 		super.setUniforms()
 		uniforms.setVec4Uniform("colour", ::colour)
+	}
+
+	override fun getScreenShape(): Shape<*> {
+		return mesh.shape
 	}
 
 	override fun render(renderer: RendererI, tickDelta: Double) {

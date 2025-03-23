@@ -2,11 +2,14 @@ package com.pineypiney.game_engine_test.scenes
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.*
+import com.pineypiney.game_engine.objects.components.CheckBoxComponent
+import com.pineypiney.game_engine.objects.components.FPSCounter
+import com.pineypiney.game_engine.objects.components.InteractorComponent
+import com.pineypiney.game_engine.objects.components.LightComponent
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
-import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.CheckBox
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
@@ -24,11 +27,11 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.PIF
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.angle
+import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.maths.shapes.AxisAlignedCuboid
 import com.pineypiney.game_engine.window.WindowGameLogic
-import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.mat2x2.Mat2
 import glm_.pow
@@ -71,7 +74,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 	val light = GameObject.simpleLightObject(PointLight())
 	val torch = GameObject.simpleLightObject(SpotLight(camera.cameraFront), false)
 
-	val fpsText = Text.makeMenuText("FPS: 0.0", fontSize = .1f, alignment = Text.ALIGN_TOP_RIGHT)
+	val fpsText = FPSCounter.createCounterWithText(MenuItem("FPS Text").apply { pixel(Vec2i(-200, -100), Vec2i(200, 100), Vec2(1f)) }, 2.0, "FPS: $", Text.Params(Vec4(0f, 0f, 0f, 1f), 32, Text.ALIGN_TOP_RIGHT))
 
 	val material get() = (litModel.getComponent<ModelRendererComponent>()?.model?.meshes[0]?.material as? PBRMaterial)
 
@@ -102,10 +105,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 	override fun addObjects() {
 		add(zArrow, litModel, debugModel)
 		add(light, torch, sun.apply { position = Vec3(0f, 900f, 0f); scale = Vec3(50f) })
-		add(fpsText.apply {
-			components.add(FPSCounter(this, 2.0){ getComponent<TextRendererComponent>()?.text?.text = it.toString()})
-			components.add(RelativeTransformComponent(this, Vec2(1f), Vec2(1f), Vec2(0f), window.aspectRatio))
-		})
+		add(fpsText)
 		add(roughnessSlider, metallicSlider, specularSlider, specTintSlider, sheenSlider, sheenTintSlider, anisotropicSlider, fresnelBox)
 		add(vecIdSlider)
 	}
@@ -177,20 +177,20 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		return action
 	}
 
-	override fun onCursorMove(cursorPos: Vec2, cursorDelta: Vec2) {
+	override fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
 		super.onCursorMove(cursorPos, cursorDelta)
 
 		if(!moveMouse){
 			input.mouse.setCursorAt(Vec2(0))
-			camera.cameraYaw += cursorDelta.x * 20
-			camera.cameraPitch = (camera.cameraPitch + cursorDelta.y * 20).coerceIn(-89.99, 89.99)
+			camera.cameraYaw += cursorDelta.position.x * 20
+			camera.cameraPitch = (camera.cameraPitch + cursorDelta.position.y * 20).coerceIn(-89.99, 89.99)
 			camera.updateCameraVectors()
 			(torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
 		}
 	}
 
-	override fun updateAspectRatio(window: WindowI) {
-		super.updateAspectRatio(window)
+	override fun updateAspectRatio() {
+		super.updateAspectRatio()
 		GLFunc.viewportO = Vec2i(window.width, window.height)
 	}
 
