@@ -201,6 +201,10 @@ fun Mat4.getTranslation(): Vec3 {
 	return Vec3(this[3])
 }
 
+fun Mat4.getTranslation2D(): Vec2 {
+	return Vec2(this[3])
+}
+
 fun Mat4.getTranslation(index: Int): Float{
 	return this[3][index]
 }
@@ -210,13 +214,18 @@ fun Mat4.setTranslation(translation: Vec3, res: Mat4 = Mat4(this)): Mat4 {
 	return res
 }
 
+fun Mat4.setTranslation2D(translation: Vec2, res: Mat4 = Mat4(this)): Mat4 {
+	translation.to(res.array, 12)
+	return res
+}
+
 fun Mat4.setTranslation(translation: Float, index: Int, res: Mat4 = Mat4(this)): Mat4{
 	res[3][index] = translation
 	return res
 }
 
-fun Mat4.getRotation(): Quat {
-	return rotationComponent().toQuat()
+fun Mat4.getRotation(scale: Vec3 = getScale()): Quat {
+	return rotationComponent(scale).toQuat()
 }
 
 fun Mat4.setRotation(rotation: Quat, res: Mat4 = Mat4(this)): Mat4 {
@@ -263,8 +272,7 @@ fun Mat4.setScale(index: Int, scale: Vec3, currentScale: Vec3 = getScale(), res:
 	return res
 }
 
-fun Mat4.rotationComponent(): Mat4 {
-	val scale = getScale()
+fun Mat4.rotationComponent(scale: Vec3 = getScale()): Mat4 {
 	return Mat4(
 		this[0] / scale.x,
 		this[1] / scale.y,

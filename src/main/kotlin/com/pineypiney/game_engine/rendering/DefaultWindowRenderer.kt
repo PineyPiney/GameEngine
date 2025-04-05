@@ -16,6 +16,8 @@ import org.lwjgl.opengl.GL30C
 
 open class DefaultWindowRenderer<G: WindowGameLogic, R: CameraI>(override val window: WindowI, override val camera: R): BufferedGameRenderer<G>() {
 
+	constructor(window: WindowI, camera: (WindowI) -> R): this(window, camera(window))
+
 	override val view = I
 	override val projection = I
 	override val guiProjection = I

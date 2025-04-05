@@ -1,22 +1,13 @@
-package com.pineypiney.game_engine.objects.util.shapes
+package com.pineypiney.game_engine.objects.util.meshes
 
 import com.pineypiney.game_engine.util.maths.shapes.AxisAlignedCuboid
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
 open class CubeShape(blf: Vec3, trb: Vec3, tbl: Vec2 = Vec2(), ttr: Vec2 = Vec2(1)) :
-	ArrayShape(createVertices(blf, trb, tbl, ttr), intArrayOf(3, 3, 2)) {
+	ArrayShape(createVertices(blf, trb, tbl, ttr), arrayOf(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEX_COORD)) {
 
 	override val shape: AxisAlignedCuboid = AxisAlignedCuboid((blf + trb) * 0.5f, trb - blf)
-
-	init {
-		vertexSize = 8
-		positionSize = 3
-		normalSize = 3
-		normalOffset = 3
-		textureSize = 2
-		textureOffset = 6
-	}
 
 	companion object {
 		fun createVertices(blf: Vec3, trb: Vec3, to: Vec2, tf: Vec2): FloatArray {

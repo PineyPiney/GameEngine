@@ -11,7 +11,7 @@ import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.collision.CollisionBox3DRenderer
-import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight

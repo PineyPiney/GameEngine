@@ -3,7 +3,7 @@ package com.pineypiney.game_engine_test.testVR
 import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.getTranslation

@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.objects.util.shapes.TextMesh
+import com.pineypiney.game_engine.objects.util.meshes.TextMesh
 import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture

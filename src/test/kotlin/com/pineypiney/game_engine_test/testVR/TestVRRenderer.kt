@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine_test.testVR
 
-import com.pineypiney.game_engine.objects.util.shapes.SquareMesh
+import com.pineypiney.game_engine.objects.util.meshes.SquareMesh
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
 import com.pineypiney.game_engine.rendering.FrameBuffer
 import com.pineypiney.game_engine.util.GLFunc

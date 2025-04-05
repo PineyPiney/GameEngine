@@ -140,6 +140,18 @@ fun <E> MutableCollection<E>.removeAll(vararg elements: E): Boolean {
  *
  * @return A new list expanded to [size] using [entry]
  */
+fun <E, C: MutableCollection<E>> C.expand(size: Int, entry: () -> E): C {
+	while (this.size < size) add(entry())
+	return this
+}
+
+/**
+ * Expand a list of floats using [entry] until its size is at least [size]
+ * @param [size] The minimum size this list should be
+ * @param [entry] The entry to add to the list
+ *
+ * @return A new list expanded to [size] using [entry]
+ */
 fun List<Float>.expand(size: Int, entry: Float = 0f): List<Float> {
 	val list = this.toMutableList()
 	while (list.size < size) list.add(entry)

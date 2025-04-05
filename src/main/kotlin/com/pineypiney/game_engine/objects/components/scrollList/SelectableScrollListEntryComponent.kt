@@ -15,7 +15,7 @@ abstract class SelectableScrollListEntryComponent(parent: GameObject) : ScrollLi
 	override var forceUpdate: Boolean = false
 	override var passThrough: Boolean = false
 
-	override val list: SelectableScrollListComponent get() = parent.parent?.getComponent<SelectableScrollListComponent>()!!
+	override val list: SelectableScrollListComponent get() = parent.parent!!.parent!!.getComponent<SelectableScrollListComponent>()!!
 
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)

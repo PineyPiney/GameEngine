@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.textures
 
-import com.pineypiney.game_engine.objects.util.shapes.Mesh
-import com.pineypiney.game_engine.objects.util.shapes.SquareMesh
+import com.pineypiney.game_engine.objects.util.meshes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.SquareMesh
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import kotlin.math.max

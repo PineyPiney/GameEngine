@@ -2,8 +2,8 @@ package com.pineypiney.game_engine.apps.editor
 
 import com.pineypiney.game_engine.apps.editor.util.EditorSettings
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.objects.util.shapes.Mesh
-import com.pineypiney.game_engine.objects.util.shapes.SquareMesh
+import com.pineypiney.game_engine.objects.util.meshes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.SquareMesh
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.FrameBuffer
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera

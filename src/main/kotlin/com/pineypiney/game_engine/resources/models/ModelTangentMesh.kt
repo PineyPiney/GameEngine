@@ -1,59 +1,38 @@
 package com.pineypiney.game_engine.resources.models
 
+import com.pineypiney.game_engine.objects.util.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.pgm.Controller
-import com.pineypiney.game_engine.util.extension_functions.expand
+import com.pineypiney.game_engine.util.extension_functions.putVec2
+import com.pineypiney.game_engine.util.extension_functions.putVec3
+import com.pineypiney.game_engine.util.extension_functions.putVec4
+import com.pineypiney.game_engine.util.extension_functions.putVec4i
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import org.lwjgl.opengl.GL11C.GL_FLOAT
-import org.lwjgl.opengl.GL11C.GL_INT
-import org.lwjgl.opengl.GL15C.*
+import glm_.vec4.Vec4
+import glm_.vec4.Vec4i
+import java.nio.ByteBuffer
 
 class ModelTangentMesh(id: String, vertices: Array<TangentMeshVertex>, indices: IntArray, defaultAlpha: Float = 1f, defaultOrder: Int = 1, material: ModelMaterial = Model.brokeMaterial): ModelMesh(id, vertices, indices, defaultAlpha, defaultOrder, material) {
 
-	override fun setupFloats() {
-		// Buffer floats
-		glBindBuffer(GL_ARRAY_BUFFER, floatVBO)
+	override val attributes: Map<VertexAttribute<*>, Long> get() = Companion.attributes
 
-
-		setAttribs(
-			mapOf(
-				0 to Pair(GL_FLOAT, 3),
-				1 to Pair(GL_FLOAT, 3),
-				2 to Pair(GL_FLOAT, 2),
-				3 to Pair(GL_FLOAT, 3),
-				5 to Pair(GL_FLOAT, 4)
-			)
-		)
-
-		// Get data from each vertex and put it in one long array
-		val floatArray = vertices.flatMap(MeshVertex::getFloatData).toFloatArray()
-		// Send the data to the buffers
-		glBufferData(GL_ARRAY_BUFFER, floatArray, GL_STATIC_DRAW)
-
-	}
-
-	override fun setupInts() {
-
-		// Buffer ints
-		glBindBuffer(GL_ARRAY_BUFFER, intVBO)
-
-		setAttribs(mapOf(4 to Pair(GL_INT, 4)))
-
-		// Get data from each vertex and put it in one long array
-		val intArray = vertices.flatMap(MeshVertex::getIntData).toIntArray()
-		// Send the data to the buffers
-		glBufferData(GL_ARRAY_BUFFER, intArray, GL_STATIC_DRAW)
+	companion object {
+		val attributes = createAttributes(arrayOf(
+			VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEX_COORD,
+			VertexAttribute.TANGENT, VertexAttribute.BONE_IDS, VertexAttribute.BONE_WEIGHTS
+		))
 	}
 
 	class TangentMeshVertex(position: Vec3, tex: Vec2, normal: Vec3, val tangent: Vec3, weights: Array<Controller.BoneWeight> = arrayOf()): MeshVertex(position, tex, normal, weights){
 
-		override fun getFloatData(): List<Float> {
-			return position.run { listOf(x, y, z) } +
-					normal.run { listOf(x, y, z) } +
-					texCoord.run { listOf(x, y) } +
-					tangent.run { listOf(x, y, z) } +
-					weights.map { w -> w.weight }.expand(4)
+		override fun putData(buffer: ByteBuffer, offset: Int) {
+			buffer.putVec3(offset, position)
+				.putVec3(offset + 12, normal)
+				.putVec2(offset + 24, texCoord)
+				.putVec3(offset + 32, tangent)
+				.putVec4i(offset + 44, Vec4i{ weights.getOrNull(it)?.id ?: -1})
+				.putVec4(offset + 60, Vec4{ weights.getOrNull(it)?.weight ?: 0f})
 		}
 	}
 }

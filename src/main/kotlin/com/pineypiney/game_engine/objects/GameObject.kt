@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
 import com.pineypiney.game_engine.objects.components.rendering.*
-import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.resources.models.Model

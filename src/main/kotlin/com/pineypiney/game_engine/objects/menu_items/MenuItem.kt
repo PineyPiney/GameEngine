@@ -14,29 +14,35 @@ open class MenuItem(name: String = "MenuItem") : GameObject(name) {
 		layer = 1
 	}
 
-	fun os(origin: Vec2, size: Vec2) {
+	fun os(origin: Vec2, size: Vec2): MenuItem {
 		position = Vec3(origin, 0f)
 		scale = Vec3(size, 1f)
+		return this
 	}
 
-	fun os(origin: Vec3, size: Vec2) {
+	fun os(origin: Vec3, size: Vec2): MenuItem {
 		position = origin
 		scale = Vec3(size, 1f)
+		return this
 	}
 
-	fun relative(origin: Vec2, size: Vec2){
+	fun relative(origin: Vec2, size: Vec2): MenuItem{
 		components.add(RelativeTransformComponent(this, origin, size))
+		return this
 	}
 
-	fun relative(origin: Vec3, size: Vec2){
+	fun relative(origin: Vec3, size: Vec2): MenuItem{
 		components.add(RelativeTransformComponent(this, origin, size))
+		return this
 	}
 
-	fun pixel(pos: Vec2i, size: Vec2i, origin: Vec2 = Vec2(-1f), screenRelative: Boolean = false){
+	fun pixel(pos: Vec2i, size: Vec2i, origin: Vec2 = Vec2(-1f), screenRelative: Boolean = false): MenuItem{
 		components.add(PixelTransformComponent(this, pos, size, origin, screenRelative))
+		return this
 	}
 
-	fun pixel(posX: Int, posY: Int, sizeX: Int, sizeY: Int, originX: Float = -1f, originY: Float = -1f, screenRelative: Boolean = false){
+	fun pixel(posX: Int, posY: Int, sizeX: Int, sizeY: Int, originX: Float = -1f, originY: Float = -1f, screenRelative: Boolean = false): MenuItem{
 		components.add(PixelTransformComponent(this, Vec2i(posX, posY), Vec2i(sizeX, sizeY), Vec2(originX, originY), screenRelative))
+		return this
 	}
 }

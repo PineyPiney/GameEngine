@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
-import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite

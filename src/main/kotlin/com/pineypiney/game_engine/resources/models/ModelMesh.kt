@@ -1,14 +1,14 @@
 package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.objects.Deleteable
-import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.pgm.Controller
 import com.pineypiney.game_engine.resources.models.pgm.Face
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.util.Copyable
-import com.pineypiney.game_engine.util.extension_functions.copy
-import com.pineypiney.game_engine.util.extension_functions.expand
+import com.pineypiney.game_engine.util.extension_functions.*
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
@@ -16,7 +16,11 @@ import glm_.mat4x4.Mat4
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
+import glm_.vec4.Vec4
+import glm_.vec4.Vec4i
+import kool.ByteBuffer
 import org.lwjgl.opengl.GL31C.*
+import java.nio.ByteBuffer
 
 // Meshes are made up of faces, which are in turn made up of MeshVertices.
 // Mesh vertices are each associated with a position, normal and texMap,
@@ -36,21 +40,15 @@ open class ModelMesh(
 				material = material
 			)
 
-	init {
-		vertexSize = 12
-		positionSize = 3
-		normalSize = 3
-		normalOffset = 3
-		textureSize = 2
-		textureOffset = 6
-	}
+	override val attributes: Map<VertexAttribute<*>, Long> = createAttributes(arrayOf(
+		VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEX_COORD,
+		VertexAttribute.BONE_IDS, VertexAttribute.BONE_WEIGHTS
+	))
 
 	override val shape: Shape2D
 		get() = Rect2D(Vec2(), Vec2(1f)) //TODO
 	override val count: Int = indices.size
 
-	protected val floatVBO = glGenBuffers()
-	protected val intVBO = glGenBuffers()
 	protected val EBO = glGenBuffers()
 
 	var translation: Vec3 = Vec3()
@@ -83,53 +81,34 @@ open class ModelMesh(
 		// Bind Buffers
 		glBindVertexArray(VAO)
 
-		setupFloats()
-		setupInts()
-
+		setupVertices()
 		setupElements()
 
 		// Clean up
 		glBindVertexArray(0)
-		glBindBuffer(GL_ARRAY_BUFFER, 0)
 	}
 
-	open fun setupFloats() {
+	open fun setupVertices() {
 
 		// Buffer floats
-		glBindBuffer(GL_ARRAY_BUFFER, floatVBO)
+		glBindBuffer(GL_ARRAY_BUFFER, VBO)
 
+		setAttributes()
 
-		setAttribs(
-			mapOf(
-				0 to Pair(GL_FLOAT, 3),
-				1 to Pair(GL_FLOAT, 3),
-				2 to Pair(GL_FLOAT, 2),
-				4 to Pair(GL_FLOAT, 4)
-			)
-		)
-
-		// Get data from each vertex and put it in one long array
-		val floatArray = vertices.flatMap(MeshVertex::getFloatData).toFloatArray()
+		val buffer = ByteBuffer(vertices.size * stride)
+		for(i in 0..<vertices.size){
+			vertices[i].putData(buffer, i * stride)
+		}
 		// Send the data to the buffers
-		glBufferData(GL_ARRAY_BUFFER, floatArray, GL_STATIC_DRAW)
-	}
+		glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
 
-	open fun setupInts() {
-
-		// Buffer ints
-		glBindBuffer(GL_ARRAY_BUFFER, intVBO)
-
-		setAttribs(mapOf(3 to Pair(GL_INT, 4)))
-
-		// Get data from each vertex and put it in one long array
-		val intArray = vertices.flatMap(MeshVertex::getIntData).toIntArray()
-		// Send the data to the buffers
-		glBufferData(GL_ARRAY_BUFFER, intArray, GL_STATIC_DRAW)
+		glBindBuffer(GL_ARRAY_BUFFER, 0)
 	}
 
 	fun setupElements() {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 	}
 
 	fun setMaterialUniforms(shader: Shader) {
@@ -141,13 +120,8 @@ open class ModelMesh(
 		this.order = this.defaultOrder
 	}
 
-	override fun getVertices(): FloatArray {
-		return getFloatBuffer(floatVBO, GL_ARRAY_BUFFER)
-	}
-
 	override fun delete() {
-		super.delete()
-		glDeleteBuffers(intArrayOf(floatVBO, intVBO, EBO))
+		glDeleteBuffers(intArrayOf(VAO, VBO, EBO))
 	}
 
 	companion object {
@@ -170,16 +144,12 @@ open class ModelMesh(
 	) : Copyable<MeshVertex>,
 		Deleteable {
 
-		open fun getFloatData(): List<Float> {
-			return position.run { listOf(x, y, z) } +
-					normal.run { listOf(x, y, z) } +
-					texCoord.run { listOf(x, y) } +
-					weights.map { w -> w.weight }.expand(4)
-		}
-
-		open fun getIntData(): List<Int> {
-			// When the shader reaches a bone index of -1 it breaks the loop
-			return weights.map { w -> w.id }.expand(4, -1)
+		open fun putData(buffer: ByteBuffer, offset: Int){
+			buffer.putVec3(offset, position)
+				.putVec3(offset + 12, normal)
+				.putVec2(offset + 24, texCoord)
+				.putVec4i(offset + 32, Vec4i{ weights.getOrNull(it)?.id ?: -1})
+				.putVec4(offset + 48, Vec4{ weights.getOrNull(it)?.weight ?: 0f})
 		}
 
 		override fun copy(): MeshVertex {

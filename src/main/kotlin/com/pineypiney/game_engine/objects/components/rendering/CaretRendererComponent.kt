@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects.components.rendering
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.TextFieldComponent
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
-import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.window.Viewport

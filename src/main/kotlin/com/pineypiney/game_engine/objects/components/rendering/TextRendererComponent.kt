@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects.components.rendering
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
 import com.pineypiney.game_engine.objects.text.Text
-import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -12,6 +12,7 @@ import com.pineypiney.game_engine.util.maths.shapes.Shape
 import com.pineypiney.game_engine.window.Viewport
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
+import glm_.vec4.Vec4
 import kotlin.math.min
 
 open class TextRendererComponent(parent: GameObject, protected val text: Text, var fontSize: Int, shader: Shader) :
@@ -93,12 +94,18 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		textChanged = true
 	}
 
+	fun setTextColour(colour: Vec4){
+		text.colour(colour)
+	}
+
 	fun setAlignment(alignment: Int){
 		text.alignment = alignment
 		textChanged = true
 	}
 
 	fun getWidth(text: String) = this.text.getWidth(text)
+	fun getWidth(): Float = text.lengths.maxOrNull() ?: text.lines.maxOfOrNull { text.getWidth(it) } ?: 0f
+	fun getHeight() = text.getHeight()
 
 	fun setUnderlineThickness(thickness: Float){
 		text.underlineThickness = thickness

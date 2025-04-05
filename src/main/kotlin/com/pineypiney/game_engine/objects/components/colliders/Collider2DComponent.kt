@@ -13,6 +13,10 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 
 	constructor(parent: GameObject, shape: Shape2D, layer: Layer, vararg flags: String): this(parent, shape, layer, mutableSetOf(*flags))
 
+	constructor(parent: GameObject, shape: Shape2D, flags: MutableSet<String>): this(parent, shape, defaultLayer, flags)
+
+	constructor(parent: GameObject, shape: Shape2D, vararg flags: String): this(parent, shape, defaultLayer, mutableSetOf(*flags))
+
 	val transformedShape get() = shape transformedBy parent.worldModel
 	var active = true
 
@@ -39,6 +43,8 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 		val nearbyColliders = parent.objects?.getAll2DCollisions()?.filter {
 			canCollide(it) && it.transformedShape.getBoundingCircle().distanceTo(circle) < moveDist
 		} ?: return remainingMovement
+
+		var sameLength = false
 
 		// Iterate over all collision boxes sharing object collections and
 		// eject this collision boxes object if the collision boxes collide
@@ -72,6 +78,19 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 			}
 
 			val remainingDistance = collision.removeShape1FromShape2.length()
+
+			// The collider is in a corner bouncing between two other colliders and not moving
+			// Then sameLength will be triggered twice in a row and the collider can be stopped
+			sameLength = if(remainingDistance >= remainingMovement.length()){
+				if(sameLength) {
+					remainingMovement(0f)
+					endMovement(0f, 0f)
+					break
+				}
+				else true // Same length triggered for first time
+			}
+			else false // The collider has moved so same length is reset
+
 			remainingMovement(newMovement * remainingDistance)
 
 			endMovement(movement projectOn newMovement)

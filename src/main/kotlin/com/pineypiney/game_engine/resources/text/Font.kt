@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.text.Text
-import com.pineypiney.game_engine.objects.util.shapes.TextMesh
+import com.pineypiney.game_engine.objects.util.meshes.TextMesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey

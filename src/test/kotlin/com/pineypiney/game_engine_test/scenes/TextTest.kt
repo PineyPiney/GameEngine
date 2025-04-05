@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.objects.components.rendering.TextRendererCompo
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.objects.text.Text
-import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.text.FontLoader

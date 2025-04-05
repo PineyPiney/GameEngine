@@ -1,13 +1,13 @@
-package com.pineypiney.game_engine.objects.util.shapes
+package com.pineypiney.game_engine.objects.util.meshes
 
 import com.pineypiney.game_engine.util.GLFunc
 import org.lwjgl.opengl.GL31C.*
 
-abstract class IndicesMesh(vertices: FloatArray, parts: IntArray, indices: IntArray) : Mesh() {
+abstract class IndicesMesh(vertices: FloatArray, attributes: Array<VertexAttribute<*>>, indices: IntArray) : Mesh() {
 
-	private val VBO = if (GLFunc.isLoaded) glGenBuffers() else -1
 	private val EBO = if (GLFunc.isLoaded) glGenBuffers() else -1
 
+	override val attributes: Map<VertexAttribute<*>, Long> = createAttributes(attributes)
 	override val count: Int = indices.size
 
 	init {
@@ -21,7 +21,7 @@ abstract class IndicesMesh(vertices: FloatArray, parts: IntArray, indices: IntAr
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
 			// How to read non-indices array
-			setAttribs(parts)
+			setAttributes()
 
 			glBindVertexArray(0)
 			glBindBuffer(GL_ARRAY_BUFFER, 0)
@@ -41,9 +41,6 @@ abstract class IndicesMesh(vertices: FloatArray, parts: IntArray, indices: IntAr
 	override fun drawInstanced(amount: Int, mode: Int) {
 		glDrawElementsInstanced(mode, count, GL_UNSIGNED_INT, 0, amount)
 	}
-
-	override fun getVertices() = getFloatBuffer(VBO, GL_ARRAY_BUFFER)
-	fun getElements() = getIntBuffer(EBO, GL_ELEMENT_ARRAY_BUFFER)
 
 	override fun delete() {
 		super.delete()

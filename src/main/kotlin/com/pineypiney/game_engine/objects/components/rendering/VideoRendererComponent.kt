@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.util.shapes.SquareMesh
+import com.pineypiney.game_engine.objects.util.meshes.SquareMesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.video.Video
 import glm_.vec2.Vec2
@@ -10,7 +10,7 @@ abstract class VideoRendererComponent(parent: GameObject) :
 	ShaderRenderedComponent(parent, MeshedTextureComponent.default2DShader) {
 
 	abstract val video: Video
-	val vShape = Companion.shape
+	val mesh = shape
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 
@@ -19,7 +19,7 @@ abstract class VideoRendererComponent(parent: GameObject) :
 
 		shader.setUp(uniforms, renderer)
 
-		vShape.bindAndDraw()
+		mesh.bindAndDraw()
 	}
 
 	fun play() = video.play()

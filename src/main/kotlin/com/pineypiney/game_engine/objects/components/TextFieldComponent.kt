@@ -8,7 +8,7 @@ import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
-import com.pineypiney.game_engine.objects.util.shapes.Mesh
+import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey

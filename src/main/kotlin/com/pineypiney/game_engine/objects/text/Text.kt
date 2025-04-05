@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
-import com.pineypiney.game_engine.objects.util.shapes.TextMesh
+import com.pineypiney.game_engine.objects.util.meshes.TextMesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
