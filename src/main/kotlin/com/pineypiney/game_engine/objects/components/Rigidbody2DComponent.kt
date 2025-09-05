@@ -36,7 +36,7 @@ class Rigidbody2DComponent(parent: GameObject, var mass: Float = 1f, var frictio
 			val movement = velocity * interval
 			if (collider?.active == true) {
 				val endMovement = Vec2(movement)
-				val collidedMove = collider.checkAllCollisionsNew(movement, endMovement, stepBias)
+				val collidedMove = collider.checkAllCollisions(movement, endMovement, stepBias)
 				parent.translate(Vec3(collidedMove, 0f))
 
 				velocity = endMovement / interval

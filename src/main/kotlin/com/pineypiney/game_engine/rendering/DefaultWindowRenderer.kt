@@ -52,9 +52,13 @@ open class DefaultWindowRenderer<G: WindowGameLogic, R: CameraI>(override val wi
 		glClear(GL_DEPTH_BUFFER_BIT)
 	}
 
-	fun renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: FrameBuffer? = null, sort: GameObject.() -> Float = { -(transformComponent.worldPosition - camera.cameraPos).length2() }) = renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0, sort)
+	fun renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: FrameBuffer? = null) = renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0){ -(transformComponent.worldPosition - camera.cameraPos).length2() }
 
-	open fun renderLayer(layer: Collection<GameObject>, tickDelta: Double, framebuffer: Int = 0, sort: GameObject.() -> Float = { -(transformComponent.worldPosition - camera.cameraPos).length2() }){
+	fun <C: Comparable<C>> renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: FrameBuffer? = null, sort: GameObject.() -> C) = renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0, sort)
+
+	fun renderLayer(layer: Collection<GameObject>, tickDelta: Double, framebuffer: Int = 0) = renderLayer(layer, tickDelta, framebuffer){ -(transformComponent.worldPosition - camera.cameraPos).length2() }
+
+	open fun <C: Comparable<C>> renderLayer(layer: Collection<GameObject>, tickDelta: Double, framebuffer: Int = 0, sort: GameObject.() -> C){
 		for(o in layer.flatMap { it.catchRenderingComponents() }.sortedBy(sort)) {
 			renderObject(o, tickDelta, framebuffer)
 		}

@@ -28,8 +28,8 @@ abstract class Shape2D : Shape<Vec2>() {
 		val range1 = projectTo(normal)
 		val range2 = other projectTo normal
 
-		// If the two ranges don't overlap then return 0
-		if (range1.x >= range2.y || range2.x >= range1.y) return Vec2(0f)
+		// If the two ranges don't overlap by more than a rounding error then return 0
+		if (range1.x + 1e-4f >= range2.y || range2.x + 1e-4f >= range1.y) return Vec2(0f)
 		// Otherwise pass the distances needed to separate the shapes in each direction,
 		// where the first value is positive and the second is negative
 		val a = range2.x - range1.y
@@ -81,19 +81,20 @@ abstract class Shape2D : Shape<Vec2>() {
 				}
 			}
 
-			// If there is movement then move the smallest amount necessary back along that movement vector
-			val moveMag = movement.length()
-			var smallestEjection = Float.MAX_VALUE
-			var collisionNormal = Vec2(0f)
-			for ((normal, mult) in lengths) {
-				val cosT = -(normal dot movement) / moveMag
-				val ejectSize = mult / cosT
-				if(ejectSize > 0f && ejectSize < smallestEjection) {
-					smallestEjection = ejectSize
-					collisionNormal = normal
+
+			val dir = movement.normalize()
+			var dist = Float.MAX_VALUE
+			var collisionNormal = dir
+			for((normal, mult) in lengths){
+				val dot = normal dot dir
+				val d = mult / dot
+				if(abs(d) < abs(dist)) {
+					dist = d
+					collisionNormal = Vec2(normal)
 				}
 			}
-			return Collision2D(this, movement, other, Vec2(0f), Vec2(0f), collisionNormal, -movement * smallestEjection / moveMag)
+
+ 			return Collision2D(this, movement, other, Vec2(0f), Vec2(0f), collisionNormal, dir * dist)
 		}
 		val (normal, mult) = lengths.minBy { it.value.abs }
 		return Collision2D(this, movement, other, Vec2(0f), Vec2(0f), normal, normal * mult)
@@ -111,6 +112,7 @@ abstract class Shape2D : Shape<Vec2>() {
 	 */
 	fun getEjection(other: Shape2D, movement: Vec2, stepBias: Vec2 = Vec2(0f)): Vec2 {
 		val still = movement == Vec2(0f)
+		// lengths is a map of normals to the distance needed to remove the shape along that normal
 		val lengths = (getNormals() + other.getNormals() + (center - other.center).normalize()).associateWith {
 			// The overlap in each direction of the normal
 			val overlaps = overlap1D(it, other)
@@ -151,6 +153,54 @@ abstract class Shape2D : Shape<Vec2>() {
 				// This almost always means someone's walking into a wall, falling into a floor etc.
 				if (abs(dot) > moveMag * .9f && abs(mult) <= moveMag) return normal * mult
 			}
+		}
+		val r = lengths.minBy { it.value.abs }.run { key * value }
+		return r
+	}
+
+	fun getEjectionNew(other: Shape2D, movement: Vec2, stepBias: Vec2 = Vec2(0f)): Vec2 {
+		val still = movement == Vec2(0f)
+		// lengths is a map of normals to the distance needed to remove the shape along that normal
+		val lengths = (getNormals() + other.getNormals() + (center - other.center).normalize()).associateWith {
+			// The overlap in each direction of the normal
+			val overlaps = overlap1D(it, other)
+
+			// If any of the normals don't overlap then the shapes also don't overlap so no escape vector is needed
+			if (overlaps.x == 0f) return Vec2(0f)
+
+			// If there is no movement then just pick the smallest movement
+			if (still) {
+				absMinOf(overlaps.x, overlaps.y)
+			}
+			// Otherwise pick the one to move back against the original movement
+			else {
+				val dot = it dot movement
+				// If the movement is in the other direction to the normal then use the positive magnitude (x)
+				// otherwise use the negative version
+				overlaps.run { if (dot < 0f) x else y }
+			}
+		}
+
+		//if(lengths.any { it.value == 0f }) return Vec3(0f)
+
+		if (!still) {
+			if (stepBias != Vec2(0f)) {
+				val stepMag = stepBias.length()
+				for ((normal, mult) in lengths) {
+					val dot = normal dot stepBias
+
+					if (abs(dot) > stepMag * .9f && abs(mult) <= stepMag) return normal * mult
+				}
+			}
+
+			val dir = movement.normalize()
+			var dist = Float.MAX_VALUE
+			for((normal, mult) in lengths){
+				val dot = normal dot dir
+				val d = mult / dot
+				if(abs(d) < abs(dist)) dist = d
+			}
+			return dir * dist
 		}
 		val r = lengths.minBy { it.value.abs }.run { key * value }
 		return r

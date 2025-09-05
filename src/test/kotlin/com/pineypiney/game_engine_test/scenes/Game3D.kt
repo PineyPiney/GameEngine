@@ -7,10 +7,10 @@ import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.LightComponent
 import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComponent
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
+import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
-import com.pineypiney.game_engine.objects.util.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera

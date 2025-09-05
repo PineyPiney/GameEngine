@@ -4,8 +4,8 @@ import com.pineypiney.game_engine.util.maths.shapes.AxisAlignedCuboid
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-open class CubeShape(blf: Vec3, trb: Vec3, tbl: Vec2 = Vec2(), ttr: Vec2 = Vec2(1)) :
-	ArrayShape(createVertices(blf, trb, tbl, ttr), arrayOf(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEX_COORD)) {
+open class CubeMesh(blf: Vec3, trb: Vec3, tbl: Vec2 = Vec2(), ttr: Vec2 = Vec2(1)) :
+	ArrayMesh(createVertices(blf, trb, tbl, ttr), arrayOf(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEX_COORD)) {
 
 	override val shape: AxisAlignedCuboid = AxisAlignedCuboid((blf + trb) * 0.5f, trb - blf)
 

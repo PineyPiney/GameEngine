@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects.util.meshes
 import com.pineypiney.game_engine.util.GLFunc
 import org.lwjgl.opengl.GL31C.*
 
-abstract class ArrayShape(vertices: FloatArray, override val attributes: Map<VertexAttribute<*>, Long>) : Mesh() {
+abstract class ArrayMesh(vertices: FloatArray, override val attributes: Map<VertexAttribute<*>, Long>) : Mesh() {
 
 	constructor(vertices: FloatArray, attributes: Array<VertexAttribute<*>>): this(vertices, createAttributes(attributes))
 

@@ -42,8 +42,8 @@ class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(pare
 		return super.onSecondary(window, action, mods, cursorPos)
 	}
 
-	override fun checkHover(ray: Ray, screenPos: CursorPosition): Float {
-		return if(browser?.checkHover(ray, screenPos) != -1f) super.checkHover(ray, screenPos) else -1f
+	override fun checkHover(ray: Ray, cursor: CursorPosition): Float {
+		return if(browser?.checkHover(ray, cursor) != -1f) super.checkHover(ray, cursor) else -1f
 	}
 
 	companion object {

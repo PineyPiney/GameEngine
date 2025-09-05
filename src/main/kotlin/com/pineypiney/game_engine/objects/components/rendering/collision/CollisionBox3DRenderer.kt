@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.objects.util.collision
+package com.pineypiney.game_engine.objects.components.rendering.collision
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent

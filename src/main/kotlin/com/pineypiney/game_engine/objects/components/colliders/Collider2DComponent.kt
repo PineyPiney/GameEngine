@@ -30,7 +30,7 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 		return false
 	}
 
-	fun checkAllCollisionsNew(movement: Vec2, endMovement: Vec2, stepBias: Vec2 = Vec2(0f)): Vec2 {
+	fun checkAllCollisions(movement: Vec2, endMovement: Vec2, stepBias: Vec2 = Vec2(0f)): Vec2 {
 
 		val remainingMovement = Vec2(movement)
 		val collidedMove = Vec2(0f)
@@ -97,35 +97,6 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 		}
 
 		return collidedMove + remainingMovement
-	}
-
-	fun checkAllCollisions(movement: Vec2, stepBias: Vec2 = Vec2(0f)): Vec2 {
-
-		val collidedMove = Vec2(movement)
-		var moveDist = movement.length()
-
-		// Create a temporary collision box in the new position to calculate collisions
-		val newCollision = transformedShape
-		newCollision translate movement
-
-		val circle = newCollision.getBoundingCircle()
-		val nearbyColliders = parent.objects?.getAll2DCollisions()?.filter {
-			it.active && it != this && it.transformedShape.getBoundingCircle().distanceTo(circle) < moveDist
-		} ?: return collidedMove
-
-		// Iterate over all collision boxes sharing object collections and
-		// eject this collision boxes object if the collision boxes collide
-		for (collider in nearbyColliders) {
-			val overlap = newCollision.getEjection(collider.transformedShape, movement, stepBias)
-			if(overlap.x == 0f && overlap.y == 0f) continue
-
-			collidedMove plusAssign overlap
-			newCollision translate overlap
-			parent.getComponent<Collider2DCallback>()?.onCollide(this, collider, overlap)
-			collider.parent.getComponent<Collider2DCallback>()?.onCollide(collider, this, -overlap)
-		}
-
-		return collidedMove
 	}
 
 	fun isGrounded(direction: Vec2 = Vec2(0f, -.01f)): Collider2DComponent? {

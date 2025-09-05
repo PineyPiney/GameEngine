@@ -55,7 +55,7 @@ fun maxOf(a: Vec2, vararg b: Vec2): Vec2{
 }
 
 /**
- * Function to return the normal of the Vector
+ * Function to return the normal of the Vector, rotated 90 degrees clockwise
  */
 fun Vec2.normal(): Vec2 {
 	return Vec2(y, -x)

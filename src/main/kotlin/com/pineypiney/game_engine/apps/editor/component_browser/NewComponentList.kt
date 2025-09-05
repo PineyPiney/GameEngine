@@ -29,7 +29,7 @@ class NewComponentList(parent: GameObject, val browser: ComponentBrowser): Scrol
 	}
 
 	fun updateSearch(){
-		val valid = Components.Companion.getAllComponentNames().filter { it.lowercase().contains(search) }.toMutableSet()
+		val valid = Components.getAllComponentNames().filter { it.lowercase().contains(search) }.toMutableSet()
 		val entries = items.toSet()
 
 		for(e in entries){
@@ -70,8 +70,8 @@ class NewComponentList(parent: GameObject, val browser: ComponentBrowser): Scrol
 			return action
 		}
 
-		override fun checkHover(ray: Ray, screenPos: CursorPosition): Float {
-			return if(list.hover) super.checkHover(ray, screenPos) else -1f
+		override fun checkHover(ray: Ray, cursor: CursorPosition): Float {
+			return if(list.hover) super.checkHover(ray, cursor) else -1f
 		}
 	}
 }

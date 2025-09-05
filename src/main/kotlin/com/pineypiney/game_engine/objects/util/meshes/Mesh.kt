@@ -64,8 +64,30 @@ abstract class Mesh : Deleteable {
 		return list
 	}
 
+	fun <A> setAttribute(attribute: VertexAttribute<A>, values: List<A>){
+		glBindBuffer(GL_ARRAY_BUFFER, VBO)
+		val buffer = ByteBuffer(attribute.size * 4)
+		val step = attributes[attribute] ?: return
+		for(i in 0..<values.size){
+			attribute.set(buffer, 0, values[i])
+			glBufferSubData(GL_ARRAY_BUFFER, i * stride + step, buffer)
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0)
+	}
+
 	override fun delete() {
 		glDeleteVertexArrays(VAO)
+	}
+
+	object EmptyMesh : Mesh(){
+		override val attributes: Map<VertexAttribute<*>, Long> = emptyMap()
+		override val shape: Shape<*> = Shape.EmptyShape
+		override val count: Int = 0
+
+		override fun draw(mode: Int) {}
+		override fun drawInstanced(amount: Int, mode: Int) {}
+
 	}
 
 	companion object {
@@ -84,12 +106,13 @@ abstract class Mesh : Deleteable {
 			return map
 		}
 
+
 		val cornerSquareShape = SquareMesh(Vec2(), Vec2(1f))
 		val centerSquareShape = SquareMesh(Vec2(-0.5f), Vec2(0.5f))
 		val screenQuadShape = SquareMesh(Vec2(-1f), Vec2(1f))
 		val footSquare = SquareMesh(Vec2(-0.5f, 0f), Vec2(0.5f, 1f))
 
-		val cornerCubeShape = CubeShape(Vec3(0f), Vec3(1f))
-		val centerCubeShape = CubeShape(Vec3(-.5f), Vec3(.5f))
+		val cornerCubeShape = CubeMesh(Vec3(0f), Vec3(1f))
+		val centerCubeShape = CubeMesh(Vec3(-.5f), Vec3(.5f))
 	}
 }

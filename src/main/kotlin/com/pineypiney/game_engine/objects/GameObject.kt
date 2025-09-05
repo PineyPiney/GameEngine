@@ -183,6 +183,10 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		return components.firstOrNull { it is T } as? T
 	}
 
+	inline fun <reified C : Component> removeComponent(): Boolean {
+		return components.removeIf { it is C }
+	}
+
 	fun  getShape(): Shape<*> {
 
 		getComponent<Collider2DComponent>()?.let { return it.transformedShape }

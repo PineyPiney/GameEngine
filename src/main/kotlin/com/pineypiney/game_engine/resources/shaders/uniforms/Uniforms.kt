@@ -590,14 +590,14 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
 	}
 
 
-	inline fun <reified U : Uniform<E>, E> set(name: String, noinline getter: (RendererI) -> E) {
+	inline fun <reified U : Uniform<E>, E> set(name: String, noinline getter: (RendererI) -> E?) {
 		val uniform = this[name] ?: return
 		if (uniform is U) {
 			uniform.getter = getter
 		}
 	}
 
-	inline fun <reified U : Uniform<E>, E> set(name: String, noinline getter: () -> E) {
+	inline fun <reified U : Uniform<E>, E> set(name: String, noinline getter: () -> E?) {
 		val uniform = this[name] ?: return
 		if (uniform is U) {
 			uniform.getter = { getter() }

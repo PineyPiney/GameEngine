@@ -6,7 +6,10 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider2DCompone
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
 import com.pineypiney.game_engine.util.extension_functions.delete
 
-open class ObjectCollectionLayer(val layer: Int, vararg initialObjects: GameObject) : LinkedHashSet<GameObject>((initialObjects as Array<GameObject>).toSet()) {
+open class ObjectCollectionLayer(val layer: Int, initialObjects: Set<GameObject>) : LinkedHashSet<GameObject>(initialObjects) {
+
+	@Suppress("UNCHECKED_CAST")
+	constructor(layer: Int, vararg initialObjects: GameObject): this(layer, (initialObjects as Array<GameObject>).toSet())
 
 	open fun getAllObjects(includeInactive: Boolean = false): Set<GameObject> {
 		val func: GameObject.() -> Set<GameObject> =

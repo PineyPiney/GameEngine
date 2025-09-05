@@ -20,7 +20,7 @@ class GameClickerComponent(parent: GameObject, val primaryClick: () -> Unit = {}
 		return s
 	}
 
-	override fun checkHover(ray: Ray, screenPos: CursorPosition): Float {
+	override fun checkHover(ray: Ray, cursor: CursorPosition): Float {
 		return ray.distanceTo(parent.getShape())
 	}
 }

@@ -20,5 +20,5 @@ interface RendererI : Initialisable {
 		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT or GL11C.GL_DEPTH_BUFFER_BIT or GL11C.GL_STENCIL_BUFFER_BIT)
 	}
 
-	fun getViewport(): Viewport
+	fun getViewport(): Viewport = Viewport(Vec2i(0), viewportSize)
 }

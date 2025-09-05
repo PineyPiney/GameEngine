@@ -131,8 +131,8 @@ class ContextMenuComponent<C: ContextMenu.Context>(parent: GameObject, val conte
 		return action
 	}
 
-	override fun checkHover(ray: Ray, screenPos: CursorPosition): Float {
-		val relativePos = screenPos.position - Vec2(parent.transformComponent.worldPosition)
+	override fun checkHover(ray: Ray, cursor: CursorPosition): Float {
+		val relativePos = cursor.position - Vec2(parent.transformComponent.worldPosition)
 		for((i, sec) in sections.withIndex()) {
 			if (relativePos.isWithin(sec.origin, sec.size)) {
 				hoveredSection = i

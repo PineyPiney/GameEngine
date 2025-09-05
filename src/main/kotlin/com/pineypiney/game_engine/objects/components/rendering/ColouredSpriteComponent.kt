@@ -16,6 +16,9 @@ open class ColouredSpriteComponent(
 	val setUniforms: ColouredSpriteComponent.() -> Unit = {}
 ) : SpriteComponent(parent, sprite, shader) {
 
+	constructor(parent: GameObject, texture: Texture, ppu: Float, tint: Vec4 = Vec4(1f), shader: Shader = colouredMenuShader, setUniforms: ColouredSpriteComponent.() -> Unit = {}):
+			this(parent, Sprite(texture, ppu), tint, shader, setUniforms)
+
 	override fun setUniforms() {
 		super.setUniforms()
 		uniforms.setVec4Uniform("tint") { tint }

@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.util.extension_functions
 
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.objects.Initialisable
 
@@ -42,12 +43,31 @@ inline fun <S, T> Iterable<T>.reduceFields(get: T.() -> S, operation: (acc: S, S
 	return accumulator
 }
 
+inline fun <S, T> Iterable<T>.reduceFieldsOrNull(get: T.() -> S, operation: (acc: S, S) -> S): S? {
+	val iterator = this.iterator()
+	if (!iterator.hasNext()) return null
+	var accumulator: S = iterator.next().get()
+	while (iterator.hasNext()) {
+		accumulator = operation(accumulator, iterator.next().get())
+	}
+	return accumulator
+}
+
 /**
  * Initialise all items in a collection of initialisable objects
  */
 fun <E : Initialisable> Iterable<E?>?.init() {
-	this?.forEach {
-		it?.init()
+	var obj: E? = null
+	try {
+		this?.forEach {
+			obj = it
+			it?.init()
+		}
+	}
+	catch (e: ConcurrentModificationException){
+		GameEngineI.logger.error("The list of initialisables was changed during initialisation of $obj")
+		e.printStackTrace()
+		throw e
 	}
 }
 
@@ -96,19 +116,19 @@ fun <T, N> Iterable<T>.orOf(init: N, or: (N, N) -> N, selector: (T) -> N): N{
 	}
 	return sum
 }
-fun <T> Iterable<T>.orOfInt(selector: (T) -> Int): Int = orOf<T, Int>(0, Int::or, selector)
-fun <T> Iterable<T>.orOfUInt(selector: (T) -> UInt): UInt = orOf<T, UInt>(0u, UInt::or, selector)
-fun <T> Iterable<T>.orOfLong(selector: (T) -> Long): Long = orOf<T, Long>(0L, Long::or, selector)
+fun <T> Iterable<T>.orOfInt(selector: (T) -> Int): Int = orOf(0, Int::or, selector)
+fun <T> Iterable<T>.orOfUInt(selector: (T) -> UInt): UInt = orOf(0u, UInt::or, selector)
+fun <T> Iterable<T>.orOfLong(selector: (T) -> Long): Long = orOf(0L, Long::or, selector)
 
 fun <E, K, V> Iterable<E>.associateIndexed(transform: (Int, E) -> Pair<K, V>): Map<K, V> {
 	val it = iterator()
-	var i = 0;
+	var i = 0
 	val map = mutableMapOf<K, V>()
 	while (it.hasNext()) {
-		val pair = transform(i++, it.next());
+		val pair = transform(i++, it.next())
 		map[pair.first] = pair.second
 	}
-	return map;
+	return map
 }
 
 /**

@@ -22,4 +22,12 @@ data class TextureParameters(
 	companion object {
 		val default = TextureParameters()
 	}
+
+	/*
+
+	Example File, which makes all textures in the directory have min and mag filters set to GL_NEAREST
+	"*"
+		filter : NEAREST
+
+	 */
 }

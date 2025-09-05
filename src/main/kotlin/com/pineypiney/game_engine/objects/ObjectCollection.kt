@@ -10,7 +10,11 @@ import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.filterIsInstance
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 
-open class ObjectCollection {
+open class ObjectCollection() {
+
+	constructor(objects: Array<GameObject>): this(){
+		for(obj in objects) addObject(obj)
+	}
 
 	open val map = mutableMapOf<Int, ObjectCollectionLayer>()
 
@@ -131,6 +135,13 @@ open class ObjectCollection {
 			if(o.name == name) return o
 		}
 		return null
+	}
+
+	operator fun plusAssign(other: ObjectCollection){
+		for((i, layer) in other.map){
+			if(map.contains(i)) map[i]!!.addAll(layer)
+			else map[i] = ObjectCollectionLayer(i, layer)
+		}
 	}
 
 	inline fun <reified T : GameObject> get(name: String? = null): T? {

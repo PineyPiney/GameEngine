@@ -13,9 +13,11 @@ import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.extension_functions.getRotation
+import com.pineypiney.game_engine.util.extension_functions.normal
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Circle
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
+import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.window.DefaultWindow
 import com.pineypiney.game_engine.window.DefaultWindowedEngine
@@ -28,6 +30,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import org.junit.Test
 import kotlin.math.PI
+import kotlin.math.sign
 import kotlin.random.Random
 
 fun main() {
@@ -63,6 +66,11 @@ class EngineTest{
 	@Test
 	fun testText(){
 		run(::TestEngine, ::TextTest)
+	}
+
+	@Test
+	fun testShader(){
+		run(::TestEngine, ::ShaderTest)
 	}
 
 	companion object {
@@ -120,6 +128,25 @@ class EngineTest{
 		val rect2 = Rect2D(.5f, 1.5f, 1f, 1f)
 		val c = rect2.calculateCollision(rect1, Vec2(-1f, -2f))
 		c?.removeShape1FromShape2
+
+		val parallelogram = Parallelogram(Vec2(0f), Vec2(-2f, 1f), Vec2(2f, 1f))
+
+		val insidePoint = Vec2(.6f, .301f)
+		val outsidePoint = Vec2(-.2f, 1.91f)
+		val right = parallelogram.containsPoint(insidePoint)
+		val wrong = parallelogram.containsPoint(outsidePoint)
+		println("Should be true: $right")
+		println("Should be false: $wrong")
+
+		val secondPara = Parallelogram(Vec2(1f, 1.49f), Vec2(-1f, .5f), Vec2(1f, .5f))
+		val intersects = secondPara intersects parallelogram
+		val eject = secondPara.calculateCollision(parallelogram, Vec2(0f, -.01f))
+
+		println("Intersects: $intersects")
+		if(eject != null) {
+			println("Ejection: ${eject.removeShape1FromShape2}")
+			println("New Movement: ${eject.collisionNormal.normal().let { it * (it dot eject.shape1Movement).sign }}")
+		}
 	}
 
 	@Suppress("UNUSED_VARIABLE")

@@ -9,8 +9,7 @@ import glm_.vec3.Vec3
 
 open class MenuItem(name: String = "MenuItem") : GameObject(name) {
 
-	override fun init() {
-		super.init()
+	init {
 		layer = 1
 	}
 

@@ -87,4 +87,19 @@ abstract class Shape<V : Vec2Vars<Float>> {
 	 * @return A new shape transformed by [model]
 	 */
 	abstract infix fun transformedBy(model: Mat4): Shape<*>
+
+	object EmptyShape : Shape<Vec2Vars<Float>>(){
+		override val center: Vec2Vars<Float> = Vec2(0f)
+		override val min: Vec2Vars<Float> = center
+		override val max: Vec2Vars<Float> = center
+		override val size: Vec2Vars<Float> = center
+
+		override fun intersectedBy(ray: Ray): Array<Vec3> = emptyArray()
+		override fun containsPoint(point: Vec2Vars<Float>): Boolean = false
+		override fun vectorTo(point: Vec2Vars<Float>): Vec2Vars<Float>  = point
+		override fun getNormals(): Set<Vec2Vars<Float>>  = emptySet()
+		override fun projectToNormal(normal: Vec2Vars<Float>): Set<Float> = emptySet()
+		override fun translate(move: Vec2Vars<Float>) {}
+		override fun transformedBy(model: Mat4): Shape<*> = this
+	}
 }

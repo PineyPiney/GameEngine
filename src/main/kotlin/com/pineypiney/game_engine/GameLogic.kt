@@ -13,7 +13,7 @@ abstract class GameLogic : GameLogicI {
 	override fun init() {
 		renderer.init()
 		addObjects()
-		gameObjects.map.flatMap { it.value }.init()
+		for(layer in gameObjects.map) layer.value.init()
 	}
 
 	// This addObjects function allows adding items and calling init() on them all here in gameLogic, see init()

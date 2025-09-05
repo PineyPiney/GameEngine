@@ -44,10 +44,10 @@ abstract class SliderComponent<T: Number>(
 	abstract fun getDelta(): Float
 	abstract fun valueFromDelta(delta: Float): T
 
-	override fun checkHover(ray: Ray, screenPos: CursorPosition): Float {
-		val slider = super.checkHover(ray, screenPos)
+	override fun checkHover(ray: Ray, cursor: CursorPosition): Float {
+		val slider = super.checkHover(ray, cursor)
 		val pointer = pointer.getComponent<DefaultInteractorComponent>()!!
-			.checkHover(ray, screenPos)
+			.checkHover(ray, cursor)
 		return if(slider == -1f) pointer
 		else min(slider, pointer)
 	}

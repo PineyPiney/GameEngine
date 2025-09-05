@@ -18,11 +18,11 @@ interface InteractorComponent : ComponentI {
 	var forceUpdate: Boolean
 	var passThrough: Boolean
 
-	fun checkHover(ray: Ray, screenPos: CursorPosition): Float {
+	fun checkHover(ray: Ray, cursor: CursorPosition): Float {
 		val renderer = parent.getComponent<RenderedComponent>()
 
 		if(renderer == null){
-			return if(screenPos.position.isWithin(
+			return if(cursor.position.isWithin(
 					Vec2(parent.transformComponent.worldPosition),
 					Vec2(parent.transformComponent.worldScale)
 				)) ray.rayOrigin.z - parent.transformComponent.worldPosition.z
@@ -32,11 +32,11 @@ interface InteractorComponent : ComponentI {
 		val shape = renderer.getScreenShape()
 		if(shape is Shape2D){
 			val newShape = shape.transformedBy(parent.worldModel)
-			return if(newShape.containsPoint(screenPos.position)) ray.rayOrigin.z - parent.transformComponent.worldPosition.z
+			return if(newShape.containsPoint(cursor.position)) ray.rayOrigin.z - parent.transformComponent.worldPosition.z
 			else -1f
 		}
 
-		return if(screenPos.position.isWithin(
+		return if(cursor.position.isWithin(
 			Vec2(parent.transformComponent.worldPosition) - (renderer.getScreenShape().min.run{ Vec2(x, y) } * Vec2(parent.transformComponent.worldScale)),
 			Vec2(parent.transformComponent.worldScale) * renderer.getScreenShape().size.run { Vec2(x, y) }
 		)) ray.rayOrigin.z - parent.transformComponent.worldPosition.z

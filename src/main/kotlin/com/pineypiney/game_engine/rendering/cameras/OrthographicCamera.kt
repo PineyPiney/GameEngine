@@ -31,7 +31,6 @@ open class OrthographicCamera(
 	override fun getProjection(mat: Mat4): Mat4 {
 		val extents = Vec2(height * .5f * aspectRatio, height * .5f)
 		return glm.ortho(-extents.x, extents.x, -extents.y, extents.y, range.x, range.y, mat)
-
 	}
 
 	override fun getRay(point: Vec2): Ray {

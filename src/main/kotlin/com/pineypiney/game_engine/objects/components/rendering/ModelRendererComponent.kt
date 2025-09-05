@@ -4,8 +4,8 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.LightComponent
 import com.pineypiney.game_engine.objects.components.fields.IntFieldRange
-import com.pineypiney.game_engine.objects.util.collision.CollisionBox2DRenderer
-import com.pineypiney.game_engine.objects.util.collision.CollisionBox3DRenderer
+import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox2DRenderer
+import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
@@ -63,6 +63,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 		if(debug and Model.DEBUG_COLLIDER > 0){
 			if(renderer == null) {
 				if(model.box is Collider2D) parent.addChild(CollisionBox2DRenderer.create(parent).apply { init() })
+
 				else parent.addChild(CollisionBox3DRenderer.create(parent).apply { init() })
 			}
 			else renderer.visible = true

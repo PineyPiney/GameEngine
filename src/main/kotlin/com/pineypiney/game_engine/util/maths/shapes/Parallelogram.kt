@@ -6,11 +6,12 @@ import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
+import kotlin.math.sqrt
 
 class Parallelogram(val origin: Vec2, val side1: Vec2, val side2: Vec2) : Shape2D() {
 
 	override val center: Vec2 = origin + (side1 + side2) * .5f
-	val points = setOf(origin, origin + side1, origin + side2, origin + side1 + side2)
+	val points = setOf(origin, origin + side1, origin + side1 + side2, origin + side2)
 	override val min = points.reduce { a, b -> Vec2(minOf(a.x, b.x), minOf(a.y, b.y))}
 	override val max = points.reduce { a, b -> Vec2(maxOf(a.x, b.x), maxOf(a.y, b.y))}
 
@@ -23,7 +24,8 @@ class Parallelogram(val origin: Vec2, val side1: Vec2, val side2: Vec2) : Shape2
 	}
 
 	override fun getBoundingCircle(): Circle {
-		return Circle(center, (center - origin).length())
+		val diameter = sqrt(maxOf((side1 + side2).length2(), (side1 - side2).length2()))
+		return Circle(center, diameter * .5f)
 	}
 
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
@@ -36,16 +38,21 @@ class Parallelogram(val origin: Vec2, val side1: Vec2, val side2: Vec2) : Shape2
 		// P0P is the vector from the origin on the plane to the intersection
 		val P0P = point - this.origin
 
+		val normal1 = side2 projectOn side1.normal().normalize()
+		val normal2 = side1 projectOn side2.normal().normalize()
+
 		// That vector is then projected onto the sides of the rect, if those projections are shorter than both sides
 		// then the point is inside the rect
-		val q1 = P0P projectOn side1
-		val q2 = P0P projectOn side2
+		val q1 = P0P projectOn normal1
+		val q2 = P0P projectOn normal2
 
 		// For both projections check that the projection is a shorter version of the rectangle side
 		val q1b =
-			((q1.x != 0f && side1.x / q1.x >= 1) || side1.x == 0f) && ((q1.y != 0f && side1.y / q1.y >= 1) || side1.y == 0f)
+			((q1.x != 0f && normal1.x / q1.x >= 1) || normal1.x == 0f) &&
+			((q1.y != 0f && normal1.y / q1.y >= 1) || normal1.y == 0f)
 		val q2b =
-			((q2.x != 0f && side2.x / q2.x >= 1) || side2.x == 0f) && ((q2.y != 0f && side2.y / q2.y >= 1) || side2.y == 0f)
+			((q2.x != 0f && normal2.x / q2.x >= 1) || normal2.x == 0f) &&
+			((q2.y != 0f && normal2.y / q2.y >= 1) || normal2.y == 0f)
 
 		return q1b && q2b
 	}
