@@ -9,7 +9,6 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
@@ -29,7 +28,6 @@ class CollisionPolygonRenderer(parent: GameObject, val obj: GameObject, val widt
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		GLFunc.lineWidth = width
 		mesh.bindAndDraw(GL11C.GL_LINE_LOOP)
 	}
 

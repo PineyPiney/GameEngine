@@ -83,7 +83,7 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 
 			// The collider is in a corner bouncing between two other colliders and not moving
 			// Then sameLength will be triggered twice in a row and the collider can be stopped
-			sameLength = if(remainingDistance >= remainingMovement.length()){
+			sameLength = if(remainingDistance - remainingMovement.length() >= -1e-3){
 				if(sameLength) {
 					remainingMovement(0f)
 					endMovement(0f, 0f)

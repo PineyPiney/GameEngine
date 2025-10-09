@@ -3,8 +3,12 @@ package com.pineypiney.game_engine.objects.components.rendering
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.util.extension_functions.maxOf
+import com.pineypiney.game_engine.util.extension_functions.minOf
 import com.pineypiney.game_engine.util.maths.shapes.*
+import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 
 interface RenderedComponentI : ComponentI {
 
@@ -32,5 +36,27 @@ interface RenderedComponentI : ComponentI {
 			return if (cuboids.size == 1) cuboids.first()
 			else CompoundShape3D(cuboids.toMutableSet())
 		}
+	}
+
+	fun getMeshBounds(transform: Mat4 = Mat4.identity): Pair<Vec3, Vec3>{
+		var min = Vec3(Float.MAX_VALUE)
+		var max = Vec3(-Float.MAX_VALUE)
+		for(mesh in getMeshes()){
+			val meshMinMesh = mesh.getBounds(transform)
+			min = minOf(min, meshMinMesh.first)
+			max = maxOf(max, meshMinMesh.second)
+		}
+		return min to max
+	}
+
+	fun getScreenSize(transform: Mat4 = Mat4.identity): Vec2{
+		var min = Vec2(Float.MAX_VALUE)
+		var max = Vec2(-Float.MAX_VALUE)
+		for(mesh in getMeshes()){
+			val meshMinMesh = mesh.getBounds(transform)
+			min = minOf(min, Vec2(meshMinMesh.first))
+			max = maxOf(max, Vec2(meshMinMesh.second))
+		}
+		return max - min
 	}
 }

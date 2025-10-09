@@ -1,10 +1,8 @@
 package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.colliders.BoxCollider3DComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
-import com.pineypiney.game_engine.objects.components.colliders.CompoundCollider3DComponent
 import com.pineypiney.game_engine.objects.components.fields.*
 import com.pineypiney.game_engine.objects.components.rendering.*
 import com.pineypiney.game_engine.objects.components.scrollList.ScrollBarComponent
@@ -72,10 +70,8 @@ class Components {
 		}
 
 		init {
-			addComponent(BoxCollider3DComponent::class)
 			addComponent(Collider2DComponent::class)
 			addComponent(Collider3DComponent::class)
-			addComponent(CompoundCollider3DComponent::class)
 
 			addComponent(CaretRendererComponent::class)
 			addComponent(ColouredSpriteComponent::class)
@@ -156,10 +152,9 @@ class Components {
 			}
 		}
 
+		@Suppress("FilterIsInstanceResultIsAlwaysEmpty")
 		fun <C, T> getNewDefaultField(property: KMutableProperty1<C, T>, component: C, parent: String = ""): ComponentField<*>?{
-
-			@Suppress("SENSELESS_COMPARISON")
-			val fieldsOfType = fieldTypes.filter { it.default()?.let{ it::class == property.returnType.classifier } == true }.filterIsInstance<FieldType<T>>()
+			val fieldsOfType = fieldTypes.filter { fieldType -> fieldType.default()?.let{ it::class == property.returnType.classifier } == true }.filterIsInstance<FieldType<T>>()
 			for(i in fieldsOfType){
 				if(i.annotations.isNotEmpty() && i.annotations.all { property.findAnnotations(it).isNotEmpty() }){
 					return i.fieldCreator(parent + property.name, { property.get(component) }, { property.set(component, it)}, property.annotations.toSet())
