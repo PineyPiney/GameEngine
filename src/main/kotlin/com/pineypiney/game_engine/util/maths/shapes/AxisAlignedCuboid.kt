@@ -7,7 +7,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec3.operators.div
 
-class AxisAlignedCuboid(override val center: Vec3, val sides: Vec3) : Shape3D() {
+class AxisAlignedCuboid(val center: Vec3, val sides: Vec3) : Shape3D() {
 
 	override val min = center - (sides / 2)
 	override val max = min + sides
@@ -84,9 +84,5 @@ class AxisAlignedCuboid(override val center: Vec3, val sides: Vec3) : Shape3D() 
 
 	override fun projectToNormal(normal: Vec3): Set<Float> {
 		return projectAllPoints(normal, points.toSet())
-	}
-
-	override fun translate(move: Vec3) {
-		center plusAssign move
 	}
 }

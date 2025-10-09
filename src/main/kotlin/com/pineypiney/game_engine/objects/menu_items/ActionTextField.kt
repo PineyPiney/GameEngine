@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects.menu_items
 import com.pineypiney.game_engine.objects.components.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.TextFieldComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3

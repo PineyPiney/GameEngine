@@ -21,8 +21,7 @@ class Model(
 	val meshes: Array<ModelMesh> = arrayOf(ModelMesh.default),
 	val rootBone: Bone? = null,
 	val animations: Array<ModelAnimation> = arrayOf(),
-	val box: Collider = Collider2D(Rect2D(Vec2(), Vec2(1f))),
-	val flags: Int = aiProcess_Triangulate or aiProcess_FlipUVs
+	val box: Collider = Collider2D(Rect2D(Vec2(), Vec2(1f)))
 ) : Resource() {
 
 	/**
@@ -52,11 +51,16 @@ class Model(
 
 	override fun delete() {}
 
+    override fun toString(): String {
+        return "Model[$name]"
+    }
+
 	companion object {
 
 		const val DEBUG_MESH = 1
-		const val DEBUG_BONES = 2
-		const val DEBUG_COLLIDER = 4
+		const val DEBUG_WIREFRAME = 2
+		const val DEBUG_BONES = 16
+		const val DEBUG_COLLIDER = 256
 
 		val brokeMaterial = PhongMaterial("broke", mapOf())
 

@@ -1,5 +1,5 @@
 plugins {
-    val kotlinVersion = "2.0.0"
+    val kotlinVersion = "2.2.20"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
@@ -55,7 +55,7 @@ dependencies {
 
     // Logback
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-    implementation("ch.qos.logback:logback-classic:1.4.14")
+    implementation("ch.qos.logback:logback-classic:1.5.13")
 
     // GLM
     implementation("kotlin.graphics:kool:0.9.75")

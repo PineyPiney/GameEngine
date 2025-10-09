@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.util.extension_functions
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.objects.Initialisable
+import kotlin.experimental.or
 
 /**
  * Reduce function that passes initial accumulator value
@@ -116,6 +117,8 @@ fun <T, N> Iterable<T>.orOf(init: N, or: (N, N) -> N, selector: (T) -> N): N{
 	}
 	return sum
 }
+fun <T> Iterable<T>.orOfShort(selector: (T) -> Short): Short = orOf(0, Short::or, selector)
+fun <T> Iterable<T>.orOfUShort(selector: (T) -> UShort): UShort = orOf(0u, UShort::or, selector)
 fun <T> Iterable<T>.orOfInt(selector: (T) -> Int): Int = orOf(0, Int::or, selector)
 fun <T> Iterable<T>.orOfUInt(selector: (T) -> UInt): UInt = orOf(0u, UInt::or, selector)
 fun <T> Iterable<T>.orOfLong(selector: (T) -> Long): Long = orOf(0L, Long::or, selector)
@@ -272,6 +275,25 @@ fun <E, T> MutableMap<E, T>.getOrSet(key: E, create: (key: E) -> T): T {
 		this[key] = new
 		new
 	}
+}
+
+
+/**
+ * Get the element at [key], or if it doesn't exist then set the element at [key] using [create]
+ *
+ * @param [key] The key to get the value at
+ * @param [create] The constructor to create a value at if there is not one set yet
+ *
+ * @return The value at [key]
+ */
+fun <E, T> MutableCollection<T>.getOrSet(key: E, getter: T.() -> E, create: (key: E) -> T): T {
+    val current = firstOrNull { it.getter() == key }
+    return if (current != null) current
+    else {
+        val new = create(key)
+        this.add(new)
+        new
+    }
 }
 
 /**

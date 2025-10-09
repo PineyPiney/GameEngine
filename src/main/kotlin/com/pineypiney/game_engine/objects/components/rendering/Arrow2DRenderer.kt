@@ -1,16 +1,13 @@
 package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.util.meshes.ArrayMesh
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
-import com.pineypiney.game_engine.objects.util.meshes.VertexAttribute
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.ArrayMesh
+import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.normal
-import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.util.maths.shapes.Shape
-import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -43,7 +40,7 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 		uniforms.setVec4Uniform("colour", ::colour)
 	}
 
-	override fun getScreenShape(): Shape<*> = mesh.shape
+	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
@@ -74,11 +71,7 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 				headBase - (perp * 2), point, headBase + (perp * 2)
 			)
 		}
-		return object : ArrayMesh(array.flatMap { it.array.toList() }.toFloatArray(), arrayOf(VertexAttribute.POSITION2D)){
-			override val shape: Shape2D
-				get() = Rect2D(origin, point)
-
-		}
+		return ArrayMesh(array.flatMap { it.array.toList() }.toFloatArray(), arrayOf(VertexAttribute.POSITION2D))
 	}
 
 	companion object {

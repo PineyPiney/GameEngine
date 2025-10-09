@@ -9,7 +9,6 @@ import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.toByteString
 import com.pineypiney.game_engine.util.extension_functions.toString
 import glm_.asHexString
 import glm_.intValue
@@ -45,7 +44,7 @@ open class ComponentField<T>(
 
 	fun serialise(head: StringBuilder, data: StringBuilder) {
 		val s = serialiseValue()
-		head.append(id.length.toByteString(1) + id + s.length.toByteString())
+		head.append(ByteData.int2String(id.length, 1) + id + ByteData.int2String(s.length))
 		data.append(s)
 	}
 }

@@ -6,7 +6,7 @@ import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import kotlin.math.sqrt
 
-class Circle3D(override val center: Vec3, val normal: Vec3, val radius: Float) : Shape3D() {
+class Circle3D(val center: Vec3, val normal: Vec3, val radius: Float) : Shape3D() {
 
 	override val min: Vec3 = center - Vec3(radius)
 	override val max: Vec3 = center + Vec3(radius)
@@ -70,10 +70,6 @@ class Circle3D(override val center: Vec3, val normal: Vec3, val radius: Float) :
 		val t2 = p2 dot normal
 
 		return setOf(t1, t2)
-	}
-
-	override fun translate(move: Vec3) {
-		center += move
 	}
 
 	fun perp(vec: Vec3): Vec3{

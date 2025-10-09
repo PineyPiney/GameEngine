@@ -2,14 +2,13 @@ package com.pineypiney.game_engine.objects.components.rendering.collision
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec4.Vec4
 
 class CollisionBox3DRenderer(
@@ -40,9 +39,7 @@ class CollisionBox3DRenderer(
 		mesh.bindAndDraw()
 	}
 
-	override fun getScreenShape(): Shape<*> {
-		return mesh.shape
-	}
+	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	companion object {
 		val defaultShader =

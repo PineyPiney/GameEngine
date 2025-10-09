@@ -3,12 +3,11 @@ package com.pineypiney.game_engine.objects.components.rendering
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
 import com.pineypiney.game_engine.objects.text.Text
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import com.pineypiney.game_engine.window.Viewport
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -83,9 +82,7 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		return Vec2(text.getWidth() * scale, text.getHeight() * scale)
 	}
 
-	override fun getScreenShape(): Shape<*> {
-		return text.mesh.shape
-	}
+	override fun getMeshes(): Collection<Mesh> = listOf(text.mesh)
 
 	fun getTextContent() = text.text
 

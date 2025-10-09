@@ -1,14 +1,18 @@
 package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.rendering.meshes.MeshVertex
+import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
+import com.pineypiney.game_engine.resources.models.animations.BoneState
 import com.pineypiney.game_engine.resources.models.animations.KeyFrame
-import com.pineypiney.game_engine.resources.models.animations.MeshState
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
+import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.TextureParameters
 import com.pineypiney.game_engine.util.exceptions.ModelParseException
+import com.pineypiney.game_engine.util.extension_functions.*
 import com.pineypiney.game_engine.util.maths.Collider2D
 import com.pineypiney.game_engine.util.maths.Collider3D
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
@@ -26,7 +30,6 @@ import kool.toBuffer
 import org.json.JSONArray
 import org.json.JSONObject
 import org.lwjgl.opengl.GL11C
-import unsigned.Ushort
 import unsigned.ui
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -70,6 +73,9 @@ class GLTFModelLoader(val loader: ModelLoader) {
 
 		val textures = loadTextures(json, bufferViews)
 
+
+        // Load Materials
+
 		val materialsJson = json.getJSONArray("materials")
 		val materials = mutableListOf<PBRMaterial>()
 
@@ -81,7 +87,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
 
 			if(materialJson.has("pbrMetallicRoughness")) {
 				val pbrJson = materialJson.getJSONObject("pbrMetallicRoughness")
-				val baseColour = if (pbrJson.has("baseColourFactor")) getVec4(pbrJson.getJSONArray("baseColourFactor")) else Vec4(1f)
+				val baseColour = pbrJson.getVec4("baseColourFactor") ?: Vec4(1f)
 				textures.getOrNull(getTextureIndex(pbrJson, "baseColorTexture"))?.let { materialTextures["baseColour"] = it }
 
 				val metallicFactor = pbrJson.getFloatOrNull("metallicFactor") ?: 1f
@@ -102,60 +108,40 @@ class GLTFModelLoader(val loader: ModelLoader) {
 			else materials.add(PBRMaterial(name, emptyMap()))
 		}
 
+
+        // Load Meshes
+
 		val meshesJson = json.getJSONArray("meshes")
 		val meshes = mutableListOf<ModelMesh>()
-		meshesJson.forEachObject { meshJson, _ ->
-			val name = meshJson.getString("name")
-			val primitives = meshJson.getJSONArray("primitives")
-			for ((i, primitive) in primitives.objects) {
-				val attributes = primitive.getJSONObject("attributes")
-				val pos = attributes.getInt("POSITION")
-				val tex = attributes.getInt("TEXCOORD_0")
-				val nor = attributes.getInt("NORMAL")
-				val tan = if(attributes.has("TANGENT")) attributes.getInt("TANGENT") else -1
 
-				val indices = primitive.getInt("indices")
-				val material = primitive.getInt("material")
+        meshesJson.forEachObject { meshJson, _ ->
+            val name = meshJson.getString("name")
+            val primitives = meshJson.getJSONArray("primitives")
+            for ((_, primitive) in primitives.objects) {
+                loadPrimitive(fileName, name, primitive, meshes, accessors, materials)
+            }
+        }
 
-				val posArray = accessors[pos].map { it as Vec3 }
-				val texArray = accessors[tex].map { it as Vec2 }
-				val norArray = accessors[nor].map { it as Vec3 }
-				val indArray = accessors[indices].map { (it as Number).i }
-				val tanArray = if(tan == -1) emptyList() else accessors[tan].map { it as Vec3 }
 
-				val maxIndex = indArray.max()
-				val smallArray: Pair<String, Int>? = when {
-					maxIndex >= posArray.size -> "Position" to posArray.size
-					maxIndex >= texArray.size -> "TexCoord" to texArray.size
-					maxIndex >= norArray.size -> "Normals" to norArray.size
-					tan != -1 && maxIndex >= tanArray.size -> "Tangents" to tanArray.size
-					else -> null
-				}
+        // Bones
 
-				if (smallArray != null) {
-					GameEngineI.error("${smallArray.first} attribute in primitive $i of mesh $name in GLTF model $fileName is too small. It has ${smallArray.second} entries, but the index attribute requires at least $maxIndex entries")
-					continue
-				}
+        val bones = mutableSetOf<Bone>()
+        if(json.has("nodes") and json.has("skins")) {
+            val skinJson = json.getJSONArray("skins")
+            skinJson.forEachObject { skin, _ ->
+                loadBones(fileName, json.getJSONArray("nodes"), skin, bones)
+            }
+        }
 
-				if(tan == -1) {
-					val vertices = Array(maxIndex + 1) { ModelMesh.MeshVertex(posArray[it], texArray[it], norArray[it]) }
-					meshes.add(ModelMesh(name, vertices, indArray.toIntArray(), material = materials.getOrElse(material) { PBRMaterial.default }))
-				}
-				else {
-					val vertices = Array(maxIndex + 1){ ModelTangentMesh.TangentMeshVertex(posArray[it], texArray[it], norArray[it], tanArray[it]) }
-					meshes.add(ModelTangentMesh(name, vertices, indArray.toIntArray(), material = materials.getOrElse(material){ PBRMaterial.default }))
-				}
-			}
-		}
 
 		// Animations
 
 		val animations = mutableListOf<ModelAnimation>()
 
 		val animationsJson = if (json.has("animations")) json.getJSONArray("animations") else null
-		animationsJson?.forEachObject { animationJson, i ->
+		animationsJson?.forEachObject { animationJson, _ ->
 			val name = animationJson.getString("name")
-			val states = mutableMapOf<Float, MeshState>()
+			val states = mutableMapOf<Float, MutableList<BoneState>>()
 
 			val samplers = animationJson.getJSONArray("samplers").mapObjects { samplerJson, si ->
 				val times = accessors[samplerJson.getInt("input")].map { it as Number }
@@ -173,20 +159,16 @@ class GLTFModelLoader(val loader: ModelLoader) {
 				val path = target.getString("path")
 
 				for ((t, v) in sampler) {
-					val state = states.getOrPut(t) { MeshState(mesh, Vec3(), Quat(), 1f, 1) }
-					when (path) {
-						"translation" -> state.translation.put(v as Vec3)
-						"rotation" -> {
-							val q = v as Vec4
-
-							state.rotation.put(q.x, q.y, q.z, q.w)
-						}
-					}
-
+                    val frameStates = states.getOrSet(t){ mutableListOf() }
+                    val nodeState = frameStates.getOrSet(mesh, BoneState::parentId){ BoneState(mesh, Vec3(), Quat()) }
+                    when(path) {
+                        "translation" -> nodeState.translation = v as Vec3
+                        "rotation" -> nodeState.rotation = Quat(v as Vec4)
+                    }
 				}
 			}
 
-			val frames = states.map { (t, s) -> KeyFrame(t, arrayOf(s)) }
+			val frames = states.map { (t, s) -> KeyFrame(t, s) }
 
 			animations.add(ModelAnimation(name, frames.toTypedArray()))
 		}
@@ -210,8 +192,127 @@ class GLTFModelLoader(val loader: ModelLoader) {
 		val collider =
 			if (min.z == max.z) Collider2D(Rect2D(Vec2(min), Vec2(max - min)))
 			else Collider3D(Cuboid((min + max) * .5f, Quat.identity, max - min))
-		return Model(fileName, meshes.toTypedArray(), null, animations.toTypedArray(), collider)
+		return Model(fileName, meshes.toTypedArray(), bones.firstOrNull(), animations.toTypedArray(), collider)
 	}
+
+    fun loadPrimitive(fileName: String, name: String, primitive: JSONObject, meshes: MutableCollection<ModelMesh>, accessors: List<Array<Any>>, materials: List<ModelMaterial>){
+
+        val attributes = primitive.getJSONObject("attributes")
+        val attributeMap = mutableMapOf<VertexAttribute<*>, Array<Any>>()
+
+        val pos = attributes.getInt("POSITION")
+        attributeMap[VertexAttribute.POSITION] = accessors[pos]
+        val nor = attributes.getInt("NORMAL")
+        attributeMap[VertexAttribute.NORMAL] = accessors[nor]
+        val tex = attributes.getInt("TEXCOORD_0")
+        attributeMap[VertexAttribute.TEX_COORD] = accessors[tex]
+
+        val tan = attributes.getIntOrNull("TANGENT")
+        if(tan != null) {
+            if(accessors[tan].first() is Vec3) attributeMap[VertexAttribute.TANGENT] = accessors[tan]
+            else if(accessors[tan].first() is Vec4) attributeMap[VertexAttribute.TANGENT_HANDED] = accessors[tan]
+        }
+
+        if(attributes.has("JOINTS_0") and attributes.has("WEIGHTS_0")){
+            attributeMap[VertexAttribute.BONE_IDS] = accessors[attributes.getInt("JOINTS_0")]
+            attributeMap[VertexAttribute.BONE_WEIGHTS] = accessors[attributes.getInt("WEIGHTS_0")]
+        }
+
+
+        val indices = primitive.getInt("indices")
+        val material = primitive.getIntOrNull("material") ?: -1
+
+        val indArray = accessors[indices].map { (it as Number).i }
+
+        // Blender exports tangent as a VEC4, where the w components is the handedness of the tangent/bitangent
+        // https://blender.stackexchange.com/questions/220756/why-does-blender-output-vec4-tangents-for-gltf#comment372839_220756
+
+        // Check the arrays are all as large as the max index, otherwise log an error
+        val maxIndex = indArray.max()
+        for((att, arr) in attributeMap) {
+            if (arr.size < maxIndex) {
+                GameEngineI.error("$att in primitive $name of mesh $name in GLTF model $fileName is too small. It has ${arr.size} entries, but the index attribute requires at least $maxIndex entries")
+                continue
+            }
+        }
+
+        val vertices = Array(maxIndex + 1) {
+
+            val values = attributeMap.map { (att, arr) ->
+                try {
+                    VertexAttribute.Pair(att, arr, it)
+                }
+                catch (_: ClassCastException) {
+                    GameEngineI.logger.warn("Failed to load primitive $name due to attribute $att being type ${arr[it].javaClass.name}, which cannot be used for this attribute")
+                    return
+                }
+            }.toSet()
+			MeshVertex(values)
+
+        }
+        meshes.add(ModelMesh(name, vertices, indArray.toIntArray(), material = materials.getOrElse(material){ PBRMaterial.default }))
+    }
+
+    fun loadBones(fileName: String, nodesJson: JSONArray, boneJson: JSONObject, bones: MutableSet<Bone>) {
+//        val bindMatrix = boneJson.getIntOrNull("inverseBindMatrices")
+        val jointIndices = boneJson.getJSONArray("joints").map { it as Int }
+
+        bones.add(loadBone(nodesJson, jointIndices.first(), jointIndices, null))
+    }
+
+    fun loadBone(nodesJson: JSONArray, boneIndex: Int, indices: List<Int>, parent: Bone?): Bone {
+        val nodeJson = nodesJson.getJSONObject(boneIndex)
+        val boneName =  nodeJson.getStringOrNull("name") ?: "bone_$boneIndex"
+
+        val translation = nodeJson.getVec3("translation") ?: Vec3()
+        val rotation = nodeJson.getQuat("rotation") ?: Quat()
+        // Rounding and renormalising the quat stops tiny values from being carried over when converting between Mat4 and Quat
+        val roundedRotation = Quat(Vec4 { rotation[it].round(4) }.normalize())
+        val scale = nodeJson.getVec3("scale") ?: Vec3(1f)
+
+        val bone = Bone(parent, indices.indexOf(boneIndex), boneName, boneName, (Mat4().translate(translation) * roundedRotation.toMat4()).scale(scale))
+
+        if(nodeJson.has("children")) {
+            for (f in nodeJson.getJSONArray("children")) {
+                bone.addChild(loadBone(nodesJson, f as Int, indices, bone))
+            }
+        }
+
+        return bone
+    }
+
+    fun loadTextures(json: JSONObject, bufferViews: List<ByteArray>): List<Texture>{
+        if(!json.has("samplers")) return emptyList()
+        val samplersJson = json.getJSONArray("samplers")
+        val samplers = mutableListOf<TextureParameters>()
+        for(i in 0..<samplersJson.length()) samplers.add(samplerType(samplersJson.getJSONObject(i)))
+
+        val imagesJson = json.getJSONArray("images")
+        val images = mutableListOf<Triple<String, ByteArray, Boolean>>()
+        for(i in 0..<imagesJson.length()){
+            val imageJson = imagesJson.getJSONObject(i)
+            if(imageJson.has("uri")){
+                images.add(Triple("Model Image $i", ByteArray(0), false))
+            }
+            else{
+                val name = imageJson.getStringOrNull("name") ?: "Model Image $i"
+                val imageData = bufferViews[imageJson.getInt("bufferView")]
+                val png = imageJson.getString("mimeType") == "image/png"
+                images.add(Triple(name, imageData, png))
+            }
+        }
+
+        val texturesJson = json.getJSONArray("textures")
+        val textures = mutableListOf<Texture>()
+        for(i in 0..<texturesJson.length()){
+            val textureJson = texturesJson.getJSONObject(i)
+            val sampler = samplers[textureJson.getInt("sampler")]
+            val image = images[textureJson.getInt("source")]
+            textures.add(Texture(image.first, TextureLoader.loadTextureFromStream(image.first, image.second.inputStream(), sampler)))
+        }
+        return textures
+    }
+
 
 	fun loadGLTFFile(fileName: String, stream: InputStream): Model {
 		val json = JSONObject(stream.readAllBytes().toString(Charsets.UTF_8))
@@ -249,38 +350,6 @@ class GLTFModelLoader(val loader: ModelLoader) {
 		return loadModel(fileName, json, buffers)
 	}
 
-	fun loadTextures(json: JSONObject, bufferViews: List<ByteArray>): List<Texture>{
-		if(!json.has("samplers")) return emptyList()
-		val samplersJson = json.getJSONArray("samplers")
-		val samplers = mutableListOf<TextureParameters>()
-		for(i in 0..<samplersJson.length()) samplers.add(samplerType(samplersJson.getJSONObject(i)))
-
-		val imagesJson = json.getJSONArray("images")
-		val images = mutableListOf<Triple<String, ByteArray, Boolean>>()
-		for(i in 0..<imagesJson.length()){
-			val imageJson = imagesJson.getJSONObject(i)
-			if(imageJson.has("uri")){
-				images.add(Triple("Model Image $i", ByteArray(0), false))
-			}
-			else{
-				val name = imageJson.getStringOrNull("name") ?: "Model Image $i"
-				val imageData = bufferViews[imageJson.getInt("bufferView")]
-				val png = imageJson.getString("mimeType") == "image/png"
-				images.add(Triple(name, imageData, png))
-			}
-		}
-
-		val texturesJson = json.getJSONArray("textures")
-		val textures = mutableListOf<Texture>()
-		for(i in 0..<texturesJson.length()){
-			val textureJson = texturesJson.getJSONObject(i)
-			val sampler = samplers[textureJson.getInt("sampler")]
-			val image = images[textureJson.getInt("source")]
-			textures.add(Texture(image.first, TextureLoader.loadTextureFromStream(image.first, image.second.inputStream(), sampler)))
-		}
-		return textures
-	}
-
 	fun getVec4(json: JSONArray, offset: Int = 0): Vec4{
 		val l = json.length() - offset
 		return Vec4{ i -> if(i < l) json.getFloat(i + offset) else 1f }
@@ -300,7 +369,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
 		SIGNED_BYTE(5120, 1, { b, i -> b[i] }),
 		UNSIGNED_BYTE(5121, 1, { b, i -> b[i].ub }),
 		SIGNED_SHORT(5122, 2, { b, i -> b.getShort(i) }),
-		UNSIGNED_SHORT(5123, 2, { b, i -> parseUshort(b, i) }),
+		UNSIGNED_SHORT(5123, 2, { b, i -> b.getUshort(i) }),
 		UNSIGNED_INT(5125, 4, { b, i -> b.getInt(i).ui }),
 		FLOAT(5126, 4, { b, i ->
 			b.getFloat(i)
@@ -361,31 +430,3 @@ class GLTFModelLoader(val loader: ModelLoader) {
 		})
 	}
 }
-
-fun parseUshort(b: ByteBuffer, i: Int): Ushort {
-	val l = b[i + 1].ub.us shl 8
-	val s = b[i].ub.i
-	return l or s
-}
-
-fun JSONObject.getOrNull(key: String): Any?{
-	return if(has(key)) get(key) else null
-}
-
-fun JSONObject.getIntOrNull(key: String): Int? = if(has(key)) getInt(key) else null
-
-fun JSONObject.getFloatOrNull(key: String): Float? = if(has(key)) getFloat(key) else null
-
-fun JSONObject.getStringOrNull(key: String): String? = if(has(key)) getString(key) else null
-
-fun JSONArray.forEachObject(predicate: (JSONObject, Int) -> Unit) {
-	for (i in 0..<length()) predicate(getJSONObject(i), i)
-}
-
-fun <R> JSONArray.mapObjects(predicate: (JSONObject, Int) -> R): List<R> {
-	val map = mutableListOf<R>()
-	for (i in (0..<length())) map.add(predicate(getJSONObject(i), i))
-	return map.toList()
-}
-
-val JSONArray.objects get() = (0..<length()).associateWith { getJSONObject(it)!! }

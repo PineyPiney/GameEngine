@@ -1,31 +1,35 @@
 package com.pineypiney.game_engine.resources.models
 
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.rotate
+import com.pineypiney.game_engine.util.extension_functions.getRotation
+import com.pineypiney.game_engine.util.extension_functions.getTranslation
 import com.pineypiney.game_engine.util.maths.I
-import glm_.i
 import glm_.mat4x4.Mat4
+import glm_.quat.Quat
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, val parentTransform: Mat4) {
+class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, val defaultRelativeTransform: Mat4) {
 
-	var transform = I
-	val defaultModelSpace: Mat4 = (parent?.modelSpaceTransform ?: I) * parentTransform
-	var modelSpaceTransform: Mat4 = defaultModelSpace
+    val defaultModelTransform: Mat4 = (parent?.defaultModelTransform ?: I) * defaultRelativeTransform
+
+
+    val parentTransform get() = (parent?.modelTransform ?: I)
+    var relativeTransform = defaultRelativeTransform
+	var modelTransform: Mat4 = defaultModelTransform
 
 	private val children: MutableList<Bone> = mutableListOf()
 
-	var translation: Vec3 = Vec3()
+	var translation: Vec3 = defaultRelativeTransform.getTranslation()
 		set(value) {
 			field = value
 			updateModel()
 		}
 
-	var rotation: Vec3 = Vec3()
+	var rotation: Quat = defaultRelativeTransform.getRotation()
 		set(value) {
 			field = value
 			updateModel()
@@ -47,14 +51,14 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 
 	fun reset() {
 		for (b in getAllChildren()) {
-			if (b.rotation != Vec3()) b.rotation = Vec3()
+			if (b.rotation != Vec3()) b.rotation = Quat()
 			if (b.translation.let { it.x != 0f || it.y != 0f || it.z != 0f }) b.translation = Vec3()
 		}
 	}
 
 	private fun updateModel() {
-		transform = I.translate(translation).rotate(rotation)
-		modelSpaceTransform = (parent?.modelSpaceTransform ?: I) * (parent?.transform ?: I) * parentTransform
+		relativeTransform = I.translate(translation) * rotation.toMat4()
+		modelTransform = parentTransform * relativeTransform
 		for (it in children) {
 			it.updateModel()
 		}
@@ -64,16 +68,16 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 		translation = translation + vector
 	}
 
-	fun rotate(angles: Vec3) {
-		rotation plusAssign angles
+	fun rotate(quat: Quat) {
+		rotation = rotation * quat
 	}
 
 	fun render(shader: Shader, model: Mat4) {
 
-		shader.setMat4("model", model * this.modelSpaceTransform * this.transform * boneMatrix)
+		shader.setMat4("model", model * modelTransform * boneMatrix)
 		shader.setVec4(
 			"colour",
-			Vec4((((this.id + 4) % 6) > 2).i, (((this.id + 2) % 6) > 2).i, (((this.id) % 6) > 2).i, 1)
+			calculateColour()
 		)
 
 		Mesh.centerSquareShape.draw()
@@ -83,15 +87,20 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 		}
 	}
 
-	fun getMeshTransform() = modelSpaceTransform * transform * defaultModelSpace.inverse()
+	fun getMeshTransform() = modelTransform * defaultModelTransform.inverse()
 
 	fun copy(copyParent: Bone? = null): Bone {
-		val b = Bone(copyParent, id, name, sid, Mat4(parentTransform))
+		val b = Bone(copyParent, id, name, sid, Mat4(defaultRelativeTransform))
 		for (child in children) {
 			b.addChild(child.copy(b))
 		}
 		return b
 	}
+
+    fun calculateColour(): Vec4{
+        val v = (id % 2) * .5f
+        return Vec4(.5f * ((id % 16) / 8) + v, .5f * ((id % 8) / 4) + v, .5f * ((id % 4) / 2) + v, 1f)
+    }
 
 	override fun toString(): String {
 		return "Bone $name[id: $id]"
@@ -100,5 +109,9 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 	companion object {
 		val boneMatrix = I.translate(Vec3(0, 0.33, 0)).scale(Vec3(0.2, 0.6, 1))
 		val boneShader = ShaderLoader.getShader(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/bones"))
+
+//		fun generateBoneMesh(): IndicesMesh {
+//
+//		}
 	}
 }

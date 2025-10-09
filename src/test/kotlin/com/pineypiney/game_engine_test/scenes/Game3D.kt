@@ -5,13 +5,14 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.FPSCounter
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.LightComponent
+import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComponent
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
@@ -27,6 +28,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.fromAngle
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.vectorToEuler
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
@@ -62,14 +64,16 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	private val object3D = GameObject.simpleTextureGameObject(TextureLoader[ResourceKey("broke")], Mesh.centerCubeShape, MeshedTextureComponent.default3DShader).apply{ rotation = Quat(Vec3(0.4, PI/4, 1.2)) }
 
 	var blockHover = false
-	private val block = GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/lit")], mesh = Mesh.centerCubeShape) {
-		uniforms.setFloatUniform("ambient") { 0.1f }
-		uniforms.setVec3Uniform("blockColour") { if (blockHover) Vec3(0.1, 0.9, 0.1) else Vec3(0.7f) }
-		uniforms.setVec3Uniform("lightPosition") { Vec3(1, 5, 2) }
+	private val block = GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")], mesh = Mesh.centerCubeShape) {
+		shader.setLightUniforms(parent)
+		shader.setVec4("material.baseColourFactor", Vec4(1.0))
+		shader.setFloat("material.roughnessFactor", .5f)
+		shader.setFloat("material.metallicFactor", .5f)
 	}
 
-	private val doughnut = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("broke")], ModelRendererComponent.defaultShader).apply { translate(Vec3(0f, 2f, 0f)) }
-	private val gltf = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/Beating Heart 3")], ModelRendererComponent.defaultLitShader).apply { translate(Vec3(2f, 2f, 0f)); resize(Vec3(0.002f)) }
+	private val doughnut = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("broke")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")]).apply { translate(Vec3(0f, 2f, 0f)) }
+	private val gltf = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/Beating Heart 3")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")]).apply { translate(Vec3(2f, 2f, 0f)); resize(Vec3(.002f)) }
+	private val voxel = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("voxel/Mecha01")], ColourRendererComponent.vertexColours).apply { translate(Vec3(0f, -4f, 0f)); scale(Vec3(.1f)) }
 
 	val sun = GameObject.simpleLightObject(DirectionalLight(Vec3(.1f, -.9f, .1f)))
 	val light = GameObject.simpleLightObject(PointLight())
@@ -79,6 +83,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 	override fun init() {
 		super.init()
+		//GLFunc.cullface = true
 		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
 		gltf.addChild(CollisionBox3DRenderer.create(gltf).apply { init() })
 	}
@@ -90,12 +95,14 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		add(cursorRay)
 		add(doughnut.apply { getComponent<ModelRendererComponent>()?.setAnimation("TorusAction") })
 		add(gltf)
+		add(voxel)
 		add(light, torch, sun.apply { position = Vec3(0f, 900f, 0f); scale = Vec3(50f) })
 		add(indexSlider)
 		add(fpsText)
 	}
 
 	override fun render(tickDelta: Double) {
+
 		renderer.render(this, tickDelta)
 
 		val speed = 10 * Timer.frameDelta
@@ -119,7 +126,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		object3D.rotate(Vec3(0.5, 1, 1.5) * Timer.frameDelta)
 		val ray = camera.getRay(input.mouse.lastPos.screenSpace)
 
-		val shape = object3D.getShape()
+		val shape = Cuboid(Vec3(0f), Quat.identity, Vec3(1f)) transformedBy object3D.worldModel
 		val hit = shape.intersectedBy(ray).isEmpty()
 		object3D.getComponent<MeshedTextureComponent>()!!.texture = if(hit) Texture.broke else TextureLoader[ResourceKey("snake/snake_0")]
 
@@ -179,7 +186,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		}
 
 		val ray = camera.getRay(cursorPos.screenSpace)
-		blockHover = block.getShape().intersectedBy(ray).isNotEmpty()
+		blockHover = (Cuboid(Vec3(0f), Quat.identity, Vec3(1f)) transformedBy block.worldModel).intersectedBy(ray).isNotEmpty()
 	}
 
 	override fun updateAspectRatio() {

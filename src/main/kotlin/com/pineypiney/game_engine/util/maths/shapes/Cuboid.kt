@@ -9,7 +9,7 @@ import glm_.vec3.Vec3
 import glm_.vec3.operators.div
 import kotlin.math.abs
 
-class Cuboid(override var center: Vec3, var rotation: Quat, var sides: Vec3) : Shape3D() {
+class Cuboid(var center: Vec3, var rotation: Quat, var sides: Vec3) : Shape3D() {
 
 	override val min: Vec3
 	override val max: Vec3
@@ -121,10 +121,6 @@ class Cuboid(override var center: Vec3, var rotation: Quat, var sides: Vec3) : S
 
 	override fun projectToNormal(normal: Vec3): Set<Float> {
 		return projectAllPoints(normal, points.toSet())
-	}
-
-	override fun translate(move: Vec3) {
-		center plusAssign move
 	}
 
 	override fun transformedBy(model: Mat4): Cuboid {

@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.util.meshes.SquareMesh
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.video.Video
 import glm_.vec2.Vec2
 
@@ -34,6 +34,6 @@ abstract class VideoRendererComponent(parent: GameObject) :
 
 	companion object {
 		// Image must be flipped vertically
-		val shape = SquareMesh(Vec2(0f), Vec2(1f), Vec2(0f, 1f), Vec2(1f, 0f))
+		val shape = Mesh.textureQuad(Vec2(0f), Vec2(1f), Vec2(0f, 1f), Vec2(1f, 0f))
 	}
 }

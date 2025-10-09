@@ -2,11 +2,10 @@ package com.pineypiney.game_engine.apps.editor
 
 import com.pineypiney.game_engine.apps.editor.util.EditorSettings
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
-import com.pineypiney.game_engine.objects.util.meshes.SquareMesh
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.FrameBuffer
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.maths.I
@@ -25,7 +24,7 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings) : DefaultWin
 	var backgroundColour = Colour(0, 0, 0)
 	val sceneBuffer = FrameBuffer(0, 0)
 
-	var sceneMesh: Mesh = SquareMesh(Vec2(-1f), Vec2(1f))
+	var sceneMesh: Mesh = Mesh.textureQuad(Vec2(-1f), Vec2(1f))
 
 	override fun init() {
 		buffer.format = GL11C.GL_RGBA
@@ -71,12 +70,8 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings) : DefaultWin
 		GL11C.glClear(GL11C.GL_DEPTH_BUFFER_BIT)
 	}
 
-	fun renderEditedScene(game: EditorScreen, tickDelta: Double){
-
-	}
-
 	fun createSceneBufferMesh(): Mesh {
-		return SquareMesh(Vec2((settings.objectBrowserWidth * 2f / viewportSize.x) - 1f, (settings.fileBrowserHeight * 2f / viewportSize.y) - 1f), Vec2(1f - (settings.componentBrowserWidth * 2f / viewportSize.x), 1f))
+		return Mesh.textureQuad(Vec2((settings.objectBrowserWidth * 2f / viewportSize.x) - 1f, (settings.fileBrowserHeight * 2f / viewportSize.y) - 1f), Vec2(1f - (settings.componentBrowserWidth * 2f / viewportSize.x), 1f))
 	}
 
 	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {

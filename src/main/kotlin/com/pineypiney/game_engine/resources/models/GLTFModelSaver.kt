@@ -3,11 +3,11 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
 import com.pineypiney.game_engine.util.ByteData
-import com.pineypiney.game_engine.util.extension_functions.toBytes
 import glm_.putInt
 import glm_.vec4.Vec4
 import org.json.JSONArray
 import org.json.JSONObject
+import org.lwjgl.opengl.GL11C
 import java.io.File
 
 class GLTFModelSaver(val model: Model){
@@ -86,28 +86,22 @@ class GLTFModelSaver(val model: Model){
 			val numVert = mesh.vertices.size
 
 			attributes.put("POSITION", accessors.length())
-			addAccessor("VEC3", FLOAT, numVert, bufferViews.length())
-			addBufferView(mesh.vertices.flatMap { ByteData.vec32Bytes<Float>(it.position, false).toList() })
+			addAccessor("VEC3", GL11C.GL_FLOAT, numVert, bufferViews.length())
+			addBufferView(mesh.vertices.flatMap { ByteData.vec32Bytes(it.position, false).toList() })
 
-			attributes.put("NORMAL", accessors.length())
-			addAccessor("VEC3", FLOAT, numVert, bufferViews.length())
-			addBufferView(mesh.vertices.flatMap { ByteData.vec32Bytes<Float>(it.normal, false).toList() })
-
-			attributes.put("TEXCOORD_0", accessors.length())
-			addAccessor("VEC2", FLOAT, numVert, bufferViews.length())
-			addBufferView(mesh.vertices.flatMap { ByteData.vec22Bytes<Float>(it.texCoord, false).toList() })
-
-			if(mesh is ModelTangentMesh){
-				attributes.put("TANGENT", accessors.length())
-				addAccessor("VEC3", FLOAT, numVert, bufferViews.length())
-				addBufferView(mesh.vertices.filterIsInstance<ModelTangentMesh.TangentMeshVertex>().flatMap { ByteData.vec32Bytes<Float>(it.tangent, false).toList() })
-			}
+			//attributes.put("NORMAL", accessors.length())
+			//addAccessor("VEC3", FLOAT, numVert, bufferViews.length())
+			//addBufferView(mesh.vertices.flatMap { ByteData.vec32Bytes<Float>(it.normal, false).toList() })
+//
+			//attributes.put("TEXCOORD_0", accessors.length())
+			//addAccessor("VEC2", FLOAT, numVert, bufferViews.length())
+			//addBufferView(mesh.vertices.flatMap { ByteData.vec22Bytes<Float>(it.texCoord, false).toList() })
 
 			primitive.put("attributes", attributes)
 
 			primitive.put("indices", accessors.length())
-			addAccessor("SCALAR", USHORT, mesh.indices.size, bufferViews.length())
-			addBufferView(mesh.indices.flatMap { it.toBytes(2) })
+			addAccessor("SCALAR", GL11C.GL_UNSIGNED_SHORT, mesh.indices.size, bufferViews.length())
+			addBufferView(mesh.indices.flatMap { ByteData.int2Bytes(it, 2).toList() })
 
 			var materialIndex = materials.indexOf(mesh.material)
 			if(materialIndex == -1){
@@ -169,14 +163,5 @@ class GLTFModelSaver(val model: Model){
 		bufferViews.clear()
 		accessors.clear()
 		materials.clear()
-	}
-
-	companion object {
-		const val BYTE = 5120
-		const val UBYTE = 5121
-		const val SHORT = 5122
-		const val USHORT = 5123
-		const val UINT = 5125
-		const val FLOAT = 5126
 	}
 }

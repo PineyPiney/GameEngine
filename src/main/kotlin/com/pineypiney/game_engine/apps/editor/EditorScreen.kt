@@ -32,7 +32,6 @@ import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.extension_functions.isBetween
-import com.pineypiney.game_engine.util.extension_functions.toByteString
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.window.Viewport
@@ -179,7 +178,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 		val ray = renderer.camera.getRay(sceneCursor.screenSpace)
 		for(obj in allObjects){
 			val renderer = obj.renderer ?: continue
-			val intersections = (renderer.getScreenShape()  transformedBy obj.worldModel).intersectedBy(ray)
+			val intersections = (renderer.getMeshShape() transformedBy obj.worldModel).intersectedBy(ray)
 			val dist = -(intersections.firstOrNull()?.z ?: continue)
 			if(dist < minDist){
 				minDist = dist
@@ -397,7 +396,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 			stream.write(ByteData.int2Bytes(objects.size))
 			for(o in objects){
 				val s = GameObjectSerializer.serialise(o)
-				val f = s.length.toByteString() + s
+				val f = ByteData.int2String(s.length) + s
 				val a = f.toByteArray(Charsets.ISO_8859_1)
 				stream.write(a)
 			}
@@ -405,14 +404,14 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 
 		fun defaultSceneParse(stream: InputStream, scene: EditorScreen){
 			val numObjects = stream.int()
-			for(i in 1..numObjects){
+			repeat(numObjects) {
 				try {
 					val objSize = stream.int()
 					val objData = stream.readNBytes(objSize)
 					val o = GameObjectSerializer.parse(ByteArrayInputStream(objData))
 					scene.sceneObjects.addObject(o)
+				} catch (_: Exception) {
 				}
-				catch (_: Exception){}
 			}
 		}
 

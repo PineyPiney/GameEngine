@@ -10,13 +10,6 @@ class CompoundShape2D(val shapes: MutableSet<Shape2D>) : Shape2D() {
 
 	constructor(vararg shapes: Shape2D): this(shapes.toMutableSet())
 
-	override val center: Vec2
-		get() {
-			val c = Vec2()
-			for (s in shapes) c += s.center
-			return c / shapes.size
-		}
-
 	override val min: Vec2 = shapes.reduceFields(Shape2D::min, Vec2::min)
 	override val max: Vec2 = shapes.reduceFields(Shape2D::max, Vec2::max)
 
@@ -49,9 +42,5 @@ class CompoundShape2D(val shapes: MutableSet<Shape2D>) : Shape2D() {
 
 	override fun getBoundingCircle(): Circle {
 		return Circle((min + max) * .5f, (max - min).length() * .5f)
-	}
-
-	override fun translate(move: Vec2) {
-		for (shape in shapes) shape.translate(move)
 	}
 }

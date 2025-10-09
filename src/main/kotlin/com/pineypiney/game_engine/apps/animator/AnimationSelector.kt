@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.objects.components.scrollList.ScrollListEntryC
 import com.pineypiney.game_engine.objects.components.scrollList.SelectableScrollListComponent
 import com.pineypiney.game_engine.objects.components.scrollList.SelectableScrollListEntryComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.init
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -69,7 +69,7 @@ class AnimationSelector(item: AnimatedComponent?, origin: Vec2, size: Vec2, pred
 				}
 			}
 
-		override val action: (Int, SelectableScrollListEntryComponent?) -> Unit = { i, e ->
+		override val action: (Int, SelectableScrollListEntryComponent?) -> Unit = { _, e ->
 			(e as? AnimationSelectorEntry)?.let { item?.setAnimation(it.a) }
 			pred()
 		}

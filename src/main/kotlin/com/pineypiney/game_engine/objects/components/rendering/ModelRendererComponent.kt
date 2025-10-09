@@ -2,25 +2,22 @@ package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.LightComponent
 import com.pineypiney.game_engine.objects.components.fields.IntFieldRange
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox2DRenderer
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
-import com.pineypiney.game_engine.rendering.lighting.Light
-import com.pineypiney.game_engine.rendering.lighting.PointLight
-import com.pineypiney.game_engine.rendering.lighting.SpotLight
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.models.Bone
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.Collider2D
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.mat4x4.Mat4
+import glm_.vec3.Vec3
+import org.lwjgl.opengl.GL11C
 
 open class ModelRendererComponent(parent: GameObject, var model: Model = Model.brokeModel, shader: Shader = defaultShader) :
 	ShaderRenderedComponent(parent, shader) {
@@ -39,12 +36,29 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 	override fun setUniforms() {
 		super.setUniforms()
 		uniforms.setMat4sUniform("boneTransforms[0]") {
-			model.rootBone?.getAllChildren()?.map { it.getMeshTransform() }?.toTypedArray() ?: emptyArray()
+			model.rootBone?.getAllChildren()?.map {
+				it.getMeshTransform()
+			}?.toTypedArray() ?: emptyArray()
 		}
 	}
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		updateAnimation()
+
+		if(debug and Model.DEBUG_WIREFRAME > 0) {
+			val wireframeShader = ShaderLoader[ResourceKey(shader.vName), ResourceKey("fragment/colour_opaque")]
+			wireframeShader.setUp(uniforms, renderer)
+			wireframeShader.setVec3("colour", Vec3(0f))
+			GLFunc.polygonMode = GL11C.GL_LINE
+			for (mesh in model.meshes) {
+				val newModel = parent.worldModel * mesh.transform
+				shader.setMat4("model", newModel)
+				mesh.bindAndDraw()
+			}
+			GLFunc.polygonMode = GL11C.GL_FILL
+		}
+
+
 		shader.setUp(uniforms, renderer)
 
 		// Lighting
@@ -71,27 +85,10 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 		else renderer?.visible = false
 	}
 
-	override fun getScreenShape(): Shape<*> {
-		return model.box.shape
-	}
+	override fun getMeshes(): Collection<Mesh> = model.meshes.toList()
 
 	fun setLightUniforms() {
-		val lights = (parent.objects ?: return).getAllComponents().filterIsInstance<LightComponent>().filter { it.light.on }
-
-		val dirLight = lights.firstOrNull { it.light is DirectionalLight }
-		if(dirLight == null) Light.setShaderUniformsOff(shader, "dirLight")
-		else dirLight.setShaderUniforms(shader, "dirLight")
-
-		val pointLights = lights.associateWith { it.parent.position }.filter{ it.key.light is PointLight }.entries.sortedByDescending { (it.value - parent.position).length() / (it.key.light as PointLight).linear }
-		for (l in 0..<4) {
-			val name = "pointLights[$l]"
-			if(l < pointLights.size) pointLights[l].key.setShaderUniforms(shader, name)
-			else Light.setShaderUniformsOff(shader, name)
-		}
-
-		val spotLight = lights.firstOrNull { it.light is SpotLight }
-		if(spotLight == null) Light.setShaderUniformsOff(shader, "spotlight")
-		else spotLight.setShaderUniforms(shader, "spotlight")
+		shader.setLightUniforms(parent)
 	}
 
 	fun renderBones(parent: GameObject, view: Mat4, projection: Mat4) {
@@ -152,10 +149,15 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 		}
 	}
 
+	@Suppress("UNUSED")
 	companion object {
 		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/model"))
 		val defaultLitShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/lit_model"))
-		val debugShader = ShaderLoader.getShader(ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights"))
 		val pbrShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/pbr_lit_model"))
+		val tangentBonesShader = ShaderLoader.getShader(ResourceKey("vertex/tangent_bones_model"), ResourceKey("fragment/model"))
+
+
+        val debugTrisShader = ShaderLoader.getShader(ResourceKey("vertex/tangent_bones_model"), ResourceKey("fragment/colour_primitives"))
+        val debugWeightsShader = ShaderLoader.getShader(ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights"))
 	}
 }

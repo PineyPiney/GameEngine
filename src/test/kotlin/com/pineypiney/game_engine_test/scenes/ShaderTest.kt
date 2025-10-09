@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
@@ -16,8 +16,7 @@ import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
-import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.util.maths.shapes.Shape
+import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
@@ -27,6 +26,7 @@ import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 
+@Suppress("UNUSED")
 class ShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
 
 	override val renderer = DefaultWindowRenderer<ShaderTest, OrthographicCamera>(window, OrthographicCamera(window))
@@ -37,7 +37,7 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLog
 	val obj = GameObject("Shader Object").apply {
 		components.add(object : ShaderRenderedComponent(this, shader){
 			val mesh = Mesh.cornerSquareShape
-			override fun getScreenShape(): Shape<*> = mesh.shape
+			override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 			override fun setUniforms() {
 				super.setUniforms()
@@ -108,11 +108,9 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLog
 		super.onCursorMove(cursorPos, cursorDelta)
 
 		if(grabPoint == null) {
-			val shape = obj.getShape() as? Rect2D ?: return
-			val min = shape.origin
-			val max = shape.origin + shape.side1 + shape.side2
+			val shape = obj.getShape() as? Shape2D ?: return
 
-			grabState = ResizeState.fromPointInBounds(cursorPos.position, min, max)
+			grabState = ResizeState.fromPointInBounds(cursorPos.position, shape.min, shape.max)
 			window.setCursor(GLFW.glfwCreateStandardCursor(grabState.glfwCursor))
 		}
 		else {

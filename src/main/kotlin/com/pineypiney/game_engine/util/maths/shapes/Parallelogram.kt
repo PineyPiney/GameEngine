@@ -10,10 +10,10 @@ import kotlin.math.sqrt
 
 class Parallelogram(val origin: Vec2, val side1: Vec2, val side2: Vec2) : Shape2D() {
 
-	override val center: Vec2 = origin + (side1 + side2) * .5f
-	val points = setOf(origin, origin + side1, origin + side1 + side2, origin + side2)
-	override val min = points.reduce { a, b -> Vec2(minOf(a.x, b.x), minOf(a.y, b.y))}
-	override val max = points.reduce { a, b -> Vec2(maxOf(a.x, b.x), maxOf(a.y, b.y))}
+	val center: Vec2 get() = origin + (side1 + side2) * .5f
+	val points get() = setOf(origin, origin + side1, origin + side1 + side2, origin + side2)
+	override val min get() = points.reduce { a, b -> Vec2(minOf(a.x, b.x), minOf(a.y, b.y))}
+	override val max get() = points.reduce { a, b -> Vec2(maxOf(a.x, b.x), maxOf(a.y, b.y))}
 
 	override fun transformedBy(model: Mat4): Shape2D {
 		val scale = model.getScale()
@@ -83,9 +83,5 @@ class Parallelogram(val origin: Vec2, val side1: Vec2, val side2: Vec2) : Shape2
 
 	override fun projectToNormal(normal: Vec2): Set<Float> {
 		return projectAllPoints(normal, points)
-	}
-
-	override fun translate(move: Vec2) {
-		origin += move
 	}
 }

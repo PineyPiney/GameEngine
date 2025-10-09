@@ -5,7 +5,7 @@
 #define PI 3.14159265359
 #define PI_1 0.31830988618
 
-vec3 colours[16] = {
+vec3 colours[16] = vec3[](
 vec3(0), 			vec3(.5, .5, .5),
 vec3(.5, 0, 0), 	vec3(1, .5, .5),
 vec3(.5, .5, 0), 	vec3(1, 1, .5),
@@ -13,8 +13,8 @@ vec3(0, .5, 0), 	vec3(.5, 1, .5),
 vec3(0, .5, .5), 	vec3(.5, 1, 1),
 vec3(0, 0, .5), 	vec3(.5, .5, 1),
 vec3(.5, 0, .5), 	vec3(1, .5, 1),
-vec3(.5, .5, .5), 	vec3(1, 1, 1),
-};
+vec3(.5, .5, .5), 	vec3(1, 1, 1)
+);
 
 struct Material{
 	sampler2D baseColour;

@@ -1,7 +1,13 @@
 package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.LightComponent
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
+import com.pineypiney.game_engine.rendering.lighting.Light
+import com.pineypiney.game_engine.rendering.lighting.PointLight
+import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.resources.shaders.uniforms.*
 import com.pineypiney.game_engine.resources.shaders.uniforms.mats.*
 import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.*
@@ -34,6 +40,7 @@ import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.*
 import kotlin.experimental.and
 
+@Suppress("UNUSED")
 class Shader(
 	private var ID: Int,
 	val vName: String,
@@ -94,6 +101,25 @@ class Shader(
 		if (hasGUI) uniforms.setMat4UniformR("guiProjection", RendererI::guiProjection)
 		if (hasPort) uniforms.setVec2iUniformR("viewport", RendererI::viewportSize)
 		if (hasPos) uniforms.setVec3UniformR("viewPos", RendererI::viewPos)
+	}
+
+	fun setLightUniforms(obj: GameObject, lights: List<LightComponent> = obj.objects?.getAllComponents()?.filterIsInstance<LightComponent>()?.filter { it.light.on } ?: emptyList()) {
+		if(lights.isEmpty()) return
+
+		val dirLight = lights.firstOrNull { it.light is DirectionalLight }
+		if(dirLight == null) Light.setShaderUniformsOff(this, "dirLight")
+		else dirLight.setShaderUniforms(this, "dirLight")
+
+		val pointLights = lights.associateWith { it.parent.position }.filter{ it.key.light is PointLight }.entries.sortedByDescending { (it.value - obj.position).length() / (it.key.light as PointLight).linear }
+		for (l in 0..<4) {
+			val name = "pointLights[$l]"
+			if(l < pointLights.size) pointLights[l].key.setShaderUniforms(this, name)
+			else Light.setShaderUniformsOff(this, name)
+		}
+
+		val spotLight = lights.firstOrNull { it.light is SpotLight }
+		if(spotLight == null) Light.setShaderUniformsOff(this, "spotlight")
+		else spotLight.setShaderUniforms(this, "spotlight")
 	}
 
 	// Functions to set uniforms within shaders

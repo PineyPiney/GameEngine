@@ -7,7 +7,9 @@ import com.pineypiney.game_engine.util.extension_functions.projectOn
 import com.pineypiney.game_engine.util.extension_functions.removeNullValues
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
+import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 
 class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f, 1f, 1f), val layer: Layer = defaultLayer, val flags: MutableSet<String> = mutableSetOf()) : Component(parent) {
 
@@ -37,7 +39,7 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 		val moveDist = movement.length()
 
 		// Create a temporary collision box to move around for collision checks
-		val newCollision = transformedShape
+		var newCollision = transformedShape
 
 		val circle = newCollision.getBoundingCircle()
 		val nearbyColliders = parent.objects?.getAll2DCollisions()?.filter {
@@ -50,7 +52,7 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 		// eject this collision boxes object if the collision boxes collide
 		while(remainingMovement.length2() > 0f){
 			// Move the shape to the new position
-			newCollision translate remainingMovement
+			newCollision = newCollision transformedBy Mat4().translate(Vec3(remainingMovement))
 			// Get all collisions with nearby colliders
 			val allCollisions = nearbyColliders.associateWith{ newCollision.calculateCollision(it.transformedShape, remainingMovement, stepBias) }.removeNullValues()
 
@@ -60,7 +62,7 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 			// Adjust the movement that will be returned by the functions and move
 			// the testing collider to where it would be stopped by this collision
 			collidedMove plusAssign (remainingMovement + collision.removeShape1FromShape2)
-			newCollision translate collision.removeShape1FromShape2
+			newCollision = newCollision transformedBy Mat4().translate(Vec3(collision.removeShape1FromShape2))
 			// Collision callbacks
 			parent.getComponent<Collider2DCallback>()?.onCollide(this, collider, collision.removeShape1FromShape2)
 			collider.parent.getComponent<Collider2DCallback>()?.onCollide(collider, this, collision.removeShape1FromShape2)
@@ -100,9 +102,7 @@ class Collider2DComponent(parent: GameObject, var shape: Shape2D = Rect2D(0f, 0f
 	}
 
 	fun isGrounded(direction: Vec2 = Vec2(0f, -.01f)): Collider2DComponent? {
-		val b = transformedShape
-		b translate direction
-
+		val b = transformedShape transformedBy Mat4().translate(Vec3(direction))
 		return parent.objects?.getAll2DCollisions()?.firstOrNull { canCollide(it) && it.transformedShape.intersects(b) }
 	}
 

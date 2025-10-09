@@ -7,13 +7,6 @@ import glm_.vec3.Vec3
 
 class CompoundShape3D(val shapes: MutableSet<Shape3D>) : Shape3D() {
 
-	override val center: Vec3
-		get() {
-			val c = Vec3()
-			for (s in shapes) c += s.center
-			return c / shapes.size
-		}
-
 	override val min: Vec3 = shapes.reduceFieldsOrNull(Shape3D::min) { a, b -> Vec3(minOf(a.x, b.x), minOf(a.y, b.y), minOf(a.z, b.z))} ?: Vec3()
 	override val max: Vec3 = shapes.reduceFieldsOrNull(Shape3D::max) { a, b -> Vec3(maxOf(a.x, b.x), maxOf(a.y, b.y), maxOf(a.z, b.z))} ?: Vec3()
 
@@ -42,9 +35,5 @@ class CompoundShape3D(val shapes: MutableSet<Shape3D>) : Shape3D() {
 
 	override fun projectToNormal(normal: Vec3): Set<Float> {
 		return shapes.flatMap { it.projectToNormal(normal) }.toSet()
-	}
-
-	override fun translate(move: Vec3) {
-		for (shape in shapes) shape.translate(move)
 	}
 }

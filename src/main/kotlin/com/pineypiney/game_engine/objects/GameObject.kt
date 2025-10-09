@@ -4,9 +4,9 @@ import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
 import com.pineypiney.game_engine.objects.components.rendering.*
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.lighting.Light
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -84,13 +84,13 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 	fun setProperty(key: String, value: String) {
 		val dolI = key.indexOf('$')
 		if(dolI != -1) {
-			val childName = key.substring(0, dolI)
+			val childName = key.take(dolI)
 			val child = objects?.getAllObjects()?.firstOrNull { it.name == childName }
 			child?.setProperty(key.substring(dolI + 1), value)
 		}
 		else {
 			val dotI = key.indexOf('.')
-			components.firstOrNull { it.id == key.substring(0, dotI) }?.setValue(key.substring(dotI + 1), value)
+			components.firstOrNull { it.id == key.take(dotI) }?.setValue(key.substring(dotI + 1), value)
 		}
 	}
 
@@ -192,9 +192,8 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		getComponent<Collider2DComponent>()?.let { return it.transformedShape }
 		getComponent<Collider3DComponent>()?.let { return it.transformedShape }
 
-		val renderer = renderer
-		if (renderer != null) {
-			return renderer.getScreenShape() transformedBy worldModel
+		renderer?.let { renderer ->
+			return renderer.getMeshShape().transformedBy(worldModel)
 		}
 
 		return Rect2D(Vec2(), Vec2(1f))
@@ -307,7 +306,8 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 			position: Vec3 = Vec3(),
 			scale: Vec3 = Vec3(1f),
 			mesh: Mesh = Mesh.centerSquareShape,
-			setUniformsFunc: ShaderRenderedComponent.() -> Unit
+			setUniformsFunc: ShaderRenderedComponent.() -> Unit = {},
+			setManualUniforms: ShaderRenderedComponent.() -> Unit = {}
 		): GameObject {
 			return object : GameObject() {
 
@@ -323,12 +323,11 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 
 						override fun render(renderer: RendererI, tickDelta: Double) {
 							shader.setUp(uniforms, renderer)
+							setManualUniforms()
 							mesh.bindAndDraw()
 						}
 
-						override fun getScreenShape(): Shape<*> {
-							return mesh.shape
-						}
+						override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 					})
 				}

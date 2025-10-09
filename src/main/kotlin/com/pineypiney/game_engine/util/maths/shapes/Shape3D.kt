@@ -97,7 +97,53 @@ abstract class Shape3D : Shape<Vec3>() {
 		val r = lengths.minBy { it.value.abs }.run { key * value }
 		return r
 	}
+	fun getEjectionNew(other: Shape3D, movement: Vec3, stepBias: Vec3 = Vec3(0f)): Vec3 {
+		val still = movement == Vec2(0f)
+		// lengths is a map of normals to the distance needed to remove the shape along that normal
+		val lengths = (getNormals() + other.getNormals() + (min - other.min).normalize()).associateWith {
+			// The overlap in each direction of the normal
+			val overlaps = overlap1D(it, other)
 
+			// If any of the normals don't overlap then the shapes also don't overlap so no escape vector is needed
+			if (overlaps.x == 0f) return Vec3(0f)
+
+			// If there is no movement then just pick the smallest movement
+			if (still) {
+				absMinOf(overlaps.x, overlaps.y)
+			}
+			// Otherwise pick the one to move back against the original movement
+			else {
+				val dot = it dot movement
+				// If the movement is in the other direction to the normal then use the positive magnitude (x)
+				// otherwise use the negative version
+				overlaps.run { if (dot < 0f) x else y }
+			}
+		}
+
+		//if(lengths.any { it.value == 0f }) return Vec3(0f)
+
+		if (!still) {
+			if (stepBias != Vec2(0f)) {
+				val stepMag = stepBias.length()
+				for ((normal, mult) in lengths) {
+					val dot = normal dot stepBias
+
+					if (abs(dot) > stepMag * .9f && abs(mult) <= stepMag) return normal * mult
+				}
+			}
+
+			val dir = movement.normalize()
+			var dist = Float.MAX_VALUE
+			for((normal, mult) in lengths){
+				val dot = normal dot dir
+				val d = mult / dot
+				if(abs(d) < abs(dist)) dist = d
+			}
+			return dir * dist
+		}
+		val r = lengths.minBy { it.value.abs }.run { key * value }
+		return r
+	}
 	companion object {
 		fun projectAllPoints(normal: Vec3, points: Set<Vec3>): Set<Float> {
 			return points.map { it dot normal }.toSet()

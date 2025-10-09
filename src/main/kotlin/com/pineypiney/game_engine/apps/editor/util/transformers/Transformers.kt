@@ -5,15 +5,13 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.PIF
-import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
@@ -61,9 +59,7 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 					Mesh.centerSquareShape.bindAndDraw()
 				}
 
-				override fun getScreenShape(): Shape<*> {
-					return Rect2D(Vec2(-.5f), 1f, 1f)
-				}
+				override fun getMeshes(): Collection<Mesh> = listOf(Mesh.centerSquareShape)
 			})
 
 			o.addChild(rings)

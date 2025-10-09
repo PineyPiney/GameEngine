@@ -2,11 +2,10 @@ package com.pineypiney.game_engine.objects.menu_items
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec2.Vec2t
 import glm_.vec4.Vec4
 
@@ -27,9 +26,7 @@ class BezierDisplay(parent: GameObject, val points: Array<Vec2t<*>>) : ShaderRen
 		uniforms.setFloatUniform("width") { 0.0002f }
 	}
 
-	override fun getScreenShape(): Shape<*> {
-		return mesh.shape
-	}
+	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)

@@ -13,7 +13,7 @@ import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRe
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.SpriteButton
 import com.pineypiney.game_engine.objects.text.Text
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -51,7 +51,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 
 	init {
 		parent.components.add(PixelTransformComponent(parent, Vec2i(0), Vec2i(960, height)))
-		parent.components.add(ChildContainingRenderer(parent, Mesh.Companion.cornerSquareShape, Vec3(.8f)))
+		parent.components.add(ChildContainingRenderer(parent, Mesh.cornerSquareShape, Vec3(.8f)))
 	}
 
 	override fun init() {

@@ -10,23 +10,22 @@ import glm_.vec4.Vec4
 import kotlin.math.abs
 
 class Plane(val point: Vec3, val normal: Vec3) : Shape3D() {
-	override val center: Vec3 get() = point
 
 	override val min: Vec3
 	override val max: Vec3
 
 	init {
 		if(abs(normal.x) == 1f){
-			min = Vec3(center.x, -Float.MAX_VALUE, -Float.MAX_VALUE)
-			max = Vec3(center.x, Float.MAX_VALUE, Float.MAX_VALUE)
+			min = Vec3(point.x, -Float.MAX_VALUE, -Float.MAX_VALUE)
+			max = Vec3(point.x, Float.MAX_VALUE, Float.MAX_VALUE)
 		}
 		else if(abs(normal.y) == 1f){
-			min = Vec3(-Float.MAX_VALUE, center.y, -Float.MAX_VALUE)
-			max = Vec3(Float.MAX_VALUE, center.y, Float.MAX_VALUE)
+			min = Vec3(-Float.MAX_VALUE, point.y, -Float.MAX_VALUE)
+			max = Vec3(Float.MAX_VALUE, point.y, Float.MAX_VALUE)
 		}
 		else if(abs(normal.z) == 1f){
-			min = Vec3(-Float.MAX_VALUE, -Float.MAX_VALUE, center.z)
-			max = Vec3(Float.MAX_VALUE, Float.MAX_VALUE, center.z)
+			min = Vec3(-Float.MAX_VALUE, -Float.MAX_VALUE, point.z)
+			max = Vec3(Float.MAX_VALUE, Float.MAX_VALUE, point.z)
 		}
 		else {
 			min = Vec3(-Float.MAX_VALUE)
@@ -65,10 +64,6 @@ class Plane(val point: Vec3, val normal: Vec3) : Shape3D() {
 	override fun projectToNormal(normal: Vec3): Set<Float> {
 		return if (abs(normal dot this.normal) == 1f) setOf(point dot normal)
 		else setOf(Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY)
-	}
-
-	override fun translate(move: Vec3) {
-		point += move
 	}
 
 	override fun transformedBy(model: Mat4): Shape3D {

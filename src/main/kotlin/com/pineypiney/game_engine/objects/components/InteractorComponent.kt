@@ -29,7 +29,7 @@ interface InteractorComponent : ComponentI {
 			else -1f
 		}
 
-		val shape = renderer.getScreenShape()
+		val shape = renderer.getMeshShape()
 		if(shape is Shape2D){
 			val newShape = shape.transformedBy(parent.worldModel)
 			return if(newShape.containsPoint(cursor.position)) ray.rayOrigin.z - parent.transformComponent.worldPosition.z
@@ -37,8 +37,8 @@ interface InteractorComponent : ComponentI {
 		}
 
 		return if(cursor.position.isWithin(
-			Vec2(parent.transformComponent.worldPosition) - (renderer.getScreenShape().min.run{ Vec2(x, y) } * Vec2(parent.transformComponent.worldScale)),
-			Vec2(parent.transformComponent.worldScale) * renderer.getScreenShape().size.run { Vec2(x, y) }
+			Vec2(parent.transformComponent.worldPosition) - (shape.min.run{ Vec2(x, y) } * Vec2(parent.transformComponent.worldScale)),
+			Vec2(parent.transformComponent.worldScale) * shape.size.run { Vec2(x, y) }
 		)) ray.rayOrigin.z - parent.transformComponent.worldPosition.z
 		else -1f
 	}

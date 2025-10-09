@@ -2,9 +2,19 @@ package com.pineypiney.game_engine.util.extension_functions
 
 import glm_.i
 import glm_.pow
+import glm_.shl
+import glm_.shr
 import kotlin.math.*
 
 const val PIF = PI.toFloat()
+
+infix fun UShort.shl(other: Int): UShort{
+	return (toShort() shl other).toUShort()
+}
+
+infix fun UShort.shr(other: Int): UShort{
+	return (toShort() shr other).toUShort()
+}
 
 /**
  * Round the double to [places] decimal places
@@ -30,7 +40,7 @@ fun Float.round(places: Int): Float {
 	return try{
 		(mult * this).roundToInt() / mult
 	}
-	catch (e: IllegalArgumentException){
+	catch (_: IllegalArgumentException){
 		this
 	}
 }
@@ -188,14 +198,6 @@ fun Int.wrap(min: Int, max: Int): Int {
 }
 
 infix fun Int.getRGBAValue(shift: Int) = ((this shr (shift * 8)) and 255) * 0.003921569f
-
-fun Int.toBytes(bytes: Int = 4, bigEndian: Boolean = true): List<Byte> {
-	return (0..<bytes).map { ((this shr (it * 8) and 255)).toByte() }
-}
-
-fun Int.toByteString(bytes: Int = 4): String {
-	return (0..<bytes).reversed().joinToString("") { ((this shr (it * 8) and 255)).toChar().toString() }
-}
 
 /**
  * Return the value with the smallest absolute value

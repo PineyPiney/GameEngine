@@ -2,15 +2,14 @@ package com.pineypiney.game_engine.objects.components.rendering.collision
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.rotate
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
@@ -37,9 +36,7 @@ class CollisionBox2DRenderer(parent: GameObject, val obj: GameObject, val width:
 		mesh.bindAndDraw()
 	}
 
-	override fun getScreenShape(): Shape<*> {
-		return mesh.shape
-	}
+	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	companion object {
 		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/collider"))

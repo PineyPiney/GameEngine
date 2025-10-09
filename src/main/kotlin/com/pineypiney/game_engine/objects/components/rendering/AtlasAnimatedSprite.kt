@@ -2,15 +2,14 @@ package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.delete
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec2.Vec2
 import kotlin.math.min
 
@@ -37,12 +36,14 @@ open class AtlasAnimatedSprite(parent: GameObject, var texture: Texture, var ppu
 		else min(f, numFrames - 1)
 	}
 
-	override fun getScreenShape(): Shape<*> {
-		return meshes.getOrNull(currentFrame)?.shape ?: meshes[0].shape
-	}
+	override fun getMeshes(): Collection<Mesh> = listOf(meshes.getOrNull(currentFrame) ?: meshes[0])
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
-		currentFrame = getFrame()
+		val frame = getFrame()
+		if(currentFrame != frame) {
+			currentFrame = frame
+			frameCallback(frame)
+		}
 		shader.setUp(uniforms, renderer)
 		texture.bind()
 		meshes.getOrNull(currentFrame)?.bindAndDraw()
@@ -77,10 +78,7 @@ open class AtlasAnimatedSprite(parent: GameObject, var texture: Texture, var ppu
 	}
 
 	companion object {
-		val atlasShader = ShaderLoader[
-				ResourceKey("vertex/2D"),
-				ResourceKey("fragment/animation_atlas")
-		]
+		val atlasShader = ShaderLoader[ResourceKey("vertex/2D"), ResourceKey("fragment/animation_atlas")]
 	}
 
 	open class AtlasAnimationData(val texture: Texture, val numFrames: Int, val fps: Float, val loop: Boolean = true, val startAtBeginning: Boolean = false){

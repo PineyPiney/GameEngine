@@ -11,11 +11,9 @@ import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.input.CursorPosition
-import com.pineypiney.game_engine.util.maths.shapes.Shape3D
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import glm_.vec3.swizzle.xy
 import glm_.vec4.Vec4
 import java.io.File
 import kotlin.math.max
@@ -45,16 +43,10 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		val minPos = Vec3(Float.MAX_VALUE)
 		val maxPos = Vec3(-Float.MAX_VALUE)
 		for(rendComp in renderers){
-			val shape = rendComp.getScreenShape() transformedBy rendComp.parent.worldModel
-			minPos.xy = Vec2(min(minPos.x, shape.min.x), min(minPos.y, shape.min.y))
-			maxPos.xy = Vec2(max(maxPos.x, shape.max.x), max(maxPos.y, shape.max.y))
-			if(shape is Shape3D){
-				minPos.z = min(minPos.z, shape.min.z)
-				maxPos.z = max(maxPos.z, shape.max.z)
-			}
-			else {
-				minPos.z = min(minPos.z, rendComp.parent.transformComponent.worldPosition.z)
-				maxPos.z = min(minPos.z, rendComp.parent.transformComponent.worldPosition.z)
+			for(mesh in rendComp.getMeshes()) {
+				val (meshMin, meshMax) = mesh.getBounds(rendComp.parent.worldModel)
+				minPos(min(minPos.x, meshMin.x), min(minPos.y, meshMin.y), min(minPos.z, meshMin.z))
+				maxPos(max(maxPos.x, meshMax.x), max(maxPos.y, meshMax.y), max(maxPos.z, meshMax.z))
 			}
 		}
 		val size = maxPos - minPos

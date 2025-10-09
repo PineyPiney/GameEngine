@@ -7,7 +7,6 @@ import com.pineypiney.game_engine.objects.components.getAllFieldsExt
 import com.pineypiney.game_engine.objects.prefabs.*
 import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.NodeTree
-import com.pineypiney.game_engine.util.extension_functions.toByteString
 import glm_.getInt
 import glm_.int
 import glm_.short
@@ -27,7 +26,7 @@ class GameObjectSerializer {
 			val h = StringBuilder()
 			val d = StringBuilder()
 			serialiseParts(obj, h, d)
-			return h.length.toByteString() + h.toString() + d.toString()
+			return ByteData.int2String(h.length) + h.toString() + d.toString()
 		}
 
 		private fun serialiseParts(
@@ -39,13 +38,13 @@ class GameObjectSerializer {
 			head.append(ByteData.int2String(0xdefa, 2))
 			head.append(lengthAndString(obj.name, 2))
 			head.append("act" + if (obj.active) 1.toChar() else 0.toChar())
-			head.append("lay${obj.layer.toByteString()}")
+			head.append("lay${ByteData.int2String(obj.layer)}")
 
 			val parts = mutableListOf<Pair<StringBuilder, StringBuilder>>()
 			if (obj.components.isNotEmpty()) parts.add(addListPart("COMP", obj.components, ComponentI::serialise))
 			if (obj.children.isNotEmpty()) parts.add(addListPart("CHLD", obj.children, ::serialiseParts))
 
-			head.append(parts.size.toByteString())
+			head.append(ByteData.int2String(parts.size))
 			for ((h, d) in parts) {
 				head.append(h)
 				data.append(d)
@@ -57,7 +56,7 @@ class GameObjectSerializer {
 			list: Collection<T>,
 			transform: (T, StringBuilder, StringBuilder) -> Unit
 		): Pair<StringBuilder, StringBuilder> {
-			val head = StringBuilder(name + list.size.toByteString())
+			val head = StringBuilder(name + ByteData.int2String(list.size))
 			val data = StringBuilder()
 			list.forEach { transform(it, head, data) }
 			return head to data
@@ -158,7 +157,7 @@ class GameObjectSerializer {
 				val headLen = stream.int()
 				val head = stream.readNBytes(headLen).inputStream()
 				return parseChild(head, stream, dest)
-			} catch (e: Exception) {
+			} catch (_: Exception) {
 				return GameObject("Womp Womp")
 			}
 		}
@@ -191,7 +190,7 @@ class GameObjectSerializer {
 
 			val partCount = head.int()
 
-			for (i in 1..partCount) {
+			repeat(partCount) {
 				val type = head.readNBytes(4).toString(Charset.defaultCharset())
 				when (type) {
 					"COMP" -> parseComponents(head, data, o)
@@ -210,7 +209,7 @@ class GameObjectSerializer {
 
 		fun parseComponents(head: InputStream, data: InputStream, parent: GameObject) {
 			val componentCount = head.int()
-			for (cn in 1..componentCount) parseComponent(head, data, parent)
+			repeat(componentCount) { parseComponent(head, data, parent) }
 		}
 
 		fun parseComponent(head: InputStream, data: InputStream, parent: GameObject){
@@ -225,7 +224,7 @@ class GameObjectSerializer {
 			}
 
 			val fields = component.getAllFieldsExt()
-			for (fn in 1..numFields) parseField(head, data, fields)
+			repeat(numFields) { parseField(head, data, fields) }
 			parent.components.add(component)
 		}
 
@@ -263,12 +262,12 @@ class GameObjectSerializer {
 
 			val list = mutableListOf<PrefabEdit>()
 			val parts = head.read()
-			for(i in 1..parts){
+			repeat(parts){
 				val type = head.readNBytes(4).toString(Charsets.ISO_8859_1)
 				when(type){
 					"NODE" -> {
 						val numNodes = head.int()
-						for(j in 1..numNodes){
+						repeat(numNodes){
 							val editType = head.readNBytes(4).toString(Charsets.ISO_8859_1)
 							when(editType){
 								"FLED" -> list.add(PrefabFieldEdit(parentLoc, head.readNBytes(head.short()).toString(Charsets.ISO_8859_1), data.readNBytes(head.int()).toString(Charsets.ISO_8859_1)))
@@ -279,7 +278,7 @@ class GameObjectSerializer {
 							}
 						}
 					}
-					"CHLD" -> for(i in 1..head.int()) list.addAll(parseNode(parentLoc, head, data))
+					"CHLD" -> repeat(head.int()) { list.addAll(parseNode(parentLoc, head, data)) }
 				}
 			}
 			return list

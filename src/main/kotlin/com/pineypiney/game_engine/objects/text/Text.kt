@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
-import com.pineypiney.game_engine.objects.util.meshes.TextMesh
+import com.pineypiney.game_engine.rendering.meshes.TextMesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
@@ -162,6 +162,7 @@ open class Text(
 		return "Text[\"$text\"]"
 	}
 
+	@Suppress("UNUSED")
 	data class Params(var colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
 					  var fontSize: Int = 12, var alignment: Int = ALIGN_CENTER_LEFT,
 					  var shader: Shader = Font.fontShader, var font: Font = Font.defaultFont,

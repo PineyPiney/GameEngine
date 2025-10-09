@@ -1,11 +1,13 @@
 package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
 import com.pineypiney.game_engine.resources.models.animations.*
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.materials.PhongMaterial
 import com.pineypiney.game_engine.resources.models.pgm.*
+import com.pineypiney.game_engine.resources.models.voxel.VoxModelLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -37,6 +39,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 	var currentStreams = mapOf<String, InputStream>()
 
 	val gltfLoader = GLTFModelLoader(this)
+	val voxLoader = VoxModelLoader()
 
 	fun loadModels(streams: Map<String, InputStream>) {
 
@@ -60,6 +63,9 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 				"glb" -> {
 					gltfLoader::loadGLBFile
 				}
+				"vox" -> {
+					voxLoader::loadVoxModel
+				}
 
 				else -> return@forEach
 			}
@@ -73,12 +79,12 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		val positions = mutableListOf<Vec3>()
 		val uv = mutableListOf<Vec2>()
 		val normals = mutableListOf<Vec3>()
-		val vertices = mutableListOf<ModelMesh.MeshVertex>()
+		val vertices = mutableListOf<MeshVertex>()
 		val indices = mutableListOf<Int>()
 		val meshes = mutableListOf<ModelMesh>()
 		var name = ""
 		var material: ModelMaterial = PhongMaterial.default
-		for (line in stream.readAllBytes().toString(Charsets.UTF_8).split('\n')) {
+		for (line in stream.reader(Charsets.UTF_8).readLines()) {
 			if (line.startsWith('#')) continue
 			val parts = line.split(' ')
 			when (parts[0]) {
@@ -102,7 +108,9 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 				"vn" -> normals.add(Vec3(parts[1].f, parts[2].f, parts[3].f))
 				"f" -> {
 					when (parts.size) {
+                        // Tris
 						4 -> indices.addAll(listOf(vertices.size, vertices.size + 1, vertices.size + 2))
+                        // Quads
 						5 -> indices.addAll(
 							listOf(
 								vertices.size,
@@ -116,12 +124,23 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 					}
 					for (i in 1..<parts.size) {
 						val vParts = parts[i].split('/')
+                        val posI = try { vParts[0].i - 1 }
+                        catch (_: NumberFormatException) { 0 }
+                        val texI = try { if (vParts.size >= 2 && vParts[1].isNotEmpty()) vParts[1].i - 1 else -1 }
+                        catch (_: NumberFormatException) {
+                            GameEngineI.warn("Failed to read tex index ${vParts[1]} in OBJ model $fileName")
+                            0
+                        }
+                        val norI = try { if (vParts.size >= 3 && vParts[2].isNotEmpty()) vParts[2].i - 1 else -1 }
+                        catch (_: NumberFormatException) {
+                            GameEngineI.warn("Failed to read normal index ${vParts[2]} in OBJ model $fileName")
+                            0
+                        }
 						vertices.add(
-							ModelMesh.MeshVertex(
-								positions[vParts[0].i - 1],
-								if (vParts.size >= 2 && vParts[1].isNotEmpty()) uv[vParts[1].i - 1] else Vec2(),
-								if (vParts.size >= 3 && vParts[2].isNotEmpty()) normals[vParts[2].i - 1] else Vec3()
-							)
+							MeshVertex.builder(positions[posI])
+							.normal(if (norI != -1) normals[norI] else Vec3())
+							.tex(if (texI != -1) uv[texI] else Vec2())
+							.build()
 						)
 					}
 				}
@@ -195,7 +214,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 			val controller: Controller? = loadController(fileName, id, doc, path)
 
 			// Construct Mesh Vertices
-			val vertices: MutableList<ModelMesh.MeshVertex> = mutableListOf()
+			val vertices: MutableList<MeshVertex> = mutableListOf()
 
 			geo.vertices.indices.forEach { i ->
 				val texMap: Vec2 = geo.texMaps.getOrElse(i) { Vec2() }
@@ -214,7 +233,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 					arrayOf()
 				}
 
-				vertices.add(ModelMesh.MeshVertex(pos, texMap, normal, weights))
+				vertices.add(MeshVertex.builder(pos).normal(normal).tex(texMap).weights(weights).build())
 			}
 
 			meshes.add(
@@ -400,7 +419,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		val boneWeights: MutableList<Map<String, Float>> = mutableListOf()
 		for (count in vCounts) {
 			val map: MutableMap<String, Float> = mutableMapOf()
-			for (index in 0 until count) {
+			repeat(count) {
 				map[joints["JOINT"][v[i].x]] = weights["WEIGHT"][v[i].y].f
 				i++
 			}
@@ -551,7 +570,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 				// Initialise list if it doesn't yet exist, and don't forget to convert degrees to radians
 				stateMap.addToCollectionOr(
 					time,
-					BoneState(bone.removePrefix("Animation_"), translation, rotation * -PI.f / 180f),
+					BoneState(bone.removePrefix("Animation_"), translation, Quat(rotation * -PI.f / 180f)),
 				) { mutableListOf() }
 			}
 		}

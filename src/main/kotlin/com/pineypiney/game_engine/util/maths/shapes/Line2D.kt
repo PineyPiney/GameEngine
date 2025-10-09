@@ -15,8 +15,6 @@ class Line2D(val start: Vec2, val end: Vec2) : Shape2D() {
 	override val max: Vec2 = start.max(end)
 
 	val grad = (end - start).normalize()
-	override val center: Vec2
-		get() = (start + end) * .5f
 
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
 		return arrayOf()
@@ -47,11 +45,6 @@ class Line2D(val start: Vec2, val end: Vec2) : Shape2D() {
 
 	override fun getBoundingCircle(): Circle {
 		return Circle((start + end) * .5f, (end - start).length() * .5f)
-	}
-
-	override fun translate(move: Vec2) {
-		start += move
-		end += move
 	}
 
 	override fun transformedBy(model: Mat4): Shape2D {

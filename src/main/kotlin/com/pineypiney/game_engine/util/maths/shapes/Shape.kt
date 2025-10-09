@@ -9,7 +9,6 @@ import glm_.vec3.Vec3
 
 abstract class Shape<V : Vec2Vars<Float>> {
 
-	abstract val center: V
 	abstract val min: V
 	abstract val max: V
 	abstract val size: V
@@ -73,13 +72,6 @@ abstract class Shape<V : Vec2Vars<Float>> {
 	abstract infix fun projectToNormal(normal: V): Set<Float>
 
 	/**
-	 * Translate this shape by [move]
-	 *
-	 * @param move The vector to translate this shape by
-	 */
-	abstract infix fun translate(move: V)
-
-	/**
 	 * Transform the shape by [model]
 	 *
 	 * @param model The matrix to transform the shape by
@@ -88,18 +80,16 @@ abstract class Shape<V : Vec2Vars<Float>> {
 	 */
 	abstract infix fun transformedBy(model: Mat4): Shape<*>
 
-	object EmptyShape : Shape<Vec2Vars<Float>>(){
-		override val center: Vec2Vars<Float> = Vec2(0f)
-		override val min: Vec2Vars<Float> = center
-		override val max: Vec2Vars<Float> = center
-		override val size: Vec2Vars<Float> = center
-
-		override fun intersectedBy(ray: Ray): Array<Vec3> = emptyArray()
-		override fun containsPoint(point: Vec2Vars<Float>): Boolean = false
-		override fun vectorTo(point: Vec2Vars<Float>): Vec2Vars<Float>  = point
-		override fun getNormals(): Set<Vec2Vars<Float>>  = emptySet()
-		override fun projectToNormal(normal: Vec2Vars<Float>): Set<Float> = emptySet()
-		override fun translate(move: Vec2Vars<Float>) {}
-		override fun transformedBy(model: Mat4): Shape<*> = this
-	}
+//	object EmptyShape : Shape<Vec2Vars<Float>>(){
+//		override val min: Vec2Vars<Float> = Vec2()
+//		override val max: Vec2Vars<Float> = min
+//		override val size: Vec2Vars<Float> = min
+//
+//		override fun intersectedBy(ray: Ray): Array<Vec3> = emptyArray()
+//		override fun containsPoint(point: Vec2Vars<Float>): Boolean = false
+//		override fun vectorTo(point: Vec2Vars<Float>): Vec2Vars<Float>  = point
+//		override fun getNormals(): Set<Vec2Vars<Float>>  = emptySet()
+//		override fun projectToNormal(normal: Vec2Vars<Float>): Set<Float> = emptySet()
+//		override fun transformedBy(model: Mat4): Shape<*> = this
+//	}
 }

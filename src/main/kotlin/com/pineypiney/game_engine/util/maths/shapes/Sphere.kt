@@ -7,7 +7,7 @@ import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import kotlin.math.sqrt
 
-class Sphere(override val center: Vec3, val radius: Float): Shape3D(){
+class Sphere(val center: Vec3, val radius: Float): Shape3D(){
 
 	override val min: Vec3 = center - Vec3(radius)
 	override val max: Vec3 = center + Vec3(radius)
@@ -46,9 +46,5 @@ class Sphere(override val center: Vec3, val radius: Float): Shape3D(){
 	override fun projectToNormal(normal: Vec3): Set<Float> {
 		val centerPoint = center dot normal
 		return setOf(centerPoint + radius, centerPoint - radius)
-	}
-
-	override fun translate(move: Vec3) {
-		center += move
 	}
 }

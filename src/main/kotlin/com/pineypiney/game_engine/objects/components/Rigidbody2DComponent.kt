@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.objects.components
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.util.extension_functions.normal
+import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import kotlin.math.abs
@@ -62,7 +63,7 @@ class Rigidbody2DComponent(parent: GameObject, var mass: Float = 1f, var frictio
 		// Find a collision box that this body might be grounded on,
 		// if there is none then no friction should be applied
 		val ground = collider.isGrounded(movement) ?: return Vec2(0f)
-		val shape = collider.transformedShape.apply { translate(movement) }
+		val shape = collider.transformedShape transformedBy Mat4().translate(Vec3(movement))
 		val normal = shape.calculateCollision(ground.transformedShape, movement)?.collisionNormal ?: return Vec2()
 
 		// Find the magnitude of the normal force against the other collider

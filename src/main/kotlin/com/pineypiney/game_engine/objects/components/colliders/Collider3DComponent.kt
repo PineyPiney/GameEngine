@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.util.extension_functions.copy
 import com.pineypiney.game_engine.util.maths.shapes.Shape3D
+import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
 open class Collider3DComponent(parent: GameObject, open val shape: Shape3D) : Component(parent) {
@@ -26,8 +27,8 @@ open class Collider3DComponent(parent: GameObject, open val shape: Shape3D) : Co
 		val collidedMove = movement.copy()
 
 		// Create a temporary collision box in the new position to calculate collisions
-		val newCollision = transformedShape
-		newCollision.translate(movement)
+		var newCollision = transformedShape
+		newCollision = newCollision transformedBy Mat4().translate(movement)
 
 		// Iterate over all collision boxes sharing object collections and
 		// eject this collision boxes object if the collision boxes collide
@@ -35,7 +36,7 @@ open class Collider3DComponent(parent: GameObject, open val shape: Shape3D) : Co
 			if (collider != this) {
 				val overlap = newCollision.getEjection(collider.transformedShape, movement, stepBias)
 				if (overlap.x != 0f || overlap.y != 0f || overlap.z != 0f) {
-					newCollision.translate(overlap)
+					newCollision = newCollision transformedBy Mat4().translate(overlap)
 					collidedMove plusAssign overlap
 				}
 			}
@@ -45,8 +46,7 @@ open class Collider3DComponent(parent: GameObject, open val shape: Shape3D) : Co
 	}
 
 	fun isGrounded(): Boolean {
-		val b = transformedShape
-		b.translate(Vec3(0f, -0.01f, 0f))
+		val b = transformedShape.transformedBy(Mat4().translate(Vec3(0f, -0.01f, 0f)))
 
 		return (parent.objects?.getAll3DCollisions()?.minus(this))?.any { it.transformedShape.intersects(b) } ?: false
 	}

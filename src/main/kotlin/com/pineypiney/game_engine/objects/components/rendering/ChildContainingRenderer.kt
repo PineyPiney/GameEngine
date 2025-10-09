@@ -2,12 +2,11 @@ package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.TransformComponent
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec3.Vec3
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
@@ -29,9 +28,7 @@ class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Ve
 		uniforms.setVec4Uniform("colour", ::colour)
 	}
 
-	override fun getScreenShape(): Shape<*> {
-		return mesh.shape
-	}
+	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		GL11C.glEnable(GL11C.GL_STENCIL_TEST)

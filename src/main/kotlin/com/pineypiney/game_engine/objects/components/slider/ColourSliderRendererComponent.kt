@@ -2,12 +2,11 @@ package com.pineypiney.game_engine.objects.components.slider
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec4.Vec4
 
 open class ColourSliderRendererComponent(parent: GameObject, shader: Shader, val colours: MutableMap<String, Float>) :
@@ -30,9 +29,7 @@ open class ColourSliderRendererComponent(parent: GameObject, shader: Shader, val
 		mesh.bindAndDraw()
 	}
 
-	override fun getScreenShape(): Shape<*> {
-		return mesh.shape
-	}
+	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	operator fun get(colour: String) = colours[colour] ?: 0f
 	operator fun set(colour: String, value: Float) {

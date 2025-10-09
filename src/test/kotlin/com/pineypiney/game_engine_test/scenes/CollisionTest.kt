@@ -12,6 +12,7 @@ import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
+import com.pineypiney.game_engine.util.maths.shapes.Triangle3D
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.quat.Quat
 import glm_.vec2.Vec2
@@ -20,6 +21,7 @@ import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW
 import kotlin.math.sqrt
 
+@Suppress("UNUSED")
 class CollisionTest(gameEngine: WindowedGameEngineI<*>): MultiTest(gameEngine) {
 
 	val bases = Array(5){ GameObject("Base$it").apply {
@@ -132,9 +134,12 @@ class CollisionTest(gameEngine: WindowedGameEngineI<*>): MultiTest(gameEngine) {
 		}
 	}
 
+	val parallelogram = Parallelogram(Vec2(0f), Vec2(-8f, 2f), Vec2(8f, 2f))
+	val triangle = Triangle3D(Vec3(-.5f, -.5f, 0f), Vec3(0f, .5f, 0f), Vec3(.5f, -.5f, 0f))
+
 	val dragBase = GameObject("Base").apply {
 		position = Vec3(0f, -5f, 0f)
-		components.add(Collider2DComponent(this, Parallelogram(Vec2(0f), Vec2(-8f, 2f), Vec2(8f, 2f))))
+		components.add(Collider2DComponent(this, parallelogram))
 		addChild(CollisionPolygonRenderer.create(this, 100f))
 	}
 
@@ -156,7 +161,7 @@ class CollisionTest(gameEngine: WindowedGameEngineI<*>): MultiTest(gameEngine) {
 			val colliding = dragCollider.transformedShape intersects baseCollider.transformedShape
 			dragItem.children.first().getComponent<CollisionPolygonRenderer>()?.colour(if(colliding) Vec4(1f) else Vec4(0f, 0f, 0f, 1f))
 			if(colliding){
-				val ejection = dragCollider.transformedShape.getEjectionNew(baseCollider.transformedShape, Vec2(dragItem.position) - oldPosition)
+				val ejection = dragCollider.transformedShape.getEjection(baseCollider.transformedShape, Vec2(dragItem.position) - oldPosition)
 				arrowRenderer.visible = true
 				val pos = Vec2(dragItem.position)
 				arrowRenderer.setOriginAndPoint(pos, pos + ejection)

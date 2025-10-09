@@ -32,6 +32,8 @@ class PBRMaterial(override val name: String, val textures: Map<String, Texture>,
 		shader.setFloat("$material.anisotropic", anisotropic)
 		shader.setFloat("$material.specular", specular)
 		shader.setFloat("$material.specTint", specTint)
+
+		shader.setFloat("$material.alpha", 1f)
 	}
 
 	fun createTextureMask(): Byte{

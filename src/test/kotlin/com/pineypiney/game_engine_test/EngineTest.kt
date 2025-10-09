@@ -11,6 +11,7 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider2DCompone
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.util.BitMap3D
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.extension_functions.normal
@@ -37,6 +38,7 @@ fun main() {
 	EngineTest().test3D()
 }
 
+@Suppress("UNUSED_VARIABLE", "UNUSED")
 class EngineTest{
 
 	@Test
@@ -61,6 +63,11 @@ class EngineTest{
 	@Test
 	fun testCollisionVisual(){
 		run(::TestEngine, ::CollisionTest, 100)
+	}
+
+	@Test
+	fun testCollision3DVisual(){
+		run(::TestEngine, ::Collision3DTest, 100)
 	}
 
 	@Test
@@ -120,6 +127,14 @@ class EngineTest{
 		val point = Vec3(3.3f, -3.9f, 1.0f)
 		val c = box containsPoint point
 		println(c)
+	}
+
+	@Test
+	fun bitmap(){
+		val bitmap = BitMap3D(8, 8, 8)
+		bitmap.or(1, 0, 3, 4, 3, 7)
+		val slice = bitmap.sliceXZ(1)
+		val vals = bitmap.allTrue()
 	}
 
 	@Test

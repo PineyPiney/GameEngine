@@ -24,6 +24,10 @@ fun Vec2i.manhattan(): Int {
 	return abs(x) + abs(y)
 }
 
+fun Vec3.manhattan(): Float {
+	return abs(x) + abs(y) + abs(z)
+}
+
 /**
  * Angle of Vec2, in radians, going clockwise starting at (0, 1)
  */
@@ -50,6 +54,26 @@ fun maxOf(a: Vec2, vararg b: Vec2): Vec2{
 	for(v in b){
 		r.x = max(r.x, v.x)
 		r.y = max(r.y, v.y)
+	}
+	return r
+}
+
+fun minOf(a: Vec3, vararg b: Vec3): Vec3{
+	val r = Vec3(a)
+	for(v in b){
+		r.x = min(r.x, v.x)
+		r.y = min(r.y, v.y)
+		r.z = min(r.z, v.z)
+	}
+	return r
+}
+
+fun maxOf(a: Vec3, vararg b: Vec3): Vec3{
+	val r = Vec3(a)
+	for(v in b){
+		r.x = max(r.x, v.x)
+		r.y = max(r.y, v.y)
+		r.z = max(r.z, v.z)
 	}
 	return r
 }
@@ -119,6 +143,10 @@ fun Vec2.round(round: Float): Vec2 {
 		else y + round - y.mod(round)
 
 	return this
+}
+
+infix fun Vec3.projectionMult(other: Vec3): Float {
+	return (this dot other) / (other dot other)
 }
 
 infix fun Vec2.projectOn(other: Vec2): Vec2 {
@@ -287,7 +315,7 @@ fun <T: Number> Vec1Vars<T>.toString(separator: String = ", ", serialise: T.() -
 	for (i in 1..3) {
 		try {
 			s += separator + this[i].serialise()
-		} catch (e: IndexOutOfBoundsException) {
+		} catch (_: IndexOutOfBoundsException) {
 			break
 		}
 	}
@@ -301,7 +329,7 @@ fun Quat.toString(separator: String = ", ", serialise: Float.() -> String = Floa
 	for (i in 1..3) {
 		try {
 			s += separator + this[i].serialise()
-		} catch (e: IndexOutOfBoundsException) {
+		} catch (_: IndexOutOfBoundsException) {
 			break
 		}
 	}

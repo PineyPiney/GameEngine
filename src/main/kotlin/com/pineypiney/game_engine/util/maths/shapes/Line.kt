@@ -15,8 +15,6 @@ class Line(val start: Vec3, val end: Vec3) : Shape3D() {
 	override val max: Vec3 = Vec3(maxOf(start.x, end.x), maxOf(start.y, end.y), maxOf(start.z, end.z))
 
 	val grad = (end - start).normalize()
-	override val center: Vec3
-		get() = (start + end) * .5f
 
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
 		return arrayOf()
@@ -44,11 +42,6 @@ class Line(val start: Vec3, val end: Vec3) : Shape3D() {
 
 	override fun projectToNormal(normal: Vec3): Set<Float> {
 		return setOf(start dot normal, end dot normal)
-	}
-
-	override fun translate(move: Vec3) {
-		start += move
-		end += move
 	}
 
 	override fun transformedBy(model: Mat4): Shape3D {

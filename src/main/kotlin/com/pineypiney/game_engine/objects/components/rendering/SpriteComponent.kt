@@ -2,12 +2,12 @@ package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec2.Vec2
 
 open class SpriteComponent(
@@ -37,9 +37,7 @@ open class SpriteComponent(
 		sprite.mesh.bindAndDraw()
 	}
 
-	override fun getScreenShape(): Shape<*> {
-		return sprite.mesh.shape
-	}
+	override fun getMeshes(): Collection<Mesh> = listOf(sprite.mesh)
 
 	override fun delete() {
 		super.delete()

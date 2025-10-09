@@ -1,12 +1,11 @@
 package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.util.meshes.Mesh
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
@@ -19,9 +18,7 @@ open class ColourRendererComponent(parent: GameObject, var colour: Vec4 = Vec4(1
 		uniforms.setVec4Uniform("colour", ::colour)
 	}
 
-	override fun getScreenShape(): Shape<*> {
-		return mesh.shape
-	}
+	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
@@ -31,6 +28,7 @@ open class ColourRendererComponent(parent: GameObject, var colour: Vec4 = Vec4(1
 	companion object {
 		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/2D"), ResourceKey("fragment/colour"))
 		val shader3D = ShaderLoader.getShader(ResourceKey("vertex/3D"), ResourceKey("fragment/colour"))
+		val vertexColours = ShaderLoader[ResourceKey("vertex/colour_floats"), ResourceKey("fragment/colour_in")]
 		val menuShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/colour"))
 	}
 }

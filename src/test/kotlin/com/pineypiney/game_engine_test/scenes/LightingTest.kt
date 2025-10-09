@@ -17,7 +17,11 @@ import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
-import com.pineypiney.game_engine.resources.models.*
+import com.pineypiney.game_engine.rendering.meshes.MeshVertex
+import com.pineypiney.game_engine.resources.models.GLTFModelSaver
+import com.pineypiney.game_engine.resources.models.Model
+import com.pineypiney.game_engine.resources.models.ModelLoader
+import com.pineypiney.game_engine.resources.models.ModelMesh
 import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -48,6 +52,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
+@Suppress("UNUSED")
 class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
 
 	override val renderer = DefaultWindowRenderer<LightingTest, PerspectiveCamera>(window, PerspectiveCamera(window))
@@ -203,7 +208,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 
 		val d = Debug().start()
 
-		val gr = 1.6180339887f
+		val gr = 1.618034f
 		val m = 1f / sqrt(gr * gr + 1f)
 		val ngr = gr * m
 
@@ -229,7 +234,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		}
 
 
-		val icoPoints = arrayOf<PointData>(
+		val icoPoints = arrayOf(
 			// Bottom Point
 			PointData(Vec3(0f, -ngr, -m), Vec2(379f, 7f) * pixSize),
 			PointData(Vec3(0f, -ngr, -m), Vec2(749f, 10f) * pixSize),
@@ -343,7 +348,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		d.add()
 		d.printDiffs()
 
-		return ModelMesh("icosahedron", points.map { ModelMesh.MeshVertex(it.normal * radius, it.tex, it.normal) }.toTypedArray(), indices.toIntArray(), material = PBRMaterial("icosphere", mapOf("baseColour" to TextureLoader[ResourceKey("ico_texture")])))
+		return ModelMesh("icosahedron", points.map { MeshVertex.builder(it.normal * radius).normal(it.normal).tex(it.tex).build() }.toTypedArray(), indices.toIntArray(), material = PBRMaterial("icosphere", mapOf("baseColour" to TextureLoader[ResourceKey("ico_texture")])))
 	}
 
 	fun createSphereMeshWithTangents(radius: Float, subdivisions: Int): ModelMesh{
@@ -447,12 +452,12 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		d.printDiffs()
 
 		val floats = points.map {
-			ModelTangentMesh.TangentMeshVertex(it.first.normal * radius, it.first.tex, it.first.normal,
+			MeshVertex.builder(it.first.normal * radius).normal(it.first.normal).tex(it.first.tex).tangent(
 				//if(it.second.isEmpty()) Vec3(0f, 0f, 1f) else (it.second.fold(Vec3()) { v, t -> v + t } / it.second.size).normalize().cross(it.first.normal).cross(it.first.normal)
 				if(abs(it.first.normal.y) == 1f) Vec3(1f, 0f, 0f) else (it.first.normal.cross(Vec3(0f, 1f, 0f))).normalize()
-			)
+			).fillBones().build()
 		}.toTypedArray()
-		return ModelTangentMesh("icosahedron", floats, indices.toIntArray(), material = PBRMaterial("icosphere", mapOf(
+		return ModelMesh("icosahedron", floats, indices.toIntArray(), material = PBRMaterial("icosphere", mapOf(
 			//"baseColour" to TextureLoader[ResourceKey("ico_texture")],
 			//"normals" to TextureLoader[ResourceKey("cratered_normals")]
 		)))
@@ -466,8 +471,8 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 
 		val ringDelta = 1f / numRings
 
-		val bottom = ModelTangentMesh.TangentMeshVertex(Vec3(0f, -radius, 0f), Vec2(.5f, 0f), Vec3(0f, -1f, 0f), Vec3(1f, 0f, 0f))
-		val top = ModelTangentMesh.TangentMeshVertex(Vec3(0f, radius, 0f), Vec2(.5f, 1f), Vec3(0f, 1f, 0f), Vec3(1f, 0f, 0f))
+		val bottom = MeshVertex.builder(0f, -radius, 0f).normal(0f, -1f, 0f).tex(.5f, 0f).tangent(1f, 0f, 0f).fillBones().build()
+		val top = MeshVertex.builder(0f, radius, 0f).normal(0f, 1f, 0f).tex(.5f, 1f).tangent(1f, 0f, 0f).fillBones().build()
 		val rings = Array(divisions){ r ->
 			val tr = (r + 1) * ringDelta
 			val y = -cos(tr * PIF)
@@ -477,7 +482,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 				val x = xz * cos(PIF * ts)
 				val z = xz * sin(PIF * ts)
 				val normal = Vec3(x, y, z)
-				ModelTangentMesh.TangentMeshVertex(normal * radius, Vec2(ts * .5f, tr), normal, normal.cross(Vec3(0f, 1f, 0f)).normalize()) }
+				MeshVertex.builder(normal * radius).normal(normal).tex(ts * .5f, tr).tangent(normal.cross(Vec3(0f, 1f, 0f)).normalize()).fillBones().build() }
 		}
 
 		val indices = IntArray((divisions + 1) * numSections * 6)
@@ -512,7 +517,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 			a.copyInto(vertices, (i * sectionDivisions) + 1)
 		}
 		vertices[vertices.size - 1] = top
-		return ModelTangentMesh("UV Sphere", vertices, indices, material = PBRMaterial("uv sphere", mapOf(
+		return ModelMesh("UV Sphere", vertices, indices, material = PBRMaterial("uv sphere", mapOf(
 			//"baseColour" to TextureLoader[ResourceKey("wood")],
 			//"normals" to TextureLoader[ResourceKey("planet_normals")]
 		), Vec4(.93f, .66f, .6f, 1f)))
@@ -521,33 +526,35 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 	fun createInvertedCuboid(cuboid: AxisAlignedCuboid): ModelMesh {
 		val indices = IntArray(72)
 
+
 		val rt2 = sqrt(.5f)
 		val topVerts = mutableListOf(
-			ModelTangentMesh.TangentMeshVertex(Vec3(0f, 1f, 0f), Vec2(0f, 0f), Vec3(0f, rt2, rt2), Vec3(1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(0f, 1f, 0f), Vec2(0f, 0f), Vec3(rt2, rt2, 0f), Vec3(0f, 0f, -1f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(0f, 1f, 0f), Vec2(0f, 0f), Vec3(0f, rt2, -rt2), Vec3(-1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(0f, 1f, 0f), Vec2(0f, 0f), Vec3(-rt2, rt2, 0f), Vec3(0f, 0f, 1f)),
+			MeshVertex.builder(0f, 1f, 0f).normal(0f, rt2, rt2).tex(0f, 0f).tangent(1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(0f, 1f, 0f).normal(rt2, rt2, 0f).tex(0f, 0f).tangent(0f, 0f, -1f).fillBones().build(),
+			MeshVertex.builder(0f, 1f, 0f).normal(0f, rt2, -rt2).tex(0f, 0f).tangent(-1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(0f, 1f, 0f).normal(-rt2, rt2, 0f).tex(0f, 0f).tangent(0f, 0f, 1f).fillBones().build(),
 
-			ModelTangentMesh.TangentMeshVertex(Vec3(-.5f, .5f, .5f), Vec2(0f, 0f), Vec3(0f, rt2, rt2), Vec3(1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(.5f, .5f, .5f), Vec2(0f, 0f), Vec3(0f, rt2, rt2), Vec3(1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(.5f, .5f, .5f), Vec2(0f, 0f), Vec3(rt2, rt2, 0f), Vec3(0f, 0f, -1f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(.5f, .5f, -.5f), Vec2(0f, 0f), Vec3(rt2, rt2, 0f), Vec3(0f, 0f, -1f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(.5f, .5f, -.5f), Vec2(0f, 0f), Vec3(0f, rt2, -rt2), Vec3(-1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(-.5f, .5f, -.5f), Vec2(0f, 0f), Vec3(0f, rt2, -rt2), Vec3(-1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(-.5f, .5f, -.5f), Vec2(0f, 0f), Vec3(-rt2, rt2, 0f), Vec3(0f, 0f, 1f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(-.5f, .5f, .5f), Vec2(0f, 0f), Vec3(-rt2, rt2, 0f), Vec3(0f, 0f, 1f)),
+			MeshVertex.builder(-.5f, .5f, .5f).normal(0f, rt2, rt2).tex(0f, 0f).tangent(1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(.5f, .5f, .5f).normal(0f, rt2, rt2).tex(0f, 0f).tangent(1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(.5f, .5f, .5f).normal(rt2, rt2, 0f).tex(0f, 0f).tangent(0f, 0f, -1f).fillBones().build(),
+			MeshVertex.builder(.5f, .5f, -.5f).normal(rt2, rt2, 0f).tex(0f, 0f).tangent(0f, 0f, -1f).fillBones().build(),
+			MeshVertex.builder(.5f, .5f, -.5f).normal(0f, rt2, -rt2).tex(0f, 0f).tangent(-1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(-.5f, .5f, -.5f).normal(0f, rt2, -rt2).tex(0f, 0f).tangent(-1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(-.5f, .5f, -.5f).normal(-rt2, rt2, 0f).tex(0f, 0f).tangent(0f, 0f, 1f).fillBones().build(),
+			MeshVertex.builder(-.5f, .5f, .5f).normal(-rt2, rt2, 0f).tex(0f, 0f).tangent(0f, 0f, 1f).fillBones().build(),
 		)
+
 		fun addDirection(dir: Vec2, edge1: Vec2){
 			val leftNormal = Vec3(-edge1.y * rt2, 0f, edge1.x * rt2).normalize()
 			val rightNormal = Vec3(edge1.x * rt2, 0f, edge1.y * rt2).normalize()
 			topVerts.addAll(
-				ModelTangentMesh.TangentMeshVertex(Vec3(dir.x, 0f, dir.y), Vec2(0f, 0f), Vec3(dir.x * rt2, rt2, dir.y * rt2), Vec3(dir.y, 0f, -dir.x)),
-				ModelTangentMesh.TangentMeshVertex(Vec3(dir.x, 0f, dir.y), Vec2(0f, 0f), rightNormal, -leftNormal),
-				ModelTangentMesh.TangentMeshVertex(Vec3(dir.x, 0f, dir.y), Vec2(0f, 0f), Vec3(dir.x * rt2, -rt2, dir.y * rt2), Vec3(dir.y, 0f, -dir.x)),
-				ModelTangentMesh.TangentMeshVertex(Vec3(dir.x, 0f, dir.y), Vec2(0f, 0f), leftNormal, rightNormal),
+				MeshVertex.builder(dir.x, 0f, dir.y).normal(dir.x * rt2, rt2, dir.y * rt2).tex(0f, 0f).tangent(dir.y, 0f, -dir.x).fillBones().build(),
+				MeshVertex.builder(dir.x, 0f, dir.y).normal(rightNormal).tex(0f, 0f).tangent(-leftNormal).fillBones().build(),
+				MeshVertex.builder(dir.x, 0f, dir.y).normal(dir.x * rt2, -rt2, dir.y * rt2).tex(0f, 0f).tangent(dir.y, 0f, -dir.x).fillBones().build(),
+				MeshVertex.builder(dir.x, 0f, dir.y).normal(leftNormal).tex(0f, 0f).tangent(rightNormal).fillBones().build(),
 
-				ModelTangentMesh.TangentMeshVertex(Vec3(edge1.x, .5f, edge1.y), Vec2(0f, 0f), rightNormal, -leftNormal),
-				ModelTangentMesh.TangentMeshVertex(Vec3(edge1.x, -.5f, edge1.y), Vec2(0f, 0f), rightNormal, -leftNormal),
+				MeshVertex.builder(edge1.x, .5f, edge1.y).normal(rightNormal).tex(0f, 0f).tangent(-leftNormal).fillBones().build(),
+				MeshVertex.builder(edge1.x, -.5f, edge1.y).normal(rightNormal).tex(0f, 0f).tangent(-leftNormal).fillBones().build()
 			)
 		}
 
@@ -557,19 +564,19 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		addDirection(Vec2(-1, 0), Vec2(-.5f, .5f))
 
 		topVerts.addAll(
-			ModelTangentMesh.TangentMeshVertex(Vec3(-.5f, -.5f, .5f), Vec2(0f, 0f), Vec3(0f, -rt2, rt2), Vec3(1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(.5f, -.5f, .5f), Vec2(0f, 0f), Vec3(0f, -rt2, rt2), Vec3(1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(.5f, -.5f, .5f), Vec2(0f, 0f), Vec3(rt2, -rt2, 0f), Vec3(0f, 0f, -1f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(.5f, -.5f, -.5f), Vec2(0f, 0f), Vec3(rt2, -rt2, 0f), Vec3(0f, 0f, -1f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(.5f, -.5f, -.5f), Vec2(0f, 0f), Vec3(0f, -rt2, -rt2), Vec3(-1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(-.5f, -.5f, -.5f), Vec2(0f, 0f), Vec3(0f, -rt2, -rt2), Vec3(-1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(-.5f, -.5f, -.5f), Vec2(0f, 0f), Vec3(-rt2, -rt2, 0f), Vec3(0f, 0f, 1f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(-.5f, -.5f, .5f), Vec2(0f, 0f), Vec3(-rt2, -rt2, 0f), Vec3(0f, 0f, 1f)),
+			MeshVertex.builder(-.5f, -.5f, .5f).normal(0f, -rt2, rt2).tex(0f, 0f).tangent(1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(.5f, -.5f, .5f).normal(0f, -rt2, rt2).tex(0f, 0f).tangent(1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(.5f, -.5f, .5f).normal(rt2, -rt2, 0f).tex(0f, 0f).tangent(0f, 0f, -1f).fillBones().build(),
+			MeshVertex.builder(.5f, -.5f, -.5f).normal(rt2, -rt2, 0f).tex(0f, 0f).tangent(0f, 0f, -1f).fillBones().build(),
+			MeshVertex.builder(.5f, -.5f, -.5f).normal(0f, -rt2, -rt2).tex(0f, 0f).tangent(-1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(-.5f, -.5f, -.5f).normal(0f, -rt2, -rt2).tex(0f, 0f).tangent(-1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(-.5f, -.5f, -.5f).normal(-rt2, -rt2, 0f).tex(0f, 0f).tangent(0f, 0f, 1f).fillBones().build(),
+			MeshVertex.builder(-.5f, -.5f, .5f).normal(-rt2, -rt2, 0f).tex(0f, 0f).tangent(0f, 0f, 1f).fillBones().build(),
 
-			ModelTangentMesh.TangentMeshVertex(Vec3(0f, -1f, 0f), Vec2(0f, 0f), Vec3(0f, -rt2, rt2), Vec3(1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(0f, -1f, 0f), Vec2(0f, 0f), Vec3(rt2, -rt2, 0f), Vec3(0f, 0f, -1f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(0f, -1f, 0f), Vec2(0f, 0f), Vec3(0f, -rt2, -rt2), Vec3(-1f, 0f, 0f)),
-			ModelTangentMesh.TangentMeshVertex(Vec3(0f, -1f, 0f), Vec2(0f, 0f), Vec3(-rt2, -rt2, 0f), Vec3(0f, 0f, 1f)),
+			MeshVertex.builder(0f, -1f, 0f).normal(0f, -rt2, rt2).tex(0f, 0f).tangent(1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(0f, -1f, 0f).normal(rt2, -rt2, 0f).tex(0f, 0f).tangent(0f, 0f, -1f).fillBones().build(),
+			MeshVertex.builder(0f, -1f, 0f).normal(0f, -rt2, -rt2).tex(0f, 0f).tangent(-1f, 0f, 0f).fillBones().build(),
+			MeshVertex.builder(0f, -1f, 0f).normal(-rt2, -rt2, 0f).tex(0f, 0f).tangent(0f, 0f, 1f).fillBones().build(),
 		)
 
 		intArrayOf(0, 4, 5, 1, 6, 7, 2, 8, 9, 3, 10, 11).copyInto(indices)
@@ -587,7 +594,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		}
 		intArrayOf(36, 37, 44, 38, 39, 45, 40, 41, 46, 42, 43, 47).copyInto(indices, 60)
 
-		return ModelTangentMesh("Inverted Cuboid", topVerts.toTypedArray(), indices, material = PBRMaterial("invCub Mat", mapOf()))
+		return ModelMesh("Inverted Cuboid", topVerts.toTypedArray(), indices, material = PBRMaterial("invCub Mat", mapOf()))
 	}
 
 	companion object {
@@ -610,7 +617,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 			}
 		}
 
-		val gr = 1.6180339887f
+		const val gr = 1.618034f
 		val m = 1f / sqrt(gr * gr + 1f)
 		val ngr = gr * m
 

@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.objects.util.meshes.TextMesh
 import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
+import com.pineypiney.game_engine.rendering.meshes.TextMesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -108,7 +108,7 @@ class TrueTypeFont(
 
 //				texture.setSubData(t.getData(), x, 0, t.width, t.height, t.format)
 			}
-			catch (e: Exception){
+			catch (_: Exception){
 				GameEngineI.logger.error("Couldn't get texture data for TrueTypeFont $name, character $c")
 			}
 

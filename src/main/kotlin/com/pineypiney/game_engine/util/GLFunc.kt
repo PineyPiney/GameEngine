@@ -18,6 +18,7 @@ import java.nio.DoubleBuffer
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
+@Suppress("UNUSED")
 class GLFunc {
 
 	companion object {
@@ -26,7 +27,7 @@ class GLFunc {
 			get() = try {
 				GL.getCapabilities()
 				true
-			} catch (e: IllegalStateException) {
+			} catch (_: IllegalStateException) {
 				false
 			}
 
@@ -68,6 +69,9 @@ class GLFunc {
 		var cullFaceMode
 			get() = glGetInteger(GL_CULL_FACE_MODE)
 			set(value) = glCullFace(value)
+		var frontFace
+			get() = glGetInteger(GL_FRONT_FACE)
+			set(value) = glFrontFace(value)
 		var depthTest: Boolean
 			get() = glGetBoolean(GL_DEPTH_TEST)
 			set(value) = setBool(GL_DEPTH_TEST, value)
@@ -96,6 +100,9 @@ class GLFunc {
 		var pointSize: Float
 			get() = glGetFloat(GL_POINT_SIZE)
 			set(value) = glPointSize(value)
+		var polygonMode: Int
+			get() = glGetInteger(GL_POLYGON_MODE)
+			set(value) { glPolygonMode(GL_FRONT_AND_BACK, value)}
 		val sampleBuffers: Int get() = glGetInteger(GL_SAMPLE_BUFFERS)
 
 		// Stencil Buffer
@@ -154,6 +161,15 @@ class GLFunc {
 			set(value) = glViewport(0, 0, value.x, value.y)
 
 		val maxViewPort: Vec2i get() = Vec2i(0, getInts(GL_MAX_VIEWPORT_DIMS, 0))
+
+		fun getDataSize(dataType: Int): Int{
+			return when(dataType){
+				GL_BYTE, GL_UNSIGNED_BYTE -> 1
+				GL_SHORT, GL_UNSIGNED_SHORT -> 2
+				GL_INT, GL_UNSIGNED_INT, GL_FLOAT, GL_DOUBLE -> 4
+				else -> 0
+			}
+		}
 
 		fun getFloats(pname: Int, size: Int): FloatArray {
 			val array = FloatArray(size)

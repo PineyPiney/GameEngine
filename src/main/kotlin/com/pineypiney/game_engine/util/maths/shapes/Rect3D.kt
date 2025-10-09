@@ -16,7 +16,7 @@ class Rect3D(val origin: Vec3, val side1: Vec3, val side2: Vec3) : Shape3D() {
 		Vec3(Vec2.fromAngle(rect.angle, rect.lengths.y))
 	)
 
-	override val center: Vec3 get() = origin + (side1 + side2) * .5f
+	val center: Vec3 get() = origin + (side1 + side2) * .5f
 	override val min: Vec3
 	override val max: Vec3
 
@@ -59,18 +59,25 @@ class Rect3D(val origin: Vec3, val side1: Vec3, val side2: Vec3) : Shape3D() {
 
 	// https://gamedev.stackexchange.com/a/169389
 	override fun vectorTo(point: Vec3): Vec3 {
+		// op is point relative to the origin of the Rect
 		val op = point - origin
 
+		// a is how far along side1 op is
 		val a = op dot side1
+		// x is op projected onto side1 and then clamped to be within the rect
 		val x: Vec3 = if (a < 0) Vec3(0f)
 		else if (a > side1.length()) side1
 		else op projectOn side1
 
+		// b and y are a and x for side 2
 		val b = op dot side2
 		val y: Vec3 = if (b < 0) Vec3(0f)
 		else if (b > side2.length()) side2
 		else op projectOn side2
 
+		// Using x and y we can get the closest point to point confined within the rect
+
+		// Return the Difference
 		val closestPoint = origin + x + y
 		return point - closestPoint
 	}
@@ -86,9 +93,5 @@ class Rect3D(val origin: Vec3, val side1: Vec3, val side2: Vec3) : Shape3D() {
 
 	override fun projectToNormal(normal: Vec3): Set<Float> {
 		return points.map { it dot normal }.toSet()
-	}
-
-	override fun translate(move: Vec3) {
-		origin += move
 	}
 }

@@ -10,7 +10,7 @@ import glm_.vec3.Vec3
 import kotlin.math.abs
 import kotlin.math.sqrt
 
-class Circle(override val center: Vec2, val radius: Float) : Shape2D() {
+class Circle(val center: Vec2, val radius: Float) : Shape2D() {
 
 	override val min: Vec2 = center - Vec2(radius)
 	override val max: Vec2 = center + Vec2(radius)
@@ -54,10 +54,6 @@ class Circle(override val center: Vec2, val radius: Float) : Shape2D() {
 
 	override fun getBoundingCircle(): Circle {
 		return this
-	}
-
-	override fun translate(move: Vec2) {
-		center += move
 	}
 
 	override fun transformedBy(model: Mat4): Shape2D {

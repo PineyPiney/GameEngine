@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine_test.testVR
 
-import com.pineypiney.game_engine.objects.util.meshes.SquareMesh
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
 import com.pineypiney.game_engine.rendering.FrameBuffer
 import com.pineypiney.game_engine.util.GLFunc
@@ -47,8 +47,8 @@ class TestVRRenderer(w: Int, h: Int, override val hmd: HMD): VRRenderer<TestVRGa
 		val shader = BufferedGameRenderer.screenShader
 		shader.use()
 		shader.setUniforms(BufferedGameRenderer.screenUniforms, this)
-		leftDisplay.draw(SquareMesh(Vec2(-0.5, 0), Vec2(1, 2)))
-		rightDisplay.draw(SquareMesh(Vec2(0.5, 0), Vec2(1, 2)))
+		leftDisplay.draw(Mesh.textureQuad(Vec2(-0.5, 0), Vec2(1, 2)))
+		rightDisplay.draw(Mesh.textureQuad(Vec2(0.5, 0), Vec2(1, 2)))
 		TestWindow.INSTANCE.update()
 	}
 

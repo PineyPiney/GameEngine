@@ -12,17 +12,13 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class Rect2D(val origin: Vec2, var length1: Float, var length2: Float, var angle: Float = 0f) : Shape2D() {
+class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle: Float = 0f) : Shape2D() {
 
 	constructor(originX: Float, originY: Float, length1: Float, length2: Float, angle: Float = 0f): this(Vec2(originX, originY), length1, length2, angle)
-
 	constructor(origin: Vec2, size: Vec2, angle: Float = 0f) : this(origin, size.x, size.y, angle)
 
-	var lengths: Vec2
-		get() = Vec2(length1, length2)
-		set(value) {
-			length1 = value.x; length2 = value.y
-		}
+	val lengths: Vec2 get() = Vec2(length1, length2)
+
 	val side1: Vec2 get() = Vec2(length1 * cos(angle), length1 * -sin(angle))
 	val side2: Vec2 get() = Vec2(length2 * sin(angle), length2 * cos(angle))
 
@@ -31,8 +27,7 @@ class Rect2D(val origin: Vec2, var length1: Float, var length2: Float, var angle
 
 	val points: Set<Vec2> get() = setOf(origin, origin + side1, origin + side2, origin + side1 + side2)
 
-	override val center: Vec2
-		get() = origin + (side1 + side2) * .5f
+	val center: Vec2 get() = origin + (side1 + side2) * .5f
 
 	override val min: Vec2
 	override val max: Vec2
@@ -70,6 +65,7 @@ class Rect2D(val origin: Vec2, var length1: Float, var length2: Float, var angle
 		return q1b && q2b
 	}
 
+	// Same as Rect3D
 	override fun vectorTo(point: Vec2): Vec2 {
 		val op = point - origin
 
@@ -100,10 +96,6 @@ class Rect2D(val origin: Vec2, var length1: Float, var length2: Float, var angle
 		return Circle(center, .5f * sqrt(length1 * length1 + length2 * length2))
 	}
 
-	override fun translate(move: Vec2) {
-		origin += move
-	}
-
 	override fun transformedBy(model: Mat4): Rect2D {
 		val scale = Vec2(model.getScale())
 		val rotation = model.getRotation().eulerAngles().z
@@ -113,9 +105,5 @@ class Rect2D(val origin: Vec2, var length1: Float, var length2: Float, var angle
 
 	override fun toString(): String {
 		return "Rect2D[$origin, $lengths]"
-	}
-
-	companion object {
-		val unitSquare = Rect2D(Vec2(0f), 1f, 1f)
 	}
 }
