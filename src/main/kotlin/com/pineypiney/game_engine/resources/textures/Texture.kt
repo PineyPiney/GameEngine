@@ -16,13 +16,11 @@ import org.lwjgl.stb.STBImageWrite
 import java.nio.ByteBuffer
 
 class Texture(
-	val fileLocation: String,
+	val id: String,
 	val texturePointer: Int,
 	val target: Int = GL_TEXTURE_2D,
 	var binding: Int = 0
 ) : Resource() {
-
-	val fileName = fileLocation.substringAfterLast('\\').substringBefore('.')
 
 	val width: Int get() = parameter(GL_TEXTURE_WIDTH)
 	val height: Int get() = parameter(GL_TEXTURE_HEIGHT)
@@ -135,7 +133,7 @@ class Texture(
 	 */
 	fun crop(origin: Vec2i, tr: Vec2i): Texture{
 		val size = tr - origin
-		val texture = Texture("Cropping of $fileLocation", TextureLoader.createTexture(Buffer(size.x * size.y * numChannels), size.x, size.y, format))
+		val texture = Texture("Cropping of $id", TextureLoader.createTexture(Buffer(size.x * size.y * numChannels), size.x, size.y, format))
 		val copier = TextureCopyFrameBuffer()
 		copier.init()
 		copier.setDst(texture)
@@ -151,7 +149,7 @@ class Texture(
 	}
 
 	override fun toString(): String {
-		return "Texture[$fileName]"
+		return "Texture[$id]"
 	}
 
 	override fun equals(other: Any?): Boolean {
@@ -164,6 +162,28 @@ class Texture(
 	}
 
 	companion object {
+
+		fun createPointer(params: TextureParameters = TextureParameters.default): Int {
+			if (!GLFunc.isLoaded) {
+				GameEngineI.warn("Could not create texture pointer because OpenGL has not been loaded")
+				return -1
+			}
+			// Create a handle for the texture
+			val ptr = glGenTextures()
+
+			// Settings
+			glBindTexture(params.target, ptr)
+			params.load()
+
+			return ptr
+		}
+
+		fun create(id: String, width: Int, height: Int, format: Int, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, params: TextureParameters = TextureParameters.default): Texture{
+			val ptr = createPointer(params)
+			TextureLoader.writeTextureToPointer(null, width, height, format, internalFormat, type)
+			return Texture(id, ptr)
+		}
+
 		val none: Texture = Texture("None", 0)
 		val broke: Texture = Texture("missing", TextureLoader.createTexture(createArray().toBuffer(), 32, 32))
 

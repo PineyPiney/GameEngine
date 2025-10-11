@@ -136,7 +136,7 @@ class ShaderField(id: String, getter: () -> Shader, setter: (Shader) -> Unit): C
 }
 
 class TextureField(id: String, getter: () -> Texture, setter: (Texture) -> Unit): ComponentField<Texture>(id,
-	getter, setter, { it.fileLocation.substringBefore('.') },
+	getter, setter, { it.id },
 	{ s -> TextureLoader[ResourceKey(s)] })
 
 class ModelField(id: String, getter: () -> Model, setter: (Model) -> Unit): ComponentField<Model>(id,

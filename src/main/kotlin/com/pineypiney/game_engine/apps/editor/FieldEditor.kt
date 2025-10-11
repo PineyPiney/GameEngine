@@ -183,15 +183,15 @@ open class ShaderFieldEditor(parent: GameObject, field: ShaderField, origin: Vec
 	: FieldEditor<Shader, ShaderField>(parent, field, origin, Vec2i(size.x, size.y * 3)) {
 
 	val vertexText = createText("Vertex", pos = Vec2(0f, .68f), size = Vec2(.25f, .32f))
-	val vertexField = ActionTextField<ActionTextFieldComponent<*>>("Vertex Field", Vec3(.27f, .68f, 0f), Vec2(.7f, .32f), field.getter().vName, 16) { f, _, _ ->
+	val vertexField = ActionTextField<ActionTextFieldComponent<*>>("Vertex Field", Vec3(.27f, .68f, 0f), Vec2(.7f, .32f), field.getter().vName, 16) { _, _, _ ->
 		updateValue()
 	}
 	val fragmentText = createText("Fragment", pos = Vec2(0f, .34f), size = Vec2(.25f, .32f))
-	val fragmentField = ActionTextField<ActionTextFieldComponent<*>>("Fragment Field", Vec3(.27f, .34f, 0f), Vec2(.7f, .32f), field.getter().fName, 16) { f, _, _ ->
+	val fragmentField = ActionTextField<ActionTextFieldComponent<*>>("Fragment Field", Vec3(.27f, .34f, 0f), Vec2(.7f, .32f), field.getter().fName, 16) { _, _, _ ->
 		updateValue()
 	}
 	val geometryText = createText("Geometry", pos = Vec2(0f, .0f), size = Vec2(.25f, .32f))
-	val geometryField = ActionTextField<ActionTextFieldComponent<*>>("Geometry Field", Vec3(.27f, 0f, 0f), Vec2(.7f, .32f), field.getter().gName ?: "", 16) { f, _, _ ->
+	val geometryField = ActionTextField<ActionTextFieldComponent<*>>("Geometry Field", Vec3(.27f, 0f, 0f), Vec2(.7f, .32f), field.getter().gName ?: "", 16) { _, _, _ ->
 		updateValue()
 	}
 
@@ -228,8 +228,8 @@ open class ShaderFieldEditor(parent: GameObject, field: ShaderField, origin: Vec
 			else -1
 
 			for((i, f) in fields.withIndex()) {
-				val renderer: ColourRendererComponent? = f.getComponent<ColourRendererComponent>() ?: continue
-				renderer?.colour?.xyz = if (m == i) Vec3(0.65f) else Vec3(.5f)
+				val renderer: ColourRendererComponent = f.getComponent<ColourRendererComponent>() ?: continue
+				renderer.colour.xyz = if (m == i) Vec3(0.65f) else Vec3(.5f)
 			}
 			return m != -1
 		}
@@ -406,7 +406,7 @@ open class VecTFieldEditor<T: Number, V, out F : ComponentField<V>>(
 		val v = try {
 			field.getter()
 		}
-		catch (e: NullPointerException){
+		catch (_: NullPointerException){
 			return
 		}
 		textFields.forEachIndexed { index, actionTextField ->
@@ -470,12 +470,12 @@ val editors = mutableListOf<EditorType<*, *>>(
 )
 
 fun <T, F: ComponentField<T>> addEditor(klass: KClass<F>, creator: EditorCreator<F>){
-	editors.add(EditorType<T, F>(klass, creator))
+	editors.add(EditorType(klass, creator))
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T, F: ComponentField<T>> createEditor(parent: GameObject, field: F, position: Vec2i, size: Vec2i, callback: (String, String, String) -> Unit): FieldEditor<*, *>?{
-	val creator: EditorType<T, F> = (editors.firstOrNull { it.klass == field::class } as? EditorType<T, F>) ?: return DefaultFieldEditor<T, F>(parent, field, position, size, callback)
+fun <T, F: ComponentField<T>> createEditor(parent: GameObject, field: F, position: Vec2i, size: Vec2i, callback: (String, String, String) -> Unit): FieldEditor<*, *> {
+	val creator: EditorType<T, F> = (editors.firstOrNull { it.klass == field::class } as? EditorType<T, F>) ?: return DefaultFieldEditor(parent, field, position, size, callback)
 	return creator.creator(parent, field, position, size, callback)
 }
 

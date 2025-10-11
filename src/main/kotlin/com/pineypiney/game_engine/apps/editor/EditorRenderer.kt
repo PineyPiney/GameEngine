@@ -34,13 +34,13 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings) : DefaultWin
 	}
 
 	override fun render(game: EditorScreen, tickDelta: Double) {
+		val sceneBox = game.getSceneBox()
 		camera.getView(view)
 		camera.getProjection(projection)
 
 		GLFunc.clearColour = backgroundColour.rgbaValue
 		GLFunc.depthTest = true
 
-		val sceneBox = game.getSceneBox()
 		viewportSize = sceneBox.size
 		aspectRatio = sceneBox.aspectRatio
 		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, guiProjection)
@@ -56,6 +56,8 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings) : DefaultWin
 
 		viewportSize = window.framebufferSize
 		aspectRatio = window.aspectRatio
+//		camera.updateAspectRatio(aspectRatio)
+//		camera.getProjection(projection)
 		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, guiProjection)
 		clearFrameBuffer()
 

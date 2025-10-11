@@ -13,6 +13,7 @@ import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRe
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.SpriteButton
 import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.rendering.ObjectRenderer
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -37,6 +38,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 
 	var currentDirectory = root
 	val loadedTextures = mutableMapOf<String, Texture>()
+	val prefabRenderer = ObjectRenderer(Vec3(0f, 0f, 0f))
 
 	private val filesContainer = MenuItem("Files")
 	private val parentFileButton =
@@ -57,6 +59,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 	override fun init() {
 		super.init()
 		parent.addChild(filesContainer, parentFileButton)
+		prefabRenderer.init()
 		refreshDirectory()
 	}
 
@@ -131,7 +134,9 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 
 	override fun delete() {
 		super.delete()
+		prefabRenderer.delete()
 		for((_, texture) in loadedTextures) texture.delete()
+		loadedTextures.clear()
 	}
 
 

@@ -8,8 +8,6 @@ import com.pineypiney.game_engine.util.maths.Collider
 import com.pineypiney.game_engine.util.maths.Collider2D
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import glm_.vec2.Vec2
-import org.lwjgl.assimp.Assimp.aiProcess_FlipUVs
-import org.lwjgl.assimp.Assimp.aiProcess_Triangulate
 
 // Implement the model class. Models are made up of a list of meshes and bones,
 // which are separate sections of the model, but bones affect the rendering of meshes

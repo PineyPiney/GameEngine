@@ -52,10 +52,11 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 			GLFunc.polygonMode = GL11C.GL_LINE
 			for (mesh in model.meshes) {
 				val newModel = parent.worldModel * mesh.transform
-				shader.setMat4("model", newModel)
+				wireframeShader.setMat4("model", newModel)
 				mesh.bindAndDraw()
 			}
 			GLFunc.polygonMode = GL11C.GL_FILL
+			wireframeShader.delete()
 		}
 
 

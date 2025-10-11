@@ -41,8 +41,9 @@ class Translator2D(parent: GameObject, screen: EditorScreen) : Transformer(paren
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		if(pressed) return
 
-		val relX = (cursorPos.position.x - parent.position.x) / parent.scale.x
-		val relY = (cursorPos.position.y - parent.position.y) / parent.scale.y
+		val pos = getCursorPos(cursorPos)
+		val relX = (pos.x - parent.position.x) / parent.scale.x
+		val relY = (pos.y - parent.position.y) / parent.scale.y
 		// Hovering over the red Y Arrow
 		if(abs(relY) < .06f && relX > 0f){
 			red.x = 1f

@@ -36,8 +36,9 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		if(pressed) return
 
-		val relX = (cursorPos.position.x - parent.transformComponent.position.x)/parent.scale.x
-		val relY = (cursorPos.position.y - parent.transformComponent.position.y)/parent.scale.y
+		val pos = getCursorPos(cursorPos)
+		val relX = (pos.x - parent.transformComponent.position.x)/parent.scale.x
+		val relY = (pos.y - parent.transformComponent.position.y)/parent.scale.y
 		val rad2 = (relX*relX + relY*relY)
 		val relRot = Vec2(parent.worldModel.rotationComponent() * Vec4(-relX, relY, 0f, 1f))
 		// Hovering over the blue z circle
@@ -65,6 +66,8 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 		}
 	}
 
+	fun getAngle(cursor: CursorPosition) = (getCursorPos(cursor) - Vec2(parent.position)).angle()
+
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if(action == 1) {
@@ -73,7 +76,7 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 				green.y -> 2
 				blue.z -> {
 					startingEuler = parent.rotation.eulerAngles()
-					grabbedAngle = (cursorPos.position - Vec2(parent.position)).angle()
+					grabbedAngle = getAngle(cursorPos)
 					3
 				}
 
@@ -100,7 +103,7 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 			//1 -> parent.translate(Vec3(cursorDelta.x, 0f, 0f))
 			//2 -> parent.translate(Vec3(0f, cursorDelta.y, 0f))
 			3 -> {
-				val newGrabAngle = (cursorPos.position - Vec2(parent.position)).angle()
+				val newGrabAngle = getAngle(cursorPos)
 				parent.rotation = Quat(startingEuler + Vec3(0f, 0f, grabbedAngle - newGrabAngle))
 			}
 		}

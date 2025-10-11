@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.rendering
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.TextureParameters
 import glm_.i
@@ -38,9 +39,9 @@ open class FrameBuffer(var width: Int, var height: Int, var format: Int = GL_RGB
 	open fun generate() {
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO)
 		glBindTexture(GL_TEXTURE_2D, TCB)
+		parameters.load()
 
 		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, null as ByteBuffer?)
-		TextureLoader.loadIndividualSettings(TCB, parameters)
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TCB, 0)
 
 
@@ -72,6 +73,14 @@ open class FrameBuffer(var width: Int, var height: Int, var format: Int = GL_RGB
 		glActiveTexture(GL_TEXTURE0)
 		glBindTexture(GL_TEXTURE_2D, TCB)
 		shape.bindAndDraw()
+	}
+
+	fun copyTexture(id: String, params: TextureParameters = TextureParameters.default): Texture{
+		bind()
+		val texture = Texture.create(id, width, height, format, internalFormat, params = params)
+		texture.bind()
+		glCopyTexImage2D(params.target, 0, internalFormat, 0, 0, width, height, 0)
+		return texture
 	}
 
 	fun savePNG(file: String): Boolean {

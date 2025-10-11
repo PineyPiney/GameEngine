@@ -5,10 +5,9 @@ import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser
 import com.pineypiney.game_engine.apps.editor.util.EditorPositioningComponent
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponentI
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.prefabs.Prefab
-import com.pineypiney.game_engine.rendering.ObjectRenderer
 import com.pineypiney.game_engine.resources.textures.Sprite
-import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.window.WindowI
@@ -21,21 +20,27 @@ import kotlin.math.min
 
 class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComponent(parent, file, browser) {
 
-	override fun position(obj: GameObject, cursorPos: Vec2) {
-		val placingComponent = obj.children.firstOrNull()?.getComponent<EditorPositioningComponent>()
-		var newWorldPos = Vec3(Vec2(browser.screen.renderer.camera.screenToWorld(Vec2(cursorPos.x / browser.screen.window.aspectRatio, cursorPos.y))), obj.position.z)
-		if(placingComponent != null) newWorldPos = placingComponent.place(obj.transformComponent.worldPosition, newWorldPos)
-		obj.transformComponent.worldPosition = newWorldPos
+	override fun position(obj: GameObject, cursorPos: Vec2, scenePosition: CursorPosition) {
+		if(scenePosition.pixels.x == -1) super.position(obj, cursorPos, scenePosition)
+		else obj.position = Vec3(scenePosition.position + Vec2(browser.screen.renderer.camera.cameraPos), 0f)
 	}
 
 	override fun addRenderer(parent: GameObject) {
+		super.addRenderer(parent)
+		val sceneRenderer = MenuItem("Scene Renderer")
+
 		val prefab = Prefab(file)
-		parent.addChild(prefab)
 		prefab.parseAndEdit()
-		prefab.init()
+
+		sceneRenderer.addChild(prefab)
+		parent.addChild(sceneRenderer)
 	}
 
 	override fun getIcon(center: Vec2, width: Int, height: Int): Sprite {
+		val cachedTexture = browser.loadedTextures[file.path]
+		if(cachedTexture != null){
+			return Sprite(cachedTexture, 64f, center)
+		}
 		val prefab = Prefab(file).apply { parseAndEdit(); init(); position = Vec3(0f) }
 		val renderers = prefab.allActiveDescendants().mapNotNull { it.getComponent<RenderedComponentI>() }
 		if(renderers.isEmpty()) return super.getIcon(center, width, height)
@@ -56,12 +61,10 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		val offset = Vec3((minPos.x+maxPos.x) * .5f * scale, (minPos.y+maxPos.y) * .5f * scale, maxPos.z + 1f)
 		prefab translate -offset
 
-		val renderer = ObjectRenderer(Vec3(0f))
-		renderer.init()
 		GLFunc.clearColour = Vec4(0f)
-		renderer.render(prefab)
-
-		val texture = Texture(file.path, renderer.frameBuffer.TCB)
+		browser.prefabRenderer.render(prefab)
+		val texture = browser.prefabRenderer.getTexture(prefab.name)
+		browser.loadedTextures[file.path] = texture
 		return Sprite(texture, 64f, center)
 	}
 
@@ -73,7 +76,8 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 			obj.init()
 
 			val placingComponent = obj.getComponent<EditorPositioningComponent>()
-			var newWorldPos = Vec3(Vec2(browser.screen.renderer.camera.screenToWorld(cursorPos.screenSpace)), obj.position.z)
+			val scenePosition = browser.screen.getSceneCursorPosition(cursorPos)
+			var newWorldPos = Vec3(scenePosition.position + Vec2(browser.screen.renderer.camera.cameraPos), 0f)
 			if(placingComponent != null) newWorldPos = placingComponent.place(obj.transformComponent.worldPosition, newWorldPos)
 			obj.position = newWorldPos
 

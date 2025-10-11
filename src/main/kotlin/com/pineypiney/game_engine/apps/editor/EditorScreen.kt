@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.apps.editor.component_browser.ComponentBrowser
 import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser
 import com.pineypiney.game_engine.apps.editor.file_browser.files.SavableFiles
 import com.pineypiney.game_engine.apps.editor.object_browser.ObjectBrowser
+import com.pineypiney.game_engine.apps.editor.util.Draggable
 import com.pineypiney.game_engine.apps.editor.util.DraggedElement
 import com.pineypiney.game_engine.apps.editor.util.EditorPositioningComponent
 import com.pineypiney.game_engine.apps.editor.util.EditorSettings
@@ -109,28 +110,60 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 		val ray = renderer.camera.getRay(scenePos.screenSpace)
 
 		// ScenePos.pixels is (-1, -1) if the cursor is outside the scene screen
-		if(scenePos.pixels.x > 0) {
+		if(scenePos.pixels.x >= 0) {
 			val sceneDelta = getSceneCursorDelta(cursorDelta)
 			val transformerComponent = transformer?.getComponent<InteractorComponent>()
 			if(transformerComponent != null) checkHovers(setOf(transformerComponent), ray, scenePos, sceneDelta)
 		}
 
-		val element = dragging?.element ?: return
-		// Get the field editor currently being hovered over
-		val editor = componentBrowser.parent.getChild("Component Container")?.children?.firstNotNullOfOrNull{ cont -> cont.children.firstNotNullOfOrNull({ it.getComponent<FieldEditor<*, *>>() }){ it.hover } }
-		// If no field editor is being hovered over then make sure to update and old one
-		if(editor == null){
-			if(draggedField != null) {
-				draggedField?.onHoverElement(-1, cursorPos.position)
-				dragging?.isDroppable = false
-				draggedField = null
+		dragging?.let { dragging ->
+
+			dragging.element.position(dragging.parent, cursorPos.position, scenePos)
+
+			if(dragging.hoveringScene){
+				// Left scene, now hovering over menu
+				if(scenePos.pixels.x == -1) {
+					dragging.hoveringScene = false
+					val sceneRenderer = dragging.parent.getChild("Scene Renderer")
+					if(sceneRenderer != null) {
+						sceneObjects.removeObject(dragging.parent)
+						add(dragging.parent)
+						sceneRenderer.active = false
+						dragging.parent.getChild("Menu Renderer")?.active = true
+					}
+				}
 			}
-		}
-		// Else if a new field editor has been hovered over then update the previous and new ones
-		else if(editor != draggedField){
-			draggedField?.onHoverElement(-1, cursorPos.position)
-			dragging?.isDroppable = editor.onHoverElement(element, cursorPos.position)
-			draggedField = editor
+			// Started hovering over the scene
+			else if(scenePos.pixels.x >= 0){
+				dragging.hoveringScene = true
+				val sceneRenderer = dragging.parent.getChild("Scene Renderer")
+				if(sceneRenderer != null){
+					sceneObjects.addObject(dragging.parent)
+					remove(dragging.parent)
+					dragging.parent.getChild("Menu Renderer")?.active = false
+					sceneRenderer.active = true
+				}
+			}
+
+			// Get the field editor currently being hovered over
+			val editor = componentBrowser.parent.getChild("Component Container")?.children?.firstNotNullOfOrNull{ cont -> cont.children.firstNotNullOfOrNull({ it.getComponent<FieldEditor<*, *>>() }){ it.hover } }
+
+			// If no field editor is being hovered over then make sure to update and old one
+			if(editor == null){
+				if(draggedField != null) {
+					draggedField?.onHoverElement(-1, cursorPos.position)
+					dragging.isDroppable = false
+					draggedField = null
+				}
+			}
+			// Else if a new field editor has been hovered over then update the previous and new ones
+			else {
+				dragging.isDroppable = editor.onHoverElement(dragging.element.getElement(), cursorPos.position)
+				if(editor != draggedField){
+					draggedField?.onHoverElement(-1, cursorPos.position)
+					draggedField = editor
+				}
+			}
 		}
 	}
 
@@ -204,19 +237,21 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 
 	// DRAGGING ELEMENT
 
-	fun setDragging(element: Any, addRender: (GameObject) -> Unit, position: (GameObject, Vec2) -> Unit): GameObject{
+	fun setDragging(element: Draggable): GameObject{
 		val o = MenuItem("Dragged Element")
 		o.position = Vec3(input.mouse.lastPos.position, 1f)
-		val comp = DraggedElement(o, element, position).applied()
-		addRender(o)
+		val comp = DraggedElement(o, element).applied()
+		element.addRenderer(o)
+		o.getChild("Scene Renderer")?.active = false
 		o.init()
-		dragging = comp
 		add(o)
+
+		dragging = comp
 		return o
 	}
 
 	fun clearDragging(cursorPos: Vec2){
-		val element = dragging?.element ?: return
+		val element = dragging?.element?.getElement() ?: return
 
 		if(draggedField != null){
 			if(dragging?.isDroppable == true) draggedField?.onDropElement(element, cursorPos, this)
@@ -356,7 +391,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 		val aspect = size.x / size.y
 
 		val sceneRelative = Vec2(pixels) / (size * .5f) - Vec2(1f)
-		val scenePos = CursorPosition(Vec2(sceneRelative.x * aspect, sceneRelative.y), sceneRelative, pixels)
+		val scenePos = CursorPosition(Vec2(renderer.camera.height * .5f * sceneRelative.x * aspect, renderer.camera.height * .5f * sceneRelative.y), sceneRelative, pixels)
 		return scenePos
 	}
 

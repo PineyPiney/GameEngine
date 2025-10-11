@@ -28,13 +28,12 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 		val d = Debug()
 		for ((fileName, stream) in streams) {
 			d.start()
-			val p = pList.firstOrNull() ?: glGenTextures()
 			val keyName = fileName.substringBefore('.')
 			val params = flags[keyName] ?: flags["*"] ?: TextureParameters.default
 
-			loadIndividualSettings(p, params)
+			val p = Texture.createPointer(params)
 			val np = loadTextureFromStream(fileName, stream, params, p)
-			val texture = Texture(fileName, np)
+			val texture = Texture(keyName, np, params.target)
 			map[ResourceKey(keyName)] = texture
 
 			pList.remove(p)
@@ -60,7 +59,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 					val intValue = parameters.getOrElse(value) {
 						try {
 							Integer.parseInt(value)
-						} catch (e: NumberFormatException) {
+						} catch (_: NumberFormatException) {
 							GameEngineI.warn("Couldn't parse texture parameter $param with value $value in .params file $fileName")
 							0
 						}
@@ -97,36 +96,11 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 		fun getTexture(key: ResourceKey): Texture = INSTANCE[key]
 		fun findTexture(name: String): Texture = INSTANCE.findTexture(name)
 
-
-		fun createPointer(params: TextureParameters = TextureParameters.default): Int {
-			if (!GLFunc.isLoaded) {
-				GameEngineI.warn("Could not create texture pointer because OpenGL has not been loaded")
-				return -1
-			}
-			// Create a handle for the texture
-			val texturePointer = glGenTextures()
-			// Settings
-			loadIndividualSettings(texturePointer, params)
-
-			return texturePointer
-		}
-
-		fun loadIndividualSettings(pointer: Int, params: TextureParameters = TextureParameters.default) {
-
-			glBindTexture(params.target, pointer)
-			// Set wrapping and filtering options
-			glTexParameteri(params.target, GL_TEXTURE_WRAP_S, params.wrapS)
-			glTexParameteri(params.target, GL_TEXTURE_WRAP_T, params.wrapT)
-			glTexParameteri(params.target, GL_TEXTURE_WRAP_R, params.wrapR)
-			glTexParameteri(params.target, GL_TEXTURE_MIN_FILTER, params.minFilter)
-			glTexParameteri(params.target, GL_TEXTURE_MAG_FILTER, params.magFilter)
-		}
-
 		fun loadTextureFromStream(
 			name: String,
 			texture: InputStream,
 			params: TextureParameters = TextureParameters.default,
-			pointer: Int = createPointer(params)
+			pointer: Int = Texture.createPointer(params)
 		): Int {
 			val bb = ResourcesLoader.ioResourceToByteBuffer(texture, 1024)
 			val p = loadTextureFromBuffer(name, bb, params, pointer)
@@ -137,7 +111,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			name: String,
 			buffer: ByteBuffer,
 			params: TextureParameters = TextureParameters.default,
-			pointer: Int = createPointer(params)
+			pointer: Int = Texture.createPointer(params)
 		): Int {
 			if (!buffer.hasRemaining()) {
 				GameEngineI.warn("Buffer for texture $name is empty")
@@ -186,12 +160,12 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 				GameEngineI.warn("Could not write texture to pointer because OpenGL has not been loaded")
 				return
 			}
-			val d = Debug().start()
+
 			if(debug) GameEngineI.debug("Calling texImage2D with internalFormat: $internalFormat, width: $width, height: $height, format: $format, type: $type and data: $data")
 			try { glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data) }
-			catch (e: Exception){ "TEXTURE FAILURE" }
-
-			d.add()
+			catch (_: Exception){
+				GameEngineI.error("Failed to create texture")
+			}
 
 			glGenerateMipmap(GL_TEXTURE_2D)
 		}
@@ -206,7 +180,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			params: TextureParameters = TextureParameters.default,
 			debug: Boolean = false
 		): Int {
-			val pointer = createPointer(params)
+			val pointer = Texture.createPointer(params)
 			if(debug) GameEngineI.debug("Calling writeTextureToPointer on texturePtr: $pointer with parameters: $params")
 			if (pointer != -1) writeTextureToPointer(data, width, height, format, internalFormat, type, debug)
 			return pointer

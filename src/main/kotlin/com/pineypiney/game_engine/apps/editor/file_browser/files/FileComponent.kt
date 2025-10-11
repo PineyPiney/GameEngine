@@ -4,14 +4,14 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser
 import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser.Companion.FileContext
 import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser.Companion.fileContextMenu
+import com.pineypiney.game_engine.apps.editor.util.Draggable
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.GameObjectSerializer
 import com.pineypiney.game_engine.objects.components.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.TextFieldComponent
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
-import com.pineypiney.game_engine.rendering.ObjectRenderer
+import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -29,7 +29,7 @@ import javax.imageio.ImageIO
 import javax.swing.filechooser.FileSystemView
 import kotlin.math.max
 
-open class FileComponent(parent: GameObject, val file: File, val browser: FileBrowser) : DefaultInteractorComponent(parent) {
+open class FileComponent(parent: GameObject, val file: File, val browser: FileBrowser) : DefaultInteractorComponent(parent), Draggable {
 
 	var fileSelect = 0.0
 
@@ -43,7 +43,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 		when(action){
 			1 -> {
 				fileSelect = Timer.time
-				browser.screen.setDragging(file, this::addRenderer, this::position)
+				browser.screen.setDragging(this)
 				return INTERRUPT
 			}
 			0 -> {
@@ -85,14 +85,18 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 		browser.screen.loadedFile(file)
 	}
 
-	open fun position(obj: GameObject, cursorPos: Vec2){
+	override fun getElement(): Any = file
+
+	override fun position(obj: GameObject, cursorPos: Vec2, scenePosition: CursorPosition){
 		obj.position = Vec3(cursorPos, obj.position.z)
 	}
 
-	open fun addRenderer(parent: GameObject){
-		val dragSprite = getDragIcon()
-		parent.components.add(SpriteComponent(parent, dragSprite, SpriteComponent.menuShader))
-		parent.scale = this.parent.transformComponent.worldScale
+	override fun addRenderer(parent: GameObject){
+		val menuRenderer = MenuItem("Menu Renderer")
+		val dragSprite = getIcon(Vec2(.5f))
+		menuRenderer.components.add(SpriteComponent(menuRenderer, dragSprite, SpriteComponent.menuShader))
+		menuRenderer.scale = this.parent.transformComponent.worldScale
+		parent.addChild(menuRenderer)
 	}
 
 	protected open fun getIcon(center: Vec2, width: Int = 64, height: Int = 64): Sprite{
@@ -120,19 +124,6 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 		val sprite = Sprite(tex, max(width, height).toFloat(), center)
 		browser.loadedTextures[ext] = tex
 		return sprite
-	}
-
-	protected open fun getDragIcon(): Sprite{
-		return when(file.extension){
-			"pfb" -> {
-				val renderer = ObjectRenderer(Vec3(0f, 0f, 5f))
-				renderer.render(GameObjectSerializer.parse(file.inputStream()))
-
-				val texture = Texture(file.path, renderer.frameBuffer.TCB)
-				Sprite(texture, 16f)
-			}
-			else -> getIcon(Vec2(.5f))
-		}
 	}
 
 	companion object {

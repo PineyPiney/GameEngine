@@ -242,7 +242,7 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 			val buffer = pixels.toByteArray().toBuffer()
 
 			//GameEngineI.debug("Loading character $char, code ${char.code.asHexString}")
-			Texture("", TextureLoader.createTexture(buffer, textureSize.x, textureSize.y, GL12C.GL_RED))
+			Texture("$fontName $char", TextureLoader.createTexture(buffer, textureSize.x, textureSize.y, GL12C.GL_RED))
 		}
 
 		val name = fontName.substringBefore('.')
@@ -308,7 +308,6 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 		)
 
 		boldBuffer.clear()
-		TextureLoader.loadIndividualSettings(texture.texturePointer)
 
 //        let{
 //            val orderedBytes = boldBuffer.reversed().chunked(boldTextureWidth){ it.reversed() }.flatten().map { it.i * 0x010101 }

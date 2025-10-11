@@ -85,6 +85,6 @@ class Sprite(texture: Texture, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), origi
 	}
 
 	override fun toString(): String {
-		return "Sprite(${texture.fileName})"
+		return "Sprite(${texture.id})"
 	}
 }

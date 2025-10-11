@@ -28,13 +28,13 @@ class Scale2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, sc
 		parent.rotation = obj.transformComponent.worldRotation
 	}
 
-	fun relativePos(pos: Vec2) = (pos - Vec2(parent.position)).rotate(-parent.rotation.eulerAngles().z)
+	fun relativePos(pos: CursorPosition) = (getCursorPos(pos) - Vec2(parent.position)).rotate(-parent.rotation.eulerAngles().z)
 
 	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		if(pressed) return
 
-		val rel = relativePos(cursorPos.position)
+		val rel = relativePos(cursorPos)
 		val relX = rel.x / parent.scale.x
 		val relY = rel.y / parent.scale.y
 		if(abs(relY) < .06f && relX > 0f){
@@ -70,7 +70,7 @@ class Scale2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, sc
 			}
 
 			if(selected > 0) {
-				grabPoint = relativePos(cursorPos.position)
+				grabPoint = relativePos(cursorPos)
 				if(grabPoint.x == 0f) grabPoint.x = .001f
 				if(grabPoint.y == 0f) grabPoint.y = .001f
 				grabPoint = Vec2(1f / grabPoint.x, 1f / grabPoint.y)
@@ -93,9 +93,9 @@ class Scale2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, sc
 
 	override fun onDrag(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		val scale = when(selected){
-			1 -> Vec2(initScale.x * relativePos(cursorPos.position).x * grabPoint.x, initScale.y)
-			2 -> Vec2(initScale.x, initScale.y * relativePos(cursorPos.position).y * grabPoint.y)
-			3 -> Vec2(initScale) * relativePos(cursorPos.position) * grabPoint
+			1 -> Vec2(initScale.x * relativePos(cursorPos).x * grabPoint.x, initScale.y)
+			2 -> Vec2(initScale.x, initScale.y * relativePos(cursorPos).y * grabPoint.y)
+			3 -> Vec2(initScale) * relativePos(cursorPos) * grabPoint
 			else -> return
 		}
 		//val newWorldPos = Vec3(Vec2(screen.renderer.camera.screenToWorld(Vec2(parent.position.x / window.aspectRatio, parent.position.y))), screen.editingObject!!.position.z)
