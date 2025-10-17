@@ -12,6 +12,7 @@ import com.pineypiney.game_engine.window.Viewport
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
+import kotlin.math.ceil
 import kotlin.math.min
 
 open class TextRendererComponent(parent: GameObject, protected val text: Text, var fontSize: Int, shader: Shader) :
@@ -40,10 +41,7 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 
 	override fun preRender(renderer: RendererI, tickDelta: Double) {
 		if (textChanged) {
-			val size = Vec2(parent.transformComponent.worldScale)
-			if (fontSize > 0f) this.size = fontSize
-			else fitWithin(renderer.getViewport(), size)
-			text.updateLines(size * renderer.viewportSize.y / (this.size * 2f))
+			updateLines(renderer.getViewport())
 			textChanged = false
 		}
 	}
@@ -141,15 +139,16 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		return o
 	}
 
+	fun updateLines(view: Viewport){
+		val size = Vec2(parent.transformComponent.worldScale)
+		if (fontSize > 0f) this.size = fontSize
+		else fitWithin(view, size)
+		val pixelSize = Vec2(ceil(size.x * view.size.y), ceil(size.y * view.size.y))
+		text.updateLines(pixelSize / (this.size * 2f))
+	}
+
 	override fun updateAspectRatio(view: Viewport) {
-		if (!shader.hasProj) {
-			val size = Vec2(parent.transformComponent.worldScale)
-
-			if (fontSize > 0f) this.size = fontSize
-			else fitWithin(view, size)
-
-			text.updateLines(size * view.size.y / (this.size * 2f))
-		}
+		if (!shader.hasProj) updateLines(view)
 	}
 
 	override fun delete() {

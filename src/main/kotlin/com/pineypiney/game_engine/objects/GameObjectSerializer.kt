@@ -10,6 +10,7 @@ import com.pineypiney.game_engine.util.NodeTree
 import glm_.getInt
 import glm_.int
 import glm_.short
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -98,20 +99,21 @@ class GameObjectSerializer {
 			// This is a list of all template components that will be removed
 			// as they are checked against the prefab's components
 			val tempComps = template.components.map { it.id }.toMutableList()
-			for(i in prefab.components){
-				val tempComp = template.getComponent(i.id)
-				val fields = i.getAllFieldsExt()
+			for(editedComp in prefab.components){
+				val tempComp = template.getComponent(editedComp.id)
+
 				// If the template also has the component then only any fields that have been modified need to be serialised
 				if(tempComp != null){
 					tempComps.remove(tempComp.id)
+					val fields = editedComp.getAllFieldsExt()
 					val tempFields = tempComp.getAllFieldsExt()
-					for(f in fields){
-						val tempField = tempFields.first { it.id == f.id }
-						val serialised = f.serialiseValue()
+					for(editedField in fields){
+						val tempField = tempFields.first { it.id == editedField.id }
+						val serialised = editedField.serialiseValue(editedComp)
 						// If the serialisation of the templates field is different then save it as a change
-						if(serialised != tempField.serialiseValue()){
-							val field = i.id + '.' + f.id
-							edits.add(PrefabFieldEdit(chain, field, serialised))
+						if(serialised != tempField.serialiseValue(tempComp)){
+							val field = editedComp.id + '.' + editedField.id
+							edits.add(PrefabFieldEdit(chain, field, serialised, null))
 						}
 					}
 				}
@@ -119,8 +121,8 @@ class GameObjectSerializer {
 				else{
 					val head = StringBuilder()
 					val data = StringBuilder()
-					i.serialise(head, data)
-					edits.add(PrefabComponentAddEdit(chain, head.toString(), data.toString()))
+					editedComp.serialise(head, data)
+					edits.add(PrefabComponentAddEdit(chain, head.toString(), data.toString(), null))
 				}
 			}
 			// Any components left in this list are components that were deleted in the prefab instance
@@ -152,26 +154,30 @@ class GameObjectSerializer {
 
 		// PARSING -------------------------------------------------------------------------------------
 
-		fun parse(stream: InputStream, dest: GameObject? = null): GameObject {
+		fun parse(stream: InputStream, dest: GameObject? = null, lateParse: MutableList<Triple<ComponentI, ComponentField<*>, String>> = mutableListOf(), parseLate: Boolean = true): GameObject {
 			try {
 				val headLen = stream.int()
 				val head = stream.readNBytes(headLen).inputStream()
-				return parseChild(head, stream, dest)
+				val o = parseChild(head, stream, lateParse, dest, parseLate)
+				if(parseLate) {
+					for ((comp, field, str) in lateParse) field.set(str, comp)
+				}
+				return o
 			} catch (_: Exception) {
 				return GameObject("Womp Womp")
 			}
 		}
 
-		fun parseChild(head: InputStream, data: InputStream, dest: GameObject? = null): GameObject {
+		fun parseChild(head: InputStream, data: InputStream, lateParse: MutableList<Triple<ComponentI, ComponentField<*>, String>>, dest: GameObject? = null, parseLate: Boolean): GameObject {
 			val type = head.short()
 			return when(type){
-				0xdefa -> parseDefaultObject(head, data, dest)
-				0xefab -> parsePrefab(head, data, dest)
+				0xdefa -> parseDefaultObject(head, data, lateParse, dest, parseLate)
+				0xefab -> parsePrefab(head, data, lateParse, dest, parseLate)
 				else -> dest ?: GameObject()
 			}
 		}
 
-		fun parseDefaultObject(head: InputStream, data: InputStream, dest: GameObject? = null): GameObject{
+		fun parseDefaultObject(head: InputStream, data: InputStream, lateParse: MutableList<Triple<ComponentI, ComponentField<*>, String>>, dest: GameObject? = null, parseLate: Boolean): GameObject{
 			val nameLen =
 				head.readNBytes(2).reversed().withIndex().sumOf { (index, byte) -> (byte.toInt() shl (index * 8)) }
 			val name = head.readNBytes(nameLen).toString(Charset.defaultCharset())
@@ -193,11 +199,11 @@ class GameObjectSerializer {
 			repeat(partCount) {
 				val type = head.readNBytes(4).toString(Charset.defaultCharset())
 				when (type) {
-					"COMP" -> parseComponents(head, data, o)
+					"COMP" -> parseComponents(head, data, lateParse, o)
 					"CHLD" -> {
 						var childrenSize = head.int()
 						while (childrenSize-- > 0) {
-							o.addChild(parseChild(head, data))
+							o.addChild(parseChild(head, data, lateParse, null, parseLate))
 						}
 					}
 				}
@@ -207,12 +213,12 @@ class GameObjectSerializer {
 			return o
 		}
 
-		fun parseComponents(head: InputStream, data: InputStream, parent: GameObject) {
+		fun parseComponents(head: InputStream, data: InputStream, lateParse: MutableList<Triple<ComponentI, ComponentField<*>, String>>, parent: GameObject) {
 			val componentCount = head.int()
-			repeat(componentCount) { parseComponent(head, data, parent) }
+			repeat(componentCount) { parseComponent(head, data, lateParse, parent) }
 		}
 
-		fun parseComponent(head: InputStream, data: InputStream, parent: GameObject){
+		fun parseComponent(head: InputStream, data: InputStream, lateParse: MutableList<Triple<ComponentI, ComponentField<*>, String>>, parent: GameObject){
 			val nameSize = head.read()
 			val componentName = head.readNBytes(nameSize).toString(Charset.defaultCharset())
 			val component = Components.createComponent(componentName, parent)
@@ -224,37 +230,40 @@ class GameObjectSerializer {
 			}
 
 			val fields = component.getAllFieldsExt()
-			repeat(numFields) { parseField(head, data, fields) }
+			repeat(numFields) { parseField(head, data, component, fields, lateParse) }
 			parent.components.add(component)
 		}
 
-		fun parseField(head: InputStream, data: InputStream, fields: Set<ComponentField<*>>){
+		fun parseField(head: InputStream, data: InputStream, component: ComponentI, fields: Set<ComponentField<*>>, lateParse: MutableList<Triple<ComponentI, ComponentField<*>, String>>){
 			val fieldNameSize = head.read()
 			val fieldName = head.readNBytes(fieldNameSize).toString(Charset.defaultCharset())
 			val fieldSize = head.int()
 			val value = data.readNBytes(fieldSize).toString(Charsets.ISO_8859_1)
-			fields.firstOrNull { it.id == fieldName }?.set(value)
+			val field = fields.firstOrNull { it.id == fieldName } ?: return
+			if(field.isLateParse()) lateParse.add(Triple(component, field, value))
+			else field.set(value, component)
 		}
 
-		fun parsePrefab(head: InputStream, data: InputStream, dest: GameObject? = null): GameObject{
+		fun parsePrefab(head: InputStream, data: InputStream, lateParse: MutableList<Triple<ComponentI, ComponentField<*>, String>>, dest: GameObject? = null, parseLate: Boolean): GameObject{
 			val fileLength = head.short()
 			val file = File(head.readNBytes(fileLength).toString(Charset.defaultCharset()))
 			val o = dest as? Prefab ?: Prefab(file)
-			parse(file.inputStream(), o)
+			parse(file.inputStream(), o, lateParse, false)
 
 			val nameLength = head.read()
 			val name = head.readNBytes(nameLength).toString(Charsets.ISO_8859_1)
 			o.name = name
 
 			while(head.available() > 0){
-				o.edits.addAll(parseNode("", head, data))
+				o.edits.addAll(parseNode("", head, data, if(parseLate) lateParse else null))
 			}
 
 			for(edit in o.edits) edit.execute(o)
+
 			return o
 		}
 
-		fun parseNode(parent: String, head: InputStream, data: InputStream): List<PrefabEdit>{
+		fun parseNode(parent: String, head: InputStream, data: InputStream, lateParse: LateParse?): List<PrefabEdit>{
 
 			val nodeNameLength = head.read()
 			val nodeName = if(nodeNameLength == 0) "" else head.readNBytes(nodeNameLength).toString(Charsets.ISO_8859_1)
@@ -270,18 +279,34 @@ class GameObjectSerializer {
 						repeat(numNodes){
 							val editType = head.readNBytes(4).toString(Charsets.ISO_8859_1)
 							when(editType){
-								"FLED" -> list.add(PrefabFieldEdit(parentLoc, head.readNBytes(head.short()).toString(Charsets.ISO_8859_1), data.readNBytes(head.int()).toString(Charsets.ISO_8859_1)))
-								"CPAD" -> list.add(PrefabComponentAddEdit(parentLoc, head.readNBytes(head.int()).toString(Charsets.ISO_8859_1), data.readNBytes(head.int()).toString(Charsets.ISO_8859_1)))
+								"FLED" -> list.add(PrefabFieldEdit(parentLoc, head.readNBytes(head.short()).toString(Charsets.ISO_8859_1), data.readNBytes(head.int()).toString(Charsets.ISO_8859_1), lateParse))
+								"CPAD" -> list.add(PrefabComponentAddEdit(parentLoc, head.readNBytes(head.int()).toString(Charsets.ISO_8859_1), data.readNBytes(head.int()).toString(Charsets.ISO_8859_1), lateParse))
 								"CPRM" -> list.add(PrefabComponentRemoveEdit(parentLoc, data.readNBytes(head.read()).toString(Charsets.ISO_8859_1)))
 								"CHAD" -> list.add(PrefabChildAddEdit(parentLoc, data.readNBytes(head.int()).toString(Charsets.ISO_8859_1)))
 								"CHRM" -> list.add(PrefabChildRemoveEdit(parentLoc, data.readNBytes(head.read()).toString(Charsets.ISO_8859_1)))
 							}
 						}
 					}
-					"CHLD" -> repeat(head.int()) { list.addAll(parseNode(parentLoc, head, data)) }
+					"CHLD" -> repeat(head.int()) { list.addAll(parseNode(parentLoc, head, data, lateParse)) }
 				}
 			}
 			return list
 		}
+
+		fun parseScene(stream: InputStream, list: LateParse? = null): List<GameObject>{
+			val numObjects = stream.int()
+			return List(numObjects) {
+				try {
+					val objSize = stream.int()
+					val objData = stream.readNBytes(objSize)
+					if(list == null) parse(ByteArrayInputStream(objData))
+					else parse(ByteArrayInputStream(objData), null, list, false)
+				} catch (_: Exception) {
+					null
+				}
+			}.filterNotNull()
+		}
 	}
 }
+
+typealias LateParse = MutableList<Triple<ComponentI, ComponentField<*>, String>>

@@ -1,7 +1,9 @@
-package com.pineypiney.game_engine.objects.components
+package com.pineypiney.game_engine.objects.components.widgets
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
+import com.pineypiney.game_engine.objects.components.UpdatingComponent
 import com.pineypiney.game_engine.objects.components.rendering.CaretRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
@@ -21,7 +23,7 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFW
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import kotlin.math.abs
@@ -47,7 +49,8 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		}
 		override fun addComponents() {
 			super.addComponents()
-			components.add(TextFieldText(this, Text(startText, alignment = Text.ALIGN_CENTER_LEFT), textSize, fieldShader))
+			components.add(TextFieldText(this,
+				Text(startText, alignment = Text.ALIGN_CENTER_LEFT), textSize, fieldShader))
 		}
 	}
 
@@ -72,10 +75,11 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 
 	var caret: Int = startText.length; private set
 
-	val limits: Vec2 get() = Vec2(
-		parent.transformComponent.worldPosition.x,
-		parent.transformComponent.worldPosition.x + parent.transformComponent.worldScale.x
-	)
+	val limits: Vec2
+		get() = Vec2(
+			parent.transformComponent.worldPosition.x,
+			parent.transformComponent.worldPosition.x + parent.transformComponent.worldScale.x
+		)
 
 	override fun init() {
 		super.init()
@@ -103,7 +107,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		super.onInput(window, input, action, cursorPos)
 
 		if (input.controlType == ControlType.KEYBOARD && this.forceUpdate) {
-			if (action != GLFW_RELEASE) specialCharacter(input)
+			if (action != GLFW.GLFW_RELEASE) specialCharacter(input)
 			return INTERRUPT
 		}
 
@@ -133,15 +137,15 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 
 	open fun specialCharacter(bind: InputState) {
 		when (bind.i) {
-			GLFW_KEY_V -> {
+			GLFW.GLFW_KEY_V -> {
 				if (bind.control) paste()
 			}
 
-			GLFW_KEY_ESCAPE -> {
+			GLFW.GLFW_KEY_ESCAPE -> {
 				finish()
 			}
 
-			GLFW_KEY_BACKSPACE -> {
+			GLFW.GLFW_KEY_BACKSPACE -> {
 				if (caret > 0) {
 					val i: Int = moveCaretLeft(caret - 2, bind.control)
 					text = text.removeRange(i, caret)
@@ -149,32 +153,32 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 				}
 			}
 
-			GLFW_KEY_DELETE -> {
+			GLFW.GLFW_KEY_DELETE -> {
 				if (caret < text.length) {
 					val i: Int = moveCaretRight(caret + 1, bind.control)
 					text = text.removeRange(caret, i)
 				}
 			}
 
-			GLFW_KEY_LEFT -> {
+			GLFW.GLFW_KEY_LEFT -> {
 				if (caret > 0) {
 					caret = moveCaretLeft(caret - 2, bind.control)
 				}
 			}
 
-			GLFW_KEY_RIGHT -> {
+			GLFW.GLFW_KEY_RIGHT -> {
 				if (caret < text.length) {
 					caret = moveCaretRight(caret + 1, bind.control)
 				}
 			}
 
-			GLFW_KEY_HOME -> {
+			GLFW.GLFW_KEY_HOME -> {
 				if (caret > 0) {
 					caret = 0
 				}
 			}
 
-			GLFW_KEY_END -> {
+			GLFW.GLFW_KEY_END -> {
 				if (caret < text.length) {
 					caret = text.length
 				}
@@ -229,12 +233,21 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 	}
 
 	companion object {
-		val fieldShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/text_field"))
+		val fieldShader = ShaderLoader.getShader(
+			ResourceKey("vertex/menu"),
+			ResourceKey("fragment/text_field")
+		)
 
 		// A few sets of characters that might be limited in a textField.
 		// Just override or set the 'allowed' variable
 		val standard =
-			listOf(GLFW_KEY_ESCAPE, GLFW_KEY_BACKSPACE, GLFW_KEY_DELETE, GLFW_KEY_LEFT, GLFW_KEY_RIGHT).map { it.c }
+			listOf(
+				GLFW.GLFW_KEY_ESCAPE,
+				GLFW.GLFW_KEY_BACKSPACE,
+				GLFW.GLFW_KEY_DELETE,
+				GLFW.GLFW_KEY_LEFT,
+				GLFW.GLFW_KEY_RIGHT
+			).map { it.c }
 		val all = ((' '..254.c) - 127.c) + standard
 		val integers = ('0'..'9') + standard + '-'
 		val numbers = integers + '.'

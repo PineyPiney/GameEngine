@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
-import com.pineypiney.game_engine.objects.components.scrollList.ScrollBarComponent
+import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollBarComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import glm_.vec4.Vec4

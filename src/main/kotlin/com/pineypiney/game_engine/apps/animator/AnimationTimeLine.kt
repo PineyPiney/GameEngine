@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.apps.animator
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.AnimatedComponent
-import com.pineypiney.game_engine.objects.components.slider.FloatSliderComponent
+import com.pineypiney.game_engine.objects.components.rendering.AnimatedComponent
+import com.pineypiney.game_engine.objects.components.widgets.slider.FloatSliderComponent
 import kotlin.math.min
 
 class AnimationTimeLine(parent: GameObject, val animatorLogic: AnimatorLogic) : FloatSliderComponent(parent, 0f, 1f, 0f) {

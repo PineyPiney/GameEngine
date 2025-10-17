@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.objects.components.slider
+package com.pineypiney.game_engine.objects.components.widgets.slider
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent

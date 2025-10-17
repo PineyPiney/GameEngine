@@ -2,8 +2,8 @@ package com.pineypiney.game_engine.objects.menu_items.scroll_lists
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
-import com.pineypiney.game_engine.objects.components.scrollList.ScrollListComponent
-import com.pineypiney.game_engine.objects.components.scrollList.ScrollListEntryComponent
+import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListComponent
+import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListEntryComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import glm_.vec2.Vec2

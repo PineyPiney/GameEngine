@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.objects.components.scrollList
+package com.pineypiney.game_engine.objects.components.widgets.scrollList
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent

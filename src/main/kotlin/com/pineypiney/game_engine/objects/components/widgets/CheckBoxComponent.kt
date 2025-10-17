@@ -1,6 +1,7 @@
-package com.pineypiney.game_engine.objects.components
+package com.pineypiney.game_engine.objects.components.widgets
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.window.WindowI
 

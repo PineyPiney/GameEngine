@@ -25,8 +25,8 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		else obj.position = Vec3(scenePosition.position + Vec2(browser.screen.renderer.camera.cameraPos), 0f)
 	}
 
-	override fun addRenderer(parent: GameObject) {
-		super.addRenderer(parent)
+	override fun addRenderer(parent: GameObject, cursor: CursorPosition) {
+		super.addRenderer(parent, cursor)
 		val sceneRenderer = MenuItem("Scene Renderer")
 
 		val prefab = Prefab(file)

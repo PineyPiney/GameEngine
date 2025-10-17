@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.util.maths.shapes
 
+import com.pineypiney.game_engine.util.Vectors
 import com.pineypiney.game_engine.util.extension_functions.*
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.glm
@@ -8,12 +9,19 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import kotlin.math.sqrt
 
-class Parallelogram(val origin: Vec2, val side1: Vec2, val side2: Vec2) : Shape2D() {
+data class Parallelogram(val origin: Vec2, val side1: Vec2, val side2: Vec2) : Shape2D() {
 
 	val center: Vec2 get() = origin + (side1 + side2) * .5f
 	val points get() = setOf(origin, origin + side1, origin + side1 + side2, origin + side2)
-	override val min get() = points.reduce { a, b -> Vec2(minOf(a.x, b.x), minOf(a.y, b.y))}
-	override val max get() = points.reduce { a, b -> Vec2(maxOf(a.x, b.x), maxOf(a.y, b.y))}
+
+	override val min: Vec2
+	override val max: Vec2
+
+	init {
+		val minMax = Vectors.minMaxVec2(points.toList())
+		min = minMax.first
+		max = minMax.second
+	}
 
 	override fun transformedBy(model: Mat4): Shape2D {
 		val scale = model.getScale()

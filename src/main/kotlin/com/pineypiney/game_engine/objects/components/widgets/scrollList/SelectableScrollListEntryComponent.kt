@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.objects.components.scrollList
+package com.pineypiney.game_engine.objects.components.widgets.scrollList
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.InteractorComponent
@@ -13,14 +13,14 @@ abstract class SelectableScrollListEntryComponent(parent: GameObject) : ScrollLi
 	override var hover: Boolean = false
 	override var pressed: Boolean = false
 	override var forceUpdate: Boolean = false
-	override var passThrough: Boolean = false
+	override var passThrough: Boolean = true
 
 	override val list: SelectableScrollListComponent get() = parent.parent!!.parent!!.getComponent<SelectableScrollListComponent>()!!
 
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 
-		if (action == GLFW.GLFW_RELEASE && this.hover) {
+		if (action == GLFW.GLFW_RELEASE && list.hover && this.hover) {
 			if (this.index != list.selectedEntry) {
 				select()
 			}

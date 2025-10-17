@@ -70,15 +70,12 @@ abstract class Mesh : Deleteable {
 	}
 
 	fun <A> getAttribute(attribute: VertexAttribute<A>): List<A>{
-		glBindBuffer(GL_ARRAY_BUFFER, VBO)
-		val buffer = ByteBuffer(glGetBufferParameteri(GL_ARRAY_BUFFER, GL_BUFFER_SIZE))
-		glGetBufferSubData(GL_ARRAY_BUFFER, 0L, buffer)
+		val buffer = getData()
 		val list = mutableListOf<A>()
 		val step = attributes.getOrNull(attribute)?.toInt() ?: return emptyList()
 		for(i in 0..<buffer.limit() / stride){
 			list.add(attribute.get(buffer, i*stride + step))
 		}
-		glBindBuffer(GL_ARRAY_BUFFER, 0)
 		return list
 	}
 

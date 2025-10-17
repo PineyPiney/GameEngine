@@ -14,13 +14,13 @@ abstract class MenuNode<T>(parent: GameObject, val obj: T) : DefaultInteractorCo
 
 	fun position(currentY: Int): Int{
 		val transform = (parent.transformComponent as? PixelTransformComponent) ?: return 0
-		var yShift = (transform.pixelScale.y * -1.1f).roundToInt()
 
-		transform.pixelPos = Vec2i(transform.pixelPos.x, currentY + yShift)
+		transform.pixelPos = Vec2i(transform.pixelPos.x, currentY - transform.pixelScale.y)
 		transform.origin = Vec2(0f, 1f)
 
 
-		if(open) for(c in parent.children) c.getComponent<ObjectNode>()?.let{ yShift += it.getPixelHeight() }
+		var yShift = (transform.pixelScale.y * -1.1f).roundToInt()
+		if(open) for(c in parent.children) c.getComponent<ObjectNode>()?.let{ yShift += it.position(yShift) }
 		return yShift
 	}
 

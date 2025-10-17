@@ -4,8 +4,8 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.Components
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.applied
-import com.pineypiney.game_engine.objects.components.scrollList.ScrollListComponent
-import com.pineypiney.game_engine.objects.components.scrollList.ScrollListEntryComponent
+import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListComponent
+import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListEntryComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
@@ -35,11 +35,11 @@ class NewComponentList(parent: GameObject, val browser: ComponentBrowser): Scrol
 		for(e in entries){
 			val entry = e.getComponent<NewComponentEntry>() ?: continue
 			if(valid.contains(entry.compName)) valid.remove(entry.compName)
-			else parent.removeAndDeleteChild(e)
+			else entryContainer.removeAndDeleteChild(e)
 		}
 		for(c in valid) {
 			val newEntry = NewComponentEntry(MenuItem("Component Entry $c"), c).applied().parent
-			parent.addChild(newEntry)
+			entryContainer.addChild(newEntry)
 			newEntry.init()
 		}
 

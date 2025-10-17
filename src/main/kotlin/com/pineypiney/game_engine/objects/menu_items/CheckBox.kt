@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.objects.components.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
+import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey

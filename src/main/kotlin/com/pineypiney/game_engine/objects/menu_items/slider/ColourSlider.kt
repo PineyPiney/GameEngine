@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
-import com.pineypiney.game_engine.objects.components.slider.ActionFloatSliderComponent
-import com.pineypiney.game_engine.objects.components.slider.ActionSliderComponent
-import com.pineypiney.game_engine.objects.components.slider.ColourSliderRendererComponent
+import com.pineypiney.game_engine.objects.components.widgets.slider.ActionFloatSliderComponent
+import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
+import com.pineypiney.game_engine.objects.components.widgets.slider.ColourSliderRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.resources.shaders.Shader
 import glm_.vec2.Vec2

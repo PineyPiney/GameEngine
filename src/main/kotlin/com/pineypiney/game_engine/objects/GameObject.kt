@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.objects
 import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
+import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.rendering.*
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.lighting.Light
@@ -17,10 +18,11 @@ import com.pineypiney.game_engine.util.maths.shapes.Shape
 import glm_.mat4x4.Mat4
 import glm_.quat.Quat
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-open class GameObject(open var name: String = "GameObject") : Initialisable {
+open class GameObject(open var name: String = "GameObject", layer: Int = 0) : Initialisable {
 
 
 	var parent: GameObject? = null
@@ -50,7 +52,7 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 			transformComponent.rotation = value
 		}
 
-	var layer: Int = 0
+	var layer: Int = layer
 		set(value) {
 			objects?.let {
 				it[field].remove(this)
@@ -81,17 +83,26 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		for (c in components.filterIsInstance<PostChildrenInit>()) c.postChildrenInit()
 	}
 
-	fun setProperty(key: String, value: String) {
+	fun getComponentAndField(key: String): Pair<ComponentI, ComponentField<*>>? {
 		val dolI = key.indexOf('$')
 		if(dolI != -1) {
 			val childName = key.take(dolI)
 			val child = objects?.getAllObjects()?.firstOrNull { it.name == childName }
-			child?.setProperty(key.substring(dolI + 1), value)
+			return child?.getComponentAndField(key.substring(dolI + 1))
 		}
 		else {
 			val dotI = key.indexOf('.')
-			components.firstOrNull { it.id == key.take(dotI) }?.setValue(key.substring(dotI + 1), value)
+			val componentId = key.take(dotI)
+			val component = components.firstOrNull { it.id == componentId } ?: return null
+			val fieldId = key.substring(dotI + 1)
+			val field = component.getAllFieldsExt().firstOrNull { it.id == fieldId } ?: return null
+			return component to field
 		}
+	}
+
+	fun setProperty(key: String, value: String) {
+		val (component, field) = getComponentAndField(key) ?: return
+		field.set(value, component)
 	}
 
 	infix fun translate(vec: Vec3) = transformComponent translate vec
@@ -161,6 +172,8 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		}
 	}
 
+	fun getObjectCollection(): ObjectCollection? = objects ?: parent?.getObjectCollection()
+
 	fun deleteAllChildren() {
 		for (c in children) {
 			c.parent = null
@@ -214,14 +227,14 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 	}
 
 	/**
-	 * Gets the ancestors of this GameObject going back [generations] generations, or all of them is generations is -1
+	 * Gets the ancestors of this GameObject going back [generations] generations, or all of them if generations is -1
 	 *
 	 * @param generations The number of ancestors to get, or -1 to get all of them
 	 *
 	 * @return A list of ancestors
 	 */
 	fun getAncestry(generations: Int = -1): List<GameObject>{
-		val objects = mutableListOf<GameObject>(parent ?: return emptyList())
+		val objects = mutableListOf(parent ?: return emptyList())
 
 		while(generations == -1 || objects.size < generations){
 			objects.add(objects.last().parent ?: break)
@@ -273,6 +286,37 @@ open class GameObject(open var name: String = "GameObject") : Initialisable {
 		return set
 	}
 
+	fun os(origin: Vec2, size: Vec2): GameObject {
+		position = Vec3(origin, 0f)
+		scale = Vec3(size, 1f)
+		return this
+	}
+
+	fun os(origin: Vec3, size: Vec2): GameObject {
+		position = origin
+		scale = Vec3(size, 1f)
+		return this
+	}
+
+	fun relative(origin: Vec2, size: Vec2): GameObject{
+		components.add(RelativeTransformComponent(this, origin, size))
+		return this
+	}
+
+	fun relative(origin: Vec3, size: Vec2): GameObject{
+		components.add(RelativeTransformComponent(this, origin, size))
+		return this
+	}
+
+	fun pixel(pos: Vec2i, size: Vec2i, origin: Vec2 = Vec2(-1f), screenRelative: Boolean = false): GameObject{
+		components.add(PixelTransformComponent(this, pos, size, origin, screenRelative))
+		return this
+	}
+
+	fun pixel(posX: Int, posY: Int, sizeX: Int, sizeY: Int, originX: Float = -1f, originY: Float = -1f, screenRelative: Boolean = false): GameObject{
+		components.add(PixelTransformComponent(this, Vec2i(posX, posY), Vec2i(sizeX, sizeY), Vec2(originX, originY), screenRelative))
+		return this
+	}
 	fun copy(): GameObject {
 		val o = GameObject(name)
 

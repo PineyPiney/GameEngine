@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
-import com.pineypiney.game_engine.objects.components.slider.FloatSliderComponent
-import com.pineypiney.game_engine.objects.components.slider.OutlinedSliderRendererComponent
+import com.pineypiney.game_engine.objects.components.widgets.slider.FloatSliderComponent
+import com.pineypiney.game_engine.objects.components.widgets.slider.OutlinedSliderRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import glm_.vec2.Vec2
 

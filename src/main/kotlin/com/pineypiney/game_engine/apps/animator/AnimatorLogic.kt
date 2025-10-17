@@ -3,11 +3,11 @@ package com.pineypiney.game_engine.apps.animator
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.GameObjectSerializer
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.objects.components.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.ComponentI
+import com.pineypiney.game_engine.objects.components.rendering.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
-import com.pineypiney.game_engine.objects.components.slider.OutlinedSliderRendererComponent
+import com.pineypiney.game_engine.objects.components.widgets.slider.OutlinedSliderRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.CheckBox
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton

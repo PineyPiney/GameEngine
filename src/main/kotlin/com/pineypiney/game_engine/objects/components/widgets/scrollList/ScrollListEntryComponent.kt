@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.objects.components.scrollList
+package com.pineypiney.game_engine.objects.components.widgets.scrollList
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.Component
@@ -18,7 +18,7 @@ abstract class ScrollListEntryComponent(parent: GameObject) : Component(parent) 
 
 	override fun init() {
 		super.init()
-		parent.scale = Vec3((1f - list.scrollerWidth), list.entryHeight, 1f)
+		parent.scale = Vec3(1f, list.entryHeight, 1f)
 	}
 
 	companion object {

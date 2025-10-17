@@ -32,7 +32,7 @@ open class SpriteComponent(
 	constructor(parent: GameObject) : this(parent, Texture.broke)
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
-			shader.setUp(uniforms, renderer)
+		shader.setUp(uniforms, renderer)
 		sprite.texture.bind()
 		sprite.mesh.bindAndDraw()
 	}

@@ -1,11 +1,11 @@
 package com.pineypiney.game_engine.apps.animator
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.AnimatedComponent
+import com.pineypiney.game_engine.objects.components.rendering.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
-import com.pineypiney.game_engine.objects.components.scrollList.ScrollListEntryComponent
-import com.pineypiney.game_engine.objects.components.scrollList.SelectableScrollListComponent
-import com.pineypiney.game_engine.objects.components.scrollList.SelectableScrollListEntryComponent
+import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListEntryComponent
+import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListComponent
+import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListEntryComponent
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.init

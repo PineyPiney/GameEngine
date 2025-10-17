@@ -12,7 +12,7 @@ import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import org.lwjgl.opengl.GL11C
 
-class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Vec4 = Vec4(0f)) : ShaderRenderedComponent(parent, ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/colour")]){
+class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Vec4 = Vec4(0f), val sort: GameObject.() -> Float = { transformComponent.worldPosition.z }) : ShaderRenderedComponent(parent, ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/colour")]){
 
 	constructor(parent: GameObject, mesh: Mesh, colour: Vec3): this(parent, mesh, Vec4(colour, 1f))
 
@@ -54,7 +54,8 @@ class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Ve
 
 		val descendants = mutableSetOf<GameObject>()
 		parent.children.forEach { it.allActiveDescendants(descendants) }
-		for(o in descendants){
+		val sortedDescendants = descendants.sortedBy(sort)
+		for(o in sortedDescendants){
 			val renderers = o.components.filterIsInstance<RenderedComponentI>()
 			val preRenderers = o.components.filterIsInstance<PreRenderComponent>().sortedByDescending { it is TransformComponent }
 			if(renderers.isEmpty()){

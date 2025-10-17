@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.components.fields
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.Shader
@@ -10,6 +11,9 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.toString
+import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
+import com.pineypiney.game_engine.util.maths.shapes.Rect2D
+import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import glm_.asHexString
 import glm_.intValue
 import glm_.quat.Quat
@@ -24,26 +28,32 @@ open class ComponentField<T>(
 	val id: String,
 	val getter: () -> T,
 	val setter: (T) -> Unit,
-	val serialise: (T) -> String,
-	val parse: (String) -> T?,
+	val serialise: (ComponentI, T) -> String,
+	val parse: (ComponentI, String) -> T?,
 	val copy: (T) -> T = { it }
 ) {
-	fun set(value: String) {
-		setter(parse(value) ?: return)
+
+	constructor(id: String, getter: () -> T, setter: (T) -> Unit, serialise: (T) -> String, parse: (String) -> T?, copy: (T) -> T = { it }):
+			this(id, getter, setter, { _, s -> serialise(s)}, { _, s -> parse(s) }, copy)
+
+	fun set(value: String, component: ComponentI) {
+		setter(parse(component, value) ?: return)
 	}
 
 	fun copyTo(other: ComponentField<T>) {
 		other.setter(copy(getter()))
 	}
 
+	open fun isLateParse() = false
+
 	override fun toString(): String {
 		return "ComponentField[$id]"
 	}
 
-	fun serialiseValue() = serialise(getter())
+	fun serialiseValue(component: ComponentI) = serialise(component, getter())
 
-	fun serialise(head: StringBuilder, data: StringBuilder) {
-		val s = serialiseValue()
+	fun serialise(head: StringBuilder, data: StringBuilder, component: ComponentI) {
+		val s = serialiseValue(component)
 		head.append(ByteData.int2String(id.length, 1) + id + ByteData.int2String(s.length))
 		data.append(s)
 	}
@@ -143,19 +153,132 @@ class ModelField(id: String, getter: () -> Model, setter: (Model) -> Unit): Comp
 	getter, setter, { it.name.substringBefore('.') },
 	{ s -> ModelLoader[ResourceKey(s)] })
 
-class GameObjectField<T : GameObject?>(id: String, getter: () -> T, setter: (T) -> Unit) : ComponentField<T>(
-	id, getter, setter, Companion::serialise, Companion::parse) {
+class Shape2DField(id: String, getter: () -> Shape2D, setter: (Shape2D) -> Unit): ComponentField<Shape2D>(id,
+	getter, setter, ::serialise, ::parse){
 
 	companion object {
-		fun <T : GameObject?> serialise(o: T): String {
-			return o?.name ?: "Storable"
+		fun serialise(shape: Shape2D): String {
+			return when(shape){
+				is Rect2D -> {
+					"RCT2" +
+							shape.origin.toString("", ByteData::float2String) +
+							ByteData.float2String(shape.length1) +
+							ByteData.float2String(shape.length2) +
+							ByteData.float2String(shape.angle)
+				}
+				is Parallelogram -> {
+					"PARA" +
+							shape.origin.toString("", ByteData::float2String) +
+							shape.side1.toString("", ByteData::float2String) +
+							shape.side2.toString("", ByteData::float2String)
+				}
+				else -> "DFLT"
+			}
+		}
+
+		fun parse(s: String): Shape2D{
+			val id = s.take(4)
+			return when(id){
+				"RCT2" -> {
+					Rect2D(ByteData.string2Vec2(s.substring(4, 12)), ByteData.string2Float(s.substring(12, 16)), ByteData.string2Float(s.substring(16, 20)), ByteData.string2Float(s.substring(20, 24)))
+				}
+				"PARA" -> {
+					Parallelogram(ByteData.string2Vec2(s.substring(4, 12)), ByteData.string2Vec2(s.substring(12, 20)), ByteData.string2Vec2(s.substring(20, 28)))
+				}
+				else -> Rect2D(Vec2(0f), 1f, 1f)
+			}
+		}
+	}
+}
+
+class GameObjectField(id: String, getter: () -> GameObject?, setter: (GameObject?) -> Unit) : ComponentField<GameObject?>(
+	id, getter, setter, Companion::serialise, Companion::parse) {
+
+	override fun isLateParse(): Boolean = true
+
+	companion object {
+		fun <T : GameObject?> serialise(component: ComponentI, obj: T): String {
+			// If field value is null then just return a null string
+			if(obj == null) return "null"
+
+			val parent = component.parent
+			if(obj == parent) return ""
+
+			val thisAncestry = parent.getAncestry()
+			val objAncestry = obj.getAncestry()
+
+			// obj is a top level object with no parent
+			if(objAncestry.isEmpty()){
+				// obj is the highest ancestor of field's component's object (FCO), return the appropriate number of parent characters
+				return if(obj == thisAncestry.lastOrNull()){
+					"/\\".repeat(thisAncestry.size)
+				}
+				// Otherwise they are not related, look for top level object with obj's name
+				else {
+					"/;${obj.name.replace("/", "//")}"
+				}
+			}
+			// If FCO is a top level object, or it is not related to obj,
+			// then serialise the full ancestry of obj,
+			// including FCO only if necessary
+			else if(thisAncestry.isEmpty() || thisAncestry.last() != objAncestry.last()){
+				val sb = StringBuilder()
+				if(parent != objAncestry.last()){
+					sb.append("/;${parent.name.replace("/", "//")}/~")
+				}
+				for(i in (0..objAncestry.size - 2).reversed()){
+					sb.append(objAncestry[i].name.replace("/", "//") + "/~")
+				}
+				return sb.append(obj.name.replace("/", "//")).toString()
+			}
+			// FCO and obj are non-directly related to each other
+			var i = 1
+			while(++i < thisAncestry.size){
+				if(thisAncestry[thisAncestry.size - i] != objAncestry[objAncestry.size - i]) break
+			}
+			val shared = i - 1
+			val sb = StringBuilder("/\\".repeat(thisAncestry.size + 1 - shared)).append("/~")
+			if(shared < objAncestry.size) {
+				for (index in (0..objAncestry.size - i).reversed()) {
+					sb.append(objAncestry[index].name.replace("/", "//") + "/~")
+				}
+			}
+			return sb.append(obj.name.replace("/", "//")).toString()
 		}
 
 		@Suppress("UNCHECKED_CAST")
-		fun <T : GameObject?> parse(s: String): T? {
-			// TODO
-			//return c.parent.objects?.getAllObjects()?.firstOrNull { it.name == s } as? T
-			return null
+		fun parse(component: ComponentI, s: String): GameObject? {
+			if(s.isEmpty()) return component.parent
+			else if(s == "null") return null
+
+			val parts = mutableListOf<String>()
+			var start = 1
+			var i = 2
+			while(i < s.length){
+				if(s[i++] == '/'){
+					if(s[i++] != '/'){
+						parts.add(s.substring(start, i - 2))
+						start = i - 1
+					}
+				}
+			}
+			parts.add(s.substring(start))
+
+			var obj = component.parent
+			i = 0
+			if(parts.first().startsWith(";")){
+				obj = component.parent.getObjectCollection()?.findTop(parts.first().substring(1)) ?: return null
+				i++
+			}
+			while(i < parts.size){
+				val part = parts[i++]
+				when(part[0]){
+					'\\' -> obj = obj.parent ?: return null
+					'~' -> obj = obj.getChild(part.substring(1)) ?: return null
+				}
+			}
+
+			return obj
 		}
 	}
 }

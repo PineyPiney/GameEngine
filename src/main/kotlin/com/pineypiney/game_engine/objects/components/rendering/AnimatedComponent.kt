@@ -1,8 +1,8 @@
-package com.pineypiney.game_engine.objects.components
+package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
+import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.rendering.RendererI
 import glm_.f

@@ -1,8 +1,12 @@
 package com.pineypiney.game_engine.apps.editor.component_browser
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.*
+import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
+import com.pineypiney.game_engine.objects.components.PixelTransformComponent
+import com.pineypiney.game_engine.objects.components.applied
 import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteComponent
+import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
+import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.SpriteButton

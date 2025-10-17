@@ -1,18 +1,27 @@
 package com.pineypiney.game_engine.apps.editor.object_browser
 
+import com.pineypiney.game_engine.Timer
+import com.pineypiney.game_engine.apps.editor.util.Draggable
 import com.pineypiney.game_engine.apps.editor.util.MenuNode
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenu
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenuEntry
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
+import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
-import org.lwjgl.glfw.GLFW
+import glm_.vec3.Vec3
+import glm_.vec3.swizzle.xy
+import glm_.vec4.Vec4
 
-class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(parent, obj) {
+class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(parent, obj), Draggable {
 
 	val head: Boolean get() = parent.parent?.name == "Object List"
 	val browser: ObjectBrowser? get() = parent.getAncestor(-1).getComponent<ObjectBrowser>()
+
+	var fileSelect = 0.0
 
 	fun addChild(obj: GameObject){
 		this.obj.addChild(obj)
@@ -22,13 +31,26 @@ class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(pare
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 
-		if(action == GLFW.GLFW_PRESS){
-			val browser = browser ?: return action
-			browser.selected = this
-			browser.screen.editingObject = obj
-			return INTERRUPT
+		when(action){
+			1 -> {
+				// Set this node to be dragged
+				fileSelect = Timer.time
+				browser?.screen?.setDragging(this, cursorPos)
+				return INTERRUPT
+			}
+			0 -> {
+				browser?.screen?.clearDragging(cursorPos.position)
+				// If the mouse button was released within half a second of clicking it
+				// then select this node's object
+				if(Timer.time - fileSelect < .5) {
+					browser?.let { browser ->
+						browser.selected = this
+						browser.screen.editingObject = obj
+					}
+				}
+				return INTERRUPT
+			}
 		}
-
 		return action
 	}
 
@@ -44,6 +66,21 @@ class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(pare
 
 	override fun checkHover(ray: Ray, cursor: CursorPosition): Float {
 		return if(browser?.checkHover(ray, cursor) != -1f) super.checkHover(ray, cursor) else -1f
+	}
+
+	override fun getElement(): Any = obj
+
+	override fun addRenderer(parent: GameObject, cursor: CursorPosition) {
+		val menuRenderer = GameObject("Menu Renderer", 1)
+		menuRenderer.scale = this.parent.transformComponent.worldScale
+		menuRenderer.position = Vec3(this.parent.transformComponent.worldPosition.xy - cursor.position, 0f)
+		menuRenderer.components.add(ColourRendererComponent(menuRenderer, Vec3(.6f), ColourRendererComponent.menuShader, Mesh.cornerSquareShape))
+
+		val textChild = Text.makeMenuText(obj.name, Vec4(0f, 0f, 0f, 1f), 16)
+		textChild.position = Vec3(.02f, 0f, .01f)
+		textChild.scale = Vec3(.96f, 1f, 1f)
+		menuRenderer.addChild(textChild)
+		parent.addChild(menuRenderer)
 	}
 
 	companion object {

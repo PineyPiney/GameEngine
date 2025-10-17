@@ -7,8 +7,10 @@ import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenu
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenuEntry
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.*
+import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
+import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
@@ -73,7 +75,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 	fun refreshField(fieldID: String){
 		val container = componentContainer.getChild(fieldID.substringBefore('.') + " Container") ?: return
 		val obj = container.getChild("Field Editor $fieldID") ?: return
-		obj.getComponent<FieldEditor<*, *>>()?.update()
+		obj.getComponent<FieldEditor<*, *>>()?.update(screen.settings.textScale)
 	}
 
 	/**
@@ -83,7 +85,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		val name = component.id
 		val compCont = MenuItem("$name Container")
 		val textHeight = screen.settings.textScale
-		val spacing = ceil(textHeight * 1.1f).toInt()
+		val spacing = ceil(textHeight * .1f).toInt()
 
 		// Displays the name of the component
 		val compText = Text.makeMenuText(name, Vec4(0f, 0f, 0f, 1f), textHeight, Text.ALIGN_CENTER_LEFT)
@@ -91,25 +93,15 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		compCont.addChild(compText)
 
 		// Tallies the pixel height of the whole component section
-		var pixelHeight = textHeight * 2
+		var pixelY = textHeight * 2
 
 		// Add all component fields
 		for(f in component.getAllFieldsExt()){
-			val fieldID = "${component.id}.${f.id}"
-			val editor = createEditor(
-				MenuItem("Field Editor $fieldID"),
-				f,
-				Vec2i(0, -pixelHeight),
-				Vec2i(screen.settings.componentBrowserWidth, spacing)
-			) { _, ov, v ->
-				screen.setFieldValue(fieldID, f, ov, v)
-			}?.applied()?.parent ?: continue
-
-			pixelHeight += editor.getComponent<PixelTransformComponent>()!!.pixelScale.y
-			compCont.addChild(editor)
+			pixelY += (addComponentField(component, f, compCont, pixelY, textHeight) + spacing)
 		}
-		pixelHeight += textHeight / 2
-		compCont.pixel(0, -pixelHeight, screen.settings.componentBrowserWidth, pixelHeight, 0f, 1f)
+
+		pixelY += textHeight / 2
+		compCont.pixel(0, -pixelY, screen.settings.componentBrowserWidth, pixelY, 0f, 1f)
 		compCont.components.add(Container(compCont, this, component))
 
 		// Colour the background for each component based on it's name
@@ -119,6 +111,25 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 
 		componentContainer.addChild(compCont)
 		compCont.init()
+		compCont.forAllDescendants {
+			getComponent<FieldEditor<*, *>>()?.update(textHeight)
+		}
+	}
+
+	fun <T, F: ComponentField<T>> addComponentField(component: ComponentI, f: F, compCont: GameObject, pixelY: Int, pixelHeight: Int): Int{
+		val fieldID = "${component.id}.${f.id}"
+		val editor = createEditor(
+			MenuItem("Field Editor $fieldID"),
+			f,
+			component,
+			Vec2i(0, -pixelY),
+			Vec2i(screen.settings.componentBrowserWidth, pixelHeight)
+		) { ov, v ->
+			screen.setFieldValue(component, fieldID, f, ov, v)
+		}.applied().parent
+
+		compCont.addChild(editor)
+		return editor.getComponent<PixelTransformComponent>()!!.pixelScale.y
 	}
 
 	fun positionComponents(){

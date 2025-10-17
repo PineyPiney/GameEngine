@@ -6,8 +6,8 @@ import com.pineypiney.game_engine.LibrarySetUp
 import com.pineypiney.game_engine.apps.animator.ObjectAnimator
 import com.pineypiney.game_engine.apps.editor.EditorScreen
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
+import com.pineypiney.game_engine.objects.components.rendering.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.resources.ResourcesLoader

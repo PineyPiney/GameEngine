@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.fields.EditingField
 import com.pineypiney.game_engine.objects.components.fields.EditorIgnore
 import com.pineypiney.game_engine.objects.transforms.Transform3D
 import com.pineypiney.game_engine.util.extension_functions.*

@@ -145,6 +145,10 @@ fun Vec2.round(round: Float): Vec2 {
 	return this
 }
 
+infix fun Vec2.projectionMult(other: Vec2): Float {
+	return (this dot other) / (other dot other)
+}
+
 infix fun Vec3.projectionMult(other: Vec3): Float {
 	return (this dot other) / (other dot other)
 }

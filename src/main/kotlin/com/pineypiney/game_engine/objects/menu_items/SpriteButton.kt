@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.objects.components.ButtonComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteComponent
+import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -39,7 +39,16 @@ open class SpriteButton(
 
 	override fun addComponents() {
 		super.addComponents()
-		components.add(ButtonComponent(this, { b, v -> action(b, v); tint.put(selectColour()) }, { b, v -> tint.put(selectColour())}, { _, _, _ -> tint.put(selectColour())}, { _, _, _ -> tint.put(selectColour())}))
+		components.add(ButtonComponent(this, { b, v ->
+			action(b, v)
+			tint.put(selectColour())
+		}, { _, _ ->
+			tint.put(selectColour())
+		}, { _, _, _ ->
+			tint.put(selectColour())
+		}, { _, _, _ ->
+			tint.put(selectColour())
+		}))
 		components.add(ColouredSpriteComponent(this, sprite, tint, shader))
 	}
 

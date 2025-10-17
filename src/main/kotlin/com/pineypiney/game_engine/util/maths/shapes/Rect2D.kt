@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.util.maths.shapes
 
+import com.pineypiney.game_engine.util.Vectors
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.extension_functions.getScale
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
@@ -12,7 +13,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle: Float = 0f) : Shape2D() {
+data class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle: Float = 0f) : Shape2D() {
 
 	constructor(originX: Float, originY: Float, length1: Float, length2: Float, angle: Float = 0f): this(Vec2(originX, originY), length1, length2, angle)
 	constructor(origin: Vec2, size: Vec2, angle: Float = 0f) : this(origin, size.x, size.y, angle)
@@ -25,7 +26,7 @@ class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle
 	val normal1: Vec2 get() = side2.normalize()
 	val normal2: Vec2 get() = side1.normalize()
 
-	val points: Set<Vec2> get() = setOf(origin, origin + side1, origin + side2, origin + side1 + side2)
+	val points: Set<Vec2> get() = setOf(origin, origin + side1, origin + side1 + side2, origin + side2)
 
 	val center: Vec2 get() = origin + (side1 + side2) * .5f
 
@@ -33,9 +34,9 @@ class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val angle
 	override val max: Vec2
 
 	init {
-		val p = points
-		min = p.reduce { a, b -> Vec2(minOf(a.x, b.x), minOf(a.y, b.y))}
-		max = p.reduce { a, b -> Vec2(maxOf(a.x, b.x), maxOf(a.y, b.y))}
+		val minMax = Vectors.minMaxVec2(points.toList())
+		min = minMax.first
+		max = minMax.second
 	}
 
 	override fun intersectedBy(ray: Ray): Array<Vec3> {

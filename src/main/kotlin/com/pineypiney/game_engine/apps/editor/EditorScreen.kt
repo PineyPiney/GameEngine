@@ -18,10 +18,7 @@ import com.pineypiney.game_engine.apps.editor.util.transformers.Transformers
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.GameObjectSerializer
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.objects.components.FPSCounter
-import com.pineypiney.game_engine.objects.components.InteractorComponent
-import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
-import com.pineypiney.game_engine.objects.components.applied
+import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.fields.Vec3Field
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
@@ -96,7 +93,8 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 	override fun init() {
 		super.init()
 
-		window.setCursor(Cursor(gameEngine, "textures/cursor.png", Vec2i(39, 1)))
+		val cursor = Cursor.create(gameEngine, "textures/cursor.png", Vec2i(39, 1)) ?: return
+		window.setCursor(cursor)
 	}
 
 	override fun render(tickDelta: Double) {
@@ -237,11 +235,11 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 
 	// DRAGGING ELEMENT
 
-	fun setDragging(element: Draggable): GameObject{
+	fun setDragging(element: Draggable, cursor: CursorPosition): GameObject{
 		val o = MenuItem("Dragged Element")
-		o.position = Vec3(input.mouse.lastPos.position, 1f)
+		o.position = Vec3(input.mouse.lastPos.position, .5f)
 		val comp = DraggedElement(o, element).applied()
-		element.addRenderer(o)
+		element.addRenderer(o, cursor)
 		o.getChild("Scene Renderer")?.active = false
 		o.init()
 		add(o)
@@ -286,18 +284,17 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 		text?.setTextContent(newName)
 	}
 
-	fun setFieldValue(fieldID: String, field: ComponentField<*>, oldValue: String, value: String){
+	@Suppress("UNCHECKED_CAST")
+	fun <T, F: ComponentField<T>> setFieldValue(component: ComponentI, fieldID: String, field: F, oldValue: T, value: T){
 		var newValue = value
 		when(fieldID){
 			"TransformComponent.position" -> {
 				editingObject?.getComponent<EditorPositioningComponent>()?.let{ pc ->
 					(field as? Vec3Field)?.let {
-						val oldVec = it.parse(oldValue)
-						val newVec = it.parse(value)
-						if(oldVec != null && newVec != null) {
-							val p = pc.place(oldVec, newVec)
+						if(oldValue != null && value != null) {
+							val p = pc.place(oldValue as Vec3, value as Vec3)
 							field.setter(p)
-							newValue = it.serialise(p)
+							newValue = p as T
 						}
 					}
 				}
@@ -305,7 +302,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 		}
 
 		repositionTransformer()
-		editManager.addEdit(ComponentFieldEdit(editingObject ?: return, this, fieldID, oldValue, newValue))
+		editManager.addEdit(ComponentFieldEdit(editingObject ?: return, this, fieldID, field.serialise(component, oldValue), field.serialise(component, newValue)))
 	}
 
 	fun <C: ContextMenu.Context> setContextMenu(context: C, menu: ContextMenu<C>, pos: Vec2){
@@ -439,15 +436,17 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>) :
 
 		fun defaultSceneParse(stream: InputStream, scene: EditorScreen){
 			val numObjects = stream.int()
+			val list = mutableListOf<Triple<ComponentI, ComponentField<*>, String>>()
 			repeat(numObjects) {
 				try {
 					val objSize = stream.int()
 					val objData = stream.readNBytes(objSize)
-					val o = GameObjectSerializer.parse(ByteArrayInputStream(objData))
+					val o = GameObjectSerializer.parse(ByteArrayInputStream(objData), null, list, true)
 					scene.sceneObjects.addObject(o)
 				} catch (_: Exception) {
 				}
 			}
+			for((comp, field, str) in list) field.set(str, comp)
 		}
 
 		fun getSceneBox(settings: EditorSettings, window: WindowI): Viewport {

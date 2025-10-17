@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.menu_items
 
-import com.pineypiney.game_engine.objects.components.ButtonComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
+import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.fromHex

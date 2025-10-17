@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
 import com.pineypiney.game_engine.objects.components.applied
+import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.getAllFieldsExt
 import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.util.extension_functions.delete
@@ -60,17 +61,24 @@ class ComponentEditor(
 
 		val s = 1f / i
 		for (f in fields) {
-			val fieldID = id + editingComponent.id + '.' + f.id
-			addChild(createEditor(MenuItem("Field Editor $fieldID"),
-					f, Vec2i(0f, ((s * --i))), Vec2i(1f, s), callback
-			)?.applied()?.parent ?: continue)
+			generateField(id, f, s, --i)
 		}
 		children.init()
 	}
 
+	fun <T, F: ComponentField<T>> generateField(id: String, f: F, s: Float, i: Int){
+		val fieldID = id + editingComponent.id + '.' + f.id
+		addChild(createEditor(MenuItem("Field Editor $fieldID"),
+			f, editingComponent, Vec2i(0f, ((s * i))), Vec2i(1f, s)
+		){ ov, v ->
+			callback(f.id, f.serialise(editingComponent, ov), f.serialise(editingComponent, v))
+		}.applied().parent)
+	}
+
+	@Suppress("FilterIsInstanceResultIsAlwaysEmpty")
 	fun updateField(id: String) {
 		val fe = children.filterIsInstance<FieldEditor<*, *>>().firstOrNull { it.field.id == id }
-		if (fe != null) fe.update()
+		if (fe != null) fe.update(16)
 		else GameEngineI.logger.warn("Could not find FieldEditor $id")
 	}
 }

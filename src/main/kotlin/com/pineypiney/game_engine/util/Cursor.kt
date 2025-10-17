@@ -15,12 +15,6 @@ class Cursor(val handle: Long) : Deleteable {
 
 	constructor(texture: InputStream, point: Vec2i) : this(createCursor(texture, point))
 
-	constructor(
-		engine: GameEngineI<*>,
-		texture: String,
-		point: Vec2i
-	) : this(engine.resourcesLoader.getStream(texture)!!, point)
-
 	/**
 	 * Create a standard cursor
 	 *
@@ -42,6 +36,11 @@ class Cursor(val handle: Long) : Deleteable {
 
 			val image = GLFWImage.create().set(info.x, info.y, rgba.toByteArray().toBuffer())
 			return GLFW.glfwCreateCursor(image, point.x, point.y)
+		}
+
+		fun create(engine: GameEngineI<*>, texture: String, point: Vec2i): Cursor? {
+			val stream = engine.resourcesLoader.getStream(texture) ?: return null
+			return Cursor(stream, point)
 		}
 	}
 }

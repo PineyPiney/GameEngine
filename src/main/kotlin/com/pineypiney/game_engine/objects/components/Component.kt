@@ -30,7 +30,7 @@ abstract class Component(final override val parent: GameObject) : ComponentI {
 
 	override fun setValue(key: String, value: String) {
 		val field = getAllFieldsExt().firstOrNull { it.id == key } ?: return
-		field.set(value)
+		field.set(value, this)
 	}
 
 	@Suppress("UNCHECKED_CAST")
@@ -139,7 +139,7 @@ abstract class Component(final override val parent: GameObject) : ComponentI {
 		val nameStr = this::class.simpleName ?: "Anon"
 		val properties = getAllFieldsExt()
 		head.append(ByteData.int2String(nameStr.length, 1) + nameStr + ByteData.int2String(properties.size, 1))
-		properties.forEach { it.serialise(head, data) }
+		properties.forEach { it.serialise(head, data, this) }
 	}
 }
 
@@ -158,8 +158,8 @@ fun <C: Any> C.getAllFieldsExt(parent: String = ""): Set<ComponentField<*>> {
 }
 
 fun <C, T> KMutableProperty1<C, T>.getFieldExt(parent: String, component: C, fields: MutableSet<ComponentField<*>>){
-	if(visibility != KVisibility.PUBLIC || setter.visibility != KVisibility.PUBLIC || returnType.isMarkedNullable || hasAnnotation<EditorIgnore>()) return
-	val field = Components.getNewDefaultField(this, component, parent)
+	if(visibility != KVisibility.PUBLIC || setter.visibility != KVisibility.PUBLIC || hasAnnotation<EditorIgnore>()) return
+	val field = Components.getDefaultField(this, component, parent)
 	if(field != null) fields.add(field)
 	else {
 		val value = get(component) ?: return

@@ -5,12 +5,19 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider2DCompone
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
 import com.pineypiney.game_engine.objects.components.fields.*
 import com.pineypiney.game_engine.objects.components.rendering.*
-import com.pineypiney.game_engine.objects.components.scrollList.ScrollBarComponent
-import com.pineypiney.game_engine.objects.components.slider.*
+import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionPolygonRenderer
+import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
+import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
+import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
+import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
+import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollBarComponent
+import com.pineypiney.game_engine.objects.components.widgets.slider.*
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
+import com.pineypiney.game_engine.util.maths.shapes.Rect2D
+import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -21,8 +28,9 @@ import glm_.vec4.Vec4i
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.findAnnotations
+import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.javaType
 
 class Components {
@@ -39,8 +47,8 @@ class Components {
 			fieldTypes.add(fieldType)
 		}
 
-		fun <T> addFieldType(default: () -> T, fieldCreator: (id: String, getter: () -> T, setter: (T) -> Unit) -> ComponentField<T>){
-			fieldTypes.add(FieldType(default, fieldCreator))
+		fun <T> addFieldType(fieldCreator: (id: String, getter: () -> T, setter: (T) -> Unit) -> ComponentField<T>, default: () -> T, klass: KClass<*> = default()!!::class){
+			fieldTypes.add(FieldType(default, klass, fieldCreator))
 		}
 
 		fun getAllComponentNames() = components.mapNotNull { it.simpleName }
@@ -57,12 +65,19 @@ class Components {
 			const@ for (constructor in component.constructors) {
 				val params = mutableMapOf<KParameter, Any?>()
 				for (param in constructor.parameters) {
+					// Components all take a parent GameObject argument
 					if (param.name == "parent" && param.type.javaType == GameObject::class.java) params[param] = parent
+					// If the constructor has a default option then use that one
 					else if (param.isOptional) continue
 					else {
-						val value = fieldTypes.firstNotNullOfOrNull({it.default()}) { d -> d::class == param.type.classifier } ?: continue@const
-						params[param] = value
-					} // defaultParameters[param.type.javaClass.simpleName]?.invoke() ?: continue@const
+						// Find the default value for this class
+						val value = fieldTypes.firstNotNullOfOrNull({it.default()}) { d -> d::class == param.type.classifier }
+						if(value != null) params[param] = value
+						// Last resort, if the argument is nullable then set the argument to null
+						else if(param.type.isMarkedNullable) params[param] = null
+						// Otherwise try a new constructor
+						else  continue@const
+					}
 				}
 				return constructor.callBy(params)
 			}
@@ -73,6 +88,7 @@ class Components {
 			addComponent(Collider2DComponent::class)
 			addComponent(Collider3DComponent::class)
 
+			addComponent(CollisionPolygonRenderer::class)
 			addComponent(CaretRendererComponent::class)
 			addComponent(ColouredSpriteComponent::class)
 			addComponent(ColourRendererComponent::class)
@@ -105,61 +121,39 @@ class Components {
 			addComponent(TextureMapsComponent::class)
 			addComponent(TransformComponent::class)
 
-			addFieldType({ true }, ::BoolField)
-			addFieldType({1}, ::IntField)
+			addFieldType(::BoolField, { true })
+			addFieldType(::IntField, {1})
 			addFieldType(FieldType({1}, setOf(IntFieldRange::class)) { i, g, s, a ->
 				val rangeA = a.firstOrNull { it is IntFieldRange } as? IntFieldRange
 				val range = rangeA?.let { IntRange(it.min, it.max) } ?: 0..1
 				IntRangeField(i, range, g, s)
 			})
-			addFieldType({1u}, ::UIntField)
-			addFieldType({1f}, ::FloatField)
-			addFieldType({1.0}, ::DoubleField)
-			addFieldType({Vec2i()}, ::Vec2iField)
-			addFieldType({Vec3i()}, ::Vec3iField)
-			addFieldType({Vec4i()}, ::Vec4iField)
-			addFieldType({Vec2()}, ::Vec2Field)
-			addFieldType({Vec3()}, ::Vec3Field)
-			addFieldType({Vec4()}, ::Vec4Field)
-			addFieldType({Quat()}, ::QuatField)
-			addFieldType({Shader.brokeShader}, ::ShaderField)
-			addFieldType({Texture.broke}, ::TextureField)
-			addFieldType({Model.brokeModel}, ::ModelField)
-		}
-
-		@Suppress("UNCHECKED_CAST")
-		fun<C: Any> getDefaultField(property: KMutableProperty1<C, Any>, component: C, parent: String = ""): ComponentField<*>?{
-			return when(property.returnType.javaType.typeName){
-				"boolean" -> BoolField(parent + property.name, { property.get(component) as Boolean }){ property.set(component, it)}
-				"int" -> {
-					val range = property.findAnnotation<IntFieldRange>()
-					if(range == null) IntField(parent + property.name, { property.get(component) as Int }){ property.set(component, it)}
-					else IntRangeField(parent + property.name, IntRange(range.min, range.max), { property.get(component) as Int }
-					){ property.set(component, it)}
-				}
-				"kotlin.UInt" -> UIntField(parent + property.name, { get<UInt, C>(property, component) }){ property.set(component, it)}
-				"float" -> FloatField(parent + property.name, { get<Float, C>(property, component) }){ property.set(component, it)}
-				"double" -> DoubleField(parent + property.name, { get<Double, C>(property, component) }){ property.set(component, it)}
-				"glm_.vec2.Vec2" -> Vec2Field(parent + property.name, { get<Vec2, C>(property, component) }){ property.set(component, it)}
-				"glm_.vec3.Vec3" -> Vec3Field(parent + property.name, { get<Vec3, C>(property, component) }){ property.set(component, it)}
-				"glm_.vec4.Vec4" -> Vec4Field(parent + property.name, { get<Vec4, C>(property, component) }){ property.set(component, it)}
-				"glm_.quat.Quat" -> QuatField(parent + property.name, { get<Quat, C>(property, component) }){ property.set(component, it)}
-
-				"com.pineypiney.game_engine.resources.shaders.Shader" -> ShaderField(parent + property.name, { property.get(component) as Shader }){ property.set(component, it)}
-				"com.pineypiney.game_engine.resources.textures.Texture" -> TextureField(parent + property.name, {property.get(component) as Texture}){ property.set(component, it)}
-				"com.pineypiney.game_engine.resources.models.Model" -> ModelField(parent + property.name, {property.get(component) as Model}){ property.set(component, it)}
-				else -> null
-			}
+			addFieldType(::UIntField, {1u})
+			addFieldType(::FloatField, {1f})
+			addFieldType(::DoubleField, {1.0})
+			addFieldType(::Vec2iField, {Vec2i()})
+			addFieldType(::Vec3iField, {Vec3i()})
+			addFieldType(::Vec4iField, {Vec4i()})
+			addFieldType(::Vec2Field, {Vec2()})
+			addFieldType(::Vec3Field, {Vec3()})
+			addFieldType(::Vec4Field, {Vec4()})
+			addFieldType(::QuatField, {Quat()})
+			addFieldType(::ShaderField, {Shader.brokeShader})
+			addFieldType(::TextureField, {Texture.broke})
+			addFieldType(::ModelField, {Model.brokeModel})
+			addFieldType(::Shape2DField, {Rect2D(Vec2(0f), 1f, 1f)}, Shape2D::class)
+			addFieldType(::GameObjectField, { null }, GameObject::class)
 		}
 
 		@Suppress("FilterIsInstanceResultIsAlwaysEmpty")
-		fun <C, T> getNewDefaultField(property: KMutableProperty1<C, T>, component: C, parent: String = ""): ComponentField<*>?{
-			val fieldsOfType = fieldTypes.filter { fieldType -> fieldType.default()?.let{ it::class == property.returnType.classifier } == true }.filterIsInstance<FieldType<T>>()
+		fun <C, T> getDefaultField(property: KMutableProperty1<C, T>, component: C, parent: String = ""): ComponentField<*>?{
+			val fieldsOfType = fieldTypes.filter { fieldType -> property.returnType.withNullability(false) == fieldType.klass.starProjectedType }.filterIsInstance<FieldType<T>>()
 			for(i in fieldsOfType){
 				if(i.annotations.isNotEmpty() && i.annotations.all { property.findAnnotations(it).isNotEmpty() }){
 					return i.fieldCreator(parent + property.name, { property.get(component) }, { property.set(component, it)}, property.annotations.toSet())
 				}
 			}
+
 			val defaultField = fieldsOfType.firstOrNull { it.annotations.isEmpty() }
 			return if(defaultField == null) null
 			else defaultField.fieldCreator(parent + property.name, {property.get(component)}, { property.set(component, it)}, emptySet())

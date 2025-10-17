@@ -1,14 +1,13 @@
-package com.pineypiney.game_engine.objects.components.slider
+package com.pineypiney.game_engine.objects.components.widgets.slider
 
 import com.pineypiney.game_engine.objects.GameObject
 
-open class ActionFloatSliderComponent(
+open class FloatSliderComponent(
 	parent: GameObject,
 	override val low: Float,
 	override val high: Float,
-	value: Float,
-	action: (ActionSliderComponent<Float>) -> Unit
-) : ActionSliderComponent<Float>(parent, value, action) {
+	value: Float
+) : SliderComponent<Float>(parent, value) {
 
 	override val range: Float get() = high - low
 

@@ -25,7 +25,6 @@ open class FileResourcesLoader(val file: File = File("src/main/resources")) : Re
 			file.inputStream()
 		} catch (e: FileNotFoundException) {
 			GameEngineI.warn("Could not find resources file at $path")
-			e.printStackTrace()
 			null
 		}
 	}

@@ -137,6 +137,15 @@ open class ObjectCollection() {
 		return null
 	}
 
+	fun findTop(name: String): GameObject?{
+		for(l in map) {
+			for (o in l.value) {
+				if (o.name == name) return o
+			}
+		}
+		return null
+	}
+
 	operator fun plusAssign(other: ObjectCollection){
 		for((i, layer) in other.map){
 			if(map.contains(i)) map[i]!!.addAll(layer)

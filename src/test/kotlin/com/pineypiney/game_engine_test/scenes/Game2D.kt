@@ -5,19 +5,17 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.audio.AudioSource
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.ActionTextFieldComponent
-import com.pineypiney.game_engine.objects.components.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.PixelTransformComponent
-import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
-import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
-import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
-import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
-import com.pineypiney.game_engine.objects.components.scrollList.ScrollListComponent
-import com.pineypiney.game_engine.objects.components.slider.ColourSliderRendererComponent
+import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
+import com.pineypiney.game_engine.objects.components.rendering.*
+import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
+import com.pineypiney.game_engine.objects.components.widgets.DropdownComponent
+import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListComponent
+import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListComponent
+import com.pineypiney.game_engine.objects.components.widgets.slider.ColourSliderRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.objects.menu_items.TextButton
-import com.pineypiney.game_engine.objects.menu_items.scroll_lists.BasicScrollList
 import com.pineypiney.game_engine.objects.menu_items.slider.ColourSlider
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.Animation
@@ -67,7 +65,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	private val pressedKeys = mutableSetOf<Short>()
 
 	val standardCursors = intArrayOf(GLFW_RESIZE_EW_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).map { Cursor(it) }
-	val customCursor = Cursor(gameEngine, "textures/cursor.png", Vec2i(34, 10))
+	val customCursor = Cursor.create(gameEngine, "textures/cursor.png", Vec2i(40, 2)) ?: standardCursors.first()
 
 	private val audio get() = AudioLoader[(ResourceKey("clair_de_lune"))]
 
@@ -133,7 +131,9 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		alignment = Text.ALIGN_CENTER_LEFT,
 	)
 
-	private val list = BasicScrollList(Vec2(-window.aspectRatio, 0.4), Vec2(1f, 0.6f), .3f, 0.05f, arrayOf("Hello", "World", "How", "Is", "It", "Going"))
+	private val list = SelectableScrollListComponent.createSelectableScrollList("Selectable List", ::println, .3f, 0.05f, "Hello", "World", "How", "Is", "It", "Going")
+	private val dropdown = DropdownComponent.createDropdownMenu("Dropdown Menu", arrayOf("Apple", "Banana", "Cake", "Dragonfruit", "Egg", "Fly"), 4f,
+		Text.Params().withFontSize(28)){ _, _ -> }
 
 //    val video = VideoPlayer(VideoLoader[ResourceKey("ghost"), gameEngine.resourcesLoader], Vec2(0.5, -0.15), Vec2(0.5, 0.3))
 
@@ -160,11 +160,13 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 		add(button, b)
 		add(textField)
-		add(list)
+		add(list, dropdown)
 		add(slider)
 
 		text.components.add(PixelTransformComponent(text, Vec2i(0), Vec2i(960, 140), Vec2(-1f, 0f)))
 		testText.components.add(PixelTransformComponent(testText, Vec2i(0, -70), Vec2i(960, 70), Vec2(-1f, 0f)))
+		list.components.add(RelativeTransformComponent(list, Vec2(-1f, .3f), Vec2(.3f, .7f)))
+		dropdown.components.add(PixelTransformComponent(dropdown, Vec2i(0, -40), Vec2i(160, 36), Vec2(-.6f, 1f)))
 
 		gameText.position = Vec3(0, 2)
 		gameText.scale = Vec3(8,9f, 1f)
@@ -308,8 +310,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	override fun updateAspectRatio() {
 		super.updateAspectRatio()
 		GLFunc.viewportO = Vec2i(window.width, window.height)
-
-		list.position = Vec3(-window.aspectRatio, 0.4, 0f)
 	}
 
 	override fun cleanUp() {
