@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.objects.components
 
+import com.pineypiney.game_engine.objects.components.fields.EditorIgnore
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.input.ControlType
@@ -13,10 +14,10 @@ import org.lwjgl.glfw.GLFW
 
 interface InteractorComponent : ComponentI {
 
-	var hover: Boolean
-	var pressed: Boolean
-	var forceUpdate: Boolean
-	var passThrough: Boolean
+	@EditorIgnore var hover: Boolean
+	@EditorIgnore var pressed: Boolean
+	@EditorIgnore var forceUpdate: Boolean
+	@EditorIgnore var passThrough: Boolean
 
 	fun checkHover(ray: Ray, cursor: CursorPosition): Float {
 		val renderer = parent.getComponent<RenderedComponent>()
@@ -52,10 +53,10 @@ interface InteractorComponent : ComponentI {
 	fun onDrag(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {}
 	fun onScroll(window: WindowI, scrollDelta: Vec2): Int = 0
 
-	fun onInput(window: WindowI, input: InputState, action: Int, cursorPos: CursorPosition): Int {
-		return when {
-			input.i == 0 && input.controlType == ControlType.MOUSE -> onPrimary(window, action, input.mods, cursorPos)
-			input.i == 1 && input.controlType == ControlType.MOUSE -> onSecondary(window, action, input.mods, cursorPos)
+	fun onInput(window: WindowI, state: InputState, action: Int, cursorPos: CursorPosition): Int {
+		return when (state.i) {
+			0 if state.controlType == ControlType.MOUSE -> onPrimary(window, action, state.mods, cursorPos)
+			1 if state.controlType == ControlType.MOUSE -> onSecondary(window, action, state.mods, cursorPos)
 			else -> 0
 		}
 	}

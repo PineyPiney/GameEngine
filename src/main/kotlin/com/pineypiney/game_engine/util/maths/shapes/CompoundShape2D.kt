@@ -10,8 +10,9 @@ class CompoundShape2D(val shapes: MutableSet<Shape2D>) : Shape2D() {
 
 	constructor(vararg shapes: Shape2D): this(shapes.toMutableSet())
 
-	override val min: Vec2 = shapes.reduceFields(Shape2D::min, Vec2::min)
-	override val max: Vec2 = shapes.reduceFields(Shape2D::max, Vec2::max)
+	override val min: Vec2 = if(shapes.isEmpty()) Vec2(0f) else shapes.reduceFields(Shape2D::min, Vec2::min)
+	override val max: Vec2 = if(shapes.isEmpty()) Vec2(0f) else shapes.reduceFields(Shape2D::max, Vec2::max)
+
 
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
 		val intersections = mutableSetOf<Vec3>()

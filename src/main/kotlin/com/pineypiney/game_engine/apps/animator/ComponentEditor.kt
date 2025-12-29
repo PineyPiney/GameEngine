@@ -9,7 +9,6 @@ import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
 import com.pineypiney.game_engine.objects.components.applied
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.getAllFieldsExt
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.init
 import glm_.vec2.Vec2
@@ -22,7 +21,7 @@ class ComponentEditor(
 	origin: Vec2,
 	size: Vec2,
 	val callback: (String, String, String) -> Unit
-) : MenuItem("Component Editor") {
+) : GameObject("Component Editor", 1) {
 
 	var editingComponent: ComponentI = component
 		set(value) {
@@ -68,7 +67,7 @@ class ComponentEditor(
 
 	fun <T, F: ComponentField<T>> generateField(id: String, f: F, s: Float, i: Int){
 		val fieldID = id + editingComponent.id + '.' + f.id
-		addChild(createEditor(MenuItem("Field Editor $fieldID"),
+		addChild(createEditor(GameObject("Field Editor $fieldID", 1),
 			f, editingComponent, Vec2i(0f, ((s * i))), Vec2i(1f, s)
 		){ ov, v ->
 			callback(f.id, f.serialise(editingComponent, ov), f.serialise(editingComponent, v))

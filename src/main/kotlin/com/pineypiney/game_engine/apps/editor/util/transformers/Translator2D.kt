@@ -113,7 +113,7 @@ class Translator2D(parent: GameObject, screen: EditorScreen) : Transformer(paren
 		// Move the object being edited to be inline with the gizmo's new position
 		screen.editingObject?.let {
 			val placingComponent = it.getComponent<EditorPositioningComponent>()
-			var newWorldPos = Vec3(Vec2(screen.renderer.camera.screenToWorld(transform.origin)), screen.editingObject!!.position.z)
+			var newWorldPos = Vec3(Vec2(screen.renderer.camera.screenToWorld(transform.origin)), screen.editingObject!!.transformComponent.worldPosition.z)
 			if(placingComponent != null) {
 				newWorldPos = placingComponent.place(it.transformComponent.worldPosition, newWorldPos)
 				screen.repositionTransformer()

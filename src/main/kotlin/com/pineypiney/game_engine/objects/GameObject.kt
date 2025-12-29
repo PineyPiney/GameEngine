@@ -184,7 +184,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 
 	fun getChild(name: String) = children.firstOrNull { it.name == name }
 
-	inline fun <reified E : Component> hasComponent() = components.any { it is E }
+	inline fun <reified E : ComponentI> hasComponent() = components.any { it is E }
 
 	fun getComponent(id: String): ComponentI? {
 		val parts = id.split('.')
@@ -196,7 +196,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 		return components.firstOrNull { it is T } as? T
 	}
 
-	inline fun <reified C : Component> removeComponent(): Boolean {
+	inline fun <reified C : ComponentI> removeComponent(): Boolean {
 		return components.removeIf { it is C }
 	}
 

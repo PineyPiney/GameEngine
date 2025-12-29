@@ -3,7 +3,6 @@ package com.pineypiney.game_engine.objects.text
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.rendering.meshes.TextMesh
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.text.Font
@@ -64,8 +63,8 @@ open class Text(
 	fun generateLines(bounds: Vec2): Array<String> {
 		if(text.trim() == "") return emptyArray()
 		val lines = mutableListOf<String>()
-		var lastBreak = 0
-		var lastWord = 0
+		var lastBreak: Int
+		var lastWord: Int
 		var i = 0
 
 		while(i <= text.length){
@@ -75,7 +74,7 @@ open class Text(
 					lines.removeLast()
 					lines.removeLast()
 				}
-				catch (e: Exception){
+				catch (_: Exception){
 					""
 				}
 				var d = line.length
@@ -89,7 +88,7 @@ open class Text(
 			if(i == text.length) break
 
 			// Set values
-			lastWord = i
+//			lastWord = i
 			lastBreak = i
 			i++
 
@@ -208,8 +207,8 @@ open class Text(
 			underlineThickness: Float = 0f,
 			underlineOffset: Float = -0.2f,
 			underlineAmount: Float = 1f,
-		): MenuItem {
-			return object : MenuItem("$text Text Object") {
+		): GameObject {
+			return object : GameObject("$text Text Object", 1) {
 
 				init {
 					components.add(
@@ -220,8 +219,8 @@ open class Text(
 			}
 		}
 
-		fun makeMenuText(text: String, params: Params): MenuItem{
-			return object : MenuItem("$text Text Object") {
+		fun makeMenuText(text: String, params: Params): GameObject{
+			return object : GameObject("$text Text Object", 1) {
 
 				init{
 					components.add(

@@ -6,16 +6,13 @@ import com.pineypiney.game_engine.objects.components.rendering.ColourRendererCom
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListEntryComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListEntryComponent
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.init
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-class AnimationSelector(item: AnimatedComponent?, origin: Vec2, size: Vec2, pred: () -> Unit) : MenuItem() {
-
-	override var name: String = "Animation Selector"
+class AnimationSelector(item: AnimatedComponent?, origin: Vec2, size: Vec2, pred: () -> Unit) : GameObject("Animation Selector", 1) {
 
 	init {
 		os(origin, size)

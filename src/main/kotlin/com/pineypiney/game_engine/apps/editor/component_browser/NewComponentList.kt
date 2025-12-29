@@ -6,7 +6,6 @@ import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.applied
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListEntryComponent
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
@@ -24,7 +23,7 @@ class NewComponentList(parent: GameObject, val browser: ComponentBrowser): Scrol
 
 	override fun createEntries(): List<GameObject> {
 		return Components.getAllComponentNames().filter { it.contains(search) }.map { n ->
-			NewComponentEntry(MenuItem("Component Entry $n"), n).applied().parent
+			NewComponentEntry(GameObject("Component Entry $n", 1), n).applied().parent
 		}
 	}
 
@@ -38,7 +37,7 @@ class NewComponentList(parent: GameObject, val browser: ComponentBrowser): Scrol
 			else entryContainer.removeAndDeleteChild(e)
 		}
 		for(c in valid) {
-			val newEntry = NewComponentEntry(MenuItem("Component Entry $c"), c).applied().parent
+			val newEntry = NewComponentEntry(GameObject("Component Entry $c", 1), c).applied().parent
 			entryContainer.addChild(newEntry)
 			newEntry.init()
 		}

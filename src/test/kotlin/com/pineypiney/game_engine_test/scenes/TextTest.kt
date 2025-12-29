@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine_test.scenes
 
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
@@ -36,7 +36,7 @@ class TextTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic
 	}
 	val bitmapText by lazy{ bitmapTextObject.getComponent<TextRendererComponent>()!! }
 
-	val alignmentPanel = MenuItem("Alignment Panel").apply { pixel(Vec2i(-220, -145), Vec2i(210, 135), Vec2(1f)) }
+	val alignmentPanel = GameObject("Alignment Panel", 1).apply { pixel(Vec2i(-220, -145), Vec2i(210, 135), Vec2(1f)) }
 
 	override fun addObjects() {
 		ttfTextObject.position = Vec3(-1.7f, -.5f, 0f)

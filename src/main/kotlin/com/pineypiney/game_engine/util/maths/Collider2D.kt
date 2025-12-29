@@ -1,13 +1,13 @@
 package com.pineypiney.game_engine.util.maths
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.Component
+import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 
 class Collider2D(override val shape: Rect2D) : Collider() {
 
-	override fun getComponent(parent: GameObject): Component {
+	override fun getComponent(parent: GameObject): ComponentI {
 		return Collider2DComponent(parent, shape)
 	}
 }

@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.rendering
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
-import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
+import com.pineypiney.game_engine.objects.components.rendering.RenderedComponentI
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.maths.I
@@ -65,7 +65,7 @@ open class DefaultWindowRenderer<G: WindowGameLogic, R: CameraI>(override val wi
 	}
 
 	open fun renderObject(obj: GameObject, tickDelta: Double, framebuffer: Int = 0){
-		val renderedComponents = obj.components.filterIsInstance<RenderedComponent>().filter { it.visible }
+		val renderedComponents = obj.components.filterIsInstance<RenderedComponentI>().filter { it.visible }
 		if(renderedComponents.isNotEmpty()){
 			for(c in obj.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
 			GL30C.glBindFramebuffer(GL30C.GL_FRAMEBUFFER, framebuffer)

@@ -9,7 +9,6 @@ import com.pineypiney.game_engine.objects.components.rendering.ColourRendererCom
 import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComponent
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
@@ -79,7 +78,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	val light = GameObject.simpleLightObject(PointLight())
 	val torch = GameObject.simpleLightObject(SpotLight(camera.cameraFront), false)
 
-	val fpsText = FPSCounter.createCounterWithText(MenuItem("FPS Text").apply { pixel(Vec2i(-200, -100), Vec2i(200, 100), Vec2(1f)) }, 2.0, "FPS: $", Text.Params(Vec4(0f, 0f, 0f, 1f), 32, Text.ALIGN_TOP_RIGHT))
+	val fpsText = FPSCounter.createCounterWithText(GameObject("FPS Text", 1).apply { pixel(Vec2i(-200, -100), Vec2i(200, 100), Vec2(1f)) }, 2.0, "FPS: $", Text.Params(Vec4(0f, 0f, 0f, 1f), 32, Text.ALIGN_TOP_RIGHT))
 
 	override fun init() {
 		super.init()

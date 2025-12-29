@@ -11,7 +11,6 @@ import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -88,14 +87,14 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 	override fun getElement(): Any = file
 
 	override fun addRenderer(parent: GameObject, cursor: CursorPosition){
-		val menuRenderer = MenuItem("Menu Renderer")
+		val menuRenderer = GameObject("Menu Renderer", 1)
 		val dragSprite = getIcon(Vec2(.5f))
 		menuRenderer.components.add(SpriteComponent(menuRenderer, dragSprite, SpriteComponent.menuShader))
 		menuRenderer.scale = this.parent.transformComponent.worldScale
 		parent.addChild(menuRenderer)
 	}
 
-	protected open fun getIcon(center: Vec2, width: Int = 64, height: Int = 64): Sprite{
+	protected open fun getIcon(center: Vec2, size: Int = browser.screen.settings.fileBrowserIconSize): Sprite{
 
 		val ext = file.extension
 
@@ -103,7 +102,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 		val tex = browser.loadedTextures[ext] ?: let {
 
 			// Get icon
-			val image = FileSystemView.getFileSystemView().getSystemIcon(file, width, height) ?: return Sprite(Texture.broke, 64f, center)
+			val image = FileSystemView.getFileSystemView().getSystemIcon(file, size, size) ?: return Sprite(Texture.broke, size.toFloat(), center)
 
 			// Convert icon to BufferedImage
 			val imBuf = BufferedImage(image.iconWidth, image.iconHeight, BufferedImage.TYPE_INT_ARGB)
@@ -115,9 +114,9 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 			ImageIO.write(imBuf, "png", bytes)
 			val pngBuffer = bytes.toByteArray().toBuffer()
 			val rawBuffer = STBImage.stbi_load_from_memory(pngBuffer, IntArray(1), IntArray(1), IntArray(1), 4)
-			Texture("$ext Icon", TextureLoader.createTexture(rawBuffer, width, height, GL11C.GL_RGBA))
+			Texture("$ext Icon", TextureLoader.createTexture(rawBuffer, size, size, GL11C.GL_RGBA))
 		}
-		val sprite = Sprite(tex, max(width, height).toFloat(), center)
+		val sprite = Sprite(tex, max(size, size).toFloat(), center)
 		browser.loadedTextures[ext] = tex
 		return sprite
 	}

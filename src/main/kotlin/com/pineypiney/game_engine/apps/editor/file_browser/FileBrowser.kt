@@ -10,7 +10,6 @@ import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.PixelTransformComponent
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
 import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.SpriteButton
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.ObjectRenderer
@@ -38,9 +37,9 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 
 	var currentDirectory = root
 	val loadedTextures = mutableMapOf<String, Texture>()
-	val prefabRenderer = ObjectRenderer(Vec3(0f, 0f, 0f))
+	val prefabRenderer = ObjectRenderer(Vec3(0f, 0f, 0f), Vec2i(screen.settings.fileBrowserIconSize))
 
-	private val filesContainer = MenuItem("Files")
+	private val filesContainer = GameObject("Files", 1)
 	private val parentFileButton =
 		SpriteButton("Parent File Button", TextureLoader.Companion[ResourceKey("editor/up_arrow")], 64f) { _, _ ->
 			if (currentDirectory == root) return@SpriteButton
@@ -70,7 +69,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 
 		for((i, subFile) in files.withIndex()){
 			if(subFile == null) continue
-			val child = MenuItem("File ${subFile.name}")
+			val child = GameObject("File ${subFile.name}", 1)
 			filesContainer.addChild(child)
 			child.pixel(Vec2i(60, 166), Vec2i(screen.settings.fileBrowserIconSize), screenRelative = true)
 

@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.objects.components.rendering.CaretRendererComp
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.Shader
@@ -42,7 +41,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 			caret = max(min(caret, value.length), 0)
 		}
 
-	var textBox = object : MenuItem("${parent.name} text") {
+	var textBox = object : GameObject("${parent.name} text", 1) {
 		override fun init() {
 			super.init()
 			scale = Vec3(1e12f, 1f, 1f)
@@ -54,7 +53,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		}
 	}
 
-	private var caretObject = object : MenuItem("Text Caret") {
+	private var caretObject = object : GameObject("Text Caret", 1) {
 		override fun addComponents() {
 			super.addComponents()
 			components.add(
@@ -95,7 +94,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if (!this.hover) {
-			finish()
+			if(action == 1) finish()
 		} else if (this.pressed) {
 			this.forceUpdate = true
 			placeCaret(cursorPos.position, window.size)
@@ -103,11 +102,11 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		return action
 	}
 
-	override fun onInput(window: WindowI, input: InputState, action: Int, cursorPos: CursorPosition): Int {
-		super.onInput(window, input, action, cursorPos)
+	override fun onInput(window: WindowI, state: InputState, action: Int, cursorPos: CursorPosition): Int {
+		super.onInput(window, state, action, cursorPos)
 
-		if (input.controlType == ControlType.KEYBOARD && this.forceUpdate) {
-			if (action != GLFW.GLFW_RELEASE) specialCharacter(input)
+		if (state.controlType == ControlType.KEYBOARD && this.forceUpdate) {
+			if (action != GLFW.GLFW_RELEASE) specialCharacter(state)
 			return INTERRUPT
 		}
 

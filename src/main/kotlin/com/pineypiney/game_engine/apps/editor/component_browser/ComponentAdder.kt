@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteCom
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.SpriteButton
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite
@@ -40,7 +39,7 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 		componentList.search = f.text.lowercase()
 	}
 
-	val componentList = NewComponentList(MenuItem("ComponentList"), browser).applied()
+	val componentList = NewComponentList(GameObject("ComponentList", 1), browser).applied()
 
 	override fun init() {
 		super.init()
@@ -51,10 +50,10 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 		parent.addChild(closeButton, searchBar, componentList.parent)
 	}
 
-	override fun onInput(window: WindowI, input: InputState, action: Int, cursorPos: CursorPosition): Int {
-		if(super.onInput(window, input, action, cursorPos) == INTERRUPT) return INTERRUPT
+	override fun onInput(window: WindowI, state: InputState, action: Int, cursorPos: CursorPosition): Int {
+		if(super.onInput(window, state, action, cursorPos) == INTERRUPT) return INTERRUPT
 
-		if(action == GLFW.GLFW_PRESS && input.i == GLFW.GLFW_KEY_ESCAPE){
+		if(action == GLFW.GLFW_PRESS && state.i == GLFW.GLFW_KEY_ESCAPE){
 			parent.delete()
 			return INTERRUPT
 		}

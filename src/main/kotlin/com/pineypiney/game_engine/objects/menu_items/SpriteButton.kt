@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items
 
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.resources.shaders.Shader
@@ -16,7 +17,7 @@ open class SpriteButton(
 	size: Vec2 = Vec2(1f),
 	val shader: Shader = ColouredSpriteComponent.colouredMenuShader,
 	val action: (ButtonComponent, Vec2) -> Unit
-) : MenuItem(name) {
+) : GameObject(name, 1) {
 
 	constructor(
 		name: String,

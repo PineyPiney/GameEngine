@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.apps.editor
 
 import com.pineypiney.game_engine.apps.editor.util.EditorSettings
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.FrameBuffer
@@ -15,7 +16,7 @@ import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 import org.lwjgl.opengl.GL11C
 
-class EditorRenderer(window: WindowI, val settings: EditorSettings) : DefaultWindowRenderer<EditorScreen, OrthographicCamera>(window, OrthographicCamera(window)) {
+class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: GameObject.() -> Float, val depth: Boolean) : DefaultWindowRenderer<EditorScreen, OrthographicCamera>(window, OrthographicCamera(window)) {
 
 	override val view = I
 	override val projection = I
@@ -39,14 +40,14 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings) : DefaultWin
 		camera.getProjection(projection)
 
 		GLFunc.clearColour = backgroundColour.rgbaValue
-		GLFunc.depthTest = true
+		GLFunc.depthTest = depth
 
 		viewportSize = sceneBox.size
 		aspectRatio = sceneBox.aspectRatio
 		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, guiProjection)
 		clearFrameBuffer(sceneBuffer)
 
-		for((_, layer) in game.sceneObjects.map) renderLayer(layer, tickDelta, sceneBuffer.FBO){ transformComponent.worldPosition.z}
+		for((_, layer) in game.sceneObjects.map) renderLayer(layer, tickDelta, sceneBuffer.FBO, sort)
 		GLFunc.depthTest = false
 		game.transformer?.let {
 			for(obj in it.catchRenderingComponents()) renderObject(obj, tickDelta, sceneBuffer.FBO)

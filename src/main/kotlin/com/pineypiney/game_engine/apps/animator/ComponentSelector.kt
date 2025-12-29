@@ -6,14 +6,13 @@ import com.pineypiney.game_engine.objects.components.rendering.ColourRendererCom
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListEntryComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListEntryComponent
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.init
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-class ComponentSelector(item: GameObject?, origin: Vec2, size: Vec2, pred: ComponentI.() -> Unit) : MenuItem() {
+class ComponentSelector(item: GameObject?, origin: Vec2, size: Vec2, pred: ComponentI.() -> Unit) : GameObject("Component Selector", 1) {
 
 	override var name: String = "Component Selector"
 

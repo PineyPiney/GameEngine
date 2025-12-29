@@ -1,11 +1,11 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.widgets.slider.FloatSliderComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.OutlinedSliderRendererComponent
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import glm_.vec2.Vec2
 
-class BasicSlider(origin: Vec2, size: Vec2, low: Float, high: Float, value: Float) : MenuItem() {
+class BasicSlider(origin: Vec2, size: Vec2, low: Float, high: Float, value: Float) : GameObject("Slider", 1) {
 
 	init {
 		os(origin, size)

@@ -88,6 +88,7 @@ class Components {
 			addComponent(Collider2DComponent::class)
 			addComponent(Collider3DComponent::class)
 
+			addComponent(AtlasAnimatedSprite::class)
 			addComponent(CollisionPolygonRenderer::class)
 			addComponent(CaretRendererComponent::class)
 			addComponent(ColouredSpriteComponent::class)

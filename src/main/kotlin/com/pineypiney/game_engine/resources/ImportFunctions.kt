@@ -8,4 +8,4 @@ fun InputStream.readUInt(bigEndian: Boolean = true) = ByteData.bytes2UInt(readNB
 fun InputStream.readShort(bigEndian: Boolean = true) = ByteData.bytes2Short(readNBytes(2), 0, 2, bigEndian)
 fun InputStream.readUShort(bigEndian: Boolean = true) = ByteData.bytes2UShort(readNBytes(2), 0, 2, bigEndian)
 
-fun InputStream.readString(length: Int) = readNBytes(length).decodeToString()
+fun InputStream.readString(length: Int) = readNBytes(length).toString(Charsets.ISO_8859_1)

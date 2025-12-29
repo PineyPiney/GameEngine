@@ -7,50 +7,52 @@ import kotlin.math.max
 
 class Sprite(texture: Texture, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), origin: Vec2 = Vec2(), size: Vec2 = Vec2(1f), flipX: Boolean = false, flipY: Boolean = false) {
 
-	constructor(texture: Texture, ppu: Float, spriteCenter: Vec2i, origin: Vec2i = Vec2i(), size: Vec2i = texture.size, flipX: Boolean = false, flipY: Boolean = false) : this(texture, ppu, Vec2(spriteCenter) / texture.size, Vec2(origin) / texture.size, Vec2(size) / texture.size, flipX, flipY)
+	constructor(texture: Texture, ppu: Float, spriteCenter: Vec2i, origin: Vec2i = Vec2i(), size: Vec2i = texture.size, flipX: Boolean = false, flipY: Boolean = false) : this(texture, ppu, Vec2(spriteCenter) / size, Vec2(origin) / texture.size, Vec2(size) / texture.size, flipX, flipY)
+
+	var shouldRecalculate = false
 
 	var texture: Texture = texture
 		set(value) {
 			field = value
-			recalculateMesh()
+			shouldRecalculate = true
 		}
 
 	var pixelsPerUnit: Float = ppu
 		set(value) {
 			field = max(value, 0.000001f)
 			pixelSize = 1f / field
-			recalculateMesh()
+			shouldRecalculate = true
 		}
 	var pixelSize: Float = 1f / pixelsPerUnit; private set
 
 	var spriteCenter: Vec2 = spriteCenter
 		set(value) {
 			field = value
-			recalculateMesh()
+			shouldRecalculate = true
 		}
 
 	var origin: Vec2 = origin
 		set(value) {
 			field = value
-			recalculateMesh()
+			shouldRecalculate = true
 		}
 
 	var size: Vec2 = size
 		set(value) {
 			field = value
-			recalculateMesh()
+			shouldRecalculate = true
 		}
 
 	var flipX: Boolean = flipX
 		set(value) {
 			field = value
-			recalculateMesh()
+			shouldRecalculate = true
 		}
 
 	var flipY: Boolean = flipY
 		set(value) {
 			field = value
-			recalculateMesh()
+			shouldRecalculate = true
 		}
 
 	val pixelWidth get() = texture.width * size.x
@@ -59,7 +61,12 @@ class Sprite(texture: Texture, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), origi
 	val renderWidth get() = texture.width * size.x * pixelSize
 	val renderHeight get() = texture.height * size.y * pixelSize
 
-	var mesh: Mesh = calculateMesh(); private set
+	private var mesh: Mesh = calculateMesh()
+
+	fun fetchMesh(): Mesh{
+		if(shouldRecalculate) recalculateMesh()
+		return mesh
+	}
 
 	private fun calculateMesh(): Mesh {
 		val renderSize = Vec2(renderWidth, renderHeight)

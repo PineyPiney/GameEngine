@@ -1,14 +1,14 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionFloatSliderComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionIntSliderComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.OutlinedSliderRendererComponent
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 
-class BasicActionSlider(name: String): MenuItem(name) {
+class BasicActionSlider(name: String): GameObject(name, 1) {
 
 	constructor(name: String, low: Float, high: Float, value: Float, action: (ActionSliderComponent<Float>) -> Unit): this(name){
 		components.add(ActionFloatSliderComponent(this, low, high, value, action))

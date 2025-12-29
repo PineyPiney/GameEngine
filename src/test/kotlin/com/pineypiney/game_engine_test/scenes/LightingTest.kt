@@ -8,8 +8,6 @@ import com.pineypiney.game_engine.objects.components.LightComponent
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
-import com.pineypiney.game_engine.objects.menu_items.CheckBox
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
@@ -79,7 +77,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 	val light = GameObject.simpleLightObject(PointLight())
 	val torch = GameObject.simpleLightObject(SpotLight(camera.cameraFront), false)
 
-	val fpsText = FPSCounter.createCounterWithText(MenuItem("FPS Text").apply { pixel(Vec2i(-200, -100), Vec2i(200, 100), Vec2(1f)) }, 2.0, "FPS: $", Text.Params(Vec4(0f, 0f, 0f, 1f), 32, Text.ALIGN_TOP_RIGHT))
+	val fpsText = FPSCounter.createCounterWithText(GameObject("FPS Text", 1).apply { pixel(Vec2i(-200, -100), Vec2i(200, 100), Vec2(1f)) }, 2.0, "FPS: $", Text.Params(Vec4(0f, 0f, 0f, 1f), 32, Text.ALIGN_TOP_RIGHT))
 
 	val material get() = (litModel.getComponent<ModelRendererComponent>()?.model?.meshes[0]?.material as? PBRMaterial)
 
@@ -95,7 +93,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 
 	val vecIdSlider = BasicActionSlider("Vec Id Slider", 0, 2, 0){ debugModel.getComponent<ModelRendererComponent>()?.uniforms?.setIntUniform("vecID", it::value)}.apply { relative(Vec2(.4f, -.98f), Vec2(.5f, .13f)) }
 
-	val fresnelBox = CheckBox("Fresnel", true).apply { os(Vec2(-1.6f, -.98f), Vec2(.13f)) }
+	val fresnelBox = CheckBoxComponent.createCheckBox("Fresnel", true).first.apply { os(Vec2(-1.6f, -.98f), Vec2(.13f)) }
 
 	override fun init() {
 		super.init()

@@ -4,7 +4,6 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.text.Font
@@ -102,10 +101,10 @@ class ContextMenuComponent<C: ContextMenu.Context>(parent: GameObject, val conte
 		val top = parent.position.y + newSection.origin.y + newSection.size.y
 		if(top > .98f) newSection.origin.y -= (top - .98f)
 
-		val rootChild = MenuItem(name)
+		val rootChild = GameObject(name, 1)
 		parent.addChild(rootChild)
 		rootChild.position = Vec3(position, 0f)
-		rootChild.addChild(MenuItem("ContextMenuBackground").apply {
+		rootChild.addChild(GameObject("ContextMenuBackground", 1).apply {
 			pixel(Vec2i(0, 0), Vec2i(pixelWidth, pixelHeight), Vec2(0f))
 			components.add(ColourRendererComponent(this, Vec3(.6f), ColourRendererComponent.menuShader, Mesh.cornerSquareShape)) })
 
@@ -113,7 +112,7 @@ class ContextMenuComponent<C: ContextMenu.Context>(parent: GameObject, val conte
 		entries.forEach { entry ->
 			val entryHeight = entry.getHeight() * lineHeight
 			lineY -= entryHeight
-			rootChild.addChild(MenuItem("Context Entry(\"${entry.text}\")").apply {
+			rootChild.addChild(GameObject("Context Entry(\"${entry.text}\")", 1).apply {
 				pixel(Vec2i(0, lineY), Vec2i(pixelWidth, entryHeight), Vec2(0f))
 				components.add(TextRendererComponent(this, entry, context.settings.textScale, Font.fontShader))
 			})

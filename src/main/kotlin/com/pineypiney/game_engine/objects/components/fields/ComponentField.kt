@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.objects.components.fields
 
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.resources.models.Model
@@ -37,7 +38,10 @@ open class ComponentField<T>(
 			this(id, getter, setter, { _, s -> serialise(s)}, { _, s -> parse(s) }, copy)
 
 	fun set(value: String, component: ComponentI) {
-		setter(parse(component, value) ?: return)
+		try { setter(parse(component, value) ?: return) }
+		catch (_: Exception){
+			GameEngineI.logger.warn("Could not set $this in $component value to $value")
+		}
 	}
 
 	fun copyTo(other: ComponentField<T>) {

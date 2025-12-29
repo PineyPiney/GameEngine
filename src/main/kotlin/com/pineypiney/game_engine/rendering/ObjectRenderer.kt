@@ -10,16 +10,21 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.lwjgl.opengl.GL11C
 
-class ObjectRenderer(override val viewPos: Vec3, override val viewportSize: Vec2i = Vec2i(64), override val projection: Mat4 = I): RendererI {
+class ObjectRenderer(override val viewPos: Vec3, viewportSize: Vec2i = Vec2i(64), override val projection: Mat4 = I): RendererI {
 
+	private val frameBuffer = FrameBuffer(viewportSize.x, viewportSize.y, GL11C.GL_RGBA)
+
+	override val viewportSize: Vec2i get() = Vec2i(frameBuffer.width, frameBuffer.height)
 	override val view: Mat4 = I.translate(viewPos)
 	override val guiProjection: Mat4 = projection
 	override val aspectRatio: Float = viewportSize.x.toFloat() / viewportSize.y
 
-	private val frameBuffer = FrameBuffer(viewportSize.x, viewportSize.y, GL11C.GL_RGBA)
-
 	override fun init() {
 		frameBuffer.generate()
+	}
+
+	fun setSize(size: Vec2i){
+		frameBuffer.setSize(size)
 	}
 
 	fun render(obj: GameObject){
@@ -27,7 +32,7 @@ class ObjectRenderer(override val viewPos: Vec3, override val viewportSize: Vec2
 		GLFunc.viewportO = viewportSize
 		clear()
 
-		val des = obj.allActiveDescendants().mapNotNull { it.getComponent<RenderedComponentI>() }.sortedBy { it.parent.transformComponent.worldPosition.z }
+		val des = obj.allActiveDescendants().flatMap { obj -> obj.components.filterIsInstance<RenderedComponentI>().filter { it.visible } }.sortedBy { it.parent.transformComponent.worldPosition.z }
 		for(i in des){
 			i.render(this, 0.0)
 		}

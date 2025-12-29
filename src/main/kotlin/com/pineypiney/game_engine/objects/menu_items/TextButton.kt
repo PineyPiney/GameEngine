@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items
 
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.objects.text.Text
@@ -13,7 +14,7 @@ open class TextButton(
 	val string: String,
 	textColour: Vec4 = Vec4(0, 0, 0, 1),
 	action: (button: ButtonComponent, cursorPos: Vec2) -> Unit
-) : MenuItem("$string Button") {
+) : GameObject("$string Button", 1) {
 
 	constructor(
 		string: String,

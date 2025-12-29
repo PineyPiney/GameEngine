@@ -25,9 +25,9 @@ class ButtonComponent(
 
 	var active: Boolean = true
 
-	override fun onInput(window: WindowI, input: InputState, action: Int, cursorPos: CursorPosition): Int {
-		super.onInput(window, input, action, cursorPos)
-		if (input == InputState(GLFW.GLFW_GAMEPAD_BUTTON_A, ControlType.GAMEPAD_BUTTON) && active) {
+	override fun onInput(window: WindowI, state: InputState, action: Int, cursorPos: CursorPosition): Int {
+		super.onInput(window, state, action, cursorPos)
+		if (state == InputState(GLFW.GLFW_GAMEPAD_BUTTON_A, ControlType.GAMEPAD_BUTTON) && active) {
 			when (action) {
 				GLFW.GLFW_PRESS -> onClick(this, cursorPos.position)
 				GLFW.GLFW_RELEASE -> onUnClick(this, cursorPos.position)

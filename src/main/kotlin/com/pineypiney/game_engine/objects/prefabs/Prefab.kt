@@ -6,6 +6,8 @@ import java.io.File
 
 class Prefab(val file: File, val edits: MutableList<PrefabEdit> = mutableListOf()) : GameObject("$file Prefab") {
 
+	constructor(fileLocation: String, edits: MutableList<PrefabEdit> = mutableListOf()): this(File("src/main/resources/$fileLocation.pfb"))
+
 	fun parseAndEdit(): Prefab{
 		parse(this)
 		for (edit in edits) {

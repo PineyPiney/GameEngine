@@ -18,7 +18,7 @@ open class SpriteComponent(
 
 	var sprite: Sprite = sprite
 		set(value) {
-			field.mesh.delete()
+			field.fetchMesh().delete()
 			field = value
 		}
 
@@ -34,14 +34,14 @@ open class SpriteComponent(
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
 		sprite.texture.bind()
-		sprite.mesh.bindAndDraw()
+		sprite.fetchMesh().bindAndDraw()
 	}
 
-	override fun getMeshes(): Collection<Mesh> = listOf(sprite.mesh)
+	override fun getMeshes(): Collection<Mesh> = listOf(sprite.fetchMesh())
 
 	override fun delete() {
 		super.delete()
-		sprite.mesh.delete()
+		sprite.fetchMesh().delete()
 	}
 
 	companion object {

@@ -5,14 +5,16 @@ import com.pineypiney.game_engine.apps.editor.FieldEditor
 import com.pineypiney.game_engine.apps.editor.createEditor
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenu
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenuEntry
+import com.pineypiney.game_engine.apps.editor.util.edits.ComponentFieldEdit
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
+import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
+import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.addAll
@@ -20,16 +22,19 @@ import com.pineypiney.game_engine.util.extension_functions.fromHex
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
+import glm_.i
+import glm_.parseInt
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import kotlin.math.ceil
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInteractorComponent(parent), UpdatingAspectRatioComponent {
 
-	val componentContainer = MenuItem("Component Container")
+	val componentContainer = GameObject("Component Container", 1)
 	var adderPos = Vec2(.6f, .5f)
 
 	var height = 1f
@@ -59,12 +64,49 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		componentContainer.deleteAllChildren()
 
 		if(obj != null) {
-			val text = ActionTextField<TextFieldComponent>("Object Name Field", Vec2i(10, -30), Vec2i(screen.settings.componentBrowserWidth - 20, 20), Vec2(0f, 1f), obj.name, 16){ f, _, _ ->
+
+			val height = (screen.settings.textScale * 1.25f).roundToInt()
+			val space = (screen.settings.textScale * 1.5f).roundToInt()
+			var y = height
+			val labelLength = screen.settings.componentBrowserWidth / 4
+			val fieldPos = labelLength + 10
+			val fieldLength = screen.settings.componentBrowserWidth - fieldPos
+
+			val objectFieldsHeight = space * 2 + height
+			val objectFields = GameObject("Object Fields", 1)
+			objectFields.pixel(Vec2i(0, -objectFieldsHeight), Vec2i(screen.settings.componentBrowserWidth, objectFieldsHeight), Vec2(0f, 1f))
+
+			val nameText = ActionTextField<TextFieldComponent>("Object Name Field", Vec2i(10, -height), Vec2i(screen.settings.componentBrowserWidth - 20, height), Vec2(0f, 1f), obj.name, screen.settings.textScale){ f, _, _ ->
+				val oldName = obj.name
 				obj.name = f.text
 				screen.setEditingName(f.text)
+				screen.editManager.addEdit(ComponentFieldEdit(obj, screen, "n", oldName, obj.name))
 			}
-			text.init()
-			componentContainer.addChild(text)
+			y += space
+
+			val layerLabel = Text.makeMenuText("Layer", Text.Params().withFontSize(screen.settings.textScale).withAlignment(Text.ALIGN_CENTER_RIGHT))
+			layerLabel.pixel(Vec2i(0, -y), Vec2i(labelLength, height), Vec2(0f, 1f))
+			layerLabel.position.z = 0.01f
+			val (layerText, _) = ActionTextFieldComponent.createActionTextField<TextFieldComponent>("Object Layer Field", obj.layer.toString(), 16){ f, _, _ ->
+				val oldLayer = obj.layer
+				obj.layer = f.text.parseInt()
+				screen.editManager.addEdit(ComponentFieldEdit(obj, screen, "l", oldLayer.toString(), f.text))
+			}
+			layerText.pixel(Vec2i(0, -y), Vec2i(fieldLength, height), Vec2(.27f, 1f))
+			y += space
+
+			val activeLabel = Text.makeMenuText("Active", Text.Params().withFontSize(screen.settings.textScale).withAlignment(Text.ALIGN_CENTER_RIGHT))
+			activeLabel.pixel(Vec2i(0, -y), Vec2i(labelLength, height), Vec2(0f, 1f))
+			activeLabel.position.z = 0.01f
+			val (activeBox, _) = CheckBoxComponent.createCheckBox("Object Active Field", obj.active){ b ->
+				obj.active = b
+				screen.editManager.addEdit(ComponentFieldEdit(obj, screen, "a", (!b).i.toChar().toString(), b.i.toChar().toString()))
+			}
+			activeBox.pixel(Vec2i(0, -y), Vec2i(height, height), Vec2(.27f, 1f))
+
+			objectFields.addChild(nameText, layerLabel, layerText, activeLabel, activeBox)
+			objectFields.init()
+			componentContainer.addChild(objectFields)
 
 			for(c in obj.components) addComponentFields(c)
 
@@ -73,9 +115,23 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 	}
 
 	fun refreshField(fieldID: String){
-		val container = componentContainer.getChild(fieldID.substringBefore('.') + " Container") ?: return
-		val obj = container.getChild("Field Editor $fieldID") ?: return
-		obj.getComponent<FieldEditor<*, *>>()?.update(screen.settings.textScale)
+		if(fieldID.length > 1) {
+			val container = componentContainer.getChild(fieldID.substringBefore('.') + " Container") ?: return
+			val obj = container.getChild("Field Editor $fieldID") ?: return
+			obj.getComponent<FieldEditor<*, *>>()?.update(screen.settings.textScale)
+		}
+		else{
+			val container = componentContainer.getChild("Object Fields") ?: return
+			val editingObject = screen.editingObject ?: return
+			when(fieldID[0]){
+				'n' -> {
+					container.getChild("Object Name Field")?.getComponent<TextFieldComponent>()?.text = editingObject.name
+					screen.setEditingName(editingObject.name)
+				}
+				'l' -> container.getChild("Object Layer Field")?.getComponent<TextFieldComponent>()?.text = editingObject.layer.toString()
+				'a' -> container.getChild("Object Active Field")?.getComponent<CheckBoxComponent>()?.ticked = editingObject.active
+			}
+		}
 	}
 
 	/**
@@ -83,7 +139,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 	 */
 	fun addComponentFields(component: ComponentI){
 		val name = component.id
-		val compCont = MenuItem("$name Container")
+		val compCont = GameObject("$name Container", 1)
 		val textHeight = screen.settings.textScale
 		val spacing = ceil(textHeight * .1f).toInt()
 
@@ -119,7 +175,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 	fun <T, F: ComponentField<T>> addComponentField(component: ComponentI, f: F, compCont: GameObject, pixelY: Int, pixelHeight: Int): Int{
 		val fieldID = "${component.id}.${f.id}"
 		val editor = createEditor(
-			MenuItem("Field Editor $fieldID"),
+			GameObject("Field Editor $fieldID", 1),
 			f,
 			component,
 			Vec2i(0, -pixelY),
@@ -194,7 +250,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			arrayOf(
 				ContextMenuEntry("New Component"){
 					if(browser.screen.gameObjects.findTop("Component Adder", 1) == null) {
-						val obj = MenuItem("Component Adder")
+						val obj = GameObject("Component Adder", 1)
 						obj.pixel(Vec2i(0, -240), Vec2i(192, 240), Vec2(browser.adderPos))
 						obj.components.addAll(
 							ComponentAdder(obj, browser),

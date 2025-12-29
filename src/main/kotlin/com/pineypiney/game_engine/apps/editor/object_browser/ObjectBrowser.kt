@@ -1,13 +1,13 @@
 package com.pineypiney.game_engine.apps.editor.object_browser
 
 import com.pineypiney.game_engine.apps.editor.EditorScreen
+import com.pineypiney.game_engine.apps.editor.util.edits.AddObjectEdit
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.PixelTransformComponent
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
 import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
@@ -21,7 +21,7 @@ import glm_.vec4.Vec4
 
 class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultInteractorComponent(parent), UpdatingAspectRatioComponent {
 
-	val objectList = MenuItem("Object List")
+	val objectList = GameObject("Object List", 1)
 	var selected: ObjectNode? = null
 
 	val colour = ChildContainingRenderer(parent, Mesh.cornerSquareShape, Vec3(.7f))
@@ -37,26 +37,19 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 		objectList.position = Vec3(0f, 0f, .01f)
 	}
 
-	fun addObject(obj: GameObject){
-		if(obj.parent == null) addRootObject(obj)
-		val lineage = obj.getLineage().reversed()
-		var p: ObjectNode = parent.children.firstNotNullOfOrNull({ it.getComponent<ObjectNode>()}) { it.obj == lineage[0] } ?: run { addRootObject(obj); return }
-		for(o in lineage.listIterator(1)){
-			p = p.parent.children.firstNotNullOfOrNull({it.getComponent<ObjectNode>()}) { it.obj == o } ?: run { p.addChild(o); return }
-		}
-	}
-
 	fun addChildObject(parentNode: ObjectNode, obj: GameObject){
-		obj.parent = parentNode.obj
+		parentNode.obj.addChild(obj)
 		addNode(parentNode.parent, obj)
+		positionNodes()
 	}
 
-	fun addRootObject(obj: GameObject): ObjectNode{
+	fun addRootObject(obj: GameObject, reposition: Boolean = true): ObjectNode{
 		screen.sceneObjects.addObject(obj)
 		val node = addNode(objectList, obj)
 		node.parent.scale = Vec3(.7f, .025f, 1f)
 
 		for(c in obj.children) addFamily(node, c)
+		if(reposition) positionNodes()
 
 		return node
 	}
@@ -67,7 +60,7 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 	}
 
 	fun addNode(nodeParent: GameObject, obj: GameObject): ObjectNode{
-		val item = MenuItem("${obj.name} node")
+		val item = GameObject("${obj.name} node", 1)
 		item.pixel(Vec2i(5, -22), Vec2i(screen.settings.objectBrowserWidth * .7f, 20), Vec2(0f, 0f))
 		val node = ObjectNode(item, obj)
 		item.components.add(node)
@@ -81,6 +74,49 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 
 		item.init()
 		return node
+	}
+
+	fun getNode(obj: GameObject): ObjectNode? {
+		var node: GameObject = objectList
+		val ancestry = obj.getAncestry(-1).asReversed()
+		for(ancester in ancestry){
+			node = node.children.firstOrNull { it.getComponent<ObjectNode>()?.obj == ancester } ?: return null
+		}
+		return node.children.firstNotNullOfOrNull({ it.getComponent<ObjectNode>() }){ it.obj == obj }
+	}
+
+	fun reparentNode(node: ObjectNode, newParent: ObjectNode?){
+		val worldPos = node.obj.transformComponent.worldPosition
+
+		// Remove node and obj from previous parents
+		node.obj.parent?.removeChild(node.obj)
+		node.parent.parent?.removeChild(node.parent)
+
+		// Move them to their new parents
+		if(newParent == null){
+			screen.sceneObjects.addObject(node.obj)
+			objectList.addChild(node.parent)
+		}
+		else {
+			newParent.obj.addChild(node.obj)
+			newParent.parent.addChild(node.parent)
+		}
+
+		node.obj.transformComponent.worldPosition = worldPos
+		// Refresh the browser
+		positionNodes()
+	}
+
+	fun removeObject(node: ObjectNode){
+		val obj = node.obj
+		if(screen.editingObject == obj || screen.editingObject?.getAncestry()?.contains(obj) == true) screen.editingObject = null
+
+		// Don't delete the object as it will be held by an AddObjectEdit. It will be deleted later
+		obj.parent?.removeChild(obj)
+		obj.objects?.removeObject(obj)
+
+		node.parent.parent?.removeAndDeleteChild(node.parent)
+		positionNodes()
 	}
 
 	fun positionNodes(){
@@ -105,15 +141,16 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 	fun reset(){
 		objectList.deleteAllChildren()
 		for(o in screen.sceneObjects.map.flatMap { it.value }){
-			addRootObject(o)
+			addRootObject(o, false)
 		}
 		positionNodes()
 	}
 
 	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		if(action == 1) {
-			addRootObject(GameObject())
-			positionNodes()
+			val obj = GameObject()
+			addRootObject(obj)
+			screen.editManager.addEdit(AddObjectEdit(obj, null, screen))
 		}
 		return super.onSecondary(window, action, mods, cursorPos)
 	}
@@ -122,7 +159,6 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 		val trans = parent.getComponent<PixelTransformComponent>()
 		val newScale = Vec2i(screen.settings.objectBrowserWidth, view.size.y - screen.settings.fileBrowserHeight)
 		trans?.pixelScale = newScale
-
 		positionNodes()
 	}
 }

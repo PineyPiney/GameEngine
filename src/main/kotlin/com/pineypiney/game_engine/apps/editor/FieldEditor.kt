@@ -1,6 +1,8 @@
 package com.pineypiney.game_engine.apps.editor
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.apps.editor.object_browser.ObjectNode
+import com.pineypiney.game_engine.apps.editor.util.DraggableAcceptor
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
@@ -10,11 +12,11 @@ import com.pineypiney.game_engine.objects.components.fields.*
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
+import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.DropdownComponent
 import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionIntSliderComponent
 import com.pineypiney.game_engine.objects.menu_items.ActionTextField
-import com.pineypiney.game_engine.objects.menu_items.CheckBox
 import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
@@ -51,12 +53,14 @@ abstract class FieldEditor<T, out F : ComponentField<T>>(
 	val component: ComponentI,
 	position: Vec2i,
 	size: Vec2i
-) : DefaultInteractorComponent(parent) {
+) : DefaultInteractorComponent(parent), DraggableAcceptor {
 
 	init {
 		parent.components.add(PixelTransformComponent(parent, position - Vec2i(0, size.y), size, Vec2(0f, 1f)))
 		passThrough = true
 	}
+
+	override var canDrop: Boolean = false
 
 	override fun init() {
 		super.init()
@@ -66,10 +70,6 @@ abstract class FieldEditor<T, out F : ComponentField<T>>(
 	abstract fun createChildren()
 
 	abstract fun update(scale: Int)
-
-	open fun onHoverElement(element: Any, cursorPos: Vec2): Boolean = false
-
-	open fun onDropElement(element: Any, cursorPos: Vec2, screen: EditorScreen){}
 
 	fun createText(text: String = field.id.substringAfterLast('.').capitalise(), alignment: Int = Text.ALIGN_CENTER_RIGHT, pos: Vec2 = Vec2(0f), size: Vec2 = Vec2(.25f, 1f)) =
 		Text.makeMenuText(text, Vec4(0f, 0f, 0f, 1f), 16, alignment).apply { position = Vec3(pos, .01f); scale = Vec3(size, 1f) }
@@ -118,26 +118,27 @@ open class BoolFieldEditor(parent: GameObject, f: BoolField, component: Componen
 
 	val nameText = createText()
 
-	val checkBox = CheckBox("Bool Field '${field.id}' Checkbox", Vec2i(0), Vec2i(16), Vec2(.27, 0f), field.getter()){
+	val checkBox = CheckBoxComponent.createCheckBox("Bool Field '${field.id}' Checkbox", field.getter()){
 		field.setter(it)
 		callback(!it, it)
-	}
+	}.second
 
 	override fun createChildren() {
-		parent.addChild(nameText, checkBox)
-		asp()
+		checkBox.parent.pixel(Vec2i(0), Vec2i(16), Vec2(.27, 0f))
+		parent.addChild(nameText, checkBox.parent)
+//		asp()
 	}
 
 	override fun update(scale: Int) {
-		checkBox.boxComp.ticked = field.getter()
+		checkBox.ticked = field.getter()
 	}
 
 	override fun updateAspectRatio(view: Viewport) {
-		asp()
+//		asp()
 	}
 
 	fun asp(){
-		checkBox.scale = Vec3(parent.transformComponent.worldScale.run { y / x }, 1f, 1f)
+		checkBox.parent.scale = Vec3(parent.transformComponent.worldScale.run { y / x }, 1f, 1f)
 	}
 }
 
@@ -243,10 +244,13 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 		if(element is File){
 			val fields = arrayOf(vertexField, fragmentField, geometryField)
 			val relCur = (cursorPos.y - parent.transformComponent.worldPosition.y) / parent.transformComponent.worldScale.y
-			val m = if(element.extension == "vs" && relCur >= .67f) 0
-			else if(element.extension == "fs" && relCur >= .33f && relCur <= .67f) 1
-			else if(element.extension == "gs" && relCur <= .33f) 2
-			else -1
+			val ext = element.extension.lowercase()
+			val m = when (ext) {
+				"vs" if relCur >= .67f -> 0
+				"fs" if relCur in .33f.. .67f -> 1
+				"gs" if relCur <= .33f -> 2
+				else -> -1
+			}
 
 			for((i, textField) in fields.withIndex()) {
 				val renderer: ColourRendererComponent = textField.getComponent<ColourRendererComponent>() ?: continue
@@ -271,17 +275,14 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 	}
 }
 
-open class TextureFieldEditor(parent: GameObject, f: TextureField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Texture, Texture) -> Unit)
+open class TextureFieldEditor(parent: GameObject, f: TextureField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: (Texture, Texture) -> Unit)
 	: FieldEditor<Texture, TextureField>(parent, f, component, origin, size) {
 
 	val nameText = createText()
 
 	val textField = ActionTextField<ActionTextFieldComponent<*>>("Texture Field", Vec3(.27f, 0f, 0f), Vec2(.7f, 1f), field.serialise(component, field.getter()), 16) { textField, _, _ ->
 		try {
-			val oldValue = field.getter()
-			val value = TextureLoader[ResourceKey(textField.text)]
-			field.setter(value)
-			callback(oldValue, value)
+			updateValue()
 		} catch (_: Exception) {
 
 		}
@@ -295,9 +296,16 @@ open class TextureFieldEditor(parent: GameObject, f: TextureField, component: Co
 		textField.text = field.serialise(component, field.getter())
 	}
 
+	fun updateValue(){
+		val oldValue = field.getter()
+		val value = TextureLoader[ResourceKey(textField.text)]
+		field.setter(value)
+		callback(oldValue, value)
+	}
+
 	override fun onHoverElement(element: Any, cursorPos: Vec2): Boolean {
 		val renderer = textField.getComponent<ColourRendererComponent>()
-		val willAccept = element is File && element.extension == "png"
+		val willAccept = element is File && element.extension.lowercase() == "png"
 		renderer?.colour?.xyz = if(willAccept) Vec3(0.65f) else Vec3(.5f)
 		return willAccept
 	}
@@ -305,8 +313,8 @@ open class TextureFieldEditor(parent: GameObject, f: TextureField, component: Co
 	override fun onDropElement(element: Any, cursorPos: Vec2, screen: EditorScreen) {
 		if(element is File){
 			val path = element.path.replace(s, '/').removePrefix(screen.gameEngine.resourcesLoader.location + '/' + screen.gameEngine.resourcesLoader.textureLocation).substringBefore('.')
-			field.setter(TextureLoader[ResourceKey(path)])
 			textField.text = path
+			updateValue()
 		}
 	}
 }
@@ -337,7 +345,7 @@ open class ModelFieldEditor(parent: GameObject, f: ModelField, component: Compon
 
 	override fun onHoverElement(element: Any, cursorPos: Vec2): Boolean {
 		val renderer = textField.getComponent<ColourRendererComponent>()
-		val willAccept = element is File && arrayOf("glb", "gltf", "pgm").contains(element.extension)
+		val willAccept = element is File && arrayOf("glb", "gltf", "pgm", "vox").contains(element.extension.lowercase())
 		renderer?.colour?.xyz = if(willAccept) Vec3(0.65f) else Vec3(.5f)
 		return willAccept
 	}
@@ -649,15 +657,15 @@ open class GameObjectFieldEditor(parent: GameObject, f: GameObjectField, compone
 
 	override fun onHoverElement(element: Any, cursorPos: Vec2): Boolean {
 		val renderer = nameBackground.getComponent<ColourRendererComponent>()
-		val willAccept = element is GameObject
+		val willAccept = element is ObjectNode
 		renderer?.colour?.xyz = if(willAccept) Vec3(0.65f) else Vec3(.5f)
 		return willAccept
 	}
 
 	override fun onDropElement(element: Any, cursorPos: Vec2, screen: EditorScreen) {
-		if(element is GameObject){
-			field.setter(element)
-			objName.getComponent<TextRendererComponent>()?.setTextContent(element.name)
+		if(element is ObjectNode){
+			field.setter(element.obj)
+			objName.getComponent<TextRendererComponent>()?.setTextContent(element.obj.name)
 		}
 	}
 }

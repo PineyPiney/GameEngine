@@ -15,7 +15,7 @@ class FolderFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		browser.refreshDirectory()
 	}
 
-	override fun getIcon(center: Vec2, width: Int, height: Int): Sprite {
+	override fun getIcon(center: Vec2, size: Int): Sprite {
 		val numChildren = file.listFiles()?.size ?: 0
 		val start: Float = if(numChildren == 0) 0.6666667f
 		else if(numChildren <= 3) 0.33333334f

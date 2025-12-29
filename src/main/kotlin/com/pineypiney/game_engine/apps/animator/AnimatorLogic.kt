@@ -7,9 +7,8 @@ import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.rendering.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
+import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.OutlinedSliderRendererComponent
-import com.pineypiney.game_engine.objects.menu_items.CheckBox
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
 import com.pineypiney.game_engine.rendering.FrameBuffer
@@ -95,7 +94,7 @@ class AnimatorLogic(
 		Vec2(0.5f, 0.15f),
 		this::setComponent
 	).getComponent<ComponentSelector.ComponentSelectorComponent>()!!
-	private val animationTimeLine = object : MenuItem("Animation Timeline") {
+	private val animationTimeLine = object : GameObject("Animation Timeline", 1) {
 
 		init {
 			position = Vec3(-0.4f, -0.9f, 0f)
@@ -109,7 +108,9 @@ class AnimatorLogic(
 		}
 	}
 
-	private val playButton = CheckBox("Play Button", true, { animationSelector.item?.playing = it }).apply {
+	private val playButton = CheckBoxComponent.createCheckBox("Play Button", true) {
+		animationSelector.item?.playing = it
+	}.first.apply {
 		os(Vec3(-0.65f, -0.9f, 0f), Vec2(0.2f, 0.2f))
 	}
 

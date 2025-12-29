@@ -11,7 +11,7 @@ import kotlin.math.max
 
 class ImageFile(parent: GameObject, file: File, browser: FileBrowser): FileComponent(parent, file, browser) {
 
-	override fun getIcon(center: Vec2, width: Int, height: Int): Sprite {
+	override fun getIcon(center: Vec2, size: Int): Sprite {
 		val id = file.path.substring(28, file.path.length - 4)
 		val tex = TextureLoader[ResourceKey(id)]
 		return Sprite(tex, max(tex.width, tex.height).toFloat(), center)

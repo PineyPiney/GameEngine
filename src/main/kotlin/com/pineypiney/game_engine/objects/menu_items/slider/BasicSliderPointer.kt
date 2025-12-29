@@ -1,12 +1,12 @@
 package com.pineypiney.game_engine.objects.menu_items.slider
 
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.SliderPointerComponent
-import com.pineypiney.game_engine.objects.menu_items.MenuItem
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 
-open class BasicSliderPointer(val height: Float) : MenuItem() {
+open class BasicSliderPointer(val height: Float) : GameObject("Slider Pointer", 1) {
 
 	override var name: String = "SliderPointer"
 

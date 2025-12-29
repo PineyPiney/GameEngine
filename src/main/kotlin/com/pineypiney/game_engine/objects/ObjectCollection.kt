@@ -129,10 +129,12 @@ open class ObjectCollection() {
 		return null
 	}
 
-	fun findTop(name: String, layer: Int): GameObject?{
-		val l = map[layer] ?: return null
-		for(o in l){
-			if(o.name == name) return o
+	fun findTop(name: String, vararg layers: Int): GameObject?{
+		for(layer in layers) {
+			val l = map[layer] ?: continue
+			for (o in l) {
+				if (o.name == name) return o
+			}
 		}
 		return null
 	}

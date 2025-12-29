@@ -53,7 +53,7 @@ class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Ve
 		GLFunc.stencilWriteMask = 0
 
 		val descendants = mutableSetOf<GameObject>()
-		parent.children.forEach { it.allActiveDescendants(descendants) }
+		parent.children.forEach { it.catchRenderingComponents(descendants) }
 		val sortedDescendants = descendants.sortedBy(sort)
 		for(o in sortedDescendants){
 			val renderers = o.components.filterIsInstance<RenderedComponentI>()

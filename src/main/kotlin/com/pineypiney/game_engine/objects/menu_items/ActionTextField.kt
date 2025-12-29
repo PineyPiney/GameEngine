@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.objects.menu_items
 
+import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
@@ -16,7 +17,7 @@ open class ActionTextField<E : TextFieldComponent>(
 	val textSize: Int = 12,
 	val updateType: Int = ActionTextFieldComponent.UPDATE_ON_FINISH,
 	val action: (field: E, char: Char, input: Int) -> Unit
-) : MenuItem(name) {
+) : GameObject(name, 1) {
 
 	constructor(name: String, origin: Vec3, size: Vec2, startText: String = "", textSize: Int = 12, updateType: Int = ActionTextFieldComponent.UPDATE_ON_FINISH, action: (field: E, char: Char, input: Int) -> Unit): this(name, startText, textSize, updateType, action){
 		os(origin, size)

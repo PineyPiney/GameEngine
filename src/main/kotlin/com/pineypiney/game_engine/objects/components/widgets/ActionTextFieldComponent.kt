@@ -1,8 +1,12 @@
 package com.pineypiney.game_engine.objects.components.widgets
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
+import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.InputState
 import glm_.i
+import glm_.vec4.Vec4
 
 open class ActionTextFieldComponent<E : TextFieldComponent>(
 	parent: GameObject,
@@ -33,5 +37,20 @@ open class ActionTextFieldComponent<E : TextFieldComponent>(
 	companion object {
 		const val UPDATE_EVERY_CHAR = 1
 		const val UPDATE_ON_FINISH = 2
+
+		fun <E: TextFieldComponent> createActionTextField(name: String, startText: String = "", textSize: Int = 12, updateType: Int = UPDATE_ON_FINISH, action: (field: E, char: Char, input: Int) -> Unit): Pair<GameObject, ActionTextFieldComponent<E>>{
+			val obj = GameObject(name, 1)
+			val comp = ActionTextFieldComponent(obj, startText, textSize, updateType, action)
+			obj.components.addAll(
+				comp,
+				ColourRendererComponent(
+					obj,
+					Vec4(0.5f, .5f, .5f, 1f),
+					ColourRendererComponent.menuShader,
+					Mesh.cornerSquareShape
+				)
+			)
+			return obj to comp
+		}
 	}
 }

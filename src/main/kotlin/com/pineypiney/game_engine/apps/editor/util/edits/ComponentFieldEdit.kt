@@ -4,22 +4,33 @@ import com.pineypiney.game_engine.apps.editor.EditorScreen
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.extension_functions.toString
+import glm_.parseInt
 import glm_.quat.Quat
 import glm_.vec3.Vec3
 
-class ComponentFieldEdit(obj: GameObject, screen: EditorScreen, val field: String, val oldVal: String, val newVal: String) : ObjectEdit(obj, screen) {
+class ComponentFieldEdit(override val obj: GameObject, screen: EditorScreen, val fieldKey: String, val oldVal: String, val newVal: String) : ObjectEdit(screen) {
 
 	override fun undo() {
-		obj.setProperty(field, oldVal)
-		if(screen.editingObject == obj){
-			screen.componentBrowser.refreshField(field)
-		}
+		set(oldVal)
 	}
 
 	override fun redo() {
-		obj.setProperty(field, newVal)
+		set(newVal)
+	}
+
+	fun set(value: String){
+		if(fieldKey.length > 1) {
+			val (component, field) = obj.getComponentAndField(fieldKey) ?: return
+			field.set(value, component)
+		}
+		else when(fieldKey[0]) {
+			'n' -> obj.name = value
+			'l' -> obj.layer = value.parseInt()
+			'a' -> obj.active = value[0].code > 0
+		}
+
 		if(screen.editingObject == obj){
-			screen.componentBrowser.refreshField(field)
+			screen.componentBrowser.refreshField(fieldKey)
 		}
 	}
 

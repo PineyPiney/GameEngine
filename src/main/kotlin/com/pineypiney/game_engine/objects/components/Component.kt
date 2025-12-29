@@ -1,10 +1,10 @@
 package com.pineypiney.game_engine.objects.components
 
-import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.fields.EditorIgnore
 import com.pineypiney.game_engine.util.ByteData
+import com.pineypiney.game_engine.util.exceptions.ComponentReflectionException
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KParameter
@@ -18,7 +18,6 @@ import kotlin.reflect.jvm.javaType
 abstract class Component(final override val parent: GameObject) : ComponentI {
 
 	override val id: String get() = this::class.simpleName ?: "Anon"
-	val parentPath = parent
 
 	override fun init() {
 
@@ -110,20 +109,25 @@ abstract class Component(final override val parent: GameObject) : ComponentI {
 	}
 
 	override fun <T> copyFieldTo(dst: Collection<ComponentField<*>>, field: ComponentField<T>) {
-		val dstField = getMatchingField(dst, field)
-		if (dstField == null) {
-			GameEngineI.warn("Copying component $this, $dst did not have field ${field.id}")
+		try{
+			val dstField = getMatchingField(dst, field)
+			field.copyTo(dstField)
+		}
+		catch(e: ComponentReflectionException){
+			println(e.message)
+			e.printStackTrace()
 			return
 		}
-		field.copyTo(dstField)
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	override fun <T> getMatchingField(other: Collection<ComponentField<*>>, field: ComponentField<T>): ComponentField<T>? {
+	override fun <T> getMatchingField(other: Collection<ComponentField<*>>, field: ComponentField<T>): ComponentField<T> {
+		val matchingField = other.firstOrNull { it.id == field.id }
+		if(matchingField == null) throw ComponentReflectionException("Could not find field with id ${field.id}")
 		return try {
-			other.firstOrNull { it.id == field.id } as? ComponentField<T>
-		} catch (e: Exception) {
-			null
+			matchingField as ComponentField<T>
+		} catch (e: ClassCastException) {
+			throw ComponentReflectionException("Couldn't cast $matchingField to ${field::class}, it's type was ${matchingField::class}", e)
 		}
 	}
 
