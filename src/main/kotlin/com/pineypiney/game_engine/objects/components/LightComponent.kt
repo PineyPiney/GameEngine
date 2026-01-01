@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects.components
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.rendering.lighting.PointLight
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 
 class LightComponent(parent: GameObject, val light: Light = PointLight()) : Component(parent) {
 
@@ -11,7 +11,7 @@ class LightComponent(parent: GameObject, val light: Light = PointLight()) : Comp
 		get() = light.on
 		set(value) { light.on = value }
 
-	fun setShaderUniforms(shader: Shader, name: String) {
+	fun setShaderUniforms(shader: RenderShader, name: String) {
 
 
 		val directionName = name.indexOf('[').let {

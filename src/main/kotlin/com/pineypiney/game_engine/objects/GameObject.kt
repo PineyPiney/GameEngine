@@ -9,7 +9,7 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.models.Model
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
 import com.pineypiney.game_engine.util.extension_functions.delete
@@ -346,7 +346,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 	companion object {
 
 		fun simpleRenderedGameObject(
-			shader: Shader,
+			shader: RenderShader,
 			position: Vec3 = Vec3(),
 			scale: Vec3 = Vec3(1f),
 			mesh: Mesh = Mesh.centerSquareShape,
@@ -387,7 +387,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 		fun simpleTextureGameObject(
 			texture: Texture,
 			shape: Mesh = Mesh.centerSquareShape,
-			shader: Shader = MeshedTextureComponent.default2DShader
+			shader: RenderShader = MeshedTextureComponent.default2DShader
 		): GameObject {
 			val o = object : GameObject() {
 				override fun addComponents() {
@@ -401,7 +401,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 
 		fun simpleModelledGameObject(
 			model: Model,
-			shader: Shader = ModelRendererComponent.defaultShader,
+			shader: RenderShader = ModelRendererComponent.defaultShader,
 			debug: Int = 0
 		): GameObject {
 			val o = object : GameObject() {

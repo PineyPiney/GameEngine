@@ -6,8 +6,9 @@ import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addToMapOr
 import com.pineypiney.game_engine.util.extension_functions.delete
+import com.pineypiney.game_engine.util.extension_functions.toString
 import glm_.bool
-import org.lwjgl.opengl.GL32C.*
+import org.lwjgl.opengl.GL46C.*
 import java.io.InputStream
 
 class ShaderLoader private constructor() : Deleteable {
@@ -26,7 +27,17 @@ class ShaderLoader private constructor() : Deleteable {
 				"vs" -> GL_VERTEX_SHADER
 				"fs" -> GL_FRAGMENT_SHADER
 				"gs" -> GL_GEOMETRY_SHADER
+				"cs" -> GL_COMPUTE_SHADER
 				else -> 0
+			}
+
+			if(type == GL_COMPUTE_SHADER && !GLFunc.versionAtLeast(4, 3)){
+				if(!warnedCompute){
+					GameEngineI.logger.warn("Tried to create Compute Shader, which requires OpenGL 4.3 or higher, but created OpenGL Instance is version ${GLFunc.version.toString(".", Int::toString)}")
+					warnedCompute = true
+				}
+				stream.close()
+				continue
 			}
 
 			loadShader(fileName.removeSuffix(".$suf"), stream.readBytes(), type)
@@ -41,23 +52,32 @@ class ShaderLoader private constructor() : Deleteable {
 		shaderMap[ResourceKey(name)] = shader
 	}
 
-	fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): Shader {
+	fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): RenderShader {
 		val vertex: SubShader = shaderMap.getOrElse(vertexKey) {
 			GameEngineI.warn("Could not find vertex shader ${vertexKey.key}")
-			return Shader.brokeShader
+			return RenderShader.brokeShader
 		}
 		val fragment: SubShader = shaderMap.getOrElse(fragmentKey) {
 			GameEngineI.warn("Could not find fragment shader ${fragmentKey.key}")
-			return Shader.brokeShader
+			return RenderShader.brokeShader
 		}
 		val geometry: SubShader? = geometryKey?.let {
 			shaderMap.getOrElse(it) {
 				GameEngineI.warn("Could not find geometry shader ${it.key}")
-				return Shader.brokeShader
+				return RenderShader.brokeShader
 			}
 		}
 
 		return generateShader(vertexKey.key, vertex, fragmentKey.key, fragment, geometryKey?.key, geometry)
+	}
+
+	fun getComputeShader(computeKey: ResourceKey): ComputeShader {
+		val compute: SubShader = shaderMap.getOrElse(computeKey) {
+			GameEngineI.warn("Could not find vertex shader ${computeKey.key}")
+			return ComputeShader.brokeShader
+		}
+
+		return generateComputeShader(computeKey.key, compute)
 	}
 
 	override fun delete() {
@@ -68,12 +88,18 @@ class ShaderLoader private constructor() : Deleteable {
 	companion object {
 		val INSTANCE: ShaderLoader = ShaderLoader()
 
-		fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): Shader {
+		var warnedCompute = false
+
+		fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): RenderShader {
 			return INSTANCE.getShader(vertexKey, fragmentKey, geometryKey)
 		}
 
-		operator fun get(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): Shader {
+		operator fun get(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): RenderShader {
 			return INSTANCE.getShader(vertexKey, fragmentKey, geometryKey)
+		}
+
+		operator fun get(computeKey: ResourceKey): ComputeShader {
+			return INSTANCE.getComputeShader(computeKey)
 		}
 
 		fun generateSubShader(name: String, code: String, type: Int): SubShader {
@@ -86,17 +112,10 @@ class ShaderLoader private constructor() : Deleteable {
 
 		}
 
-		fun generateShader(
-			vName: String,
-			vertexShader: SubShader,
-			fName: String,
-			fragmentShader: SubShader,
-			gName: String? = null,
-			geometryShader: SubShader? = null
-		): Shader {
+		fun generateShader(vName: String, vertexShader: SubShader, fName: String, fragmentShader: SubShader, gName: String? = null, geometryShader: SubShader? = null): RenderShader {
 			if (!GLFunc.isLoaded) {
 				GameEngineI.warn("Could not generate shader because OpenGL has not been loaded")
-				return Shader(0, "v", "f", null, mapOf())
+				return RenderShader(0, "v", "f", null, mapOf())
 			}
 			val ID = glCreateProgram()
 
@@ -110,13 +129,21 @@ class ShaderLoader private constructor() : Deleteable {
 			checkCompileErrors(ID, 0, "$vName x $fName" + if (gName != null) " x $gName" else "")
 
 			// delete the shaders as they're linked into our program now and no longer necessary
-			glDeleteShader(vertexShader.id)
-			glDeleteShader(fragmentShader.id)
-			if (geometryShader != null) glDeleteShader(geometryShader.id)
+//			glDeleteShader(vertexShader.id)
+//			glDeleteShader(fragmentShader.id)
+//			if (geometryShader != null) glDeleteShader(geometryShader.id)
 
 			val uniforms = vertexShader.uniforms + fragmentShader.uniforms + (geometryShader?.uniforms ?: mapOf())
 
-			return Shader(ID, vName, fName, gName, uniforms)
+			return RenderShader(ID, vName, fName, gName, uniforms)
+		}
+
+		fun generateComputeShader(name: String, shader: SubShader): ComputeShader {
+			val ID = glCreateProgram()
+			glAttachShader(ID, shader.id)
+			glLinkProgram(ID)
+			checkCompileErrors(ID, 0, name)
+			return ComputeShader(ID, name, shader.uniforms)
 		}
 
 		fun createShaderFromString(code: String, shaderType: Int, shaderName: String): Int {
@@ -204,6 +231,7 @@ class ShaderLoader private constructor() : Deleteable {
 					GL_VERTEX_SHADER -> "vertex"
 					GL_FRAGMENT_SHADER -> "fragment"
 					GL_GEOMETRY_SHADER -> "geometry"
+					GL_COMPUTE_SHADER -> "compute"
 					else -> return
 				}
 

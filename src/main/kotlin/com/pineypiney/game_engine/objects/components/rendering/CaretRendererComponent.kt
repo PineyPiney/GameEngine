@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponen
 import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.window.Viewport
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -13,7 +13,7 @@ import glm_.vec4.Vec4
 class CaretRendererComponent(
 	parent: GameObject,
 	colour: Vec4,
-	shader: Shader = defaultShader,
+	shader: RenderShader = defaultShader,
 	shape: Mesh = Mesh.centerSquareShape
 ) : ColourRendererComponent(parent, colour, shader, shape),
 	UpdatingAspectRatioComponent {

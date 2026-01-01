@@ -55,7 +55,7 @@ dependencies {
 
     // Logback
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-    implementation("ch.qos.logback:logback-classic:1.5.13")
+    implementation("ch.qos.logback:logback-classic:1.5.19")
 
     // GLM
     implementation("kotlin.graphics:kool:0.9.75")

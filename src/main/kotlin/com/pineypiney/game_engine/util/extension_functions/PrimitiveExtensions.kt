@@ -16,6 +16,10 @@ infix fun UShort.shr(other: Int): UShort{
 	return (toShort() shr other).toUShort()
 }
 
+operator fun UInt.times(other: Float): Float{
+	return toLong() * other
+}
+
 /**
  * Round the double to [places] decimal places
  *

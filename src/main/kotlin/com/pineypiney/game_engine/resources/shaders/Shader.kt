@@ -1,19 +1,79 @@
 package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.objects.Deleteable
-import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.LightComponent
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
-import com.pineypiney.game_engine.rendering.lighting.Light
-import com.pineypiney.game_engine.rendering.lighting.PointLight
-import com.pineypiney.game_engine.rendering.lighting.SpotLight
-import com.pineypiney.game_engine.resources.shaders.uniforms.*
-import com.pineypiney.game_engine.resources.shaders.uniforms.mats.*
-import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.*
-import com.pineypiney.game_engine.util.GLFunc
-import com.pineypiney.game_engine.util.RandomHelper
-import glm_.b
+import com.pineypiney.game_engine.resources.shaders.uniforms.BoolUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.BoolsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.DoubleUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.DoublesUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.FloatUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.FloatsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.IntUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.IntsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.UIntUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.UIntsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2x3Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2x3dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2x3dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2x3sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2x4Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2x4dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2x4dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat2x4sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3x2Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3x2dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3x2dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3x2sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3x4Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3x4dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3x4dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat3x4sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4x2Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4x2dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4x2dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4x2sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4x3Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4x3dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4x3dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.mats.Mat4x3sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec2Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec2dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec2dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec2iUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec2isUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec2sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec2uiUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec2uisUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec3Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec3dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec3dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec3iUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec3isUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec3sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec3uiUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec3uisUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec4Uniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec4dUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec4dsUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec4iUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec4isUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec4sUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec4uiUniform
+import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.Vec4uisUniform
 import glm_.i
 import glm_.mat2x2.Mat2
 import glm_.mat2x2.Mat2d
@@ -33,42 +93,46 @@ import glm_.mat4x3.Mat4x3
 import glm_.mat4x3.Mat4x3d
 import glm_.mat4x4.Mat4
 import glm_.mat4x4.Mat4d
-import glm_.vec2.*
-import glm_.vec3.*
-import glm_.vec4.*
+import glm_.vec2.Vec2
+import glm_.vec2.Vec2d
+import glm_.vec2.Vec2i
+import glm_.vec2.Vec2t
+import glm_.vec2.Vec2ui
+import glm_.vec3.Vec3
+import glm_.vec3.Vec3d
+import glm_.vec3.Vec3i
+import glm_.vec3.Vec3t
+import glm_.vec3.Vec3ui
+import glm_.vec4.Vec4
+import glm_.vec4.Vec4d
+import glm_.vec4.Vec4i
+import glm_.vec4.Vec4t
+import glm_.vec4.Vec4ui
+import org.lwjgl.opengl.GL20C.GL_ACTIVE_ATTRIBUTES
+import org.lwjgl.opengl.GL20C.GL_ACTIVE_UNIFORMS
+import org.lwjgl.opengl.GL20C.glDeleteProgram
+import org.lwjgl.opengl.GL20C.glGetProgrami
+import org.lwjgl.opengl.GL20C.glGetUniformLocation
+import org.lwjgl.opengl.GL20C.glGetUniformf
+import org.lwjgl.opengl.GL20C.glGetUniformfv
+import org.lwjgl.opengl.GL20C.glGetUniformi
+import org.lwjgl.opengl.GL20C.glGetUniformiv
+import org.lwjgl.opengl.GL20C.glUseProgram
+import org.lwjgl.opengl.GL30C.glGetUniformui
+import org.lwjgl.opengl.GL30C.glGetUniformuiv
+import org.lwjgl.opengl.GL40C.glGetUniformd
+import org.lwjgl.opengl.GL40C.glGetUniformdv
+import org.lwjgl.opengl.GL43C.GL_ACTIVE_RESOURCES
+import org.lwjgl.opengl.GL43C.GL_PROGRAM_INPUT
+import org.lwjgl.opengl.GL43C.GL_UNIFORM
+import org.lwjgl.opengl.GL43C.glGetProgramInterfacei
+import org.lwjgl.opengl.GL43C.glGetProgramResourceName
 import org.lwjgl.opengl.GL46C
-import org.lwjgl.opengl.GL46C.*
-import kotlin.experimental.and
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.iterator
 
-@Suppress("UNUSED")
-class Shader(
-	private var ID: Int,
-	val vName: String,
-	val fName: String,
-	val gName: String? = null,
-	val uniforms: Map<String, String>
-) : Deleteable {
-
-	val screenMask: Byte =
-		RandomHelper.createMask(uniforms::containsKey, "view", "projection", "guiProjection", "viewport", "viewPos").b
-
-	val hasView get() = (screenMask and 1) > 0
-	val hasProj get() = (screenMask and 2) > 0
-	val hasGUI get() = (screenMask and 4) > 0
-	val hasPort get() = (screenMask and 8) > 0
-	val hasPos get() = (screenMask and 0x10) > 0
-
-	val lightMask: Byte = RandomHelper.createMask(
-		uniforms::containsKey,
-		"dirLight.ambient",
-		"pointLight.ambient",
-		"spotLight.ambient"
-	).b
-
-	val hasDirL get() = (lightMask and 1) > 0
-	val hasPointL get() = (lightMask and 2) > 0
-	val hasSpotL get() = (lightMask and 4) > 0
-
+open class Shader(private var ID: Int, val uniforms: Map<String, String>): Deleteable {
 
 	fun use() {
 		glUseProgram(ID)
@@ -93,33 +157,6 @@ class Shader(
 	fun setVP(renderer: RendererI) {
 		setMat4("view", renderer.view)
 		setMat4("projection", renderer.projection)
-	}
-
-	fun setRendererDefaults(uniforms: Uniforms){
-		if (hasView) uniforms.setMat4UniformR("view", RendererI::view)
-		if (hasProj) uniforms.setMat4UniformR("projection", RendererI::projection)
-		if (hasGUI) uniforms.setMat4UniformR("guiProjection", RendererI::guiProjection)
-		if (hasPort) uniforms.setVec2iUniformR("viewport", RendererI::viewportSize)
-		if (hasPos) uniforms.setVec3UniformR("viewPos", RendererI::viewPos)
-	}
-
-	fun setLightUniforms(obj: GameObject, lights: List<LightComponent> = obj.objects?.getAllComponents()?.filterIsInstance<LightComponent>()?.filter { it.light.on } ?: emptyList()) {
-		if(lights.isEmpty()) return
-
-		val dirLight = lights.firstOrNull { it.light is DirectionalLight }
-		if(dirLight == null) Light.setShaderUniformsOff(this, "dirLight")
-		else dirLight.setShaderUniforms(this, "dirLight")
-
-		val pointLights = lights.associateWith { it.parent.position }.filter{ it.key.light is PointLight }.entries.sortedByDescending { (it.value - obj.position).length() / (it.key.light as PointLight).linear }
-		for (l in 0..<4) {
-			val name = "pointLights[$l]"
-			if(l < pointLights.size) pointLights[l].key.setShaderUniforms(this, name)
-			else Light.setShaderUniformsOff(this, name)
-		}
-
-		val spotLight = lights.firstOrNull { it.light is SpotLight }
-		if(spotLight == null) Light.setShaderUniformsOff(this, "spotlight")
-		else spotLight.setShaderUniforms(this, "spotlight")
 	}
 
 	// Functions to set uniforms within shaders
@@ -478,7 +515,7 @@ class Shader(
 		func(ID, getVar(name), array)
 		return array
 	}
-	
+
 	fun getIN(name: String, num: Int): IntArray{
 		val array = IntArray(num)
 		glGetUniformiv(ID, getVar(name), array)
@@ -614,37 +651,4 @@ class Shader(
 		glDeleteProgram(ID)
 	}
 
-	override fun toString(): String {
-		return "Shader[$vName, $fName]"
-	}
-
-	companion object {
-
-		val vS: String
-		val fS: String
-
-		init {
-			val (V, v) = GLFunc.version
-			vS =
-				"#version $V${v}0 core\n" +
-						"layout (location = 0) in vec2 aPos;\n" +
-						"\n" +
-						"void main(){\n" +
-						"\tgl_Position = vec4(aPos, 0.0, 1.0);\n" +
-						"}"
-			fS =
-				"#version $V${v}0 core\n" +
-						"\n" +
-						"out vec4 FragColour;\n" +
-						"\n" +
-						"void main(){\n" +
-						"\tFragColour = vec4(1.0, 1.0, 1.0, 1.0);\n" +
-						"}"
-		}
-
-		val brokeShader: Shader = ShaderLoader.generateShader(
-			"broke", ShaderLoader.generateSubShader("broke", vS, GL_VERTEX_SHADER),
-			"broke", ShaderLoader.generateSubShader("broke", fS, GL_FRAGMENT_SHADER)
-		)
-	}
 }

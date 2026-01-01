@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.rendering.lighting
 
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import glm_.vec3.Vec3
 
 class PointLight(
@@ -12,7 +12,7 @@ class PointLight(
 	var quadratic: Float = .0019f
 ) : Light() {
 
-	override fun setShaderUniforms(shader: Shader, name: String) {
+	override fun setShaderUniforms(shader: RenderShader, name: String) {
 		super.setShaderUniforms(shader, name)
 
 		shader.setFloat("$name.constant", constant)
@@ -21,7 +21,7 @@ class PointLight(
 	}
 
 	companion object {
-		fun setShaderUniforms(shader: Shader, name: String, lights: Map<Vec3, PointLight>) {
+		fun setShaderUniforms(shader: RenderShader, name: String, lights: Map<Vec3, PointLight>) {
 			Light.setShaderUniforms(shader, name, lights)
 			shader.setFloats("$name.constant", lights.values.map { it.constant }.toFloatArray())
 			shader.setFloats("$name.linear", lights.values.map { it.linear }.toFloatArray())

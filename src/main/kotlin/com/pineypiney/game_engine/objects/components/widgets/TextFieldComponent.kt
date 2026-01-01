@@ -10,7 +10,7 @@ import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.ControlType
@@ -221,7 +221,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		forceUpdate = false
 	}
 
-	inner class TextFieldText(parent: GameObject, text: Text, fontSize: Int, shader: Shader) :
+	inner class TextFieldText(parent: GameObject, text: Text, fontSize: Int, shader: RenderShader) :
 		TextRendererComponent(parent, text, fontSize, shader) {
 
 		override fun setUniforms() {

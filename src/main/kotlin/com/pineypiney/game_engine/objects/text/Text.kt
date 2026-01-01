@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.rendering.meshes.TextMesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
 import glm_.vec2.Vec2
@@ -164,14 +164,14 @@ open class Text(
 	@Suppress("UNUSED")
 	data class Params(var colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
 					  var fontSize: Int = 12, var alignment: Int = ALIGN_CENTER_LEFT,
-					  var shader: Shader = Font.fontShader, var font: Font = Font.defaultFont,
+					  var shader: RenderShader = Font.fontShader, var font: Font = Font.defaultFont,
 					  var italic: Float = 0f, var underlineThickness: Float = 0f,
 					  var underlineOffset: Float = -0.2f, var underlineAmount: Float = 1f){
 
 		fun withColour(c: Vec4) = this.apply { colour = c }
 		fun withFontSize(c: Int) = this.apply { fontSize = c }
 		fun withAlignment(c: Int) = this.apply { alignment = c }
-		fun withShader(c: Shader) = this.apply { shader = c }
+		fun withShader(c: RenderShader) = this.apply { shader = c }
 		fun withFont(c: Font) = this.apply { font = c }
 		fun withItalic(c: Float) = this.apply { italic = c }
 		fun withUnderlineThickness(c: Float) = this.apply { underlineThickness = c }
@@ -201,7 +201,7 @@ open class Text(
 			colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
 			fontSize: Int = 12,
 			alignment: Int = ALIGN_CENTER_LEFT,
-			shader: Shader = Font.fontShader,
+			shader: RenderShader = Font.fontShader,
 			font: Font = Font.defaultFont,
 			italic: Float = 0f,
 			underlineThickness: Float = 0f,
@@ -237,7 +237,7 @@ open class Text(
 			colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
 			fontSize: Int = 12,
 			alignment: Int = ALIGN_CENTER_LEFT,
-			shader: Shader = TextRendererComponent.gameTextShader,
+			shader: RenderShader = TextRendererComponent.gameTextShader,
 			font: Font = Font.defaultFont,
 			italic: Float = 0f,
 			underlineThickness: Float = 0f,

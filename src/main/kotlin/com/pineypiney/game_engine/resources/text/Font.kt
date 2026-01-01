@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.resources.text
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.TextMesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec2.Vec2
@@ -11,7 +11,7 @@ import glm_.vec2.Vec2
 abstract class Font {
 
 	abstract val name: String
-	abstract val shader: Shader
+	abstract val shader: RenderShader
 	abstract val lineSpacing: Float
 
 	abstract fun getCharWidth(char: Char): Float

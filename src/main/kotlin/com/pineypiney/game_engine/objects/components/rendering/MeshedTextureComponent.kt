@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects.components.rendering
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.ResourceKey
@@ -11,7 +11,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 open class MeshedTextureComponent(
 	parent: GameObject,
 	var texture: Texture = Texture.broke,
-	shader: Shader = default2DShader,
+	shader: RenderShader = default2DShader,
 	val mesh: Mesh = Mesh.centerSquareShape
 ) : ShaderRenderedComponent(parent, shader) {
 

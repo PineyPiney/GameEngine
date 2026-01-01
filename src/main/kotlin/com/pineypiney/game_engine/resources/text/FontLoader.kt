@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.resources.AbstractResourceLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.TextureParameters
@@ -59,7 +59,7 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 		loadBold: Boolean = false,
 		firstLetter: Int = 32,
 		lineSpacing: Float = 1.2f,
-		shader: Shader = Font.fontShader
+		shader: RenderShader = Font.fontShader
 	) {
 
 		val location = resourcesLoader.textureLocation + "fonts/" + fontName
@@ -211,7 +211,7 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 		chars: CharArray = ('!'..127.c).distinct().toCharArray(),
 		ctx: FontRenderContext = FontRenderContext(null, true, true),
 		res: Int = 200,
-		shader: Shader = Font.fontShader
+		shader: RenderShader = Font.fontShader
 	) {
 		val stream: InputStream = resourcesLoader.getStream("${resourcesLoader.fontLocation}$fontName") ?: return
 		val font = JavaFont.createFont(JavaFont.TRUETYPE_FONT, stream)

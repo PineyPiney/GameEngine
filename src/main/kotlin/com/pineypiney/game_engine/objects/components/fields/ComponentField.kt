@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -119,11 +119,11 @@ class Vec4Field(id: String, getter: () -> Vec4, setter: (Vec4) -> Unit) :
 class QuatField(id: String, getter: () -> Quat, setter: (Quat) -> Unit) : ComponentField<Quat>(id,
 	getter, setter, { q -> q.toString("", ByteData::float2String) }, ByteData::string2Quat, { Quat(it.w, it.x, it.y, it.z) })
 
-class ShaderField(id: String, getter: () -> Shader, setter: (Shader) -> Unit): ComponentField<Shader>(id,
+class ShaderField(id: String, getter: () -> RenderShader, setter: (RenderShader) -> Unit): ComponentField<RenderShader>(id,
 	getter, setter, ::serialise, ::parse){
 
 	companion object {
-		fun serialise(shader: Shader): String {
+		fun serialise(shader: RenderShader): String {
 			val sb = StringBuilder()
 			val g = shader.gName != null
 			sb.append(if (g) '3' else '2')
@@ -133,7 +133,7 @@ class ShaderField(id: String, getter: () -> Shader, setter: (Shader) -> Unit): C
 			return sb.toString()
 		}
 
-		fun parse(s: String): Shader{
+		fun parse(s: String): RenderShader{
 			val hasG = s[0] == '3'
 			val vl = s[1].code
 			val v = s.substring(2, 2+vl)

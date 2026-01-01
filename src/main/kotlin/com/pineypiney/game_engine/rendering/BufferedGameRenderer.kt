@@ -31,10 +31,6 @@ abstract class BufferedGameRenderer<E : GameLogicI> : WindowRendererI<E> {
 		clear()
 	}
 
-	override fun getViewport(): Viewport {
-		return Viewport(Vec2i(0), viewportSize)
-	}
-
 	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
 		camera.updateAspectRatio(window.aspectRatio)
 		buffer.setSize(window.framebufferSize)

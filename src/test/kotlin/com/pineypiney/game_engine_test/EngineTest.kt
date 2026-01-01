@@ -22,12 +22,14 @@ import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.window.DefaultWindow
 import com.pineypiney.game_engine.window.DefaultWindowedEngine
+import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine_test.scenes.*
 import com.pineypiney.game_engine_test.testVR.TestVREngine
 import com.pineypiney.game_engine_test.testVR.TestVRGame
 import glm_.f
 import glm_.quat.Quat
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.junit.Test
 import kotlin.math.PI
@@ -43,49 +45,55 @@ class EngineTest{
 
 	@Test
 	fun test2D() {
-		run(::TestEngine, ::Game2D)
+		runWindowEngine(::TestEngine, ::Game2D)
 	}
 
 	@Test
 	fun test3D(){
-		run(::TestEngine, ::Game3D)
+		runWindowEngine(::TestEngine, ::Game3D)
 	}
 	@Test
 	fun testLighting(){
-		run(::TestEngine, ::LightingTest)
+		runWindowEngine(::TestEngine, ::LightingTest)
 	}
 
 	@Test
 	fun testVR(){
-		run(::TestVREngine, ::TestVRGame)
+		runWindowEngine(::TestVREngine, ::TestVRGame)
 	}
 
 	@Test
 	fun testCollisionVisual(){
-		run(::TestEngine, ::CollisionTest, 100)
+		runWindowEngine(::TestEngine, ::CollisionTest, 100)
 	}
 
 	@Test
 	fun testCollision3DVisual(){
-		run(::TestEngine, ::Collision3DTest, 100)
+		runWindowEngine(::TestEngine, ::Collision3DTest, 100)
 	}
 
 	@Test
 	fun testText(){
-		run(::TestEngine, ::TextTest)
+		runWindowEngine(::TestEngine, ::TextTest)
 	}
 
 	@Test
 	fun testShader(){
-		run(::TestEngine, ::ShaderTest)
+		runWindowEngine(::TestEngine, ::ShaderTest)
+	}
+
+	@Test
+	fun testComputeShader(){
+		runWindowEngine(::TestEngine, ::ComputeShaderTest, version = Vec2i(4, 3))
 	}
 
 	companion object {
-		fun <G : GameLogicI, E : GameEngineI<G>> run(engine: ((E) -> G, Int, Int) -> E, screen: (E) -> G, ups: Int = 20, fps: Int = 2000) {
+		fun <G : GameLogicI, E : GameEngineI<G>> runWindowEngine(engine: (WindowI, (E) -> G, Int, Int) -> E, screen: (E) -> G, ups: Int = 20, fps: Int = 2000, version: Vec2i = Vec2i(3)) {
 			LibrarySetUp.initLibraries()
 
-			TestWindow.INSTANCE.init()
-			engine(screen, ups, fps).run()
+			val window = TestWindow(version = version)
+			window.init()
+			engine(window, screen, ups, fps).run()
 		}
 	}
 

@@ -13,7 +13,7 @@ import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollBarComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.*
 import com.pineypiney.game_engine.resources.models.Model
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
@@ -139,7 +139,7 @@ class Components {
 			addFieldType(::Vec3Field, {Vec3()})
 			addFieldType(::Vec4Field, {Vec4()})
 			addFieldType(::QuatField, {Quat()})
-			addFieldType(::ShaderField, {Shader.brokeShader})
+			addFieldType(::ShaderField, {RenderShader.brokeShader})
 			addFieldType(::TextureField, {Texture.broke})
 			addFieldType(::ModelField, {Model.brokeModel})
 			addFieldType(::Shape2DField, {Rect2D(Vec2(0f), 1f, 1f)}, Shape2D::class)

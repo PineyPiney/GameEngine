@@ -42,14 +42,15 @@ class TestVRRenderer(w: Int, h: Int, override val hmd: HMD): VRRenderer<TestVRGa
 		// Draws output to the test window
 		FrameBuffer.unbind()
 		clear()
-		GLFunc.viewportO = TestWindow.INSTANCE.framebufferSize
+
+		GLFunc.viewportO = game.gameEngine.window.framebufferSize
 
 		val shader = BufferedGameRenderer.screenShader
 		shader.use()
 		shader.setUniforms(BufferedGameRenderer.screenUniforms, this)
 		leftDisplay.draw(Mesh.textureQuad(Vec2(-0.5, 0), Vec2(1, 2)))
 		rightDisplay.draw(Mesh.textureQuad(Vec2(0.5, 0), Vec2(1, 2)))
-		TestWindow.INSTANCE.update()
+		game.gameEngine.window.update()
 	}
 
 	override fun getView(eye: Int): Mat4 {

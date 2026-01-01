@@ -22,7 +22,7 @@ import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -201,8 +201,8 @@ open class IntRangeFieldEditor(parent: GameObject, f: IntRangeField, component: 
 
 }
 
-open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: (Shader, Shader) -> Unit)
-	: FieldEditor<Shader, ShaderField>(parent, f, component, origin, Vec2i(size.x, getHeight(size.y, 3))) {
+open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: (RenderShader, RenderShader) -> Unit)
+	: FieldEditor<RenderShader, ShaderField>(parent, f, component, origin, Vec2i(size.x, getHeight(size.y, 3))) {
 
 	val vertexText = createText("Vertex", pos = Vec2(0f, .7f), size = Vec2(.25f, .3f))
 	val vertexField = ActionTextField<ActionTextFieldComponent<*>>("Vertex Field", Vec3(.27f, .7f, 0f), Vec2(.7f, .3f), field.getter().vName, 16) { _, _, _ ->

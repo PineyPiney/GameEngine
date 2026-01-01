@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.resources.text
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
 import com.pineypiney.game_engine.rendering.meshes.TextMesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import glm_.c
@@ -25,7 +25,7 @@ class TrueTypeFont(
 	val font: JavaFont,
 	val textures: Map<Char, Texture>,
 	val ctx: FontRenderContext = FontRenderContext(null, true, true),
-	override val shader: Shader = fontShader
+	override val shader: RenderShader = fontShader
 ) : Font() {
 
 	override var lineSpacing: Float = 1f

@@ -68,11 +68,11 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 						"target" -> currentEdit?.target = intValue
 						"flip" -> currentEdit?.flip = intValue.bool
 						"channels" -> currentEdit?.numChannels = intValue
-						"wrap" -> currentEdit?.setWrapping(intValue)
+						"wrap" -> currentEdit?.withWrapping(intValue)
 						"wrapS" -> currentEdit?.wrapS = intValue
 						"wrapT" -> currentEdit?.wrapT = intValue
 						"wrapR" -> currentEdit?.wrapR = intValue
-						"filter" -> currentEdit?.setFilter(intValue)
+						"filter" -> currentEdit?.withFilter(intValue)
 						"minFilter" -> currentEdit?.minFilter = intValue
 						"magFilter" -> currentEdit?.magFilter = intValue
 					}
@@ -120,7 +120,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			if (data != null) {
 
 				val format = channelsToFormat(vec.z)
-				writeTextureToPointer(data, vec.x, vec.y, format, format, GL_UNSIGNED_BYTE)
+				writeTextureToPointer(data, vec.x, vec.y, format, format)
 
 				STBImage.stbi_image_free(data)
 				return pointer
@@ -153,7 +153,6 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			height: Int,
 			format: Int,
 			internalFormat: Int,
-			type: Int,
 			debug: Boolean = false
 		) {
 			if (!GLFunc.isLoaded) {
@@ -161,6 +160,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 				return
 			}
 
+			val type = internalFormatToDataType(internalFormat)
 			if(debug) GameEngineI.debug("Calling texImage2D with internalFormat: $internalFormat, width: $width, height: $height, format: $format, type: $type and data: $data")
 			try { glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data) }
 			catch (_: Exception){
@@ -176,13 +176,12 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			height: Int,
 			format: Int = GL_RGB,
 			internalFormat: Int = format,
-			type: Int = GL_UNSIGNED_BYTE,
 			params: TextureParameters = TextureParameters.default,
 			debug: Boolean = false
 		): Int {
 			val pointer = Texture.createPointer(params)
 			if(debug) GameEngineI.debug("Calling writeTextureToPointer on texturePtr: $pointer with parameters: $params")
-			if (pointer != -1) writeTextureToPointer(data, width, height, format, internalFormat, type, debug)
+			if (pointer != -1) writeTextureToPointer(data, width, height, format, internalFormat, debug)
 			return pointer
 		}
 
@@ -193,14 +192,13 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			samples: Int = 4,
 			format: Int = GL_RGB,
 			internalFormat: Int = format,
-			type: Int = GL_UNSIGNED_BYTE,
 			target: Int = GL_TEXTURE_2D_MULTISAMPLE,
 			fixedSample: Boolean = true
 		): Int {
 			val pointer = glGenTextures()
 			glBindTexture(target, pointer)
 			glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, fixedSample)
-			writeTextureToPointer(data.toBuffer(), width, height, format, internalFormat, type)
+			writeTextureToPointer(data.toBuffer(), width, height, format, internalFormat)
 			return pointer
 		}
 
@@ -219,17 +217,66 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			return pointer
 		}
 
+		// https://gist.github.com/Kos/4739337
+		fun internalFormatToPixelSize(internalFormat: Int) = when(internalFormat) {
+			GL_RED, GL_R8, GL_R8I, GL_R8UI, GL_R3_G3_B2, GL_RGBA2 -> 1
+
+			GL_R16, GL_R16I, GL_R16UI,
+			GL_RG, GL_RG8, GL_RG8I, GL_RG8UI,
+			GL_RGBA4, GL_RGB5_A1 -> 2
+
+			GL_RGB, GL_RGB8, GL_RGB8I, GL_RGB8UI -> 3
+
+			GL_R32F, GL_R32I, GL_R32UI, GL_RG16, GL_RG16I, GL_RG16UI,
+			GL_RGBA, GL_RGBA8, GL_RGBA8I, GL_RGBA8UI -> 4
+			else -> 4
+		}
+
+		fun internalFormatToDataType(internalFormat: Int) = when(internalFormat) {
+			GL_RED, GL_R8, GL_R8UI, GL_RG, GL_RG8, GL_RG8UI, GL_RGBA, GL_RGBA8, GL_RGBA8UI -> GL_UNSIGNED_BYTE
+			GL_R8I, GL_RG8I, GL_RGB8I, GL_RGBA8I -> GL_BYTE
+			GL_R16, GL_R16UI, GL_RG16, GL_RG16UI, GL_RGBA16, GL_RGBA16UI -> GL_UNSIGNED_SHORT
+			GL_R16I, GL_RG16I, GL_RGB16I, GL_RGBA16I -> GL_SHORT
+			GL_R32UI, GL_RG32UI, GL_RGBA32UI -> GL_UNSIGNED_INT
+			GL_R32I, GL_RG32I, GL_RGB32I, GL_RGBA32I -> GL_INT
+			else -> GL_UNSIGNED_BYTE
+		}
+
+		fun internalFormatToFormat(internalFormat: Int) = when(internalFormat) {
+			GL_RED, GL_R8, GL_R16, GL_R16F, GL_R32F -> GL_RED
+			GL_R8I, GL_R8UI, GL_R16I, GL_R16UI, GL_R32I, GL_R32UI -> GL_RED_INTEGER
+
+			GL_RG, GL_RG8, GL_RG16, GL_RG16F, GL_RG32F -> GL_RG
+			GL_RG8I, GL_RG8UI, GL_RG16I, GL_RG16UI, GL_RG32I, GL_RG32UI -> GL_RG_INTEGER
+
+			GL_RGB, GL_RGB8, GL_RGB16, GL_RGB16F, GL_RGB32F -> GL_RGB
+			GL_RGB8I, GL_RGB8UI, GL_RGB16I, GL_RGB16UI, GL_RGB32I, GL_RGB32UI -> GL_RGB_INTEGER
+
+			GL_RGBA, GL_RGBA8, GL_RGBA16, GL_RGBA16F, GL_RGBA32F -> GL_RGBA
+			GL_RGBA8I, GL_RGBA8UI, GL_RGBA16I, GL_RGBA16UI, GL_RGBA32I, GL_RGBA32UI -> GL_RGBA_INTEGER
+
+			GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT32 -> GL_DEPTH_COMPONENT
+			GL_DEPTH_STENCIL, GL_DEPTH24_STENCIL8, GL_DEPTH32F_STENCIL8 -> GL_DEPTH_STENCIL
+
+			else -> 0
+		}
+
 		fun formatToChannels(format: Int?) = when (format) {
+			GL_RED,
+			GL_RED_INTEGER -> 1
+
+			GL_RG,
+			GL_RG_INTEGER -> 2
+
 			GL_RGB,
-			GL_BGR -> 3
+			GL_BGR,
+			GL_RGB_INTEGER,
+			GL_BGR_INTEGER -> 3
 
 			GL_RGBA,
-			GL_BGRA -> 4
-
-			GL_RED,
-			GL_GREEN,
-			GL_BLUE,
-			GL_ALPHA -> 1
+			GL_BGRA,
+			GL_RGBA_INTEGER,
+			GL_BGRA_INTEGER -> 4
 
 			else -> 3
 		}
@@ -237,6 +284,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 		fun channelsToFormat(channels: Int?) = when (channels) {
 			4 -> GL_RGBA
 			3 -> GL_RGB
+			2 -> GL_RG
 			1 -> GL_RED
 			else -> GL_RGB
 		}

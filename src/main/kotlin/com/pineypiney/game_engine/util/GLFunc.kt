@@ -12,7 +12,7 @@ import kool.FloatBuffer
 import kool.IntBuffer
 import org.lwjgl.opengl.ARBImaging.GL_BLEND_COLOR
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL42C.*
 import java.nio.ByteBuffer
 import java.nio.DoubleBuffer
 import java.nio.FloatBuffer
@@ -115,9 +115,9 @@ class GLFunc {
 		val stencilMask: Int get() = glGetInteger(GL_STENCIL_VALUE_MASK)
 
 		/**
-		 * @param x Comparison function
-		 * @param y Reference value
-		 * @param z Comparison mask
+		 * @param Vec3i.x Comparison function
+		 * @param Vec3i.y Reference value
+		 * @param Vec3i.z Comparison mask
 		 */
 		var stencilFRM: Vec3i
 			get() = Vec3i(stencilFunc, stencilRef, stencilMask)
@@ -131,9 +131,9 @@ class GLFunc {
 		val stencilOpPass: Int get() = glGetInteger(GL_STENCIL_PASS_DEPTH_PASS)
 
 		/**
-		 * @param x: Stencil fails
-		 * @param y: Stencil passes, depth fails
-		 * @param z: Stencil and Depth pass
+		 * @param Vec3i.x: Stencil fails
+		 * @param Vec3i.y: Stencil passes, depth fails
+		 * @param Vec3i.z: Stencil and Depth pass
 		 */
 		var stencilOp: Vec3i
 			get() = Vec3i(stencilOpFail, stencilOpPassFail, stencilOpPass)
@@ -160,6 +160,7 @@ class GLFunc {
 			get() = Vec2i(2, getInts(GL_VIEWPORT, 4))
 			set(value) = glViewport(0, 0, value.x, value.y)
 
+		val maxAtomicCounterFragment: Int get() = glGetInteger(GL_MAX_FRAGMENT_ATOMIC_COUNTERS)
 		val maxViewPort: Vec2i get() = Vec2i(0, getInts(GL_MAX_VIEWPORT_DIMS, 0))
 
 		fun getDataSize(dataType: Int): Int{
@@ -231,6 +232,11 @@ class GLFunc {
 			val a = Array(4) { IntBuffer(1) }
 			func(handle, a[0], a[1], a[2], a[3])
 			return Vec4i(a[0][0], a[1][0], a[2][0], a[3][0])
+		}
+
+		fun versionAtLeast(major: Int, minor: Int): Boolean{
+			val version = version
+			return major > version.x || (major == version.x && minor >= version.y)
 		}
 	}
 }

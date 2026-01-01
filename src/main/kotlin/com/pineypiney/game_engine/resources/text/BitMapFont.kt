@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.rendering.meshes.TextMesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.sumOf
 import glm_.f
@@ -24,7 +24,7 @@ class BitMapFont(
 	val characterSpacing: Float = 0.0625f,
 	override val lineSpacing: Float = 1.2f,
 	val firstLetter: Int = 32,
-	override val shader: Shader = fontShader
+	override val shader: RenderShader = fontShader
 ) : Font() {
 
 	val columns = texture.width / letterWidth

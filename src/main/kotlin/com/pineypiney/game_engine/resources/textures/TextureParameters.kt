@@ -10,15 +10,17 @@ data class TextureParameters(
 	var wrapS: Int = GL30C.GL_CLAMP_TO_EDGE, var wrapT: Int = wrapS, var wrapR: Int = wrapS,
 	var minFilter: Int = GL_LINEAR, var magFilter: Int = minFilter
 ) {
-	fun setWrapping(wrapping: Int) {
+	fun withWrapping(wrapping: Int): TextureParameters {
 		wrapS = wrapping
 		wrapT = wrapping
 		wrapR = wrapping
+		return this
 	}
 
-	fun setFilter(filter: Int) {
+	fun withFilter(filter: Int): TextureParameters {
 		minFilter = filter
 		magFilter = filter
+		return this
 	}
 
 	fun load(){

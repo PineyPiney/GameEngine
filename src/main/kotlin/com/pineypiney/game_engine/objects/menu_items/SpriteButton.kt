@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects.menu_items
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
 import glm_.vec2.Vec2
@@ -15,7 +15,7 @@ open class SpriteButton(
 	val sprite: Sprite,
 	origin: Vec3 = Vec3(0f),
 	size: Vec2 = Vec2(1f),
-	val shader: Shader = ColouredSpriteComponent.colouredMenuShader,
+	val shader: RenderShader = ColouredSpriteComponent.colouredMenuShader,
 	val action: (ButtonComponent, Vec2) -> Unit
 ) : GameObject(name, 1) {
 
@@ -25,7 +25,7 @@ open class SpriteButton(
 		ppu: Float,
 		origin: Vec3 = Vec3(0f),
 		size: Vec2 = Vec2(1f),
-		shader: Shader = ColouredSpriteComponent.colouredMenuShader,
+		shader: RenderShader = ColouredSpriteComponent.colouredMenuShader,
 		action: (ButtonComponent, Vec2) -> Unit
 	): this(name, Sprite(icon, ppu), origin, size, shader, action)
 

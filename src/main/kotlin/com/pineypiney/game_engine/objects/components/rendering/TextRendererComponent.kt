@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponen
 import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.window.Viewport
@@ -15,7 +15,7 @@ import glm_.vec4.Vec4
 import kotlin.math.ceil
 import kotlin.math.min
 
-open class TextRendererComponent(parent: GameObject, protected val text: Text, var fontSize: Int, shader: Shader) :
+open class TextRendererComponent(parent: GameObject, protected val text: Text, var fontSize: Int, shader: RenderShader) :
 	ShaderRenderedComponent(parent, shader), UpdatingAspectRatioComponent, PreRenderComponent {
 
 	// Initialise as true so the text is generated before it's first render call
