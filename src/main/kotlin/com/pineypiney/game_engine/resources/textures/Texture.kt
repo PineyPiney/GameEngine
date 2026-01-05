@@ -24,9 +24,11 @@ class Texture(
 
 	val width: Int get() = parameter(GL_TEXTURE_WIDTH)
 	val height: Int get() = parameter(GL_TEXTURE_HEIGHT)
-	val format: Int get() = parameter(GL_TEXTURE_INTERNAL_FORMAT)
+	val internalFormat: Int get() = parameter(GL_TEXTURE_INTERNAL_FORMAT)
+	val format: Int get() = TextureLoader.internalFormatToFormat(internalFormat)
 	val numChannels: Int get() = TextureLoader.formatToChannels(format)
-	val bytes: Int get() = width * height * numChannels
+	val bytes: Int get() = width * height * TextureLoader.internalFormatToPixelSize(internalFormat)
+	val dataType: Int get() = TextureLoader.internalFormatToDataType(internalFormat)
 
 	val size get() = Vec2i(width, height)
 	val aspectRatio get() = width.f / height
@@ -42,18 +44,18 @@ class Texture(
 		glBindTexture(target, 0)
 	}
 
-	fun getData(): ByteBuffer {
+	fun getData(type: Int = dataType, pixelSize: Int = 4): ByteBuffer {
 		bind()
-		val buffer = ByteBuffer(bytes)
+		val buffer = ByteBuffer(width * height * pixelSize)
 		glFinish()
-		glGetTexImage(target, 0, format, GL_UNSIGNED_BYTE, buffer)
+		glGetTexImage(target, 0, format, type, buffer)
 		return buffer
 	}
 
 	fun getSubData(x: Int, y: Int, width: Int, height: Int, format: Int = this.format): ByteBuffer {
-		val buffer = ByteBuffer(width * height * numChannels)
+		val buffer = ByteBuffer(bytes)
 		glPixelStorei(GL_PACK_ALIGNMENT, 1)
-		glGetTextureSubImage(texturePointer, 0, x, y, 0, width, height, 1, format, GL_UNSIGNED_BYTE, buffer)
+		glGetTextureSubImage(texturePointer, 0, x, y, 0, width, height, 1, format, dataType, buffer)
 		return buffer
 	}
 
@@ -70,7 +72,7 @@ class Texture(
 		// https://stackoverflow.com/questions/9950546/c-opengl-glteximage2d-access-violation
 		// Apparently OpenGL can randomly reset this value.
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-		glTexImage2D(target, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, buf)
+		glTexImage2D(target, 0, format, width, height, 0, format, dataType, buf)
 	}
 
 	fun setSubData(
@@ -90,11 +92,19 @@ class Texture(
 		// https://stackoverflow.com/questions/9950546/c-opengl-glteximage2d-access-violation
 		// Apparently OpenGL can randomly reset this value.
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-		glTexSubImage2D(target, 0, x, y, width, height, format, GL_UNSIGNED_BYTE, buf)
+		glTexSubImage2D(target, 0, x, y, width, height, format, dataType, buf)
 	}
 
 	fun setSubData(data: ByteBuffer, origin: Vec2i, size: Vec2i, format: Int = this.format) =
 		setSubData(data, origin.x, origin.y, size.x, size.y, format)
+
+	fun clear(){
+//		val PBO = glGenBuffers()
+//		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO)
+//		glBufferData(GL_PIXEL_UNPACK_BUFFER, bytes.toLong(), GL_STREAM_DRAW)
+		bind()
+		glTexImage2D(target, 0, internalFormat, width, height, 0, format, dataType, ByteBuffer(bytes))
+	}
 
 	fun setSamples(samples: Int, fixedSample: Boolean = true) {
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texturePointer)
@@ -109,7 +119,7 @@ class Texture(
 	}
 
 	fun savePNG(file: String): Boolean {
-		val d = getData()
+		val d = getData(GL_UNSIGNED_BYTE, numChannels)
 		d.limit(d.capacity())
 		val fileName = if (file.endsWith(".png")) file else "$file.png"
 		STBImageWrite.stbi_flip_vertically_on_write(true)
@@ -178,9 +188,9 @@ class Texture(
 			return ptr
 		}
 
-		fun create(id: String, width: Int, height: Int, format: Int, internalFormat: Int = format, type: Int = GL_UNSIGNED_BYTE, params: TextureParameters = TextureParameters.default): Texture{
+		fun create(id: String, width: Int, height: Int, format: Int, internalFormat: Int = format, params: TextureParameters = TextureParameters.default): Texture{
 			val ptr = createPointer(params)
-			TextureLoader.writeTextureToPointer(null, width, height, format, internalFormat, type)
+			TextureLoader.writeTextureToPointer(null, width, height, format, internalFormat)
 			return Texture(id, ptr)
 		}
 

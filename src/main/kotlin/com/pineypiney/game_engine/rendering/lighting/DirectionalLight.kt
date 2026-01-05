@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.rendering.lighting
 
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import glm_.vec3.Vec3
 
 class DirectionalLight(
@@ -12,7 +12,7 @@ class DirectionalLight(
 
 	var direction: Vec3 = direction.normalize()
 
-	override fun setShaderUniforms(shader: Shader, name: String) {
+	override fun setShaderUniforms(shader: RenderShader, name: String) {
 		super.setShaderUniforms(shader, name)
 		shader.setVec3("${name}Direction", direction)
 		shader.setVec3("$name.direction", direction)

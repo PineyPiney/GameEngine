@@ -91,10 +91,6 @@ abstract class VRRenderer<E : GameLogicI>(w: Int, h: Int) : GameRendererI<E> {
 		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0)
 	}
 
-	override fun getViewport(): Viewport {
-		return Viewport(Vec2i(0), viewportSize)
-	}
-
 	fun clearFrameBuffer(buffer: FrameBuffer) {
 		buffer.bind()
 		viewportSize = Vec2i(buffer.width, buffer.height)

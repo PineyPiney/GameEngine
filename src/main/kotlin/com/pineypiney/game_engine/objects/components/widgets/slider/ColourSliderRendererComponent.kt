@@ -4,12 +4,12 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec4.Vec4
 
-open class ColourSliderRendererComponent(parent: GameObject, shader: Shader, val colours: MutableMap<String, Float>) :
+open class ColourSliderRendererComponent(parent: GameObject, shader: RenderShader, val colours: MutableMap<String, Float>) :
 	ShaderRenderedComponent(parent, shader) {
 
 	val mesh = Mesh.cornerSquareShape

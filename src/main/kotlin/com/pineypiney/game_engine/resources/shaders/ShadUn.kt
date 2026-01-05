@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources.shaders
 
-class ShadUn(shader: Shader, val setUniforms: () -> Unit) {
+class ShadUn<S: Shader>(shader: S, val setUniforms: () -> Unit) {
 
 	var shader = shader
 		set(value) {

@@ -4,8 +4,9 @@ import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.vr.HMD
 import com.pineypiney.game_engine.vr.VRGameEngine
+import com.pineypiney.game_engine.window.WindowI
 
-class TestVREngine(screen: (TestVREngine) -> TestVRGame, ups: Int, fps: Int, resourcesLoader: ResourcesLoader = FileResourcesLoader()): VRGameEngine<TestVRGame>(resourcesLoader) {
+class TestVREngine(val window: WindowI, screen: (TestVREngine) -> TestVRGame, ups: Int, fps: Int, resourcesLoader: ResourcesLoader = FileResourcesLoader()): VRGameEngine<TestVRGame>(resourcesLoader) {
 
 	override val TARGET_UPS: Int = ups
 	override val TARGET_FPS: Int = fps

@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.objects.components.widgets
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteComponent
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.ControlType
@@ -59,7 +59,7 @@ class ButtonComponent(
 
 		fun createSpriteButton(name: String,
 							   sprite: Sprite,
-							   shader: Shader = ColouredSpriteComponent.colouredMenuShader,
+							   shader: RenderShader = ColouredSpriteComponent.colouredMenuShader,
 							   baseTint: Vec4 = Vec4(1f),
 							   hoverTint: Vec4 = Vec4(.95f),
 							   clickTint: Vec4 = Vec4(.9f),

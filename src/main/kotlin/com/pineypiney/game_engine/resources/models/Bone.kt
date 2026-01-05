@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.getRotation
@@ -72,7 +72,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 		rotation = rotation * quat
 	}
 
-	fun render(shader: Shader, model: Mat4) {
+	fun render(shader: RenderShader, model: Mat4) {
 
 		shader.setMat4("model", model * modelTransform * boneMatrix)
 		shader.setVec4(

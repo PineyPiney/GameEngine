@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.text.Text
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.ResourceKey
@@ -30,7 +30,7 @@ abstract class ScrollListEntryComponent(parent: GameObject) : Component(parent) 
 			colour: Vec4 = Vec4(0f, 0f, 0f, 1f),
 			fontSize: Int = 12,
 			alignment: Int = Text.ALIGN_CENTER_LEFT,
-			shader: Shader = entryTextShader,
+			shader: RenderShader = entryTextShader,
 			font: Font = Font.defaultFont,
 			italic: Float = 0f,
 			underlineThickness: Float = 0f,

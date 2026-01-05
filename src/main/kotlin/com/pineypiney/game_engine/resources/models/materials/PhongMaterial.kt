@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources.models.materials
 
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture
 import glm_.pow
 import glm_.vec3.Vec3
@@ -22,7 +22,7 @@ class PhongMaterial(
 	val specular get() = textures[TextureType.SPECULAR] ?: Texture.broke
 	val normals get() = textures[TextureType.NORMAL] ?: Texture.broke
 
-	override fun apply(shader: Shader, material: String, target: Int) {
+	override fun apply(shader: RenderShader, material: String, target: Int) {
 		for ((type, texture) in textures) {
 			shader.setInt(material + "." + type.name.lowercase(), type.ordinal)
 			glActiveTexture(0x84C0 + type.ordinal)

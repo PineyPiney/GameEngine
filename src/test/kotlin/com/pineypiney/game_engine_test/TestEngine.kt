@@ -5,13 +5,13 @@ import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.window.WindowGameLogic
+import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngine
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.vec4.Vec4
 
-class TestEngine<E: WindowGameLogic>(screen: (WindowedGameEngineI<E>) -> E, ups: Int, fps: Int): WindowedGameEngine<E>(FileResourcesLoader()) {
+class TestEngine<E: WindowGameLogic>(override val window: WindowI ,screen: (WindowedGameEngineI<E>) -> E, ups: Int, fps: Int): WindowedGameEngine<E>(FileResourcesLoader()) {
 
-	override val window: TestWindow = TestWindow.INSTANCE
 	override val TARGET_UPS: Int = ups
 	override val TARGET_FPS: Int = fps
 

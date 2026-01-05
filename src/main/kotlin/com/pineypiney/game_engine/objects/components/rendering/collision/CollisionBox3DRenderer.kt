@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.I
@@ -16,7 +16,7 @@ class CollisionBox3DRenderer(
 	val obj: GameObject,
 	val lineThickness: Float = .05f,
 	val colour: Vec4 = Vec4(1f),
-	shader: Shader = defaultShader
+	shader: RenderShader = defaultShader
 ) : ShaderRenderedComponent(parent, shader) {
 
 	val mesh = Mesh.centerCubeShape

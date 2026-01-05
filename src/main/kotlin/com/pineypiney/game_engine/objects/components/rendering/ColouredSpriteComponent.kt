@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -12,11 +12,11 @@ open class ColouredSpriteComponent(
 	parent: GameObject,
 	sprite: Sprite = Sprite(Texture.broke, 100f),
 	var tint: Vec4 = Vec4(1f, 1f, 1f, 1f),
-	shader: Shader = colouredMenuShader,
+	shader: RenderShader = colouredMenuShader,
 	val setUniforms: ColouredSpriteComponent.() -> Unit = {}
 ) : SpriteComponent(parent, sprite, shader) {
 
-	constructor(parent: GameObject, texture: Texture, ppu: Float, tint: Vec4 = Vec4(1f), shader: Shader = colouredMenuShader, setUniforms: ColouredSpriteComponent.() -> Unit = {}):
+	constructor(parent: GameObject, texture: Texture, ppu: Float, tint: Vec4 = Vec4(1f), shader: RenderShader = colouredMenuShader, setUniforms: ColouredSpriteComponent.() -> Unit = {}):
 			this(parent, Sprite(texture, ppu), tint, shader, setUniforms)
 
 	override fun setUniforms() {

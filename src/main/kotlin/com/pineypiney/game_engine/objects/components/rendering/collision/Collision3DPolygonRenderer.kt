@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.ArrayMesh
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
@@ -17,7 +17,7 @@ import com.pineypiney.game_engine.util.maths.shapes.TriangulatedSolid
 import glm_.vec4.Vec4
 import org.lwjgl.opengl.GL11C
 
-class Collision3DPolygonRenderer(parent: GameObject, val obj: GameObject, val width: Float = .05f, val colour: Vec4 = Vec4(1f), shader: Shader = defaultShader) :
+class Collision3DPolygonRenderer(parent: GameObject, val obj: GameObject, val width: Float = .05f, val colour: Vec4 = Vec4(1f), shader: RenderShader = defaultShader) :
 	ShaderRenderedComponent(parent, shader) {
 
 	val mesh by lazy { createMesh(obj.getComponent<Collider3DComponent>()!!.shape) }

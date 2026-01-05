@@ -2,14 +2,14 @@ package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.resources.shaders.ShadUn
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 
-abstract class ShaderRenderedComponent(parent: GameObject, s: Shader) : RenderedComponent(parent) {
+abstract class ShaderRenderedComponent(parent: GameObject, s: RenderShader) : RenderedComponent(parent) {
 
 	protected val shadUn = ShadUn(s, ::setUniforms)
 
-	var shader: Shader
+	var shader: RenderShader
 		get() = shadUn.shader
 		set(value) {
 			shadUn.shader = value

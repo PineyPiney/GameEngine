@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.rendering.meshes.IndicesMesh
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.util.maths.I
 import glm_.mat4x4.Mat4
 import glm_.quat.Quat
@@ -26,7 +26,7 @@ open class ModelMesh(
 
 	val transform: Mat4 get() = I.translate(translation) * rotation.toMat4()
 
-	fun setMaterialUniforms(shader: Shader) {
+	fun setMaterialUniforms(shader: RenderShader) {
 		material.apply(shader, "material")
 	}
 

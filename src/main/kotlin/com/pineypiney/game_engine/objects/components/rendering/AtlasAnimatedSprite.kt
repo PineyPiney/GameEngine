@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.fields.EditorIgnore
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -15,9 +15,9 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import kotlin.math.min
 
-open class AtlasAnimatedSprite(parent: GameObject, texture: Texture, ppu: Float, numFrames: Int, var fps: Float, spriteCenter: Vec2 = Vec2(.5f), shader: Shader = SpriteComponent.defaultShader, val frameCallback: AtlasAnimatedSprite.(Int) -> Unit = {}): ShaderRenderedComponent(parent, shader) {
+open class AtlasAnimatedSprite(parent: GameObject, texture: Texture, ppu: Float, numFrames: Int, var fps: Float, spriteCenter: Vec2 = Vec2(.5f), shader: RenderShader = SpriteComponent.defaultShader, val frameCallback: AtlasAnimatedSprite.(Int) -> Unit = {}): ShaderRenderedComponent(parent, shader) {
 
-	constructor(parent: GameObject, data: AtlasAnimationData, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), shader: Shader = SpriteComponent.defaultShader, frameCallback: AtlasAnimatedSprite.(Int) -> Unit = {}): this(parent, data.texture, ppu, data.numFrames, data.fps, spriteCenter, shader, frameCallback){
+	constructor(parent: GameObject, data: AtlasAnimationData, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), shader: RenderShader = SpriteComponent.defaultShader, frameCallback: AtlasAnimatedSprite.(Int) -> Unit = {}): this(parent, data.texture, ppu, data.numFrames, data.fps, spriteCenter, shader, frameCallback){
 		loop = data.loop
 		if(data.startAtBeginning) restart()
 	}

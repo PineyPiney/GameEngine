@@ -10,7 +10,7 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.models.Bone
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
@@ -19,7 +19,7 @@ import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import org.lwjgl.opengl.GL11C
 
-open class ModelRendererComponent(parent: GameObject, var model: Model = Model.brokeModel, shader: Shader = defaultShader) :
+open class ModelRendererComponent(parent: GameObject, var model: Model = Model.brokeModel, shader: RenderShader = defaultShader) :
 	ShaderRenderedComponent(parent, shader) {
 
 	protected var animation: ModelAnimation? = null
