@@ -11,6 +11,7 @@ import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.TextureParameters
+import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.exceptions.ModelParseException
 import com.pineypiney.game_engine.util.extension_functions.*
 import com.pineypiney.game_engine.util.maths.Collider2D
@@ -37,9 +38,12 @@ import java.nio.ByteOrder
 
 class GLTFModelLoader(val loader: ModelLoader) {
 
-	fun loadModel(fileName: String, json: JSONObject, buffers: List<ByteArray>): Model {
+	fun loadModel(fileName: String, json: JSONObject, buffers: List<ByteArray>, map: MutableMap<ResourceKey, Model>) {
 
-		if (json.isEmpty) return Model.brokeModel
+		if (json.isEmpty) return
+		if(!json.has("nodes")) return
+
+		val nodesArray = json.getJSONArray("nodes")
 
 		val bufferViewsJson = json.getJSONArray("bufferViews")
 		val bufferViews = mutableListOf<ByteArray>()
@@ -112,24 +116,26 @@ class GLTFModelLoader(val loader: ModelLoader) {
         // Load Meshes
 
 		val meshesJson = json.getJSONArray("meshes")
-		val meshes = mutableListOf<ModelMesh>()
+		val meshCollections = mutableListOf<List<ModelMesh>>()
 
         meshesJson.forEachObject { meshJson, _ ->
             val name = meshJson.getString("name")
             val primitives = meshJson.getJSONArray("primitives")
+			val meshes = mutableListOf<ModelMesh>()
             for ((_, primitive) in primitives.objects) {
                 loadPrimitive(fileName, name, primitive, meshes, accessors, materials)
             }
+			meshCollections.add(meshes)
         }
 
 
         // Bones
 
         val bones = mutableSetOf<Bone>()
-        if(json.has("nodes") and json.has("skins")) {
+        if(json.has("skins")) {
             val skinJson = json.getJSONArray("skins")
             skinJson.forEachObject { skin, _ ->
-                loadBones(fileName, json.getJSONArray("nodes"), skin, bones)
+                loadBones(fileName, nodesArray, skin, bones)
             }
         }
 
@@ -154,7 +160,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
 			for ((_, channelJson) in animationJson.getJSONArray("channels").objects) {
 				val sampler = samplers[channelJson.getInt("sampler")] ?: continue
 				val target = channelJson.getJSONObject("target")
-				val node = json.getJSONArray("nodes").getJSONObject(target.getInt("node"))
+				val node = nodesArray.getJSONObject(target.getInt("node"))
 				val mesh = node.getString("name")
 				val path = target.getString("path")
 
@@ -173,26 +179,34 @@ class GLTFModelLoader(val loader: ModelLoader) {
 			animations.add(ModelAnimation(name, frames.toTypedArray()))
 		}
 
+		json.getJSONArray("scenes").forEachObject { sceneJson, _ ->
+			for(nodeID in sceneJson.getJSONArray("nodes")) {
+				if (nodeID !is Int) continue
+				val nodeJson = nodesArray.getJSONObject(nodeID)
+				val meshID = nodeJson.getIntOrNull("mesh") ?: continue
+				val meshes = meshCollections[meshID]
 
+				val min = Vec3(Float.POSITIVE_INFINITY)
+				val max = Vec3(Float.NEGATIVE_INFINITY)
+				for (mesh in meshes) {
+					for (vertex in mesh.vertices) {
+						val p = vertex.position
+						if (p.x < min.x) min.x = p.x
+						if (p.y < min.y) min.y = p.y
+						if (p.z < min.z) min.z = p.z
+						if (p.x > max.x) max.x = p.x
+						if (p.y > max.y) max.y = p.y
+						if (p.z > max.z) max.z = p.z
+					}
+				}
 
-		val min = Vec3(Float.POSITIVE_INFINITY)
-		val max = Vec3(Float.NEGATIVE_INFINITY)
-		for (mesh in meshes) {
-			for (vertex in mesh.vertices) {
-				val p = vertex.position
-				if (p.x < min.x) min.x = p.x
-				if (p.y < min.y) min.y = p.y
-				if (p.z < min.z) min.z = p.z
-				if (p.x > max.x) max.x = p.x
-				if (p.y > max.y) max.y = p.y
-				if (p.z > max.z) max.z = p.z
+				val collider =
+					if (min.z == max.z) Collider2D(Rect2D(Vec2(min), Vec2(max - min)))
+					else Collider3D(Cuboid((min + max) * .5f, Quat.identity, max - min))
+				val objectName = nodeJson.getStringOrNull("name") ?: fileName
+				map[ResourceKey(objectName)] = Model(objectName, meshes.toTypedArray(), bones.firstOrNull(), animations.toTypedArray(), collider)
 			}
 		}
-
-		val collider =
-			if (min.z == max.z) Collider2D(Rect2D(Vec2(min), Vec2(max - min)))
-			else Collider3D(Cuboid((min + max) * .5f, Quat.identity, max - min))
-		return Model(fileName, meshes.toTypedArray(), bones.firstOrNull(), animations.toTypedArray(), collider)
 	}
 
     fun loadPrimitive(fileName: String, name: String, primitive: JSONObject, meshes: MutableCollection<ModelMesh>, accessors: List<Array<Any>>, materials: List<ModelMaterial>){
@@ -314,7 +328,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
     }
 
 
-	fun loadGLTFFile(fileName: String, stream: InputStream): Model {
+	fun loadGLTFFile(fileName: String, stream: InputStream, map: MutableMap<ResourceKey, Model>) {
 		val json = JSONObject(stream.readAllBytes().toString(Charsets.UTF_8))
 		val buffersJson = json.getJSONArray("buffers")
 		val buffers = mutableListOf<ByteArray>()
@@ -322,7 +336,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
 			val bufferLocation = buffersJson.getJSONObject(i).getString("uri")
 			buffers.add(loadBinFile(fileName.substringBeforeLast('/') + "/" + bufferLocation))
 		}
-		return loadModel(fileName, json, buffers)
+		return loadModel(fileName, json, buffers, map)
 	}
 
 	fun loadBinFile(name: String): ByteArray {
@@ -331,7 +345,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
 	}
 
 	// https://docs.fileformat.com/3d/glb/ Praise the lord
-	fun loadGLBFile(fileName: String, stream: InputStream): Model {
+	fun loadGLBFile(fileName: String, stream: InputStream, map: MutableMap<ResourceKey, Model>) {
 		stream.readNBytes(12) // Header
 		var json = JSONObject()
 		val buffers = mutableListOf<ByteArray>()
@@ -347,12 +361,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
 			}
 		}
 
-		return loadModel(fileName, json, buffers)
-	}
-
-	fun getVec4(json: JSONArray, offset: Int = 0): Vec4{
-		val l = json.length() - offset
-		return Vec4{ i -> if(i < l) json.getFloat(i + offset) else 1f }
+		return loadModel(fileName, json, buffers, map)
 	}
 
 	fun samplerType(json: JSONObject): TextureParameters{

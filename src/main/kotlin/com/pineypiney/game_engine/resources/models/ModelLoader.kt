@@ -47,30 +47,15 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		streams.forEach { (fileName, stream) ->
 
 			val fileType = fileName.substringAfterLast('.')
-			val newModel: (String, InputStream) -> Model = when (fileType) {
-				"pgm" -> {
-					this::loadPGMModel
-				}
-
-				"obj" -> {
-					this::loadObjModel
-				}
-
-				"gltf" -> {
-					gltfLoader::loadGLTFFile
-				}
-
-				"glb" -> {
-					gltfLoader::loadGLBFile
-				}
-				"vox" -> {
-					voxLoader::loadVoxModel
-				}
+			when (fileType) {
+				"pgm" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadPGMModel(fileName, stream)
+				"obj" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadObjModel(fileName, stream)
+				"gltf" -> gltfLoader.loadGLTFFile(fileName, stream, map)
+				"glb" -> gltfLoader.loadGLBFile(fileName, stream, map)
+				"vox" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = voxLoader.loadVoxModel(fileName, stream)
 
 				else -> return@forEach
 			}
-
-			map[ResourceKey(fileName.removeSuffix(".$fileType"))] = newModel(fileName, stream)
 		}
 	}
 

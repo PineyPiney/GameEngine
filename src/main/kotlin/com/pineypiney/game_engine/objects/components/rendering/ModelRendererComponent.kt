@@ -152,8 +152,11 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 
 	@Suppress("UNUSED")
 	companion object {
+		val bonelessShader = ShaderLoader.getShader(ResourceKey("vertex/model_boneless"), ResourceKey("fragment/model"))
 		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/model"))
 		val defaultLitShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/lit_model"))
+
+		val bonelessPbrShader = ShaderLoader.getShader(ResourceKey("vertex/model_boneless"), ResourceKey("fragment/pbr_lit_model"))
 		val pbrShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/pbr_lit_model"))
 		val tangentBonesShader = ShaderLoader.getShader(ResourceKey("vertex/tangent_bones_model"), ResourceKey("fragment/model"))
 
