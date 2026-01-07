@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.resources.shaders
 
-import com.pineypiney.game_engine.objects.Deleteable
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.LightComponent
 import com.pineypiney.game_engine.rendering.RendererI
@@ -8,36 +7,12 @@ import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
-import com.pineypiney.game_engine.resources.shaders.uniforms.*
-import com.pineypiney.game_engine.resources.shaders.uniforms.mats.*
-import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.*
+import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.RandomHelper
 import glm_.b
-import glm_.i
-import glm_.mat2x2.Mat2
-import glm_.mat2x2.Mat2d
-import glm_.mat2x3.Mat2x3
-import glm_.mat2x3.Mat2x3d
-import glm_.mat2x4.Mat2x4
-import glm_.mat2x4.Mat2x4d
-import glm_.mat3x2.Mat3x2
-import glm_.mat3x2.Mat3x2d
-import glm_.mat3x3.Mat3
-import glm_.mat3x3.Mat3d
-import glm_.mat3x4.Mat3x4
-import glm_.mat3x4.Mat3x4d
-import glm_.mat4x2.Mat4x2
-import glm_.mat4x2.Mat4x2d
-import glm_.mat4x3.Mat4x3
-import glm_.mat4x3.Mat4x3d
-import glm_.mat4x4.Mat4
-import glm_.mat4x4.Mat4d
-import glm_.vec2.*
-import glm_.vec3.*
-import glm_.vec4.*
-import org.lwjgl.opengl.GL46C
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_FRAGMENT_SHADER
+import org.lwjgl.opengl.GL46C.GL_VERTEX_SHADER
 import kotlin.experimental.and
 
 @Suppress("UNUSED")
@@ -45,6 +20,8 @@ class RenderShader(
 	ID: Int,
 	val vName: String,
 	val fName: String,
+	val tcName: String? = null,
+	val teName: String? = null,
 	val gName: String? = null,
 	uniforms: Map<String, String>
 ) : Shader(ID, uniforms) {

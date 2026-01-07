@@ -20,14 +20,15 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 	override val missing: Texture get() = Texture.broke
 	val flags = mutableMapOf<String, TextureParameters>()
 
-	fun loadTextures(streams: Map<String, InputStream>) {
+	fun loadTextures(streams: ResourcesLoader.Streams) {
 		val pointers = IntArray(streams.size)
 		glGenTextures(pointers)
 		val pList = pointers.toMutableSet()
 
 		val d = Debug()
-		for ((fileName, stream) in streams) {
+		streams.useEachStream { fileName, stream ->
 			d.start()
+
 			val keyName = fileName.substringBefore('.')
 			val params = flags[keyName] ?: flags["*"] ?: TextureParameters.default
 
@@ -37,23 +38,22 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			map[ResourceKey(keyName)] = texture
 
 			pList.remove(p)
-			stream.close()
 
 			d.add()
 		}
 	}
 
-	fun loadParameters(streams: Map<String, InputStream>) {
-		for ((fileName, stream) in streams) {
+	fun loadParameters(streams: ResourcesLoader.Streams) {
+		streams.useEachStream { fileName, stream ->
+
 			var currentEdit: TextureParameters? = null
 			val dir = fileName.removeSuffix(".params")
-			val lines = stream.readBytes().toString(Charsets.UTF_8).split('\n')
-
-			for (line in lines) {
+			val reader = stream.bufferedReader(Charsets.UTF_8)
+			reader.forEachLine { line ->
 				if (line.startsWith('"')) {
 					val name = dir + line.substring(line.indexOf('"') + 1, line.lastIndexOf('"'))
 					if (!flags.containsKey(name)) flags[name] = TextureParameters()
-					currentEdit = flags[name] ?: return
+					currentEdit = flags[name] ?: return@forEachLine
 				} else if (line[0].isWhitespace()) {
 					val (param, value) = line.split(':').map(String::trim)
 					val intValue = parameters.getOrElse(value) {
@@ -89,7 +89,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 	}
 
 	companion object {
-		val fileTypes = arrayOf("png", "jpg", "jpeg", "tga", "bmp", "hdr")
+		val fileTypes = setOf("png", "jpg", "jpeg", "tga", "bmp", "hdr")
 		val INSTANCE = TextureLoader()
 
 		operator fun get(key: ResourceKey) = INSTANCE[key]

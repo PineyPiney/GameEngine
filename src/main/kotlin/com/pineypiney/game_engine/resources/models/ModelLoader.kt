@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
+import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.models.animations.*
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.materials.PhongMaterial
@@ -13,6 +14,7 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
 import com.pineypiney.game_engine.util.extension_functions.combineLists
+import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.transformedBy
 import com.pineypiney.game_engine.util.maths.Collider2D
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
@@ -36,30 +38,31 @@ import kotlin.math.PI
 class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 
 	override val missing: Model = Model.brokeModel
-	var currentStreams = mapOf<String, InputStream>()
+	val modelTextures = mutableMapOf<ResourceKey, Texture>()
 
 	val gltfLoader = GLTFModelLoader(this)
 	val voxLoader = VoxModelLoader()
 
-	fun loadModels(streams: Map<String, InputStream>) {
+	fun loadModelTextures(streams: ResourcesLoader.Streams){
+		streams.useEachStream { fileName, stream ->
+			modelTextures[ResourceKey(fileName)] = Texture(fileName, TextureLoader.loadTextureFromStream(fileName, stream))
+		}
+	}
 
-		currentStreams = streams
-		streams.forEach { (fileName, stream) ->
+	fun loadModels(streams: ResourcesLoader.Streams) {
 
-			val fileType = fileName.substringAfterLast('.')
-			when (fileType) {
+		streams.useEachStream { fileName, stream ->
+			when (val fileType = fileName.substringAfterLast('.')) {
 				"pgm" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadPGMModel(fileName, stream)
-				"obj" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadObjModel(fileName, stream)
-				"gltf" -> gltfLoader.loadGLTFFile(fileName, stream, map)
+				"obj" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadObjModel(streams.loader, fileName, stream)
+				"gltf" -> gltfLoader.loadGLTFFile(streams.loader, fileName, stream, map)
 				"glb" -> gltfLoader.loadGLBFile(fileName, stream, map)
 				"vox" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = voxLoader.loadVoxModel(fileName, stream)
-
-				else -> return@forEach
 			}
 		}
 	}
 
-	private fun loadObjModel(fileName: String, stream: InputStream): Model {
+	private fun loadObjModel(loader: ResourcesLoader, fileName: String, stream: InputStream): Model {
 		val materials = mutableSetOf<ModelMaterial>()
 		val positions = mutableListOf<Vec3>()
 		val uv = mutableListOf<Vec2>()
@@ -74,7 +77,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 			val parts = line.split(' ')
 			when (parts[0]) {
 				"mtllib" -> {
-					materials.addAll(loadObjMaterials(fileName.substringBeforeLast('/') + "/", parts[1]))
+					materials.addAll(loadObjMaterials(loader, fileName.substringBeforeLast('/') + "/", parts[1]))
 				}
 
 				"o" -> {
@@ -136,9 +139,9 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		return Model(fileName, meshes.toTypedArray())
 	}
 
-	private fun loadObjMaterials(rootFile: String, fileName: String): Set<ModelMaterial> {
+	private fun loadObjMaterials(loader: ResourcesLoader, rootFile: String, fileName: String): Set<ModelMaterial> {
 		val materials = mutableSetOf<ModelMaterial>()
-		val stream = currentStreams[rootFile + fileName] ?: return materials
+		val stream = loader.getStream(loader.modelLocation + rootFile + fileName) ?: return materials
 		var name = ""
 		val textures = mutableMapOf<PhongMaterial.TextureType, Texture>()
 		for (line in stream.readAllBytes().toString(Charsets.UTF_8).split('\n')) {
@@ -155,11 +158,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 				"map_Ka" -> updateTextureType(textures, PhongMaterial.TextureType.AMBIENT, rootFile + parts[1])
 				"map_Kd" -> updateTextureType(textures, PhongMaterial.TextureType.DIFFUSE, rootFile + parts[1])
 				"map_Ks" -> updateTextureType(textures, PhongMaterial.TextureType.SPECULAR, rootFile + parts[1])
-				"bump", "map_bump", "map_Kn" -> updateTextureType(
-					textures,
-					PhongMaterial.TextureType.NORMAL,
-					rootFile + parts[1]
-				)
+				"bump", "map_bump", "map_Kn" -> updateTextureType(textures, PhongMaterial.TextureType.NORMAL, rootFile + parts[1])
 
 				"map_roughness" -> updateTextureType(textures, PhongMaterial.TextureType.ROUGHNESS, rootFile + parts[1])
 				"map_metallic" -> updateTextureType(textures, PhongMaterial.TextureType.METALLIC, rootFile + parts[1])
@@ -176,8 +175,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		type: PhongMaterial.TextureType,
 		location: String
 	) {
-		textures[type] =
-			Texture(location, TextureLoader.loadTextureFromStream(location, currentStreams[location] ?: return))
+		textures[type] = modelTextures[ResourceKey(location)] ?: return
 	}
 
 	private fun loadPGMModel(fileName: String, stream: InputStream): Model {
@@ -629,6 +627,11 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		}
 
 		return stateMap
+	}
+
+	override fun delete() {
+		super.delete()
+		modelTextures.delete()
 	}
 
 	companion object {

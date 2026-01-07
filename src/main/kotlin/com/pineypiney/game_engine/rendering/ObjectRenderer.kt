@@ -12,23 +12,23 @@ import org.lwjgl.opengl.GL11C
 
 class ObjectRenderer(override val viewPos: Vec3, viewportSize: Vec2i = Vec2i(64), override val projection: Mat4 = I): RendererI {
 
-	private val frameBuffer = FrameBuffer(viewportSize.x, viewportSize.y, GL11C.GL_RGBA)
+	private val framebuffer = Framebuffer(viewportSize.x, viewportSize.y, GL11C.GL_RGBA)
 
-	override val viewportSize: Vec2i get() = Vec2i(frameBuffer.width, frameBuffer.height)
+	override val viewportSize: Vec2i get() = Vec2i(framebuffer.width, framebuffer.height)
 	override val view: Mat4 = I.translate(viewPos)
 	override val guiProjection: Mat4 = projection
 	override val aspectRatio: Float = viewportSize.x.toFloat() / viewportSize.y
 
 	override fun init() {
-		frameBuffer.generate()
+		framebuffer.generate()
 	}
 
 	fun setSize(size: Vec2i){
-		frameBuffer.setSize(size)
+		framebuffer.setSize(size)
 	}
 
 	fun render(obj: GameObject){
-		frameBuffer.bind()
+		framebuffer.bind()
 		GLFunc.viewportO = viewportSize
 		clear()
 
@@ -39,10 +39,10 @@ class ObjectRenderer(override val viewPos: Vec3, viewportSize: Vec2i = Vec2i(64)
 	}
 
 	fun getTexture(id: String): Texture{
-		return frameBuffer.copyTexture(id)
+		return framebuffer.copyTexture(id)
 	}
 
 	override fun delete() {
-		frameBuffer.delete()
+		framebuffer.delete()
 	}
 }

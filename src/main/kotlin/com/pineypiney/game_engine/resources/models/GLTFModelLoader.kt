@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
+import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.models.animations.BoneState
 import com.pineypiney.game_engine.resources.models.animations.KeyFrame
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
@@ -328,19 +329,19 @@ class GLTFModelLoader(val loader: ModelLoader) {
     }
 
 
-	fun loadGLTFFile(fileName: String, stream: InputStream, map: MutableMap<ResourceKey, Model>) {
+	fun loadGLTFFile(resourcesLoader: ResourcesLoader, fileName: String, stream: InputStream, map: MutableMap<ResourceKey, Model>) {
 		val json = JSONObject(stream.readAllBytes().toString(Charsets.UTF_8))
 		val buffersJson = json.getJSONArray("buffers")
 		val buffers = mutableListOf<ByteArray>()
 		for (i in 0..<buffersJson.length()) {
 			val bufferLocation = buffersJson.getJSONObject(i).getString("uri")
-			buffers.add(loadBinFile(fileName.substringBeforeLast('/') + "/" + bufferLocation))
+			buffers.add(loadBinFile(resourcesLoader, fileName.substringBeforeLast('/') + "/" + bufferLocation))
 		}
 		return loadModel(fileName, json, buffers, map)
 	}
 
-	fun loadBinFile(name: String): ByteArray {
-		val stream = loader.currentStreams[name] ?: return ByteArray(0)
+	fun loadBinFile(resourcesLoader: ResourcesLoader, name: String): ByteArray {
+		val stream = resourcesLoader.getStream(resourcesLoader.modelLocation + name) ?: return ByteArray(0)
 		return stream.readAllBytes()
 	}
 

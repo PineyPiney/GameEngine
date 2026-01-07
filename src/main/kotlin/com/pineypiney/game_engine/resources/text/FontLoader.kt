@@ -30,8 +30,8 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 
 	override val missing: Font = BitMapFont("broke", Texture.broke, null, mapOf(), null)
 
-	fun loadFonts(streams: Map<String, InputStream>){
-		for((fileName, stream) in streams){
+	fun loadFonts(streams: ResourcesLoader.Streams){
+		streams.useEachStream { fileName, stream ->
 			if(fileName.substringAfter('.') == "bff"){
 				loadFontFromBFF(fileName, stream)
 			}

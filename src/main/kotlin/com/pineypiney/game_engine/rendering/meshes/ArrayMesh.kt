@@ -3,13 +3,15 @@ package com.pineypiney.game_engine.rendering.meshes
 import com.pineypiney.game_engine.util.GLFunc
 import org.lwjgl.opengl.GL31C.*
 
-open class ArrayMesh(vertices: FloatArray, override val attributes: Map<VertexAttribute<*>, Long>) : Mesh() {
+open class ArrayMesh : Mesh {
 
-	constructor(vertices: FloatArray, attributes: Array<VertexAttribute<*>>): this(vertices, createAttributes(attributes))
+	final override val attributes: Map<VertexAttribute<*>, Long>
+	final override val count: Int
 
-	override val count = vertices.size / attributes.keys.sumOf { it.size }
+	constructor(vertices: FloatArray, attributes: Map<VertexAttribute<*>, Long>): super(){
+		this.attributes = attributes
+		this.count = vertices.size / attributes.keys.sumOf { it.size }
 
-	init {
 		if (GLFunc.isLoaded) {
 			glBindVertexArray(VAO)
 
@@ -22,6 +24,13 @@ open class ArrayMesh(vertices: FloatArray, override val attributes: Map<VertexAt
 			glBindBuffer(GL_ARRAY_BUFFER, 0)
 			glBindVertexArray(0)
 		}
+	}
+
+	constructor(vertices: FloatArray, attributes: Array<VertexAttribute<*>>): this(vertices, createAttributes(attributes))
+
+	constructor(VAO: Int, VBO: Int, attributes: Map<VertexAttribute<*>, Long>, count: Int): super(VAO, VBO){
+		this.attributes = attributes
+		this.count = count
 	}
 
 	override fun draw(mode: Int) {

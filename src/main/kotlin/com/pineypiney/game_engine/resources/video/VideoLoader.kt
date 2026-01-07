@@ -14,10 +14,6 @@ class VideoLoader private constructor() {
 
 	val videos = mutableMapOf<ResourceKey, String>()
 
-	fun loadVideos(files: List<String>) {
-		videos.putAll(files.filter { it.lastIndexOf('.') > 0 }.associateBy { ResourceKey(it.substringBefore('.')) })
-	}
-
 	fun delete() {
 
 	}

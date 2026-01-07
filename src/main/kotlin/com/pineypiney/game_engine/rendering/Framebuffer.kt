@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.stb.STBImageWrite
 import java.nio.ByteBuffer
 
-open class FrameBuffer(var width: Int, var height: Int, var format: Int = GL_RGB, var internalFormat: Int = format, var binding: Int = 0) :
+open class Framebuffer(var width: Int, var height: Int, var format: Int = GL_RGB, var internalFormat: Int = format, var binding: Int = 0) :
 	Deleteable {
 
 	constructor(size: Vec2t<*>, format: Int = GL_RGB, internalFormat: Int = format) : this(size.x.i, size.y.i, format, internalFormat)

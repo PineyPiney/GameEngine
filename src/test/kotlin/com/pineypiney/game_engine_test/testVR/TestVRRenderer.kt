@@ -1,13 +1,12 @@
 package com.pineypiney.game_engine_test.testVR
 
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
-import com.pineypiney.game_engine.rendering.FrameBuffer
+import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.vr.HMD
 import com.pineypiney.game_engine.vr.VRRenderer
-import com.pineypiney.game_engine_test.TestWindow
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -27,20 +26,20 @@ class TestVRRenderer(w: Int, h: Int, override val hmd: HMD): VRRenderer<TestVRGa
 	}
 
 	override fun render(game: TestVRGame, tickDelta: Double) {
-		GLFunc.viewportO = Vec2i(leftBuffer.width, leftBuffer.height)
+		GLFunc.viewportO = Vec2i(leftFramebuffer.width, leftFramebuffer.height)
 		GLFunc.multiSample = true
-		drawScene(game, 0, leftBuffer, tickDelta)
-		drawScene(game, 1, rightBuffer, tickDelta)
+		drawScene(game, 0, leftFramebuffer, tickDelta)
+		drawScene(game, 1, rightFramebuffer, tickDelta)
 
 		GLFunc.multiSample = false
-		blitBuffer(leftBuffer, leftDisplay)
-		blitBuffer(rightBuffer, rightDisplay)
+		blitBuffer(leftFramebuffer, leftDisplay)
+		blitBuffer(rightFramebuffer, rightDisplay)
 
 		submitFrames(leftDisplay.TCB, rightDisplay.TCB)
 		GL11.glGetError()
 
 		// Draws output to the test window
-		FrameBuffer.unbind()
+		Framebuffer.unbind()
 		clear()
 
 		GLFunc.viewportO = game.gameEngine.window.framebufferSize

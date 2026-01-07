@@ -114,9 +114,9 @@ abstract class WindowGameLogic : GameLogic() {
 		}
 		if(interrupted) return InteractorComponent.INTERRUPT
 
-		when {
-			state.i == 0 && state.controlType == ControlType.MOUSE -> onPrimary(gameEngine.window, action, state.mods)
-			state.i == 1 && state.controlType == ControlType.MOUSE -> onSecondary(gameEngine.window, action, state.mods)
+		when (state.i) {
+			0 if state.controlType == ControlType.MOUSE -> onPrimary(gameEngine.window, action, state.mods)
+			1 if state.controlType == ControlType.MOUSE -> onSecondary(gameEngine.window, action, state.mods)
 		}
 		return action
 	}
@@ -158,6 +158,7 @@ abstract class WindowGameLogic : GameLogic() {
 
 	open fun setFullscreen(monitor: Monitor?) {
 		window.monitor = monitor
+		updateAspectRatio()
 	}
 
 	open fun toggleFullscreen() {

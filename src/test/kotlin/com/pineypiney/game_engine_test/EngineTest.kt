@@ -87,6 +87,11 @@ class EngineTest{
 		runWindowEngine(::TestEngine, ::ComputeShaderTest, version = Vec2i(4, 3))
 	}
 
+	@Test
+	fun testTesselationShader(){
+		runWindowEngine(::TestEngine, ::TesselationShaderTest, version = Vec2i(4, 1))
+	}
+
 	companion object {
 		fun <G : GameLogicI, E : GameEngineI<G>> runWindowEngine(engine: (WindowI, (E) -> G, Int, Int) -> E, screen: (E) -> G, ups: Int = 20, fps: Int = 2000, version: Vec2i = Vec2i(3)) {
 			LibrarySetUp.initLibraries()

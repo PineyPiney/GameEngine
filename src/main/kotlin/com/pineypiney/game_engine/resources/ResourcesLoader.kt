@@ -7,7 +7,6 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.video.VideoLoader
-import com.pineypiney.game_engine.util.extension_functions.removeNullValues
 import com.pineypiney.game_engine.util.extension_functions.round
 import org.lwjgl.BufferUtils
 import java.io.InputStream
@@ -28,61 +27,23 @@ abstract class ResourcesLoader(val location: String) {
 
 	abstract fun getStream(name: String): InputStream?
 
-	fun getStreams(): Map<String, InputStream> {
-		return streamList.associateWith(this::getStream).removeNullValues()
-	}
-
 	fun loadResources() {
-		val streamMap = getStreams()
-
-		GameEngineI.info("Loaded Shaders in ${timeActionM { loadShaders(streamMap) }.round(2)} ms", this)
-		GameEngineI.info("Loaded Textures in ${timeActionM { loadTextures(streamMap) }.round(2)} ms")
-		GameEngineI.info("Loaded Audio in ${timeActionM { loadAudio(streamMap) }.round(2)} ms")
-		GameEngineI.info("Loaded Videos in ${timeActionM { loadVideos() }.round(2)} ms")
-		GameEngineI.info("Loaded Models in ${timeActionM { loadModels(streamMap) }.round(2)} ms")
-		GameEngineI.info("Loaded Fonts in ${timeActionM { loadFonts(streamMap) }.round(2)} ms")
-
-		for ((_, stream) in streamMap) {
-			stream.close()
-		}
+		GameEngineI.info("Loaded Shaders in ${timeActionM { ShaderLoader.INSTANCE.loadShaders(Streams(this, "shaders/")) }.round(2)} ms", this)
+		GameEngineI.info("Loaded Textures in ${timeActionM(::loadTextures).round(2)} ms")
+		GameEngineI.info("Loaded Audio in ${timeActionM { AudioLoader.INSTANCE.loadAudio(Streams(this, audioLocation)) }.round(2)} ms")
+		GameEngineI.info("Loaded Models in ${timeActionM(::loadModels).round(2)} ms")
+		GameEngineI.info("Loaded Fonts in ${timeActionM { FontLoader.INSTANCE.loadFonts(Streams(this, fontLocation)) }.round(2)} ms")
 	}
 
-	fun loadShaders(streamMap: Map<String, InputStream>) {
-		ShaderLoader.INSTANCE.loadShaders(streamMap.filter { it.key.startsWith(shaderLocation) }
-			.mapKeys { it.key.removePrefix(shaderLocation) })
+	fun loadTextures() {
+		TextureLoader.INSTANCE.loadParameters(Streams(this, textureLocation, setOf("params")))
+		TextureLoader.INSTANCE.loadTextures(Streams(this, textureLocation, TextureLoader.fileTypes))
 	}
 
-	fun loadTextures(streamMap: Map<String, InputStream>) {
-		val inFolder =
-			streamMap.filter { it.key.startsWith(textureLocation) }.mapKeys { it.key.removePrefix(textureLocation) }
-		TextureLoader.INSTANCE.loadParameters(inFolder.filter { it.key.split('.').last() == "params" })
-		TextureLoader.INSTANCE.loadTextures(inFolder.filter {
-			TextureLoader.fileTypes.contains(
-				it.key.split('.').last()
-			)
-		})
+	fun loadModels() {
+		ModelLoader.INSTANCE.loadModelTextures(Streams(this, modelLocation, TextureLoader.fileTypes))
+		ModelLoader.INSTANCE.loadModels(Streams(this, modelLocation))
 	}
-
-	fun loadAudio(streamMap: Map<String, InputStream>) {
-		AudioLoader.INSTANCE.loadAudio(streamMap.filter { it.key.startsWith(audioLocation) }
-			.mapKeys { it.key.removePrefix(audioLocation) })
-	}
-
-	fun loadVideos() {
-		VideoLoader.INSTANCE.loadVideos(streamList.filter { it.startsWith(videoLocation) }
-			.map { it.removePrefix(videoLocation) })
-	}
-
-	fun loadModels(streamMap: Map<String, InputStream>) {
-		ModelLoader.INSTANCE.loadModels(streamMap.filter { it.key.startsWith(modelLocation) }
-			.mapKeys { it.key.removePrefix(modelLocation) })
-	}
-
-	fun loadFonts(streamMap: Map<String, InputStream>) {
-		FontLoader.INSTANCE.loadFonts(streamMap.filter { it.key.startsWith(fontLocation) }
-			.mapKeys { it.key.removePrefix(fontLocation) })
-	}
-
 
 	fun cleanUp() {
 		ShaderLoader.INSTANCE.delete()
@@ -130,6 +91,38 @@ abstract class ResourcesLoader(val location: String) {
 			buffer.flip()
 			newBuffer.put(buffer)
 			return newBuffer
+		}
+	}
+
+
+
+	class Streams(val loader: ResourcesLoader, val prefix: String, val extensions: Set<String>? = null): Iterator<Pair<String, InputStream?>>, Iterable<Pair<String, InputStream?>> {
+
+		val size: Int
+		val allStreams: Iterator<String>
+		init {
+			val list = loader.streamList.filter { it.startsWith(prefix) }.filter {
+				extensions?.contains(it.substringAfterLast('.')) ?: true
+			}
+			size = list.size
+			allStreams = list.iterator()
+		}
+
+		override fun next(): Pair<String, InputStream?> {
+			val name = allStreams.next()
+			return name.removePrefix(prefix) to loader.getStream(name)
+		}
+
+		override fun hasNext(): Boolean = allStreams.hasNext()
+
+		override fun iterator(): Iterator<Pair<String, InputStream?>> = this
+
+		fun useEachStream(action: (String, InputStream) -> Unit) {
+			for((name, stream) in this){
+				if(stream == null) continue
+				action(name, stream)
+				stream.close()
+			}
 		}
 	}
 }

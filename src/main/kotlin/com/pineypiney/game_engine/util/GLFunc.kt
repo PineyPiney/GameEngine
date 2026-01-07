@@ -12,6 +12,9 @@ import kool.FloatBuffer
 import kool.IntBuffer
 import org.lwjgl.opengl.ARBImaging.GL_BLEND_COLOR
 import org.lwjgl.opengl.GL
+import org.lwjgl.opengl.GL11C.GL_FILL
+import org.lwjgl.opengl.GL11C.GL_LINE
+import org.lwjgl.opengl.GL11C.GL_POINT
 import org.lwjgl.opengl.GL42C.*
 import java.nio.ByteBuffer
 import java.nio.DoubleBuffer
@@ -97,9 +100,15 @@ class GLFunc {
 		var multiSample: Boolean
 			get() = glGetBoolean(GL_MULTISAMPLE)
 			set(value) = setBool(GL_MULTISAMPLE, value)
+		var patchVertices: Int
+			get() = glGetInteger(GL_PATCH_VERTICES)
+			set(value) = glPatchParameteri(GL_PATCH_VERTICES, value)
 		var pointSize: Float
 			get() = glGetFloat(GL_POINT_SIZE)
 			set(value) = glPointSize(value)
+		/**
+		 * Can be one of [GL_FILL], [GL_LINE] or [GL_POINT]
+		 */
 		var polygonMode: Int
 			get() = glGetInteger(GL_POLYGON_MODE)
 			set(value) { glPolygonMode(GL_FRONT_AND_BACK, value)}
@@ -160,7 +169,13 @@ class GLFunc {
 			get() = Vec2i(2, getInts(GL_VIEWPORT, 4))
 			set(value) = glViewport(0, 0, value.x, value.y)
 
+		/** Maximum amount of atomic counters available in fragment shaders */
 		val maxAtomicCounterFragment: Int get() = glGetInteger(GL_MAX_FRAGMENT_ATOMIC_COUNTERS)
+		/** Maximum amount of vertices in each patch in tessellation shaders */
+		val maxPatchVertices: Int get() = glGetInteger(GL_MAX_PATCH_VERTICES)
+		/** Maximum Tessellation level in tessellation shaders */
+		val maxTessLevel: Int get() = glGetInteger(GL_MAX_TESS_GEN_LEVEL)
+		/** Maximum size of the viewport */
 		val maxViewPort: Vec2i get() = Vec2i(0, getInts(GL_MAX_VIEWPORT_DIMS, 0))
 
 		fun getDataSize(dataType: Int): Int{
@@ -236,7 +251,7 @@ class GLFunc {
 
 		fun versionAtLeast(major: Int, minor: Int): Boolean{
 			val version = version
-			return major > version.x || (major == version.x && minor >= version.y)
+			return version.x > major || (version.x == major && version.y >= minor)
 		}
 	}
 }

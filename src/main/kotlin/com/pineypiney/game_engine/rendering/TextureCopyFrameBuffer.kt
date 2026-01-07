@@ -41,7 +41,7 @@ class TextureCopyFrameBuffer() : Initialisable{
 	override fun delete() {
 		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0)
 		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, 0, 0)
-		FrameBuffer.unbind()
+		Framebuffer.unbind()
 		glDeleteFramebuffers(FBO)
 	}
 }

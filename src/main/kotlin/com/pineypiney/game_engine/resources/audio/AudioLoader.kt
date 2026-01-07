@@ -6,7 +6,6 @@ import glm_.i
 import kool.ByteBuffer
 import org.lwjgl.openal.AL10
 import java.io.BufferedInputStream
-import java.io.InputStream
 import java.nio.ByteBuffer
 import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
@@ -16,20 +15,17 @@ open class AudioLoader protected constructor() {
 	val map: MutableMap<ResourceKey, Triple<ByteBuffer, Int, Int>> = mutableMapOf()
 	val missing: Triple<ByteBuffer, Int, Int> get() = Triple(ByteBuffer(0), 1, 1)
 
-	fun loadAudio(streams: Map<String, InputStream>) {
-		for ((fileName, stream) in streams) {
-			1 to 2
+	fun loadAudio(streams: ResourcesLoader.Streams) {
+		streams.useEachStream { fileName, stream ->
 			val i = fileName.lastIndexOf(".")
-			if (i <= 0) continue
+			if (i <= 0) return@useEachStream
 			val type = fileName.substring(i + 1)
 
 			val name = fileName.removeSuffix(".$type")
 			val aStream = AudioSystem.getAudioInputStream(BufferedInputStream(stream))
-			//loadAudio(name, aStream)
 			loadAudio(name, aStream)
 
 			aStream.close()
-			stream.close()
 		}
 	}
 

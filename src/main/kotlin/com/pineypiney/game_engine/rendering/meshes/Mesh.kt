@@ -10,14 +10,12 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import kool.ByteBuffer
-import org.lwjgl.opengl.GL20C.glVertexAttribPointer
 import org.lwjgl.opengl.GL30C.*
 import java.nio.ByteBuffer
 
-abstract class Mesh : Deleteable {
+abstract class Mesh(val VAO: Int, val VBO: Int) : Deleteable {
 
-	val VAO = if (GLFunc.isLoaded) glGenVertexArrays() else -1
-	val VBO = if (GLFunc.isLoaded) glGenBuffers() else -1
+	constructor(): this(if (GLFunc.isLoaded) glGenVertexArrays() else -1, if (GLFunc.isLoaded) glGenBuffers() else -1)
 
 	abstract val attributes: Map<VertexAttribute<*>, Long>
 

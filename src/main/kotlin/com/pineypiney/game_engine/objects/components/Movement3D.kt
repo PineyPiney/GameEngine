@@ -12,7 +12,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW
 
-class Movement3D(parent: GameObject, val camera: Camera, val window: WindowI, var speed: Float) : DefaultInteractorComponent(parent), PreRenderComponent {
+class Movement3D(parent: GameObject, val camera: Camera, val window: WindowI, var speed: Float, val boost: Float = 5f) : DefaultInteractorComponent(parent), PreRenderComponent {
 
 	override val whenVisible: Boolean = false
 	var move = true
@@ -33,6 +33,7 @@ class Movement3D(parent: GameObject, val camera: Camera, val window: WindowI, va
 			if (GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_D) == 1) travel += camera.cameraRight
 			if (GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_SPACE) == 1) travel += camera.cameraUp
 			if (GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_LEFT_CONTROL) == 1) travel -= camera.cameraUp
+			if (GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_LEFT_SHIFT) == 1) travel *= boost
 
 			if (travel != Vec3(0)) {
 				camera.translate(travel * speed * Timer.frameDelta)

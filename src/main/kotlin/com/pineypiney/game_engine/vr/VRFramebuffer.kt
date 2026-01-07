@@ -1,13 +1,13 @@
 package com.pineypiney.game_engine.vr
 
-import com.pineypiney.game_engine.rendering.FrameBuffer
+import com.pineypiney.game_engine.rendering.Framebuffer
 import org.lwjgl.opengl.GL11C.GL_RGBA
 import org.lwjgl.opengl.GL11C.GL_RGBA8
 import org.lwjgl.opengl.GL12
 import org.lwjgl.opengl.GL30
 import java.nio.ByteBuffer
 
-class VRFrameBuffer(width: Int, height: Int) : FrameBuffer(width, height, GL_RGBA8, GL_RGBA) {
+class VRFramebuffer(width: Int, height: Int) : Framebuffer(width, height, GL_RGBA8, GL_RGBA) {
 
 	override fun generate() {
 		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, FBO)

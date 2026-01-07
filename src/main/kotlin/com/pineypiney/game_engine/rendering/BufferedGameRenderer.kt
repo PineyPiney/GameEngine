@@ -5,14 +5,13 @@ import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 
 abstract class BufferedGameRenderer<E : GameLogicI> : WindowRendererI<E> {
 
-	val buffer = FrameBuffer(0, 0)
+	val framebuffer = Framebuffer(0, 0)
 
 	override val viewPos: Vec3 get() = camera.cameraPos
 	override lateinit var viewportSize: Vec2i
@@ -20,11 +19,11 @@ abstract class BufferedGameRenderer<E : GameLogicI> : WindowRendererI<E> {
 
 	override fun init() {
 		camera.init()
-		buffer.setSize(window.framebufferSize)
+		framebuffer.setSize(window.framebufferSize)
 		viewportSize = window.framebufferSize
 	}
 
-	open fun clearFrameBuffer(buffer: FrameBuffer = this.buffer) {
+	open fun clearFrameBuffer(buffer: Framebuffer = this.framebuffer) {
 		buffer.bind()
 		viewportSize = Vec2i(buffer.width, buffer.height)
 		GLFunc.viewportO = viewportSize
@@ -33,13 +32,13 @@ abstract class BufferedGameRenderer<E : GameLogicI> : WindowRendererI<E> {
 
 	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
 		camera.updateAspectRatio(window.aspectRatio)
-		buffer.setSize(window.framebufferSize)
+		framebuffer.setSize(window.framebufferSize)
 		viewportSize = window.size
 		aspectRatio = window.aspectRatio
 	}
 
 	open fun deleteFrameBuffers() {
-		buffer.delete()
+		framebuffer.delete()
 	}
 
 	override fun delete() {

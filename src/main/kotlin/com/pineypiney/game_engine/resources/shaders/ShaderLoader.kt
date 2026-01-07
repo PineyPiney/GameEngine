@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addToMapOr
@@ -9,40 +10,45 @@ import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.toString
 import glm_.bool
 import org.lwjgl.opengl.GL46C.*
-import java.io.InputStream
 
 class ShaderLoader private constructor() : Deleteable {
 
 	// This map stores the bytebuffer codes of each shader file
 	private val shaderMap: MutableMap<ResourceKey, SubShader> = mutableMapOf()
 
-	fun loadShaders(streams: Map<String, InputStream>) {
-		for ((fileName, stream) in streams) {
+	fun loadShaders(streams: ResourcesLoader.Streams) {
+		streams.useEachStream { fileName, stream ->
 
 			val i = fileName.lastIndexOf(".")
-			if (i <= 0) continue
+			if (i <= 0) return@useEachStream
 			val suf = fileName.substring(i + 1)
 
 			val type = when (suf) {
 				"vs" -> GL_VERTEX_SHADER
 				"fs" -> GL_FRAGMENT_SHADER
+				"tcs" -> GL_TESS_CONTROL_SHADER
+				"tes" -> GL_TESS_EVALUATION_SHADER
 				"gs" -> GL_GEOMETRY_SHADER
 				"cs" -> GL_COMPUTE_SHADER
 				else -> 0
 			}
 
+			if((type == GL_TESS_CONTROL_SHADER || type == GL_TESS_EVALUATION_SHADER) && !GLFunc.versionAtLeast(4, 1)) {
+				if(!warnedTess){
+					GameEngineI.logger.warn("Tried to create Tesselation Shader, which requires OpenGL 4.1 or higher, but created OpenGL Instance is version ${GLFunc.version.toString(".", Int::toString)}")
+					warnedTess = true
+				}
+				return@useEachStream
+			}
 			if(type == GL_COMPUTE_SHADER && !GLFunc.versionAtLeast(4, 3)){
 				if(!warnedCompute){
 					GameEngineI.logger.warn("Tried to create Compute Shader, which requires OpenGL 4.3 or higher, but created OpenGL Instance is version ${GLFunc.version.toString(".", Int::toString)}")
 					warnedCompute = true
 				}
-				stream.close()
-				continue
+				return@useEachStream
 			}
 
 			loadShader(fileName.removeSuffix(".$suf"), stream.readBytes(), type)
-
-			stream.close()
 		}
 	}
 
@@ -52,7 +58,7 @@ class ShaderLoader private constructor() : Deleteable {
 		shaderMap[ResourceKey(name)] = shader
 	}
 
-	fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): RenderShader {
+	fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, tessCtrlKey: ResourceKey? = null, tessEvalKey: ResourceKey? = null, geometryKey: ResourceKey? = null): RenderShader {
 		val vertex: SubShader = shaderMap.getOrElse(vertexKey) {
 			GameEngineI.warn("Could not find vertex shader ${vertexKey.key}")
 			return RenderShader.brokeShader
@@ -61,6 +67,18 @@ class ShaderLoader private constructor() : Deleteable {
 			GameEngineI.warn("Could not find fragment shader ${fragmentKey.key}")
 			return RenderShader.brokeShader
 		}
+		val tessCtrl: SubShader? = tessCtrlKey?.let {
+			shaderMap.getOrElse(it) {
+				GameEngineI.warn("Could not find tessellation control shader ${it.key}")
+				return RenderShader.brokeShader
+			}
+		}
+		val tessEval: SubShader? = tessEvalKey?.let {
+			shaderMap.getOrElse(it) {
+				GameEngineI.warn("Could not find tessellation evaluation shader ${it.key}")
+				return RenderShader.brokeShader
+			}
+		}
 		val geometry: SubShader? = geometryKey?.let {
 			shaderMap.getOrElse(it) {
 				GameEngineI.warn("Could not find geometry shader ${it.key}")
@@ -68,7 +86,7 @@ class ShaderLoader private constructor() : Deleteable {
 			}
 		}
 
-		return generateShader(vertexKey.key, vertex, fragmentKey.key, fragment, geometryKey?.key, geometry)
+		return generateShader(vertexKey.key, vertex, fragmentKey.key, fragment, tessCtrlKey?.key, tessCtrl, tessEvalKey?.key, tessEval, geometryKey?.key, geometry)
 	}
 
 	fun getComputeShader(computeKey: ResourceKey): ComputeShader {
@@ -88,14 +106,15 @@ class ShaderLoader private constructor() : Deleteable {
 	companion object {
 		val INSTANCE: ShaderLoader = ShaderLoader()
 
+		var warnedTess = false
 		var warnedCompute = false
 
 		fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): RenderShader {
 			return INSTANCE.getShader(vertexKey, fragmentKey, geometryKey)
 		}
 
-		operator fun get(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): RenderShader {
-			return INSTANCE.getShader(vertexKey, fragmentKey, geometryKey)
+		operator fun get(vertexKey: ResourceKey, fragmentKey: ResourceKey, tessCtrlKey: ResourceKey? = null, tessEvalKey: ResourceKey? = null, geometryKey: ResourceKey? = null): RenderShader {
+			return INSTANCE.getShader(vertexKey, fragmentKey, tessCtrlKey, tessEvalKey, geometryKey)
 		}
 
 		operator fun get(computeKey: ResourceKey): ComputeShader {
@@ -112,30 +131,36 @@ class ShaderLoader private constructor() : Deleteable {
 
 		}
 
-		fun generateShader(vName: String, vertexShader: SubShader, fName: String, fragmentShader: SubShader, gName: String? = null, geometryShader: SubShader? = null): RenderShader {
+		fun generateShader(vName: String, vertexShader: SubShader, fName: String, fragmentShader: SubShader, tcName: String? = null, tessCtrlShader: SubShader? = null, teName: String? = null, tessEvalShader: SubShader? = null, gName: String? = null, geometryShader: SubShader? = null): RenderShader {
 			if (!GLFunc.isLoaded) {
 				GameEngineI.warn("Could not generate shader because OpenGL has not been loaded")
-				return RenderShader(0, "v", "f", null, mapOf())
+				return RenderShader(0, "v", "f", uniforms = emptyMap())
 			}
 			val ID = glCreateProgram()
 
 			// Shader Program
 			glAttachShader(ID, vertexShader.id)
 			glAttachShader(ID, fragmentShader.id)
+			if (tessCtrlShader != null) glAttachShader(ID, tessCtrlShader.id)
+			if (tessEvalShader != null) glAttachShader(ID, tessEvalShader.id)
 			if (geometryShader != null) glAttachShader(ID, geometryShader.id)
 			glLinkProgram(ID)
 
 			// print linking errors if any
-			checkCompileErrors(ID, 0, "$vName x $fName" + if (gName != null) " x $gName" else "")
+			val name = StringBuilder("$vName x $fName")
+			if(tcName != null) name.append(" x $tcName")
+			if(teName != null) name.append(" x $teName")
+			if(gName != null) name.append(" x $gName")
+			checkCompileErrors(ID, 0, name.toString())
 
 			// delete the shaders as they're linked into our program now and no longer necessary
 //			glDeleteShader(vertexShader.id)
 //			glDeleteShader(fragmentShader.id)
 //			if (geometryShader != null) glDeleteShader(geometryShader.id)
 
-			val uniforms = vertexShader.uniforms + fragmentShader.uniforms + (geometryShader?.uniforms ?: mapOf())
+			val uniforms = vertexShader.uniforms + fragmentShader.uniforms + (tessCtrlShader?.uniforms ?: emptyMap()) + (tessEvalShader?.uniforms ?: emptyMap()) + (geometryShader?.uniforms ?: emptyMap())
 
-			return RenderShader(ID, vName, fName, gName, uniforms)
+			return RenderShader(ID, vName, fName, gName, tcName, teName, uniforms)
 		}
 
 		fun generateComputeShader(name: String, shader: SubShader): ComputeShader {
@@ -151,10 +176,10 @@ class ShaderLoader private constructor() : Deleteable {
 				GameEngineI.warn("OpenGL is not loaded, cannot create shader")
 				return -1
 			}
+
 			// Create numerical handle for shader
 			val shader = glCreateShader(shaderType)
 
-			// vertex Shader
 			glShaderSource(shader, code)
 			glCompileShader(shader)
 			checkCompileErrors(shader, shaderType, shaderName)
@@ -230,9 +255,11 @@ class ShaderLoader private constructor() : Deleteable {
 				val type = when (shaderType) {
 					GL_VERTEX_SHADER -> "vertex"
 					GL_FRAGMENT_SHADER -> "fragment"
+					GL_TESS_CONTROL_SHADER -> "tesselation control"
+					GL_TESS_EVALUATION_SHADER -> "tesselation evaluation"
 					GL_GEOMETRY_SHADER -> "geometry"
 					GL_COMPUTE_SHADER -> "compute"
-					else -> return
+					else -> "unidentified"
 				}
 
 				success = glGetShaderi(shader, GL_COMPILE_STATUS).bool

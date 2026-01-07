@@ -25,17 +25,11 @@ import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
-import glm_.detail.Random
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
-import kool.ByteBuffer
-import kool.FloatBuffer
-import kool.IntBuffer
-import kool.toByteBuffer
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL42C
 import org.lwjgl.opengl.GL43C
@@ -49,7 +43,7 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>): Window
 	val uniformValues = mutableMapOf<String, Any>()
 	val compute = ShaderLoader[ResourceKey("compute/gradient")]
 
-	val texture = Texture("ComputeTexture", TextureLoader.createTexture(null, 1024, 1024, GL43C.GL_RGBA, GL30C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, debug = true))
+	val texture = Texture("ComputeTexture", TextureLoader.createTexture(null, 1024, 1024, GL43C.GL_RGBA, GL30C.GL_RGBA, debug = true))
 	init {
 		GL43C.glBindImageTexture(0, texture.texturePointer, 0, false, 0, GL43C.GL_READ_WRITE, GL43C.GL_RGBA8UI)
 	}

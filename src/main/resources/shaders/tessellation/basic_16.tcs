@@ -1,0 +1,23 @@
+#version 410 core
+
+#define DIV_O 16
+#define DIV_I 16
+
+layout(vertices=4) out;
+
+in vec2 texCoords[];
+out vec2 TextureCoord[];
+
+void main() {
+	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+	TextureCoord[gl_InvocationID] = texCoords[gl_InvocationID];
+
+	if(gl_InvocationID == 0){
+		gl_TessLevelOuter[0] = DIV_O;
+		gl_TessLevelOuter[1] = DIV_O;
+		gl_TessLevelOuter[2] = DIV_O;
+		gl_TessLevelOuter[3] = DIV_O;
+		gl_TessLevelInner[0] = DIV_I;
+		gl_TessLevelInner[1] = DIV_I;
+	}
+}

@@ -11,7 +11,7 @@ import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.OutlinedSliderRendererComponent
 import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
-import com.pineypiney.game_engine.rendering.FrameBuffer
+import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.util.GLFunc
@@ -56,7 +56,7 @@ class AnimatorLogic(
 			camera.getProjection(projection)
 
 			clearFrameBuffer()
-			GLFunc.viewportO = Vec2i(buffer.width, buffer.height)
+			GLFunc.viewportO = Vec2i(framebuffer.width, framebuffer.height)
 
 			for (o in game.gameObjects.map.flatMap { it.value.flatMap { it.allActiveDescendants() } }) {
 				val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
@@ -67,11 +67,11 @@ class AnimatorLogic(
 			}
 
 			// This draws the buffer onto the screen
-			FrameBuffer.unbind()
+			Framebuffer.unbind()
 			GLFunc.viewportO = window.framebufferSize
 			clear()
 			screenShader.setUp(screenUniforms, this)
-			buffer.draw()
+			framebuffer.draw()
 			GL11C.glClear(GL11C.GL_DEPTH_BUFFER_BIT)
 		}
 

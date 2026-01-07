@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.apps.editor.util.EditorSettings
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
-import com.pineypiney.game_engine.rendering.FrameBuffer
+import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.Colour
@@ -23,13 +23,13 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 	override val guiProjection = I
 
 	var backgroundColour = Colour(0, 0, 0)
-	val sceneBuffer = FrameBuffer(0, 0)
+	val sceneFramebuffer = Framebuffer(0, 0)
 
 	var sceneMesh: Mesh = Mesh.textureQuad(Vec2(-1f), Vec2(1f))
 
 	override fun init() {
-		buffer.format = GL11C.GL_RGBA
-		buffer.internalFormat = GL11C.GL_RGBA
+		framebuffer.format = GL11C.GL_RGBA
+		framebuffer.internalFormat = GL11C.GL_RGBA
 		super.init()
 		GLFunc.multiSample = true
 	}
@@ -45,12 +45,12 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 		viewportSize = sceneBox.size
 		aspectRatio = sceneBox.aspectRatio
 		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, guiProjection)
-		clearFrameBuffer(sceneBuffer)
+		clearFrameBuffer(sceneFramebuffer)
 
-		for((_, layer) in game.sceneObjects.map) renderLayer(layer, tickDelta, sceneBuffer.FBO, sort)
+		for((_, layer) in game.sceneObjects.map) renderLayer(layer, tickDelta, sceneFramebuffer.FBO, sort)
 		GLFunc.depthTest = false
 		game.transformer?.let {
-			for(obj in it.catchRenderingComponents()) renderObject(obj, tickDelta, sceneBuffer.FBO)
+			for(obj in it.catchRenderingComponents()) renderObject(obj, tickDelta, sceneFramebuffer.FBO)
 		}
 
 		GLFunc.clearColour = Vec4(0f)
@@ -62,14 +62,14 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, guiProjection)
 		clearFrameBuffer()
 
-		renderLayer(1, game, tickDelta, buffer){ transformComponent.worldPosition.z}
+		renderLayer(1, game, tickDelta, framebuffer){ transformComponent.worldPosition.z}
 
 		// This draws the buffer onto the screen
-		FrameBuffer.unbind()
+		Framebuffer.unbind()
 		clear()
 		screenShader.setUp(screenUniforms, this)
-		sceneBuffer.draw(sceneMesh)
-		buffer.draw()
+		sceneFramebuffer.draw(sceneMesh)
+		framebuffer.draw()
 		GL11C.glClear(GL11C.GL_DEPTH_BUFFER_BIT)
 	}
 
@@ -80,8 +80,8 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
 		val sceneBox = EditorScreen.getSceneBox(settings, window)
 		camera.updateAspectRatio(sceneBox.aspectRatio)
-		buffer.setSize(window.framebufferSize)
-		sceneBuffer.setSize(sceneBox.size)
+		framebuffer.setSize(window.framebufferSize)
+		sceneFramebuffer.setSize(sceneBox.size)
 
 		viewportSize = window.framebufferSize
 		aspectRatio = window.aspectRatio
@@ -92,6 +92,6 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 
 	override fun deleteFrameBuffers() {
 		super.deleteFrameBuffers()
-		sceneBuffer.delete()
+		sceneFramebuffer.delete()
 	}
 }

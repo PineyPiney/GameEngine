@@ -39,22 +39,22 @@ open class DefaultWindowRenderer<G: WindowGameLogic, R: CameraI>(override val wi
 		clearFrameBuffer()
 
 		GLFunc.depthTest = true
-		renderLayer(0, game, tickDelta, buffer)
+		renderLayer(0, game, tickDelta, framebuffer)
 
 		GLFunc.depthTest = false
-		renderLayer(1, game, tickDelta, buffer){ transformComponent.worldPosition.z }
+		renderLayer(1, game, tickDelta, framebuffer){ transformComponent.worldPosition.z }
 
 		// This draws the buffer onto the screen
-		FrameBuffer.unbind()
+		Framebuffer.unbind()
 		clear()
 		screenShader.setUp(screenUniforms, this)
-		buffer.draw()
+		framebuffer.draw()
 		glClear(GL_DEPTH_BUFFER_BIT)
 	}
 
-	fun renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: FrameBuffer? = null) = renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0){ -(transformComponent.worldPosition - camera.cameraPos).length2() }
+	fun renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: Framebuffer? = null) = renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0){ -(transformComponent.worldPosition - camera.cameraPos).length2() }
 
-	fun <C: Comparable<C>> renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: FrameBuffer? = null, sort: GameObject.() -> C) = renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0, sort)
+	fun <C: Comparable<C>> renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: Framebuffer? = null, sort: GameObject.() -> C) = renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0, sort)
 
 	fun renderLayer(layer: Collection<GameObject>, tickDelta: Double, framebuffer: Int = 0) = renderLayer(layer, tickDelta, framebuffer){ -(transformComponent.worldPosition - camera.cameraPos).length2() }
 

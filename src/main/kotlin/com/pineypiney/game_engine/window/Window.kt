@@ -120,7 +120,8 @@ abstract class Window(
 	override var monitor: Monitor?
 		get() = GLFW.glfwGetWindowMonitor(windowHandle).let { if (it == 0L) null else Monitor(it) }
 		set(value) {
-			GLFW.glfwSetWindowMonitor(windowHandle, value?.handle ?: 0L, 0, 0, width, height, GLFW.GLFW_DONT_CARE)
+			val mode = value?.videoMode
+			GLFW.glfwSetWindowMonitor(windowHandle, value?.handle ?: 0L, 0, 0, mode?.width() ?: width, mode?.height() ?: height, GLFW.GLFW_DONT_CARE)
 			center()
 		}
 	override val videoMode: GLFWVidMode get() = (monitor ?: Monitor.primary).videoMode
