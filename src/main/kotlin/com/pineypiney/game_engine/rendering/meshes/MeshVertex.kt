@@ -5,8 +5,8 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4ub
-import kool.ByteBuffer
 import kool.emptyByteBuffer
+import org.lwjgl.BufferUtils
 import java.nio.ByteBuffer
 
 class MeshVertex(val map: Set<VertexAttribute.Pair<*>>) {
@@ -42,7 +42,7 @@ class MeshVertex(val map: Set<VertexAttribute.Pair<*>>) {
 			if(vertices.isEmpty()) return emptyByteBuffer()
 
 			val stride = vertices.first().attributes.sumOf { it.bytes }
-			val buffer = ByteBuffer(vertices.size * stride)
+			val buffer = BufferUtils.createByteBuffer(vertices.size * stride)
 			for(i in 0..<vertices.size){
 				vertices[i].putData(buffer, i * stride)
 			}

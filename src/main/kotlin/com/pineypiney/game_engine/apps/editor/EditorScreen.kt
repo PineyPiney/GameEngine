@@ -10,7 +10,6 @@ import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenuComp
 import com.pineypiney.game_engine.apps.editor.util.edits.ComponentFieldEdit
 import com.pineypiney.game_engine.apps.editor.util.edits.EditManager
 import com.pineypiney.game_engine.apps.editor.util.transformers.Transformer
-import com.pineypiney.game_engine.apps.editor.util.transformers.TransformerSelector
 import com.pineypiney.game_engine.apps.editor.util.transformers.Transformers
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.GameObjectSerializer
@@ -19,7 +18,6 @@ import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.fields.Vec3Field
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
-import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.Cursor
@@ -27,6 +25,7 @@ import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.extension_functions.isBetween
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
@@ -37,6 +36,7 @@ import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import org.lwjgl.glfw.GLFW
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
@@ -80,15 +80,15 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 
 	private val properties = mutableMapOf<String, String>()
 
+	val cursor = Cursor.create(gameEngine, "textures/cursor.png", Vec2i(39, 1)) ?: Cursor(GLFW.GLFW_ARROW_CURSOR)
+
 	override fun addObjects() {
-		add(fileBrowser.parent, objectBrowser.parent, componentBrowser.parent, TransformerSelector(this))
+		add(fileBrowser.parent, objectBrowser.parent, componentBrowser.parent, Transformers.createSelector(this))
 		add(fpsText)
 	}
 
 	override fun init() {
 		super.init()
-
-		val cursor = Cursor.create(gameEngine, "textures/cursor.png", Vec2i(39, 1)) ?: return
 		window.setCursor(cursor)
 	}
 
@@ -423,6 +423,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 		sceneObjects.delete()
 		transformer?.delete()
 		editManager.delete()
+		cursor.delete()
 	}
 
 	companion object {

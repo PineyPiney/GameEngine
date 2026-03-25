@@ -4,8 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
-import com.pineypiney.game_engine.objects.menu_items.TextButton
-import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.rendering.meshes.Mesh
@@ -13,6 +12,7 @@ import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.vec2.Vec2
@@ -48,12 +48,12 @@ class TextTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic
 			val nameI = when(i){ 0 -> 'L';1 -> 'C';else -> 'R'}
 			for(j in 0..2){
 				val nameJ = when(j){ 0 -> 'B';1 -> 'C';else -> 'T'}
-				val button = TextButton(charArrayOf(nameJ, nameI).concatToString(), Vec2(i * .333f, j * .333f), Vec2(.333f)){
+				val button = ButtonComponent.createTextButton(charArrayOf(nameJ, nameI).concatToString(), Vec2(i * .333f, j * .333f), Vec2(.333f)) {
 					val newAlignment = 2.0.pow(i.toDouble()).toInt() + (2.0.pow(j.toDouble()).toInt() shl 4)
 					ttfText.setAlignment(newAlignment)
 					bitmapText.setAlignment(newAlignment)
 				}
-				alignmentPanel.addChild(button)
+				alignmentPanel.addChild(button.parent)
 			}
 		}
 		add(ttfTextObject, bitmapTextObject, alignmentPanel)

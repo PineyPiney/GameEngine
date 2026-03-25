@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.rendering.cameras
 
 import com.pineypiney.game_engine.util.extension_functions.coerceIn
-import com.pineypiney.game_engine.util.maths.eulerToVector
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -12,8 +11,6 @@ abstract class Camera(
 	override var aspectRatio: Float,
 	pos: Vec3 = Vec3(0, 0, 5),
 	up: Vec3 = Vec3(0, 1, 0),
-	yaw: Double = -90.0,
-	pitch: Double = 0.0
 ) : CameraI {
 
 	override var cameraPos = Vec3(); protected set
@@ -27,15 +24,12 @@ abstract class Camera(
 
 	override var range = Vec2(0.1f, 1000f)
 
-	var cameraYaw = yaw
-	var cameraPitch = pitch
-
 	init {
 		this.setPos(pos)
 	}
 
 	override fun init() {
-		updateCameraVectors()
+		updateCameraRight()
 	}
 
 	open fun setPos(pos: Vec3) {
@@ -59,20 +53,11 @@ abstract class Camera(
 	fun worldToScreen(worldPos: Vec3): Vec2 {
 		val pv = getProjection() * getView()
 		val pos = pv * Vec4(worldPos, 1)
-		return Vec2(pos / pos.w)
-	}
-
-	open fun updateCameraVectors() {
-		updateCameraFront()
-		updateCameraRight()
-	}
-
-	open fun updateCameraFront() {
-		eulerToVector(Math.toRadians(cameraYaw), Math.toRadians(cameraPitch), cameraFront)
+		return Vec2(pos) / pos.w
 	}
 
 	open fun updateCameraRight() {
-		cameraRight = glm.cross(cameraFront, cameraUp).normalize()
+		cameraFront.cross(cameraUp).normalize(cameraRight)
 	}
 
 	override fun updateAspectRatio(aspectRatio: Float) {

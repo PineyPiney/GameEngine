@@ -2,10 +2,11 @@ package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture3D
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL30C.*
 
-class TextureCopyFrameBuffer() : Initialisable{
+class TextureCopyFrameBuffer : Initialisable{
 
 	val FBO = glGenFramebuffers()
 	var srcSize: Vec2i = Vec2i()
@@ -21,12 +22,22 @@ class TextureCopyFrameBuffer() : Initialisable{
 
 	fun setSrc(src: Texture){
 		srcSize = src.size
-		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, src.texturePointer, 0)
+		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, src.target, src.texturePointer, 0)
+	}
+
+	fun setSrc(src: Texture3D, layer: Int) {
+		srcSize = Vec2i(src.size)
+		glFramebufferTexture3D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, src.target, src.texturePointer, 0, layer)
 	}
 
 	fun setDst(dst: Texture){
 		dstSize = dst.size
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, dst.texturePointer, 0)
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, dst.target, dst.texturePointer, 0)
+	}
+
+	fun setDst(dst: Texture3D, layer: Int) {
+		dstSize = Vec2i(dst.size)
+		glFramebufferTexture3D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, dst.target, dst.texturePointer, 0, layer)
 	}
 
 	fun copyTexture(srcOrigin: Vec2i = Vec2i(0), srcTR: Vec2i = srcSize, dstOrigin: Vec2i = Vec2i(0), dstTR: Vec2i = dstSize, mask: Int = GL_COLOR_BUFFER_BIT, filter: Int = GL_LINEAR){
@@ -38,9 +49,12 @@ class TextureCopyFrameBuffer() : Initialisable{
 		copyTexture(dstOrigin = dstOrigin, dstTR = dstTR)
 	}
 
+	fun copyOntoDst(src: Texture3D, layer: Int, dstOrigin: Vec2i = Vec2i(0), dstTR: Vec2i = dstOrigin + Vec2i(src.size)) {
+		setSrc(src, layer)
+		copyTexture(dstOrigin = dstOrigin, dstTR = dstTR)
+	}
+
 	override fun delete() {
-		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0)
-		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, 0, 0)
 		Framebuffer.unbind()
 		glDeleteFramebuffers(FBO)
 	}

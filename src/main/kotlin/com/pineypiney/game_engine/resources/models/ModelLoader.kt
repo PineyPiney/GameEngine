@@ -11,9 +11,8 @@ import com.pineypiney.game_engine.resources.models.pgm.*
 import com.pineypiney.game_engine.resources.models.voxel.VoxModelLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.util.CollectionMap
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
-import com.pineypiney.game_engine.util.extension_functions.combineLists
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.transformedBy
 import com.pineypiney.game_engine.util.maths.Collider2D
@@ -40,7 +39,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 	override val missing: Model = Model.brokeModel
 	val modelTextures = mutableMapOf<ResourceKey, Texture>()
 
-	val gltfLoader = GLTFModelLoader(this)
+	val gltfLoader = GLTFModelLoader()
 	val voxLoader = VoxModelLoader()
 
 	fun loadModelTextures(streams: ResourcesLoader.Streams){
@@ -465,7 +464,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 				continue
 			}
 
-			val stateMap = bStates.combineLists(mStates)
+			val stateMap = bStates.combine(mStates)
 			val frames: Array<KeyFrame> =
 				stateMap.map { (time, states) -> KeyFrame(time, states) }.sorted().toTypedArray()
 			animationMap.add(ModelAnimation(id, frames))
@@ -517,9 +516,9 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		animRoot: String,
 		doc: Document,
 		path: XPath
-	): MutableMap<Float, MutableList<State>> {
+	): CollectionMap<Float, State, MutableList<State>> {
 
-		val stateMap: MutableMap<Float, MutableList<State>> = mutableMapOf()
+		val stateMap = CollectionMap.list<Float, State>()
 
 		for (bone in boneIDs) {
 			val errorMsg = "Could not load the animation of bone $bone in animation $animName in model $modelName"
@@ -551,10 +550,10 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 				val rotation = if (rotArray.size > i) rotArray[i] else Vec3()
 
 				// Initialise list if it doesn't yet exist, and don't forget to convert degrees to radians
-				stateMap.addToCollectionOr(
+				stateMap.add(
 					time,
 					BoneState(bone.removePrefix("Animation_"), translation, Quat(rotation * -PI.f / 180f)),
-				) { mutableListOf() }
+				)
 			}
 		}
 
@@ -569,8 +568,8 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		meshes: Iterable<Geometry>,
 		doc: Document,
 		path: XPath
-	): MutableMap<Float, MutableList<State>> {
-		val stateMap: MutableMap<Float, MutableList<State>> = mutableMapOf()
+	): CollectionMap<Float, State, MutableList<State>> {
+		val stateMap = CollectionMap.list<Float, State>()
 
 		for (mesh in meshIDs) {
 			val errorMsg = "Could not load the animation of mesh $mesh in animation $animName in model $modelName"
@@ -613,16 +612,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 				val order = if (orderArray.size > i) orderArray[i] else geo?.order ?: 0
 
 				// Initialise list if it doesn't yet exist, and don't forget to convert degrees to radians
-				stateMap.addToCollectionOr(
-					time,
-					MeshState(
-						mesh.removePrefix("Animation_"),
-						translation,
-						Quat(rotation * -PI.f / 180f).inverse(),
-						alpha,
-						order
-					),
-				) { mutableListOf() }
+				stateMap.add(time, MeshState(mesh.removePrefix("Animation_"), translation, Quat(rotation * -PI.f / 180f).inverse(), alpha, order))
 			}
 		}
 

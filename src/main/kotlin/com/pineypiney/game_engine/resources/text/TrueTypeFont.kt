@@ -13,7 +13,7 @@ import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 import glm_.vec4.swizzle.xy
 import glm_.vec4.swizzle.zw
-import kool.ByteBuffer
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11C
 import java.awt.Shape
 import java.awt.font.FontRenderContext
@@ -94,7 +94,7 @@ class TrueTypeFont(
 		val height = textures.maxOf { it.value.height }
 		val invWidth = 1f / width
 		val invHeight = 1f / height
-		val texture = Texture("", TextureLoader.createTexture(ByteBuffer(width * height * 3), width, height, GL11C.GL_RGB))
+		val texture = Texture("", TextureLoader.createTexture(BufferUtils.createByteBuffer(width * height * 3), width, height, GL11C.GL_RGB))
 		var x = 0
 		val dimensions = mutableMapOf<Char, Vec4>()
 
@@ -104,7 +104,7 @@ class TrueTypeFont(
 		for((c, t) in textures){
 			if(t.width == 0 || t.height == 0) continue
 			try {
-				copier.copyOntoDst(t, Vec2i(x, 0))
+				copier.copyOntoDst(t, Vec2i(x, 0), Vec2i(x, 0) + t.size)
 
 //				texture.setSubData(t.getData(), x, 0, t.width, t.height, t.format)
 			}

@@ -7,8 +7,6 @@ import com.pineypiney.game_engine.objects.components.applied
 import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteComponent
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
-import com.pineypiney.game_engine.objects.menu_items.ActionTextField
-import com.pineypiney.game_engine.objects.menu_items.SpriteButton
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -30,12 +28,19 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 
 	val transform by lazy{ parent.transformComponent as? PixelTransformComponent }
 
-	val closeButton = SpriteButton("Close Button", Sprite(TextureLoader[ResourceKey("editor/icons")], 40f, Vec2(0f), Vec2(0f), Vec2(.25f, 1f)), Vec3(.875f, .9f, .01f), Vec2(.125f, .1f), ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/background_texture")]){ _, _ ->
+	val closeButton = ButtonComponent.createSpriteButton(
+		"Close Button",
+		Sprite(TextureLoader[ResourceKey("editor/icons")], 40f, Vec2(0f), Vec2(0f), Vec2(.25f, 1f)),
+		Vec3(.875f, .9f, .01f),
+		Vec2(.125f, .1f),
+		ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/background_texture")]
+	) { _, _ ->
 		browser.adderPos = transform?.origin ?: Vec2(this.parent.position)
 		this.parent.delete()
 	}
 
-	val searchBar = ActionTextField<ActionTextFieldComponent<*>>("Search Bar", Vec3(0f, .8f, .01f), Vec2(1f, .1f), "", 20, ActionTextFieldComponent.UPDATE_EVERY_CHAR){ f, c, i ->
+	val searchBar =
+		ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Search Bar", Vec3(0f, .8f, .01f), Vec2(1f, .1f), "", 20, ActionTextFieldComponent.UPDATE_EVERY_CHAR) { f, c, i ->
 		componentList.search = f.text.lowercase()
 	}
 
@@ -47,7 +52,7 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 		closeButton.getComponent<ColouredSpriteComponent>()?.uniforms?.setVec4Uniform("backgroundColour"){ if(closeButton.getComponent<ButtonComponent>()?.hover == true) Vec4(1f, 0f, 0f, 1f) else Vec4(0f)}
 
 		componentList.parent.apply { position = Vec3(0f, 0f, .01f); scale = Vec3(1f, .8f, 1f) }
-		parent.addChild(closeButton, searchBar, componentList.parent)
+		parent.addChild(closeButton, searchBar.parent, componentList.parent)
 	}
 
 	override fun onInput(window: WindowI, state: InputState, action: Int, cursorPos: CursorPosition): Int {

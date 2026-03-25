@@ -7,29 +7,30 @@ class Vectors {
 
 	companion object {
 
-		fun minMaxVec2(values: List<Vec2>): Pair<Vec2, Vec2> {
+		fun minMaxVec2(values: Iterable<Vec2>): Pair<Vec2, Vec2> {
 
 			val min = Vec2(values.first())
 			val max = Vec2(values.first())
-			for (i in 1..<values.size) {
-				min.x = minOf(min.x, values[i].x)
-				min.y = minOf(min.y, values[i].y)
-				max.x = maxOf(max.x, values[i].x)
-				max.y = maxOf(max.y, values[i].y)
+			for ((x, y) in values) {
+				min.x = minOf(min.x, x)
+				min.y = minOf(min.y, y)
+				max.x = maxOf(max.x, x)
+				max.y = maxOf(max.y, y)
 			}
 			return min to max
 		}
-		fun minMaxVec3(values: List<Vec3>): Pair<Vec3, Vec3> {
+
+		fun minMaxVec3(values: Iterable<Vec3>): Pair<Vec3, Vec3> {
 
 			val min = Vec3(values.first())
 			val max = Vec3(values.first())
-			for (i in 1..<values.size) {
-				min.x = minOf(min.x, values[i].x)
-				min.y = minOf(min.y, values[i].y)
-				min.z = minOf(min.z, values[i].z)
-				max.x = maxOf(max.x, values[i].x)
-				max.y = maxOf(max.y, values[i].y)
-				max.z = maxOf(max.z, values[i].z)
+			for ((x, y, z) in values) {
+				min.x = minOf(min.x, x)
+				min.y = minOf(min.y, y)
+				min.z = minOf(min.z, z)
+				max.x = maxOf(max.x, x)
+				max.y = maxOf(max.y, y)
+				max.z = maxOf(max.z, z)
 			}
 			return min to max
 		}

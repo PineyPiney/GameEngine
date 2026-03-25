@@ -14,4 +14,6 @@ open class ActionFloatSliderComponent(
 
 	override fun getDelta(): Float = (value - low) / range
 	override fun valueFromDelta(delta: Float): Float = (low + (delta * range)).coerceIn(low, high)
+
+
 }

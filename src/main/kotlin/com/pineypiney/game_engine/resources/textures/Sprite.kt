@@ -9,7 +9,7 @@ class Sprite(texture: Texture, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), origi
 
 	constructor(texture: Texture, ppu: Float, spriteCenter: Vec2i, origin: Vec2i = Vec2i(), size: Vec2i = texture.size, flipX: Boolean = false, flipY: Boolean = false) : this(texture, ppu, Vec2(spriteCenter) / size, Vec2(origin) / texture.size, Vec2(size) / texture.size, flipX, flipY)
 
-	var shouldRecalculate = false
+	private var shouldRecalculate = false
 
 	var texture: Texture = texture
 		set(value) {

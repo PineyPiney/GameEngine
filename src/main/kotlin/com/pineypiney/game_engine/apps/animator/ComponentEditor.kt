@@ -31,8 +31,6 @@ class ComponentEditor(
 			generateFields()
 		}
 
-	override var name: String = "Component Editor"
-
     init {
         components.add(RelativeTransformComponent(this, origin, size))
     }

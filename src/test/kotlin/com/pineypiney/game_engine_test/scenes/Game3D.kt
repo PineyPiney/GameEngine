@@ -5,12 +5,12 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.FPSCounter
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.LightComponent
+import com.pineypiney.game_engine.objects.components.Movement3D
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComponent
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
-import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
-import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
@@ -29,10 +29,10 @@ import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.vectorToEuler
+import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
-import glm_.f
 import glm_.quat.Quat
 import glm_.s
 import glm_.vec2.Vec2
@@ -48,31 +48,36 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	private val camera get() = renderer.camera
 
 	private val pressedKeys = mutableSetOf<Short>()
-	private var moveMouse = false
 
 	private var updateRay = true
 
-	private val indexSlider = BasicActionSlider("Index Slider", Vec2(-1f), Vec2(1f, .3f), .98f,  1f, 1f){
+	private val movementController = Movement3D.default(window, camera, 10f)
+
+	private val indexSlider = ActionSliderComponent.createFloatSliderAt("Index Slider", Vec2(-1f), Vec2(1f, .3f), .98f, 1f, 1f) {
 		ModelMesh.indicesMult = it.value
 	}
 
-	private val crosshair = GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")], Vec3(0f), Vec3(Vec2(.2f), 1f)){}
+	private val crosshair = GameObject.simpleRenderedGameObject("Crosshair", ShaderLoader[ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")], Vec3(0f), Vec3(Vec2(.2f), 1f)) {}
 
-	private val cursorRay = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/arrow")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/plain")])
+	private val cursorRay = GameObject.simpleModelledGameObject("Cursor Ray", ModelLoader[ResourceKey("gltf/Arrow")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/plain")])
 
-	private val object3D = GameObject.simpleTextureGameObject(TextureLoader[ResourceKey("broke")], Mesh.centerCubeShape, MeshedTextureComponent.default3DShader).apply{ rotation = Quat(Vec3(0.4, PI/4, 1.2)) }
+	private val object3D = GameObject.simpleTextureGameObject("Broke Cube", TextureLoader[ResourceKey("broke")], Mesh.centerCubeShape, MeshedTextureComponent.default3DShader)
+		.apply { rotation = Quat(Vec3(0.4, PI / 4, 1.2)) }
 
 	var blockHover = false
-	private val block = GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")], mesh = Mesh.centerCubeShape) {
+	private val block = GameObject.simpleRenderedGameObject("Lit Cube", ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")], mesh = Mesh.centerCubeShape) {
 		shader.setLightUniforms(parent)
 		shader.setVec4("material.baseColourFactor", Vec4(1.0))
 		shader.setFloat("material.roughnessFactor", .5f)
 		shader.setFloat("material.metallicFactor", .5f)
 	}
 
-	private val doughnut = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("broke")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")]).apply { translate(Vec3(0f, 2f, 0f)) }
-	private val gltf = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/Beating Heart 3")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")]).apply { translate(Vec3(2f, 2f, 0f)); resize(Vec3(.002f)) }
-	private val voxel = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("voxel/Mecha01")], ColourRendererComponent.vertexColours).apply { translate(Vec3(0f, -4f, 0f)); scale(Vec3(.1f)) }
+	private val doughnut = GameObject.simpleModelledGameObject("Broke Model", ModelLoader[ResourceKey("broke")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")])
+		.apply { translate(Vec3(0f, 2f, 0f)) }
+	private val gltf = GameObject.simpleModelledGameObject("Heart", ModelLoader[ResourceKey("gltf/SketchUp")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")])
+		.apply { translate(Vec3(2f, 2f, 0f)); resize(Vec3(.002f)) }
+	private val voxel =
+		GameObject.simpleModelledGameObject("Voxel", ModelLoader[ResourceKey("voxel/Mecha01")], ColourRendererComponent.vertexColours).apply { translate(Vec3(0f, -4f, 0f)); scale(Vec3(.1f)) }
 
 	val sun = GameObject.simpleLightObject(DirectionalLight(Vec3(.1f, -.9f, .1f)))
 	val light = GameObject.simpleLightObject(PointLight())
@@ -82,12 +87,13 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 	override fun init() {
 		super.init()
-		//GLFunc.cullface = true
+		//GLFunc.cullFace = true
 		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
 		gltf.addChild(CollisionBox3DRenderer.create(gltf).apply { init() })
 	}
 
 	override fun addObjects() {
+		add(movementController.parent)
 		add(object3D.apply { translate(Vec3(-2, 0, 0)) })
 		add(block)
 		add(crosshair)
@@ -96,7 +102,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		add(gltf)
 		add(voxel)
 		add(light, torch, sun.apply { position = Vec3(0f, 900f, 0f); scale = Vec3(50f) })
-		add(indexSlider)
+		add(indexSlider.parent)
 		add(fpsText)
 	}
 
@@ -132,7 +138,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		if(updateRay){
 			cursorRay.position = ray.rayOrigin + (ray.direction * cursorRay.scale.x * 1.5f)
 			val (p, y) = vectorToEuler(ray.direction)
-			cursorRay.rotation = Quat(Vec3(p, y + (PI * 0.5).f, 0f))
+			cursorRay.rotation = Quat(Vec3(-p, -y, 0f))
 		}
 	}
 
@@ -158,9 +164,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 				'T' -> torch.getComponent<LightComponent>()?.toggle()
 				'L' -> {
 					camera.setPos(Vec3(0f, 0f, -5f))
-					camera.cameraYaw = -90.0
-					camera.cameraPitch = 0.0
-					camera.updateCameraVectors()
+					movementController.resetLook()
 					torch.position = camera.cameraPos
 					(torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
 				}
@@ -176,13 +180,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	override fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
 		super.onCursorMove(cursorPos, cursorDelta)
 
-		if(!moveMouse){
-			input.mouse.setCursorAt(Vec2(0))
-			camera.cameraYaw += cursorDelta.position.x * 20
-			camera.cameraPitch = (camera.cameraPitch + cursorDelta.position.y * 20).coerceIn(-89.99, 89.99)
-			camera.updateCameraVectors()
-			(torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
-		}
+		if (movementController.look) (torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
 
 		val ray = camera.getRay(cursorPos.screenSpace)
 		blockHover = (Cuboid(Vec3(0f), Quat.identity, Vec3(1f)) transformedBy block.worldModel).intersectedBy(ray).isNotEmpty()
@@ -194,7 +192,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	}
 
 	private fun toggleMouse(){
-		moveMouse = !moveMouse
-		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, if(moveMouse) GLFW_CURSOR_CAPTURED else GLFW_CURSOR_DISABLED)
+		movementController.look = !movementController.look
+		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, if (movementController.look) GLFW_CURSOR_DISABLED else GLFW_CURSOR_CAPTURED)
 	}
 }

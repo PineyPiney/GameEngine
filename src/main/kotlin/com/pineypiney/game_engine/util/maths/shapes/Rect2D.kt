@@ -26,7 +26,7 @@ data class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val 
 	val normal1: Vec2 get() = side2.normalize()
 	val normal2: Vec2 get() = side1.normalize()
 
-	val points: Set<Vec2> get() = setOf(origin, origin + side1, origin + side1 + side2, origin + side2)
+	val points: Set<Vec2> get() = setOf(origin, origin + side2, origin + side1 + side2, origin + side1)
 
 	val center: Vec2 get() = origin + (side1 + side2) * .5f
 
@@ -34,13 +34,13 @@ data class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val 
 	override val max: Vec2
 
 	init {
-		val minMax = Vectors.minMaxVec2(points.toList())
+		val minMax = Vectors.minMaxVec2(points)
 		min = minMax.first
 		max = minMax.second
 	}
 
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
-		val intersection = Plane(Vec3(origin), Vec3(0f, 0f, 1f)).intersectedBy(ray).getOrNull(0) ?: return arrayOf()
+		val intersection = Plane(Vec3(origin), NORMAL).intersectedBy(ray).getOrNull(0) ?: return arrayOf()
 		return if (containsPoint(Vec2(intersection))) arrayOf(intersection)
 		else arrayOf()
 	}
@@ -75,12 +75,13 @@ data class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val 
 
 		val a = op dot side1
 		val x: Vec2 = if (a < 0) Vec2(0f)
-		else if (a > side1.length()) side1
+		else if (a > side1.length2()) side1
 		else op projectOn side1
 
 		val b = op dot side2
 		val y: Vec2 = if (b < 0) Vec2(0f)
-		else if (b > side2.length()) side2
+		else if (b > side2.length2()) side2
+		else if (a >= 0 && a <= side1.length2()) return Vec2(0f)
 		else op projectOn side2
 
 		val closestPoint = origin + x + y

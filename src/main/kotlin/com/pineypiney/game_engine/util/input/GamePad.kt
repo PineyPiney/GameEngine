@@ -7,10 +7,10 @@ import glm_.i
 import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
-import kool.ByteBuffer
 import kool.cap
 import kool.forEachIndexed
 import kool.toByteArray
+import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWGamepadState
 import kotlin.math.abs
@@ -20,7 +20,7 @@ open class GamePad(val id: Int, val inputs: Inputs) {
 
 	val numButtons = GLFW.glfwGetJoystickButtons(id)?.cap ?: 0
 	val numAxes = GLFW.glfwGetJoystickAxes(id)?.cap ?: 0
-	val state = GLFWGamepadState(ByteBuffer(GLFWGamepadState.SIZEOF))
+	val state = GLFWGamepadState(BufferUtils.createByteBuffer(GLFWGamepadState.SIZEOF))
 
 	val name = GLFW.glfwGetGamepadName(id)
 

@@ -5,7 +5,6 @@ import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.PostChildrenInit
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
-import com.pineypiney.game_engine.objects.menu_items.scroll_lists.ScrollBarItem
 import com.pineypiney.game_engine.util.extension_functions.getScale
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
 import com.pineypiney.game_engine.util.raycasting.Ray
@@ -29,7 +28,7 @@ abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorCompon
 			scrollBar.getComponent<RenderedComponent>()?.visible = field < 1f
 		}
 
-	val scrollBar: GameObject = ScrollBarItem(parent.name)
+	val scrollBar: GameObject = ScrollBarComponent.createBasic("${parent.name} Scrollbar").parent
 	val entryContainer = GameObject("${parent.name} Entries Container", 1)
 
 	open val items: Set<GameObject> get() = entryContainer.children

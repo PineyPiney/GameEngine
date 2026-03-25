@@ -5,11 +5,11 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.FPSCounter
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.LightComponent
+import com.pineypiney.game_engine.objects.components.Movement3D
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
-import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
-import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
@@ -33,6 +33,7 @@ import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.maths.shapes.AxisAlignedCuboid
+import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.mat2x2.Mat2
@@ -44,6 +45,7 @@ import glm_.vec3.Vec3
 import glm_.vec3.swizzle.xz
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.GL11C
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.cos
@@ -58,18 +60,19 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 	val vel = Vec3(0f)
 
 	private val pressedKeys = mutableSetOf<Short>()
-	private var moveMouse = false
 
-	val zArrow = GameObject.simpleModelledGameObject(ModelLoader[ResourceKey("gltf/arrow")], ModelRendererComponent.pbrShader).apply{ position = Vec3(0f, -4f, 0f)}
+	private val movementController = Movement3D.default(window, camera, 10f)
+
+	val zArrow = GameObject.simpleModelledGameObject("arrow", ModelLoader[ResourceKey("gltf/arrow")], ModelRendererComponent.pbrShader).apply { position = Vec3(0f, -4f, 0f) }
 
 	//val model = ModelLoader[ResourceKey("SavedModel")]
 	val model get() = Model("icosahedron",  arrayOf(createSphereMeshWithTangents(1f, 3)))
 	val firstModel = Model("model", arrayOf(createInvertedCuboid(AxisAlignedCuboid(Vec3(0f), Vec3(1f)))))
 	val modelShader = ShaderLoader[ResourceKey("vertex/tangent_model"), ResourceKey("fragment/pbr_lit_tangent_model")]
-	private val litModel = GameObject.simpleModelledGameObject(firstModel, modelShader)
+	private val litModel = GameObject.simpleModelledGameObject("Lit Model", firstModel, modelShader)
 
 	val debugShader = ShaderLoader[ResourceKey("vertex/tangent_model"), ResourceKey("fragment/colour_in"), ResourceKey("geometry/visualise_tangents")]
-	val debugModel = GameObject.simpleModelledGameObject(firstModel, debugShader)
+	val debugModel = GameObject.simpleModelledGameObject("Debug Model", firstModel, debugShader)
 
 	var rotatePoint = true
 
@@ -81,17 +84,24 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 
 	val material get() = (litModel.getComponent<ModelRendererComponent>()?.model?.meshes[0]?.material as? PBRMaterial)
 
-	val roughnessSlider = BasicActionSlider("Roughness Slider", 0f, 1f, .5f){ material?.roughness = it.value }.apply { relative(Vec2(-.9f, .85f), Vec2(.5f, .13f)) }
-	val metallicSlider = BasicActionSlider("Metallic Slider", 0f, 1f, 0f){ material?.metallicness = it.value }.apply { relative(Vec2(-.9f, .7f), Vec2(.5f, .13f)) }
+	val roughnessSlider = ActionSliderComponent.createFloatSliderAtRelative("Roughness Slider", Vec2(-.9f, .85f), Vec2(.5f, .13f), 0f, 1f, .5f) { material?.roughness = it.value }
+	val metallicSlider = ActionSliderComponent.createFloatSliderAtRelative("Metallic Slider", Vec2(-.9f, .7f), Vec2(.5f, .13f), 0f, 1f, 0f) { material?.metallicness = it.value }
 
-	val specularSlider = BasicActionSlider("Specular Slider", 0f, 1f, .5f){ material?.specular = it.value }.apply { relative(Vec2(-.9f, .55f), Vec2(.5f, .13f)) }
-	val specTintSlider = BasicActionSlider("Specular Tint Slider", 0f, 1f, 0f){ material?.specTint = it.value }.apply { relative(Vec2(-.9f, .4f), Vec2(.5f, .13f)) }
+	val specularSlider = ActionSliderComponent.createFloatSliderAtRelative("Specular Slider", Vec2(-.9f, .55f), Vec2(.5f, .13f), 0f, 1f, .5f) { material?.specular = it.value }
+	val specTintSlider = ActionSliderComponent.createFloatSliderAtRelative("Specular Tint Slider", Vec2(-.9f, .4f), Vec2(.5f, .13f), 0f, 1f, 0f) { material?.specTint = it.value }
 
-	val sheenSlider = BasicActionSlider("Sheen Slider", 0f, 1f, 0f){ material?.sheen = it.value }.apply { relative(Vec2(.4f, .85f), Vec2(.5f, .13f)) }
-	val sheenTintSlider = BasicActionSlider("SheenTint Slider", 0f, 1f, .5f){ material?.sheenTint = it.value }.apply { relative(Vec2(.4f, .7f), Vec2(.5f, .13f)) }
-	val anisotropicSlider = BasicActionSlider("Anisotropic Slider", 0f, 1f, 0f){ material?.anisotropic = it.value }.apply { relative(Vec2(.4f, .55f), Vec2(.5f, .13f)) }
+	val sheenSlider = ActionSliderComponent.createFloatSliderAtRelative("Sheen Slider", Vec2(.4f, .85f), Vec2(.5f, .13f), 0f, 1f, 0f) { material?.sheen = it.value }
+	val sheenTintSlider = ActionSliderComponent.createFloatSliderAtRelative("SheenTint Slider", Vec2(.4f, .7f), Vec2(.5f, .13f), 0f, 1f, .5f) { material?.sheenTint = it.value }
+	val anisotropicSlider = ActionSliderComponent.createFloatSliderAtRelative("Anisotropic Slider", Vec2(.4f, .55f), Vec2(.5f, .13f), 0f, 1f, 0f) { material?.anisotropic = it.value }
 
-	val vecIdSlider = BasicActionSlider("Vec Id Slider", 0, 2, 0){ debugModel.getComponent<ModelRendererComponent>()?.uniforms?.setIntUniform("vecID", it::value)}.apply { relative(Vec2(.4f, -.98f), Vec2(.5f, .13f)) }
+	val vecIdSlider = ActionSliderComponent.createIntSliderAtRelative(
+		"Vec Id Slider",
+		Vec2(.4f, -.98f),
+		Vec2(.5f, .13f),
+		0,
+		2,
+		0
+	) { debugModel.getComponent<ModelRendererComponent>()?.uniforms?.setIntUniform("vecID", it::value) }
 
 	val fresnelBox = CheckBoxComponent.createCheckBox("Fresnel", true).first.apply { os(Vec2(-1.6f, -.98f), Vec2(.13f)) }
 
@@ -99,8 +109,8 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		super.init()
 		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
 		GLFunc.multiSample = true
-		//GLFunc.cullface = true
-		//GLFunc.cullFaceMode = GL11C.GL_FRONT
+		GLFunc.cullFace = true
+		GLFunc.cullFaceMode = GL11C.GL_BACK
 
 		litModel.getComponent<ShaderRenderedComponent>()?.uniforms?.setBoolUniform("doFresnel"){ fresnelBox.getComponent<CheckBoxComponent>()?.ticked == true }
 	}
@@ -109,8 +119,8 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		add(zArrow, litModel, debugModel)
 		add(light, torch, sun.apply { position = Vec3(0f, 900f, 0f); scale = Vec3(50f) })
 		add(fpsText)
-		add(roughnessSlider, metallicSlider, specularSlider, specTintSlider, sheenSlider, sheenTintSlider, anisotropicSlider, fresnelBox)
-		add(vecIdSlider)
+		add(roughnessSlider.parent, metallicSlider.parent, specularSlider.parent, specTintSlider.parent, sheenSlider.parent, sheenTintSlider.parent, anisotropicSlider.parent, fresnelBox.parent)
+		add(vecIdSlider.parent)
 	}
 
 	override fun update(interval: Float, input: Inputs) {
@@ -165,9 +175,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 				'T' -> torch.getComponent<LightComponent>()?.toggle()
 				'L' -> {
 					camera.setPos(Vec3(0f, 0f, -5f))
-					camera.cameraYaw = -90.0
-					camera.cameraPitch = 0.0
-					camera.updateCameraVectors()
+					movementController.resetLook()
 					torch.position = camera.cameraPos
 					(torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
 				}
@@ -182,14 +190,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 
 	override fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
 		super.onCursorMove(cursorPos, cursorDelta)
-
-		if(!moveMouse){
-			input.mouse.setCursorAt(Vec2(0))
-			camera.cameraYaw += cursorDelta.position.x * 20
-			camera.cameraPitch = (camera.cameraPitch + cursorDelta.position.y * 20).coerceIn(-89.99, 89.99)
-			camera.updateCameraVectors()
-			(torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
-		}
+		if (movementController.look) (torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
 	}
 
 	override fun updateAspectRatio() {
@@ -198,8 +199,8 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 	}
 
 	private fun toggleMouse(){
-		moveMouse = !moveMouse
-		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, if(moveMouse) GLFW_CURSOR_NORMAL else GLFW_CURSOR_DISABLED)
+		movementController.look = !movementController.look
+		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, if (movementController.look) GLFW_CURSOR_DISABLED else GLFW_CURSOR_CAPTURED)
 	}
 
 	fun createSphereMesh(radius: Float, subdivisions: Int): ModelMesh{
@@ -264,7 +265,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 			PointData(Vec3(0f, ngr, m), Vec2(1668f, 1024f) * pixSize),
 		)
 
-		val icoIndicies = intArrayOf(
+		val icoIndices = intArrayOf(
 			0, 5, 6,
 			1, 6, 7,
 			2, 7, 8,
@@ -294,9 +295,9 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		val indices = mutableListOf<Int>()
 		points.addAll(icoPoints)
 		for(i in 0..19){
-			val p0 = icoPoints[icoIndicies[i * 3]]
-			val p1 = icoPoints[icoIndicies[i * 3 + 1]]
-			val p2 = icoPoints[icoIndicies[i * 3 + 2]]
+			val p0 = icoPoints[icoIndices[i * 3]]
+			val p1 = icoPoints[icoIndices[i * 3 + 1]]
+			val p2 = icoPoints[icoIndices[i * 3 + 2]]
 
 			val divisionsPoints = mutableListOf<PointData>()
 
@@ -353,7 +354,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 
 		val d = Debug().start()
 
-		val icoIndicies = intArrayOf(
+		val icoIndices = intArrayOf(
 			0, 5, 6,
 			1, 6, 7,
 			2, 7, 8,
@@ -385,9 +386,9 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		val indices = mutableListOf<Int>()
 		points.addAll(chosenPoints.map { it to mutableListOf() })
 		for(i in 0..19){
-			val p0 = chosenPoints[icoIndicies[i * 3]]
-			val p1 = chosenPoints[icoIndicies[i * 3 + 1]]
-			val p2 = chosenPoints[icoIndicies[i * 3 + 2]]
+			val p0 = chosenPoints[icoIndices[i * 3]]
+			val p1 = chosenPoints[icoIndices[i * 3 + 1]]
+			val p2 = chosenPoints[icoIndices[i * 3 + 2]]
 
 			val divisionsPoints = mutableListOf<PointData>()
 
@@ -583,14 +584,14 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 			val ol = 12 + (((i + 3) % 4) * 6)
 			val i2 = 2 * i
 			val triangles = intArrayOf(
-				o, i2 + 4, i2 + 5, // top triangle
-				o + 1, o + 4, o + 5, // left triangle
+				o, i2 + 5, i2 + 4, // top triangle
+				o + 1, o + 5, o + 4, // right triangle
 				o + 2, i2 + 36, i2 + 37, // bottom triangle
-				o + 3, ol + 4, ol + 5 // right triangle
+				o + 3, ol + 4, ol + 5 // left triangle
 			)
 			triangles.copyInto(indices, 12 * (i + 1))
 		}
-		intArrayOf(36, 37, 44, 38, 39, 45, 40, 41, 46, 42, 43, 47).copyInto(indices, 60)
+		intArrayOf(37, 36, 44, 39, 38, 45, 41, 40, 46, 43, 42, 47).copyInto(indices, 60)
 
 		return ModelMesh("Inverted Cuboid", topVerts.toTypedArray(), indices, material = PBRMaterial("invCub Mat", mapOf()))
 	}
@@ -666,34 +667,34 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 
 		val orientatedIcoPoints = arrayOf<PointData>(
 			// Bottom Point
-			PointData(Vec3(0f, -1f, 0f), Vec2(379f, 7f) * pixSize),
-			PointData(Vec3(0f, -1f, 0f), Vec2(749f, 10f) * pixSize),
-			PointData(Vec3(0f, -1f, 0f), Vec2(1120f, 13f) * pixSize),
-			PointData(Vec3(0f, -1f, 0f), Vec2(1490f, 16f) * pixSize),
 			PointData(Vec3(0f, -1f, 0f), Vec2(1860f, 19f) * pixSize),
+			PointData(Vec3(0f, -1f, 0f), Vec2(1490f, 16f) * pixSize),
+			PointData(Vec3(0f, -1f, 0f), Vec2(1120f, 13f) * pixSize),
+			PointData(Vec3(0f, -1f, 0f), Vec2(749f, 10f) * pixSize),
+			PointData(Vec3(0f, -1f, 0f), Vec2(379f, 7f) * pixSize),
 
 			// Lower Ring
-			PointData(Vec3(0f, -c0, -d), Vec2(191f, 344f) * pixSize),
-			PointData(Vec3(-s72, -c0, -c72), Vec2(texDivs.x * 3f, texDivs.y + .01f)),
-			PointData(Vec3(-s144, -c0, c144), Vec2(texDivs.x * 5f, texDivs.y + .01f)),
-			PointData(Vec3(s144, -c0, c144), Vec2(texDivs.x * 7f, texDivs.y + .01f)),
-			PointData(Vec3(s72, -c0, -c72), Vec2(texDivs.x * 9f, texDivs.y + .01f)),
 			PointData(Vec3(0f, -c0, -d), Vec2(2041f, 354f) * pixSize),
+			PointData(Vec3(s72, -c0, -c72), Vec2(texDivs.x * 9f, texDivs.y + .01f)),
+			PointData(Vec3(s144, -c0, c144), Vec2(texDivs.x * 7f, texDivs.y + .01f)),
+			PointData(Vec3(-s144, -c0, c144), Vec2(texDivs.x * 5f, texDivs.y + .01f)),
+			PointData(Vec3(-s72, -c0, -c72), Vec2(texDivs.x * 3f, texDivs.y + .01f)),
+			PointData(Vec3(0f, -c0, -d), Vec2(191f, 344f) * pixSize),
 
 			// Upper Ring
-			PointData(Vec3(s144, c0, -c144), Vec2(6f, 677f) * pixSize),
-			PointData(Vec3(-s144, c0, -c144), Vec2(texDivs.x * 2f, texDivs.y * 2f - .01f)),
-			PointData(Vec3(-s72, c0, c72), Vec2(texDivs.x * 4f, texDivs.y * 2f - .01f)),
-			PointData(Vec3(0f, c0, d), Vec2(texDivs.x * 6f, texDivs.y * 2f - .01f)),
-			PointData(Vec3(s72, c0, c72), Vec2(texDivs.x * 8f, texDivs.y * 2f - .01f)),
 			PointData(Vec3(s144, c0, -c144), Vec2(1857f, 687f) * pixSize),
+			PointData(Vec3(s72, c0, c72), Vec2(texDivs.x * 8f, texDivs.y * 2f - .01f)),
+			PointData(Vec3(0f, c0, d), Vec2(texDivs.x * 6f, texDivs.y * 2f - .01f)),
+			PointData(Vec3(-s72, c0, c72), Vec2(texDivs.x * 4f, texDivs.y * 2f - .01f)),
+			PointData(Vec3(-s144, c0, -c144), Vec2(texDivs.x * 2f, texDivs.y * 2f - .01f)),
+			PointData(Vec3(s144, c0, -c144), Vec2(6f, 677f) * pixSize),
 
 			// Top Point
-			PointData(Vec3(0f, 1f, 0f), Vec2(187f, 1013f) * pixSize),
-			PointData(Vec3(0f, 1f, 0f), Vec2(557f, 1016f) * pixSize),
-			PointData(Vec3(0f, 1f, 0f), Vec2(927f, 1019f) * pixSize),
-			PointData(Vec3(0f, 1f, 0f), Vec2(1297f, 1022f) * pixSize),
 			PointData(Vec3(0f, 1f, 0f), Vec2(1668f, 1024f) * pixSize),
+			PointData(Vec3(0f, 1f, 0f), Vec2(1297f, 1022f) * pixSize),
+			PointData(Vec3(0f, 1f, 0f), Vec2(927f, 1019f) * pixSize),
+			PointData(Vec3(0f, 1f, 0f), Vec2(557f, 1016f) * pixSize),
+			PointData(Vec3(0f, 1f, 0f), Vec2(187f, 1013f) * pixSize),
 		)
 	}
 }

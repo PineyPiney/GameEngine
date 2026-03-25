@@ -179,7 +179,7 @@ fun <E : Initialisable> Array<E>.init() {
 /**
  * Deletes all items in an array of deleteable objects
  */
-fun <E : Deleteable> Array<E>.delete() {
+fun <E : Deleteable> Array<E>.deleteArray() {
 	forEach(Deleteable::delete)
 }
 

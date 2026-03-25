@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.objects.components.widgets.slider
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
-import com.pineypiney.game_engine.objects.menu_items.slider.BasicSliderPointer
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec3.Vec3
@@ -22,12 +21,12 @@ abstract class SliderComponent<T: Number>(
 			pointer.position = Vec3(getDelta(), 0.7f, .01f)
 		}
 
-	val pointer: GameObject get() = parent.children.first { it.name == "SliderPointer" }
+	val pointer: GameObject get() = parent.children.first { it.name == "Slider Pointer" }
 
 	abstract val range: Number
 
 	init {
-		parent.addChild(BasicSliderPointer(1f))
+		parent.addChild(SliderPointerComponent.createBasicPointer(1f).parent)
 	}
 
 	@Throws(IllegalArgumentException::class)
@@ -56,4 +55,5 @@ abstract class SliderComponent<T: Number>(
 		val relative = (move - parent.transformComponent.worldPosition.x) / parent.transformComponent.worldScale.x
 		value = valueFromDelta(relative)
 	}
+
 }

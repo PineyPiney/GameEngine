@@ -2,58 +2,30 @@ package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
-import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.repeat
 import glm_.f
 import glm_.vec2.Vec2i
 import kool.Buffer
-import kool.ByteBuffer
 import kool.lim
 import kool.toBuffer
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL45C.*
 import org.lwjgl.stb.STBImageWrite
 import java.nio.ByteBuffer
 
 class Texture(
-	val id: String,
-	val texturePointer: Int,
-	val target: Int = GL_TEXTURE_2D,
-	var binding: Int = 0
-) : Resource() {
-
-	val width: Int get() = parameter(GL_TEXTURE_WIDTH)
-	val height: Int get() = parameter(GL_TEXTURE_HEIGHT)
-	val internalFormat: Int get() = parameter(GL_TEXTURE_INTERNAL_FORMAT)
-	val format: Int get() = TextureLoader.internalFormatToFormat(internalFormat)
-	val numChannels: Int get() = TextureLoader.formatToChannels(format)
-	val bytes: Int get() = width * height * TextureLoader.internalFormatToPixelSize(internalFormat)
-	val dataType: Int get() = TextureLoader.internalFormatToDataType(internalFormat)
+	override val id: String,
+	override val texturePointer: Int,
+	override val target: Int = GL_TEXTURE_2D,
+	override var binding: Int = 0
+) : TextureI() {
 
 	val size get() = Vec2i(width, height)
 	val aspectRatio get() = width.f / height
 
-
-	fun bind() {
-		glActiveTexture(GL_TEXTURE0 + binding)
-		glBindTexture(target, texturePointer)
-	}
-
-	fun unbind() {
-		glActiveTexture(GL_TEXTURE0 + binding)
-		glBindTexture(target, 0)
-	}
-
-	fun getData(type: Int = dataType, pixelSize: Int = 4): ByteBuffer {
-		bind()
-		val buffer = ByteBuffer(width * height * pixelSize)
-		glFinish()
-		glGetTexImage(target, 0, format, type, buffer)
-		return buffer
-	}
-
 	fun getSubData(x: Int, y: Int, width: Int, height: Int, format: Int = this.format): ByteBuffer {
-		val buffer = ByteBuffer(bytes)
+		val buffer = BufferUtils.createByteBuffer(bytes)
 		glPixelStorei(GL_PACK_ALIGNMENT, 1)
 		glGetTextureSubImage(texturePointer, 0, x, y, 0, width, height, 1, format, dataType, buffer)
 		return buffer
@@ -62,7 +34,7 @@ class Texture(
 	fun getSubData(origin: Vec2i, size: Vec2i, format: Int = this.format) =
 		getSubData(origin.x, origin.y, size.x, size.y, format)
 
-	fun setData(data: ByteBuffer, format: Int = this.format) {
+	override fun setData(data: ByteBuffer, format: Int) {
 		bind()
 		if (data.lim != width * height * numChannels) {
 			GameEngineI.warn("Buffer is not the right size to set texture data")
@@ -98,24 +70,17 @@ class Texture(
 	fun setSubData(data: ByteBuffer, origin: Vec2i, size: Vec2i, format: Int = this.format) =
 		setSubData(data, origin.x, origin.y, size.x, size.y, format)
 
-	fun clear(){
+	override fun clear() {
 //		val PBO = glGenBuffers()
 //		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO)
 //		glBufferData(GL_PIXEL_UNPACK_BUFFER, bytes.toLong(), GL_STREAM_DRAW)
 		bind()
-		glTexImage2D(target, 0, internalFormat, width, height, 0, format, dataType, ByteBuffer(bytes))
+		glTexImage2D(target, 0, internalFormat, width, height, 0, format, dataType, BufferUtils.createByteBuffer(bytes))
 	}
 
-	fun setSamples(samples: Int, fixedSample: Boolean = true) {
+	override fun setSamples(samples: Int, fixedSample: Boolean) {
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texturePointer)
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, fixedSample)
-	}
-
-	fun parameter(param: Int): Int {
-		return if (GLFunc.isLoaded) {
-			bind()
-			glGetTexLevelParameteri(target, 0, param)
-		} else 0
 	}
 
 	fun savePNG(file: String): Boolean {
@@ -148,7 +113,7 @@ class Texture(
 		copier.init()
 		copier.setDst(texture)
 		copier.setSrc(this)
-		copier.copyTexture(origin, tr)
+		copier.copyTexture(origin, tr, Vec2i(0), size)
 		copier.delete()
 		return texture
 	}
@@ -173,7 +138,7 @@ class Texture(
 
 	companion object {
 
-		fun createPointer(params: TextureParameters = TextureParameters.default): Int {
+		fun createPointer(params: TextureParameters = TextureParameters()): Int {
 			if (!GLFunc.isLoaded) {
 				GameEngineI.warn("Could not create texture pointer because OpenGL has not been loaded")
 				return -1
@@ -188,7 +153,7 @@ class Texture(
 			return ptr
 		}
 
-		fun create(id: String, width: Int, height: Int, format: Int, internalFormat: Int = format, params: TextureParameters = TextureParameters.default): Texture{
+		fun create(id: String, width: Int, height: Int, format: Int, internalFormat: Int = format, params: TextureParameters = TextureParameters()): Texture {
 			val ptr = createPointer(params)
 			TextureLoader.writeTextureToPointer(null, width, height, format, internalFormat)
 			return Texture(id, ptr)

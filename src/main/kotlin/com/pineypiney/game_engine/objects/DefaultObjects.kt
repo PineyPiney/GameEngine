@@ -10,17 +10,10 @@ class DefaultObjects {
 	companion object {
 
 		fun barrier2D(name: String, bl: Vec2, size: Vec2, rotation: Float = 0f, render: Boolean = false): GameObject {
-			return object : GameObject(name) {
-				override fun addComponents() {
-					super.addComponents()
-					components.add(Collider2DComponent(this, Rect2D(bl, size, rotation)))
-				}
-
-				override fun addChildren() {
-					super.addChildren()
-					if(render) addChild(CollisionBox2DRenderer.create(this))
-				}
-			}
+			val obj = GameObject(name)
+			obj.components.add(Collider2DComponent(obj, Rect2D(bl, size, rotation)))
+			if (render) obj.addChild(CollisionBox2DRenderer.create(obj))
+			return obj
 		}
 	}
 }

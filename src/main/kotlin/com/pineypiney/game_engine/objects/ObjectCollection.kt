@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.UpdatingComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
-import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
+import com.pineypiney.game_engine.util.CollectionMap
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.filterIsInstance
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
@@ -16,7 +16,7 @@ open class ObjectCollection() {
 		for(obj in objects) addObject(obj)
 	}
 
-	open val map = mutableMapOf<Int, ObjectCollectionLayer>()
+	open val map = CollectionMap(::ObjectCollectionLayer)
 
 	open val gameItems get() = get(0)
 	open val guiItems get() = get(1)
@@ -24,7 +24,7 @@ open class ObjectCollection() {
 	open fun addObject(o: GameObject?) {
 		if (o != null) {
 			// Add the object to this
-			map.addToCollectionOr(o.layer, o) { ObjectCollectionLayer(o.layer) }
+			map.add(o.layer, o)
 
 			// Add this to the object
 			o.objects = this
@@ -105,7 +105,7 @@ open class ObjectCollection() {
 	}
 
 	operator fun set(layer: Int, obj: GameObject) {
-		map.addToCollectionOr(layer, obj) { ObjectCollectionLayer(obj.layer) }
+		map.add(layer, obj)
 	}
 
 	fun delete() {

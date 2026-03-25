@@ -13,7 +13,7 @@ import java.io.InputStream
 
 class Cursor(val handle: Long) : Deleteable {
 
-	constructor(texture: InputStream, point: Vec2i) : this(createCursor(texture, point))
+	constructor(texture: InputStream, point: Vec2i) : this(createHandle(texture, point))
 
 	/**
 	 * Create a standard cursor
@@ -26,7 +26,7 @@ class Cursor(val handle: Long) : Deleteable {
 	override fun delete() = GLFW.glfwDestroyCursor(handle)
 
 	companion object {
-		fun createCursor(texture: InputStream, point: Vec2i): Long {
+		fun createHandle(texture: InputStream, point: Vec2i): Long {
 			// The data must be in RGBA 32-bit format
 			val bytes = ResourcesLoader.ioResourceToByteBuffer(texture, 2048)
 			val (data, info) = TextureLoader.loadTextureData(bytes)

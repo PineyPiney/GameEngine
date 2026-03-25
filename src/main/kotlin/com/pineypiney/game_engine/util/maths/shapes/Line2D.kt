@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.util.maths.shapes
 
 import com.pineypiney.game_engine.util.extension_functions.getScale
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
+import com.pineypiney.game_engine.util.extension_functions.normal
 import com.pineypiney.game_engine.util.extension_functions.rotationComponent
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.mat4x4.Mat4
@@ -36,7 +37,7 @@ class Line2D(val start: Vec2, val end: Vec2) : Shape2D() {
 	}
 
 	override fun getNormals(): Set<Vec2> {
-		return setOf(grad, Vec2(grad.y, -grad.x))
+		return setOf(grad, grad.normal())
 	}
 
 	override fun projectToNormal(normal: Vec2): Set<Float> {
@@ -53,5 +54,11 @@ class Line2D(val start: Vec2, val end: Vec2) : Shape2D() {
 		val newStart = start + Vec2(model.getTranslation())
 		val newS = Vec2(m * Vec4(s, 0f, 1f))
 		return Line2D(newStart, newStart + newS)
+	}
+
+	fun onRightSide(point: Vec2): Boolean {
+		val l1 = point - end
+		val l2 = start - end
+		return (l1.x * l2.y) - (l1.y * l2.x) < 0f
 	}
 }

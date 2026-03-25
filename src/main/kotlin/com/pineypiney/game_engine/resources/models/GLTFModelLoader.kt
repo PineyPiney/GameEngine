@@ -37,7 +37,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class GLTFModelLoader(val loader: ModelLoader) {
+class GLTFModelLoader {
 
 	fun loadModel(fileName: String, json: JSONObject, buffers: List<ByteArray>, map: MutableMap<ResourceKey, Model>) {
 
@@ -205,7 +205,9 @@ class GLTFModelLoader(val loader: ModelLoader) {
 					if (min.z == max.z) Collider2D(Rect2D(Vec2(min), Vec2(max - min)))
 					else Collider3D(Cuboid((min + max) * .5f, Quat.identity, max - min))
 				val objectName = nodeJson.getStringOrNull("name") ?: fileName
-				map[ResourceKey(objectName)] = Model(objectName, meshes.toTypedArray(), bones.firstOrNull(), animations.toTypedArray(), collider)
+
+				val root = fileName.substringUntilLast('/', "")
+				map[ResourceKey(root + objectName)] = Model(objectName, meshes.toTypedArray(), bones.firstOrNull(), animations.toTypedArray(), collider)
 			}
 		}
 	}
@@ -281,7 +283,7 @@ class GLTFModelLoader(val loader: ModelLoader) {
 
         val translation = nodeJson.getVec3("translation") ?: Vec3()
         val rotation = nodeJson.getQuat("rotation") ?: Quat()
-        // Rounding and renormalising the quat stops tiny values from being carried over when converting between Mat4 and Quat
+		// Rounding and re-normalising the quat stops tiny values from being carried over when converting between Mat4 and Quat
         val roundedRotation = Quat(Vec4 { rotation[it].round(4) }.normalize())
         val scale = nodeJson.getVec3("scale") ?: Vec3(1f)
 

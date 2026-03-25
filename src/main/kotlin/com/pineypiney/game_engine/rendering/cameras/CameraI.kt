@@ -11,13 +11,12 @@ interface CameraI : Initialisable {
 	val aspectRatio: Float
 
 	val cameraPos: Vec3
-	val cameraUp: Vec3
-
-	val cameraFront: Vec3
-	val cameraRight: Vec3
-
 	val cameraMinPos: Vec3
 	val cameraMaxPos: Vec3
+
+	val cameraUp: Vec3
+	val cameraFront: Vec3
+	val cameraRight: Vec3
 
 	val range: Vec2
 

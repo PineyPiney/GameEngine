@@ -7,8 +7,7 @@ import com.pineypiney.game_engine.objects.components.FPSCounter
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComponent
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
-import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
-import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
@@ -22,6 +21,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
+import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
@@ -60,7 +60,7 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>): Window
 				compute.dispatch(32, 32)
 
 				// make sure writing to image has finished before read
-				GL42C.glMemoryBarrier(GL42C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+				GL42C.glMemoryBarrier(GL42C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
 			}
 		})
 		components.add(MeshedTextureComponent(this, texture, shader))
@@ -84,10 +84,10 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>): Window
 			when(type){
 				"float" -> {
 					y -= 50
-					val slider = BasicActionSlider("$name Slider", Vec2i(-200, y+5), Vec2i(180, 40), Vec2(1f), 0f, 1f, .5f){
+					val slider = ActionSliderComponent.createFloatSliderAtPixel("$name Slider", Vec2i(-200, y + 5), Vec2i(180, 40), Vec2(1f), 0f, 1f, .5f) {
 						uniformValues[name] = it.value
 					}
-					add(slider)
+					add(slider.parent)
 				}
 			}
 		}

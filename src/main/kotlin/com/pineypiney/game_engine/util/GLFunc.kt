@@ -6,16 +6,15 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4i
-import kool.ByteBuffer
 import kool.DoubleBuffer
 import kool.FloatBuffer
 import kool.IntBuffer
-import org.lwjgl.opengl.ARBImaging.GL_BLEND_COLOR
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11C.GL_FILL
 import org.lwjgl.opengl.GL11C.GL_LINE
 import org.lwjgl.opengl.GL11C.GL_POINT
-import org.lwjgl.opengl.GL42C.*
+import org.lwjgl.opengl.GL43C.*
 import java.nio.ByteBuffer
 import java.nio.DoubleBuffer
 import java.nio.FloatBuffer
@@ -66,7 +65,7 @@ class GLFunc {
 		var clearColour: Vec4
 			get() = Vec4(0, getFloats(GL_COLOR_CLEAR_VALUE, 4))
 			set(value) = glClearColor(value.x, value.y, value.z, value.w)
-		var cullface: Boolean
+		var cullFace: Boolean
 			get() = glGetBoolean(GL_CULL_FACE)
 			set(value) = setBool(GL_CULL_FACE, value)
 		var cullFaceMode
@@ -155,7 +154,7 @@ class GLFunc {
 		val stencilBuffer: ByteBuffer
 			get() {
 				val viewport = viewport
-				val buffer = ByteBuffer(viewport.z * viewport.w)
+				val buffer = BufferUtils.createByteBuffer(viewport.z * viewport.w)
 				glReadPixels(viewport.x, viewport.y, viewport.z, viewport.w, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, buffer)
 				return buffer
 			}
@@ -171,6 +170,13 @@ class GLFunc {
 
 		/** Maximum amount of atomic counters available in fragment shaders */
 		val maxAtomicCounterFragment: Int get() = glGetInteger(GL_MAX_FRAGMENT_ATOMIC_COUNTERS)
+
+		/** Maximum buffer size for atomic counters */
+		val maxAtomicCounterBufferSize: Int get() = glGetInteger(GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE)
+
+		/** Maximum amount of work groups per compute shader */
+		val maxComputeWorkGroupSize: Int get() = glGetInteger(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS)
+
 		/** Maximum amount of vertices in each patch in tessellation shaders */
 		val maxPatchVertices: Int get() = glGetInteger(GL_MAX_PATCH_VERTICES)
 		/** Maximum Tessellation level in tessellation shaders */
@@ -187,35 +193,35 @@ class GLFunc {
 			}
 		}
 
-		fun getFloats(pname: Int, size: Int): FloatArray {
+		fun getFloats(param: Int, size: Int): FloatArray {
 			val array = FloatArray(size)
-			glGetFloatv(pname, array)
+			glGetFloatv(param, array)
 
 			return array
 		}
 
-		fun getDoubles(pname: Int, size: Int): DoubleArray {
+		fun getDoubles(param: Int, size: Int): DoubleArray {
 			val array = DoubleArray(size)
-			glGetDoublev(pname, array)
+			glGetDoublev(param, array)
 
 			return array
 		}
 
-		fun getInts(pname: Int, size: Int): IntArray {
+		fun getInts(param: Int, size: Int): IntArray {
 			val array = IntArray(size)
-			glGetIntegerv(pname, array)
+			glGetIntegerv(param, array)
 
 			return array
 		}
 
-		fun getBools(pname: Int, size: Int): BooleanArray {
+		fun getBools(param: Int, size: Int): BooleanArray {
 			val array = IntArray(size)
-			glGetIntegerv(pname, array)
+			glGetIntegerv(param, array)
 
 			return array.map { it != 0 }.toBooleanArray()
 		}
 
-		fun setBool(pname: Int, value: Boolean) = if (value) glEnable(pname) else glDisable(pname)
+		fun setBool(param: Int, value: Boolean) = if (value) glEnable(param) else glDisable(param)
 
 		fun getVec2i(handle: Long, func: (Long, IntBuffer, IntBuffer) -> Unit): Vec2i {
 			val (wa, ha) = arrayOf(IntBuffer(1), IntBuffer(1))

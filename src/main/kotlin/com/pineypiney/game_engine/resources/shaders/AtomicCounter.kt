@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.resources.shaders
 
-import kool.ByteBuffer
 import kool.IntBuffer
 import kool.toIntArray
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL43C
 
 class AtomicCounter(val size: Int) {
@@ -40,7 +40,7 @@ class AtomicCounter(val size: Int) {
 	}
 
 	fun setValue(value: Int, index: Int = 0){
-		val buffer = ByteBuffer(4).putInt(value).position(0)
+		val buffer = BufferUtils.createByteBuffer(4).putInt(value).position(0)
 		GL43C.glBufferSubData(GL43C.GL_ATOMIC_COUNTER_BUFFER, index * 4L, buffer)
 	}
 

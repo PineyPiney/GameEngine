@@ -8,7 +8,7 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.TextureParameters
 import glm_.i
 import glm_.vec2.Vec2t
-import kool.ByteBuffer
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.stb.STBImageWrite
 import java.nio.ByteBuffer
@@ -75,7 +75,7 @@ open class Framebuffer(var width: Int, var height: Int, var format: Int = GL_RGB
 		shape.bindAndDraw()
 	}
 
-	fun copyTexture(id: String, params: TextureParameters = TextureParameters.default): Texture{
+	fun copyTexture(id: String, params: TextureParameters = TextureParameters()): Texture {
 		bind()
 		val texture = Texture.create(id, width, height, format, internalFormat, params = params)
 		texture.bind()
@@ -101,7 +101,7 @@ open class Framebuffer(var width: Int, var height: Int, var format: Int = GL_RGB
 
 	fun getTextureData(): ByteBuffer {
 		glBindTexture(GL_TEXTURE_2D, TCB)
-		val buffer = ByteBuffer(width * height * TextureLoader.formatToChannels(format))
+		val buffer = BufferUtils.createByteBuffer(width * height * TextureLoader.formatToChannels(format))
 		glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, buffer)
 		return buffer
 	}

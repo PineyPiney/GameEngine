@@ -3,9 +3,9 @@ package com.pineypiney.game_engine.objects.components.widgets.scrollList
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
-import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.addAll
+import com.pineypiney.game_engine.util.text.Text
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 

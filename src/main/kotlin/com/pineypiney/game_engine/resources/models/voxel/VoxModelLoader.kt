@@ -191,7 +191,7 @@ class VoxModelLoader {
 					for(rect in backSlice.greedyMesh()){
 						rect += Vec4i(translation.x, translation.y, translation.x, translation.y)
 //						quads.add(Vec3i(rect.z, rect.y, z + translation.z) to Vec3i(rect.x, rect.w, z + translation.z))
-						builder.quad()
+						builder.startQuad()
 							.vertex(rect.z, rect.y, z + translation.z).rgba(colour)
 							.vertex(rect.x, rect.y, z + translation.z).rgba(colour)
 							.vertex(rect.x, rect.w, z + translation.z).rgba(colour)
@@ -200,7 +200,7 @@ class VoxModelLoader {
 					for(rect in frontSlice.greedyMesh()){
 						rect += Vec4i(translation.x, translation.y, translation.x, translation.y)
 //						quads.add(Vec3i(rect.x, rect.y, z + translation.z + 1) to Vec3i(rect.z, rect.w, z + translation.z + 1))
-						builder.quad()
+						builder.startQuad()
 							.vertex(rect.x, rect.y, z + translation.z + 1).rgba(colour)
 							.vertex(rect.z, rect.y, z + translation.z + 1).rgba(colour)
 							.vertex(rect.z, rect.w, z + translation.z + 1).rgba(colour)
@@ -215,7 +215,7 @@ class VoxModelLoader {
 					else ySlices[y].andNot(ySlices[y + 1])
 					for(rect in bottomSlice.greedyMesh()){
 						rect += Vec4i(translation.x, translation.z, translation.x, translation.z)
-						builder.quad()
+						builder.startQuad()
 							.vertex(rect.x, y + translation.y, rect.y).rgba(colour)
 							.vertex(rect.z, y + translation.y, rect.y).rgba(colour)
 							.vertex(rect.z, y + translation.y, rect.w).rgba(colour)
@@ -223,7 +223,7 @@ class VoxModelLoader {
 					}
 					for(rect in topSlice.greedyMesh()){
 						rect += Vec4i(translation.x, translation.z, translation.x, translation.z)
-						builder.quad()
+						builder.startQuad()
 							.vertex(rect.x, y + translation.y + 1, rect.y).rgba(colour)
 							.vertex(rect.x, y + translation.y + 1, rect.w).rgba(colour)
 							.vertex(rect.z, y + translation.y + 1, rect.w).rgba(colour)
@@ -238,7 +238,7 @@ class VoxModelLoader {
 					else xSlices[x].andNot(xSlices[x + 1])
 					for(rect in leftSlice.greedyMesh()){
 						rect += Vec4i(translation.y, translation.z, translation.y, translation.z)
-						builder.quad()
+						builder.startQuad()
 							.vertex(x + translation.x, rect.x, rect.y).rgba(colour)
 							.vertex(x + translation.x, rect.x, rect.w).rgba(colour)
 							.vertex(x + translation.x, rect.z, rect.w).rgba(colour)
@@ -246,7 +246,7 @@ class VoxModelLoader {
 					}
 					for(rect in rightSlice.greedyMesh()){
 						rect += Vec4i(translation.y, translation.z, translation.y, translation.z)
-						builder.quad()
+						builder.startQuad()
 							.vertex(x + translation.x + 1, rect.x, rect.w).rgba(colour)
 							.vertex(x + translation.x + 1, rect.x, rect.y).rgba(colour)
 							.vertex(x + translation.x + 1, rect.z, rect.y).rgba(colour)

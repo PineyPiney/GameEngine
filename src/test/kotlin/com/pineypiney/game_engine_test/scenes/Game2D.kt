@@ -10,14 +10,12 @@ import com.pineypiney.game_engine.objects.components.PixelTransformComponent
 import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
 import com.pineypiney.game_engine.objects.components.rendering.*
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
+import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.objects.components.widgets.DropdownComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListComponent
+import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ColourSliderRendererComponent
-import com.pineypiney.game_engine.objects.menu_items.ActionTextField
-import com.pineypiney.game_engine.objects.menu_items.TextButton
-import com.pineypiney.game_engine.objects.menu_items.slider.ColourSlider
-import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
@@ -40,6 +38,7 @@ import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
+import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
@@ -69,7 +68,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 	private val audio get() = AudioLoader[(ResourceKey("clair_de_lune"))]
 
-	private val b = TextButton("Button", Vec2i(-150, -200), Vec2i(300, 100), Vec2(0f, 1f)){
+	private val b = ButtonComponent.createTextButton("Button", Vec2i(-150, -200), Vec2i(300, 100), Vec2(0f, 1f)) {
 		val device = AudioEngine.getAllOutputDevices().random()
 		window.setAudioOutput(device)
 		GameEngineI.info("Setting audio out device to ${window.audioOutputDevice}")
@@ -77,20 +76,20 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		window.vSync = !window.vSync
 		println("Window vSync: ${window.vSync}")
 	}
-	private val button = TextButton("button", Vec2i(-200, -100), Vec2i(200, 100), Vec2(1f)){
+	private val button = ButtonComponent.createTextButton("button", Vec2i(-200, -100), Vec2i(200, 100), Vec2(1f)) {
 		println("Pressed!")
 		AudioSource(audio).play()
 		window.setCursor(standardCursors.random())
 	}
 
-	private val bc = Rect2D(b.position.xy, 0.6f, 0.2f)
+	private val bc = Rect2D(b.parent.position.xy, 0.6f, 0.2f)
 
 	var squareColour = Vec4()
-	private val cursorSquare = GameObject.simpleRenderedGameObject(ColourRendererComponent.menuShader, Vec3(), Vec3(.1f, .1f, 1f)){
+	private val cursorSquare = GameObject.simpleRenderedGameObject("Colour Square", ColourRendererComponent.menuShader, Vec3(), Vec3(.1f, .1f, 1f)) {
 		uniforms.setVec4Uniform("colour", ::squareColour)
 	}
 
-	private val textField = ActionTextField<ActionTextFieldComponent<*>>("Text Field", Vec2i(0), Vec2i(540, 72)){ _, _, _ ->
+	private val textField = ActionTextFieldComponent.createActionTextFieldAtPixel<ActionTextFieldComponent<*>>("Text Field", Vec2i(0), Vec2i(540, 72)) { _, _, _ ->
 //        AudioSource(audio).play()
 		window.setCursor(0L)
 
@@ -101,11 +100,18 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		}
 	}
 
-	private val slider = ColourSlider("Colour Slider", Vec2i(560, 32), Vec2i(240, 40), Vec2(-1f), ColourSliderRendererComponent.redShader, mutableMapOf("green" to 0.5f, "blue" to 0.5f))
+	private val slider = ActionSliderComponent.createColourSliderAtPixel(
+		"Colour Slider",
+		Vec2i(560, 32),
+		Vec2i(240, 40),
+		Vec2(-1f),
+		ColourSliderRendererComponent.redShader,
+		mutableMapOf("green" to 0.5f, "blue" to 0.5f)
+	)
 
-	private val texture = GameObject.simpleTextureGameObject(Texture.broke)
-	private val model1 = GameObject.simpleModelledGameObject(ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
-	private val model2 = GameObject.simpleModelledGameObject(ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
+	private val texture = GameObject.simpleTextureGameObject("broke texture", Texture.broke)
+	private val model1 = GameObject.simpleModelledGameObject("goblin", ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
+	private val model2 = GameObject.simpleModelledGameObject("goblin", ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
 
 	private val text = Text.makeMenuText(
 		"X Part: 0.00 \nY Part: 0.00",
@@ -137,19 +143,12 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 //    val video = VideoPlayer(VideoLoader[ResourceKey("ghost"), gameEngine.resourcesLoader], Vec2(0.5, -0.15), Vec2(0.5, 0.3))
 
-	val snake = object: GameObject(){
-		val animation: Animation = Animation("slither", 7f, "snake", (0..5).map { "snake_$it" })
+	val snake = GameObject("Snake").apply {
+		val animation = Animation("slither", 7f, "snake", (0..5).map { "snake_$it" })
 
-		override fun addComponents() {
-			super.addComponents()
-			components.add(SpriteComponent(this))
-			components.add(AnimatedComponent(this, animation, listOf(animation)))
-		}
-
-		override fun init() {
-			super.init()
-			scale = Vec3(4f, 4f, 1f)
-		}
+		scale = Vec3(4f, 4f, 1f)
+		components.add(SpriteComponent(this))
+		components.add(AnimatedComponent(this, animation, listOf(animation)))
 	}
 
 	override fun addObjects() {
@@ -158,10 +157,10 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		add(model2)
 		add(snake)
 
-		add(button, b)
-		add(textField)
+		add(button.parent, b.parent)
+		add(textField.parent)
 		add(list, dropdown)
-		add(slider)
+		add(slider.parent)
 
 		text.components.add(PixelTransformComponent(text, Vec2i(0), Vec2i(960, 140), Vec2(-1f, 0f)))
 		testText.components.add(PixelTransformComponent(testText, Vec2i(0, -70), Vec2i(960, 70), Vec2(-1f, 0f)))
@@ -203,7 +202,9 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 			for (i in 48..111) {
 				val letter = font.getTexture(Char(i))
-				copier.copyOntoDst(letter, Vec2i(80 * (i % 8), 2080 - 160 * (i / 8)))
+
+				val o = Vec2i(80 * (i % 8), 2080 - 160 * (i / 8))
+				copier.copyOntoDst(letter, o, o + letter.size)
 			}
 
 			copier.delete()
@@ -288,7 +289,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	override fun update(interval: Float, input: Inputs) {
 		super.update(interval, input)
 
-		slider.getComponent<ColourSliderRendererComponent>()?.run {
+		slider.parent.getComponent<ColourSliderRendererComponent>()?.run {
 			this["green"] = (this["green"] + interval).wrap(0f, 1f)
 			this["blue"] = this["green"]
 		}

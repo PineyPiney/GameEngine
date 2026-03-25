@@ -13,6 +13,7 @@ import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.BitMap3D
 import com.pineypiney.game_engine.util.Colour
+import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.extension_functions.normal
 import com.pineypiney.game_engine.util.maths.I
@@ -255,20 +256,16 @@ class EngineTest{
 }
 
 fun createSnake(): GameObject{
-	return object : GameObject() {
+	val obj = GameObject("snake")
 
-		override var name: String = "Snake"
+	val animation = Animation("slither", 7f, "snake", (0..5).map { "snake_$it" }, "slitherz")
+	val animations: List<Animation> = listOf(animation, Animation("backwards", 7f, "snake", (5 downTo 0).map { "snake_$it" }, "backwards"))
 
-		override fun addComponents() {
-			super.addComponents()
-
-			val animation = Animation("slither", 7f, "snake", (0..5).map { "snake_$it" },"slitherz")
-			val animations: List<Animation> = listOf(animation, Animation("backwards", 7f, "snake", (5 downTo 0).map { "snake_$it" }, "backwards"))
-
-			scale = Vec3(4f)
-			components.add(SpriteComponent(this))
-			components.add(Collider2DComponent(this, Rect2D(Vec2(), Vec2(1))))
-			components.add(AnimatedComponent(this, animation, animations))
-		}
-	}
+	obj.scale = Vec3(4f)
+	obj.components.addAll(
+		SpriteComponent(obj),
+		Collider2DComponent(obj, Rect2D(Vec2(), Vec2(1))),
+		AnimatedComponent(obj, animation, animations)
+	)
+	return obj
 }

@@ -21,7 +21,7 @@ class TestVRGame(override val gameEngine: TestVREngine) : GameLogic() {
 
 	override fun addObjects() {
 		for(i in 0..999){
-			add(GameObject.simpleRenderedGameObject(ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/plain")], positions[i], Vec3(0.3f), Mesh.centerCubeShape){
+			add(GameObject.simpleRenderedGameObject("Cube $i", ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/plain")], positions[i], Vec3(0.3f), Mesh.centerCubeShape) {
 
 			})
 		}

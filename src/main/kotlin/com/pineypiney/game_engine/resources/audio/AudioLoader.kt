@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.resources.audio
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.i
-import kool.ByteBuffer
+import org.lwjgl.BufferUtils
 import org.lwjgl.openal.AL10
 import java.io.BufferedInputStream
 import java.nio.ByteBuffer
@@ -13,7 +13,7 @@ import javax.sound.sampled.AudioSystem
 open class AudioLoader protected constructor() {
 
 	val map: MutableMap<ResourceKey, Triple<ByteBuffer, Int, Int>> = mutableMapOf()
-	val missing: Triple<ByteBuffer, Int, Int> get() = Triple(ByteBuffer(0), 1, 1)
+	val missing: Triple<ByteBuffer, Int, Int> get() = Triple(BufferUtils.createByteBuffer(0), 1, 1)
 
 	fun loadAudio(streams: ResourcesLoader.Streams) {
 		streams.useEachStream { fileName, stream ->

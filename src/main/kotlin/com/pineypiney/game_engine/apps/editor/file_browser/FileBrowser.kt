@@ -10,14 +10,15 @@ import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.PixelTransformComponent
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
 import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
-import com.pineypiney.game_engine.objects.menu_items.SpriteButton
-import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.rendering.ObjectRenderer
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
@@ -41,9 +42,9 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 
 	private val filesContainer = GameObject("Files", 1)
 	private val parentFileButton =
-		SpriteButton("Parent File Button", TextureLoader.Companion[ResourceKey("editor/up_arrow")], 64f) { _, _ ->
-			if (currentDirectory == root) return@SpriteButton
-			currentDirectory = currentDirectory.parentFile ?: return@SpriteButton
+		ButtonComponent.createSpriteButton("Parent File Button", Sprite(TextureLoader.Companion[ResourceKey("editor/up_arrow")], 64f)) { _, _ ->
+			if (currentDirectory == root) return@createSpriteButton
+			currentDirectory = currentDirectory.parentFile ?: return@createSpriteButton
 			refreshDirectory()
 		}
 	val height get() = screen.settings.fileBrowserHeight

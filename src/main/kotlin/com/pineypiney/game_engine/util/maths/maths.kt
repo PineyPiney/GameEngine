@@ -15,15 +15,16 @@ val tan30 = tan(PI / 6)
 val tan60 = tan(PI / 3)
 
 fun eulerToVector(yaw: Double, pitch: Double, res: Vec3 = Vec3()): Vec3 {
-	res.x = (cos(yaw) * cos(pitch)).toFloat()
+	res.x = (-sin(yaw) * cos(pitch)).toFloat()
 	res.y = sin(pitch).toFloat()
-	res.z = (sin(yaw) * cos(pitch)).toFloat()
+	res.z = (cos(yaw) * cos(pitch)).toFloat()
 	res.normalize()
 	return res
 }
 
+/** Returns Pitch and Yaw values of [v] */
 fun vectorToEuler(v: Vec3): Pair<Float, Float> {
-	val p = -asin(v.y)
-	val y = -atan2(v.z, v.x)
+	val p = asin(v.y)
+	val y = -atan2(v.x, v.z)
 	return p to y
 }

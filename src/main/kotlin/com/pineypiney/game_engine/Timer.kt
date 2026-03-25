@@ -28,20 +28,20 @@ class Timer {
 		var startTime = System.nanoTime()
 
 		/**
-		 * Time of last game update in seconds
+		 * Time of current game update in seconds
 		 */
 		var time: Double = 0.0; private set
 
 		/**
-		 * Time between last game update and the one before in seconds
+		 * Time between current game update and the one before in seconds
 		 */
 		var delta: Double = 0.0; private set
 		/**
-		 * Time of last game render in seconds
+		 * Time of current game render in seconds
 		 */
 		var frameTime: Double = 0.0; private set
 		/**
-		 * Time between last game render and the one before in seconds
+		 * Time between current game render and the one before in seconds
 		 */
 		var frameDelta: Double = 0.0; private set
 

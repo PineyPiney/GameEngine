@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.util.extension_functions.absMinOf
 import glm_.func.common.abs
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 import kotlin.math.abs
 
 abstract class Shape2D : Shape<Vec2>() {
@@ -159,7 +160,9 @@ abstract class Shape2D : Shape<Vec2>() {
 	}
 
 	companion object {
-		fun projectAllPoints(normal: Vec2, points: Set<Vec2>): Set<Float> {
+
+		val NORMAL = Vec3(0f, 0f, 1f)
+		fun projectAllPoints(normal: Vec2, points: Iterable<Vec2>): Set<Float> {
 			return points.map { it dot normal }.toSet()
 		}
 	}

@@ -41,12 +41,12 @@ class VertexAttribute<T>(val name: String, val size: Int, val type: Int, val get
 		val POSITION2D = VertexAttribute<Vec2>("Position2D", 2, GL11C.GL_FLOAT, ByteBuffer::getVec2, ByteBuffer::putVec2, ::Vec2)
 		val POSITION = VertexAttribute<Vec3>("Position", 3, GL11C.GL_FLOAT, ByteBuffer::getVec3, ByteBuffer::putVec3, ::Vec3)
 		val TEX_COORD = VertexAttribute<Vec2>("TexCoord", 2, GL11C.GL_FLOAT, ByteBuffer::getVec2, ByteBuffer::putVec2, ::Vec2)
-		val COLOUR = VertexAttribute("Colour", 4, GL11C.GL_FLOAT, ByteBuffer::getVec4, ByteBuffer::putVec4, { Vec4(1f) })
-		val COLOUR_BYTES = VertexAttribute("Colour Bytes", 4, GL11C.GL_UNSIGNED_BYTE, ByteBuffer::getVec4ub, ByteBuffer::putVec4ub, { Vec4ub(255) })
-		val NORMAL = VertexAttribute<Vec3>("Normal", 3, GL11C.GL_FLOAT, ByteBuffer::getVec3, ByteBuffer::putVec3, { normal })
-		val TANGENT = VertexAttribute<Vec3>("Tangent", 3, GL11C.GL_FLOAT, ByteBuffer::getVec3, ByteBuffer::putVec3, {Vec3(1f, 0f, 0f)})
-		val TANGENT_HANDED = VertexAttribute("Tangent", 4, GL11C.GL_FLOAT, ByteBuffer::getVec4, ByteBuffer::putVec4, {Vec4(1f, 0f, 0f, 0f)})
-		val BONE_IDS = VertexAttribute<Vec4ub>("BoneIds", 4, GL11C.GL_UNSIGNED_BYTE, ByteBuffer::getVec4ub, ByteBuffer::putVec4ub, { Vec4ub(255) })
+		val COLOUR = VertexAttribute("Colour", 4, GL11C.GL_FLOAT, ByteBuffer::getVec4, ByteBuffer::putVec4) { Vec4(1f) }
+		val COLOUR_BYTES = VertexAttribute("Colour Bytes", 4, GL11C.GL_UNSIGNED_BYTE, ByteBuffer::getVec4ub, ByteBuffer::putVec4ub) { Vec4ub(255) }
+		val NORMAL = VertexAttribute<Vec3>("Normal", 3, GL11C.GL_FLOAT, ByteBuffer::getVec3, ByteBuffer::putVec3) { normal }
+		val TANGENT = VertexAttribute<Vec3>("Tangent", 3, GL11C.GL_FLOAT, ByteBuffer::getVec3, ByteBuffer::putVec3) { Vec3(1f, 0f, 0f) }
+		val TANGENT_HANDED = VertexAttribute("Tangent", 4, GL11C.GL_FLOAT, ByteBuffer::getVec4, ByteBuffer::putVec4) { Vec4(1f, 0f, 0f, 0f) }
+		val BONE_IDS = VertexAttribute<Vec4ub>("BoneIds", 4, GL11C.GL_UNSIGNED_BYTE, ByteBuffer::getVec4ub, ByteBuffer::putVec4ub) { Vec4ub(255) }
 		val BONE_WEIGHTS = VertexAttribute<Vec4>("BoneWeights", 4, GL11C.GL_FLOAT, ByteBuffer::getVec4, ByteBuffer::putVec4, ::Vec4)
 	}
 }

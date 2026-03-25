@@ -297,18 +297,6 @@ fun <E, T> MutableCollection<T>.getOrSet(key: E, getter: T.() -> E, create: (key
 }
 
 /**
- * Add [value] to the mutable collection at [key], or create a new mutable collection with [value] using [create]
- *
- * @param [key] The key of the map to add [value] to
- * @param [value] The value to add to the collection at [key]
- * @param [create] The constructor to create a new mutable collection with
- */
-fun <K, V : MutableCollection<E>, E> MutableMap<K, V>.addToCollectionOr(key: K, value: E, create: (key: K) -> V) {
-	this.putIfAbsent(key, create(key))
-	this[key]?.add(value)
-}
-
-/**
  * Add [key2] [value] pair to the mutable map at [key1], or create a new mutable map with [key2] [value] at [key1] using [create]
  *
  * @param [key1] The key of [this] where the map can be found
@@ -324,22 +312,6 @@ fun <K1, K2, V> MutableMap<K1, MutableMap<K2, V>>.addToMapOr(
 ) {
 	this.putIfAbsent(key1, create(key1))
 	this[key1]?.put(key2, value)
-}
-
-/**
- * Add the collections of two maps using the same keys and values, when the values are a type of collection
- *
- * @param [other] The collection to add to [this]
- *
- * @return A new map that has added the collections of [this] and [other] together by key
- */
-fun <K, V : MutableCollection<E>, E> MutableMap<K, V>.combineLists(other: MutableMap<K, V>): MutableMap<K, V> {
-	val newMap = this.toMutableMap()
-	for ((key, value) in other) {
-		if (this.containsKey(key)) newMap[key]?.addAll(value)
-		else newMap[key] = value
-	}
-	return newMap
 }
 
 /**

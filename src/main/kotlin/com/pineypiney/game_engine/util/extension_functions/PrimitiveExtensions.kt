@@ -253,5 +253,26 @@ fun String.capitalise(): String{
 	return String(s, 0, lim)
 }
 
+
+fun String.substringUntil(delimiter: Char, missingDelimiterValue: String = this): String {
+	val index = indexOf(delimiter)
+	return if (index == -1) missingDelimiterValue else substring(0, index + 1)
+}
+
+fun String.substringFrom(delimiter: Char, missingDelimiterValue: String = this): String {
+	val index = indexOf(delimiter)
+	return if (index == -1) missingDelimiterValue else substring(index)
+}
+
+fun String.substringUntilLast(delimiter: Char, missingDelimiterValue: String = this): String {
+	val index = lastIndexOf(delimiter)
+	return if (index == -1) missingDelimiterValue else substring(0, index + 1)
+}
+
+fun String.substringFromLast(delimiter: Char, missingDelimiterValue: String = this): String {
+	val index = lastIndexOf(delimiter)
+	return if (index == -1) missingDelimiterValue else substring(index)
+}
+
 //operator fun UByte.compareTo(other: Ubyte) = toInt() compareTo other.toInt()
 //operator fun Ubyte.compareTo(other: UByte) = toInt() compareTo other.toInt()

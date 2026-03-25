@@ -18,7 +18,7 @@ data class Parallelogram(val origin: Vec2, val side1: Vec2, val side2: Vec2) : S
 	override val max: Vec2
 
 	init {
-		val minMax = Vectors.minMaxVec2(points.toList())
+		val minMax = Vectors.minMaxVec2(points)
 		min = minMax.first
 		max = minMax.second
 	}
@@ -37,7 +37,7 @@ data class Parallelogram(val origin: Vec2, val side1: Vec2, val side2: Vec2) : S
 	}
 
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
-		val intersection = Plane(Vec3(origin), Vec3(0f, 0f, 1f)).intersectedBy(ray).getOrNull(0) ?: return arrayOf()
+		val intersection = Plane(Vec3(origin), NORMAL).intersectedBy(ray).getOrNull(0) ?: return arrayOf()
 		return if (containsPoint(Vec2(intersection))) arrayOf(intersection)
 		else arrayOf()
 	}

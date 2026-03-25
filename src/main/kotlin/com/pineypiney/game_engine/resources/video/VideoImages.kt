@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.util.extension_functions.delete
+import com.pineypiney.game_engine.util.extension_functions.deleteArray
 import java.nio.ByteBuffer
 
 class VideoImages(override val video: Video) : VideoData<Texture>() {
@@ -51,6 +51,6 @@ class VideoImages(override val video: Video) : VideoData<Texture>() {
 	}
 
 	override fun delete() {
-		textures.delete()
+		textures.deleteArray()
 	}
 }

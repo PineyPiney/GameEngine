@@ -75,7 +75,7 @@ class ByteData {
 			return bytesToNum(bytes, offset, length, bigEndian, { toUByte().toInt() }, Int::shl, Iterable<Int>::orOfInt)
 		}
 		fun string2Int(s: String, length: Int = minOf(4, s.length), bigEndian: Boolean = true): Int{
-			return if(bigEndian) (0..<length).orOfInt { s[it].code shl (24 - (8 * it)) }
+			return if (bigEndian) (0..<length).orOfInt { s[it].code shl (8 * (length - 1 - it)) }
 			else (0..<length).orOfInt { s[it].code shl (8 * it) }
 		}
 		fun uint2Bytes(i: UInt, bytes: Int = 4): ByteArray {

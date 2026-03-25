@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.audio
 
 import com.pineypiney.game_engine.GameEngineI
-import kool.ByteBuffer
+import org.lwjgl.BufferUtils
 import org.lwjgl.openal.AL10
 import org.lwjgl.openal.ALC10
 import org.lwjgl.openal.ALC11
@@ -32,7 +32,7 @@ class AudioInputDevice(val ptr: Long) {
 	fun stop() = ALC11.alcCaptureStop(ptr)
 
 	fun sample(): ByteBuffer {
-		val buffer = ByteBuffer(samples)
+		val buffer = BufferUtils.createByteBuffer(samples)
 		ALC11.alcCaptureSamples(ptr, buffer, samples)
 		return buffer
 	}

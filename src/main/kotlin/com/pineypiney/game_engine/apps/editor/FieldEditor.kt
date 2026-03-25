@@ -16,9 +16,7 @@ import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.DropdownComponent
 import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionIntSliderComponent
-import com.pineypiney.game_engine.objects.menu_items.ActionTextField
-import com.pineypiney.game_engine.objects.menu_items.slider.BasicActionSlider
-import com.pineypiney.game_engine.objects.text.Text
+import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
@@ -29,9 +27,11 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.capitalise
 import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
+import com.pineypiney.game_engine.util.maths.shapes.Polygon
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import com.pineypiney.game_engine.util.s
+import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
 import glm_.quat.Quat
 import glm_.vec2.Vec2
@@ -86,12 +86,12 @@ abstract class FieldEditor<T, out F : ComponentField<T>>(
 	}
 }
 
-open class DefaultFieldEditor<T, F : ComponentField<T>>(parent: GameObject, f: F, component: ComponentI, position: Vec2i, size: Vec2i, callback: (T, T) -> Unit) :
+open class DefaultFieldEditor<T, F : ComponentField<T>>(parent: GameObject, f: F, component: ComponentI, position: Vec2i, size: Vec2i, callback: Callback<T>) :
 	FieldEditor<T, F>(parent, f, component, position, size) {
 
 	val nameText = createText()
 
-	val textField = ActionTextField<ActionTextFieldComponent<*>>("Text Field", Vec3(.27f, 0f, 0f), Vec2(.7f, 1f)) { textField, _, _ ->
+	val textField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Text Field", Vec2(.27f, 0f), Vec2(.7f, 1f)) { textField, _, _ ->
 		try {
 			val oldSer = field.getter()
 			val value = field.parse(this.component, textField.text)
@@ -105,7 +105,7 @@ open class DefaultFieldEditor<T, F : ComponentField<T>>(parent: GameObject, f: F
 	}
 
 	override fun createChildren() {
-		parent.addChild(nameText, textField)
+		parent.addChild(nameText, textField.parent)
 	}
 
 	override fun update(scale: Int) {
@@ -113,7 +113,7 @@ open class DefaultFieldEditor<T, F : ComponentField<T>>(parent: GameObject, f: F
 	}
 }
 
-open class BoolFieldEditor(parent: GameObject, f: BoolField, component: ComponentI, position: Vec2i, size: Vec2i, callback: (Boolean, Boolean) -> Unit) :
+open class BoolFieldEditor(parent: GameObject, f: BoolField, component: ComponentI, position: Vec2i, size: Vec2i, callback: Callback<Boolean>) :
 	FieldEditor<Boolean, BoolField>(parent, f, component, position, size), UpdatingAspectRatioComponent{
 
 	val nameText = createText()
@@ -142,12 +142,12 @@ open class BoolFieldEditor(parent: GameObject, f: BoolField, component: Componen
 	}
 }
 
-open class PrimitiveFieldEditor<T: Any, F: ComponentField<T>>(parent: GameObject, f: F, component: ComponentI, position: Vec2i, size: Vec2i, parse: (String) -> T, callback: (T, T) -> Unit) :
+open class PrimitiveFieldEditor<T : Any, F : ComponentField<T>>(parent: GameObject, f: F, component: ComponentI, position: Vec2i, size: Vec2i, parse: (String) -> T, callback: Callback<T>) :
 	FieldEditor<T, F>(parent, f, component, position, size){
 
 	val nameText = createText()
 
-	val textField = ActionTextField<TextFieldComponent>("Number Field", Vec3(.27f, 0f, 0f), Vec2(.7f, 1f), field.getter().toString(), 16) { textField, _, _ ->
+	val textField = ActionTextFieldComponent.createActionTextFieldAt<TextFieldComponent>("Number Field", Vec3(.27f, 0f, 0f), Vec2(.7f, 1f), "", 16) { textField, _, _ ->
 		try {
 			val value = parse(textField.text)
 			val oldVal = field.getter()
@@ -159,7 +159,7 @@ open class PrimitiveFieldEditor<T: Any, F: ComponentField<T>>(parent: GameObject
 	}
 
 	override fun createChildren() {
-		parent.addChild(nameText, textField)
+		parent.addChild(nameText, textField.parent)
 	}
 
 	override fun update(scale: Int) {
@@ -167,24 +167,24 @@ open class PrimitiveFieldEditor<T: Any, F: ComponentField<T>>(parent: GameObject
 	}
 }
 
-open class IntFieldEditor(parent: GameObject, field: IntField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Int, Int) -> Unit):
+open class IntFieldEditor(parent: GameObject, field: IntField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Int>) :
 	PrimitiveFieldEditor<Int, IntField>(parent, field, component, origin, size, Integer::parseInt, callback)
 
-open class UIntFieldEditor(parent: GameObject, field: UIntField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (UInt, UInt) -> Unit):
+open class UIntFieldEditor(parent: GameObject, field: UIntField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<UInt>) :
 	PrimitiveFieldEditor<UInt, UIntField>(parent, field, component, origin, size, { it.toUIntOrNull() ?: 0u }, callback)
 
-open class FloatFieldEditor(parent: GameObject, field: FloatField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Float, Float) -> Unit):
+open class FloatFieldEditor(parent: GameObject, field: FloatField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Float>) :
 	PrimitiveFieldEditor<Float, FloatField>(parent, field, component, origin, size, java.lang.Float::parseFloat, callback)
 
-open class DoubleFieldEditor(parent: GameObject, field: DoubleField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Double, Double) -> Unit):
+open class DoubleFieldEditor(parent: GameObject, field: DoubleField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Double>) :
 	PrimitiveFieldEditor<Double, DoubleField>(parent, field, component, origin, size, java.lang.Double::parseDouble, callback)
 
-open class IntRangeFieldEditor(parent: GameObject, f: IntRangeField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Int, Int) -> Unit)
+open class IntRangeFieldEditor(parent: GameObject, f: IntRangeField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Int>)
 	: FieldEditor<Int, IntRangeField>(parent, f, component, origin, size){
 
 	val nameText = createText()
 
-	val slider = BasicActionSlider("Int Slider", Vec2(.27f, 0f), Vec2(.7f, 1f), field.range.first, field.range.last, field.getter()){
+	val slider = ActionSliderComponent.createIntSliderAt("Int Slider", Vec2(.27f, 0f), Vec2(.7f, 1f), field.range.first, field.range.last, field.getter()) {
 		val oldVal = field.getter()
 		field.setter(it.value)
 		callback(oldVal, it.value)
@@ -192,28 +192,28 @@ open class IntRangeFieldEditor(parent: GameObject, f: IntRangeField, component: 
 	}
 
 	override fun createChildren() {
-		parent.addChild(nameText, slider)
+		parent.addChild(nameText, slider.parent)
 	}
 
 	override fun update(scale: Int) {
-		slider.getComponent<ActionIntSliderComponent>()?.value = field.getter()
+		slider.parent.getComponent<ActionIntSliderComponent>()?.value = field.getter()
 	}
 
 }
 
-open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: (RenderShader, RenderShader) -> Unit)
+open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: Callback<RenderShader>)
 	: FieldEditor<RenderShader, ShaderField>(parent, f, component, origin, Vec2i(size.x, getHeight(size.y, 3))) {
 
 	val vertexText = createText("Vertex", pos = Vec2(0f, .7f), size = Vec2(.25f, .3f))
-	val vertexField = ActionTextField<ActionTextFieldComponent<*>>("Vertex Field", Vec3(.27f, .7f, 0f), Vec2(.7f, .3f), field.getter().vName, 16) { _, _, _ ->
+	val vertexField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Vertex Field", Vec3(.27f, .7f, 0f), Vec2(.7f, .3f), "", 16) { _, _, _ ->
 		updateValue()
 	}
 	val fragmentText = createText("Fragment", pos = Vec2(0f, .35f), size = Vec2(.25f, .3f))
-	val fragmentField = ActionTextField<ActionTextFieldComponent<*>>("Fragment Field", Vec3(.27f, .35f, 0f), Vec2(.7f, .3f), field.getter().fName, 16) { _, _, _ ->
+	val fragmentField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Fragment Field", Vec3(.27f, .35f, 0f), Vec2(.7f, .3f), "", 16) { _, _, _ ->
 		updateValue()
 	}
 	val geometryText = createText("Geometry", pos = Vec2(0f, .0f), size = Vec2(.25f, .3f))
-	val geometryField = ActionTextField<ActionTextFieldComponent<*>>("Geometry Field", Vec3(.27f, 0f, 0f), Vec2(.7f, .3f), field.getter().gName ?: "", 16) { _, _, _ ->
+	val geometryField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Geometry Field", Vec3(.27f, 0f, 0f), Vec2(.7f, .3f), "", 16) { _, _, _ ->
 		updateValue()
 	}
 
@@ -230,7 +230,7 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 	}
 
 	override fun createChildren() {
-		parent.addChild(vertexText, vertexField, fragmentText, fragmentField, geometryText, geometryField)
+		parent.addChild(vertexText, vertexField.parent, fragmentText, fragmentField.parent, geometryText, geometryField.parent)
 	}
 
 	override fun update(scale: Int) {
@@ -253,7 +253,7 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 			}
 
 			for((i, textField) in fields.withIndex()) {
-				val renderer: ColourRendererComponent = textField.getComponent<ColourRendererComponent>() ?: continue
+				val renderer: ColourRendererComponent = textField.parent.getComponent<ColourRendererComponent>() ?: continue
 				renderer.colour.xyz = if (m == i) Vec3(0.65f) else Vec3(.5f)
 			}
 			return m != -1
@@ -275,12 +275,12 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 	}
 }
 
-open class TextureFieldEditor(parent: GameObject, f: TextureField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: (Texture, Texture) -> Unit)
+open class TextureFieldEditor(parent: GameObject, f: TextureField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: Callback<Texture>)
 	: FieldEditor<Texture, TextureField>(parent, f, component, origin, size) {
 
 	val nameText = createText()
 
-	val textField = ActionTextField<ActionTextFieldComponent<*>>("Texture Field", Vec3(.27f, 0f, 0f), Vec2(.7f, 1f), field.serialise(component, field.getter()), 16) { textField, _, _ ->
+	val textField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Texture Field", Vec3(.27f, 0f, 0f), Vec2(.7f, 1f), "", 16) { _, _, _ ->
 		try {
 			updateValue()
 		} catch (_: Exception) {
@@ -289,7 +289,7 @@ open class TextureFieldEditor(parent: GameObject, f: TextureField, component: Co
 	}
 
 	override fun createChildren() {
-		parent.addChild(nameText, textField)
+		parent.addChild(nameText, textField.parent)
 	}
 
 	override fun update(scale: Int) {
@@ -304,7 +304,7 @@ open class TextureFieldEditor(parent: GameObject, f: TextureField, component: Co
 	}
 
 	override fun onHoverElement(element: Any, cursorPos: Vec2): Boolean {
-		val renderer = textField.getComponent<ColourRendererComponent>()
+		val renderer = textField.parent.getComponent<ColourRendererComponent>()
 		val willAccept = element is File && element.extension.lowercase() == "png"
 		renderer?.colour?.xyz = if(willAccept) Vec3(0.65f) else Vec3(.5f)
 		return willAccept
@@ -319,12 +319,12 @@ open class TextureFieldEditor(parent: GameObject, f: TextureField, component: Co
 	}
 }
 
-open class ModelFieldEditor(parent: GameObject, f: ModelField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Model, Model) -> Unit)
+open class ModelFieldEditor(parent: GameObject, f: ModelField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Model>)
 	: FieldEditor<Model, ModelField>(parent, f, component, origin, size) {
 
 	val nameText = createText()
 
-	val textField = ActionTextField<ActionTextFieldComponent<*>>("Model Field", Vec3(.27f, 0f, 0f), Vec2(.7f, 1f), field.serialise(component, field.getter()), 16) { textField, _, _ ->
+	val textField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Model Field", Vec3(.27f, 0f, 0f), Vec2(.7f, 1f), "", 16) { textField, _, _ ->
 		try {
 			val value = ModelLoader[ResourceKey(textField.text)]
 			val oldVal = field.getter()
@@ -336,7 +336,7 @@ open class ModelFieldEditor(parent: GameObject, f: ModelField, component: Compon
 	}
 
 	override fun createChildren() {
-		parent.addChild(nameText, textField)
+		parent.addChild(nameText, textField.parent)
 	}
 
 	override fun update(scale: Int) {
@@ -344,7 +344,7 @@ open class ModelFieldEditor(parent: GameObject, f: ModelField, component: Compon
 	}
 
 	override fun onHoverElement(element: Any, cursorPos: Vec2): Boolean {
-		val renderer = textField.getComponent<ColourRendererComponent>()
+		val renderer = textField.parent.getComponent<ColourRendererComponent>()
 		val willAccept = element is File && arrayOf("glb", "gltf", "pgm", "vox").contains(element.extension.lowercase())
 		renderer?.colour?.xyz = if(willAccept) Vec3(0.65f) else Vec3(.5f)
 		return willAccept
@@ -360,7 +360,7 @@ open class ModelFieldEditor(parent: GameObject, f: ModelField, component: Compon
 }
 
 
-open class Shape2DFieldEditor(parent: GameObject, f: Shape2DField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Shape2D, Shape2D) -> Unit)
+open class Shape2DFieldEditor(parent: GameObject, f: Shape2DField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: Callback<Shape2D>)
 	: FieldEditor<Shape2D, Shape2DField>(
 	parent,
 	f, component,
@@ -371,10 +371,11 @@ open class Shape2DFieldEditor(parent: GameObject, f: Shape2DField, component: Co
 	var height = size.y
 	val nameText = createText()
 
-	val dropdown = DropdownComponent.createDropdownMenu("Shape Field", ShapeType.entries.map { it.id }.toTypedArray(), 4f, Text.Params().withFontSize(16)){ menu, selected ->
+	val dropdown = DropdownComponent.createDropdownMenu("Shape Field", ShapeType.entries.map { it.id }.toTypedArray(), 4f, Text.Params().withFontSize(16)) { _, selected ->
 		val shape = when(selected) {
 			"Rectangle" -> Rect2D(Vec2(0f), 1f, 1f)
 			"Parallelogram" -> Parallelogram(Vec2(0f), Vec2(-1f, 1f), Vec2(1f))
+			"Polygon" -> Polygon(listOf(Vec2(-1f), Vec2(-1f, 1f), Vec2(1f), Vec2(1f, -1f)))
 			else -> null
 		}
 		if(shape != null){
@@ -415,11 +416,11 @@ open class Shape2DFieldEditor(parent: GameObject, f: Shape2DField, component: Co
 
 		val fieldsHeight =  getHeight(scale, type.numFields)
 		fieldsContainer.scale = Vec3(1f, fieldsHeight.toFloat() / totalHeight, 1f)
-		type.addFields(fieldsContainer, scale, field.getter, field.setter)
+		type.addFields(fieldsContainer, scale, field.getter, field.setter, callback)
 	}
 
-	enum class ShapeType(val id: String, val klass: KClass<*>, val numFields: Int, val addFields: GameObject.(Int, Function0<Shape2D>, Consumer<Shape2D>) -> Unit) {
-		RECT("Rectangle", Rect2D::class, 3, e@{ h, getter, consumer ->
+	enum class ShapeType(val id: String, val klass: KClass<*>, val numFields: Int, val addFields: GameObject.(Int, Function0<Shape2D>, Consumer<Shape2D>, callback: Callback<Shape2D>) -> Unit) {
+		RECT("Rectangle", Rect2D::class, 3, e@{ h, getter, consumer, callback ->
 
 			fun getRect(): Rect2D? {
 				val shape = getter() as? Rect2D
@@ -428,40 +429,56 @@ open class Shape2DFieldEditor(parent: GameObject, f: Shape2DField, component: Co
 				}
 				return shape
 			}
-			val shape = getRect() ?: return@e
+
+			val current = getRect() ?: Rect2D(Vec2(0f), 1f, 1f)
 
 			val posText = Text.makeMenuText("Position", Vec4(0f, 0f, 0f, 1f), 16, Text.ALIGN_CENTER_RIGHT).apply { position = Vec3(0f, .7f, .01f); scale = Vec3(.25f, .3f, 1f) }
-			val posXField = ActionTextField<ActionTextFieldComponent<*>>("Pos.x Field", Vec3(.27f, .7f, 0f), Vec2(.345f, .3f), shape.origin.x.toString(), h) { field, _, _ ->
-				val rect = getRect() ?: return@ActionTextField
-				consumer.accept(Rect2D(Vec2(field.text.toFloat(), rect.origin.y), rect.lengths, rect.angle))
+			val posXField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Pos.x Field", Vec3(.27f, .7f, 0f), Vec2(.345f, .3f), current.origin.x.toString(), h) { field, _, _ ->
+					val rect = getRect() ?: return@createActionTextFieldAt
+					val newVal = Rect2D(Vec2(field.text.toFloat(), rect.origin.y), rect.lengths, rect.angle)
+					callback(rect, newVal)
+					consumer.accept(newVal)
 			}
-			val posYField = ActionTextField<ActionTextFieldComponent<*>>("Pos.y Field", Vec3(.625f, .7f, 0f), Vec2(.345f, .3f), shape.origin.y.toString(), h) { field, _, _ ->
-				val rect = getRect() ?: return@ActionTextField
-				consumer.accept(Rect2D(Vec2(rect.origin.x, field.text.toFloat()), rect.lengths, rect.angle))
+			val posYField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Pos.y Field", Vec3(.625f, .7f, 0f), Vec2(.345f, .3f), current.origin.y.toString(), h) { field, _, _ ->
+					val rect = getRect() ?: return@createActionTextFieldAt
+					val newVal = Rect2D(Vec2(rect.origin.x, field.text.toFloat()), rect.lengths, rect.angle)
+					callback(rect, newVal)
+					consumer.accept(newVal)
 			}
 
 			val scaleText = Text.makeMenuText("Scale", Vec4(0f, 0f, 0f, 1f), 16, Text.ALIGN_CENTER_RIGHT).apply { position = Vec3(0f, .35f, .01f); scale = Vec3(.25f, .3f, 1f) }
-			val scaleXField = ActionTextField<ActionTextFieldComponent<*>>("Scale.x Field", Vec3(.27f, .35f, 0f), Vec2(.345f, .3f), shape.length1.toString(), h) { field, _, _ ->
-				val rect = getRect() ?: return@ActionTextField
-				consumer.accept(Rect2D(rect.origin, field.text.toFloat(), rect.length2, rect.angle))
+			val scaleXField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Scale.x Field", Vec3(.27f, .35f, 0f), Vec2(.345f, .3f), current.length1.toString(), h) { field, _, _ ->
+					val rect = getRect() ?: return@createActionTextFieldAt
+					val newVal = Rect2D(rect.origin, field.text.toFloat(), rect.length2, rect.angle)
+					callback(rect, newVal)
+					consumer.accept(newVal)
 			}
-			val scaleYField = ActionTextField<ActionTextFieldComponent<*>>("Scale.y Field", Vec3(.625f, .35f, 0f), Vec2(.345f, .3f), shape.length2.toString(), h) { field, _, _ ->
-				val rect = getRect() ?: return@ActionTextField
-				consumer.accept(Rect2D(rect.origin, rect.length1, field.text.toFloat(), rect.angle))
+			val scaleYField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Scale.y Field", Vec3(.625f, .35f, 0f), Vec2(.345f, .3f), current.length2.toString(), h) { field, _, _ ->
+					val rect = getRect() ?: return@createActionTextFieldAt
+					val newVal = Rect2D(rect.origin, rect.length1, field.text.toFloat(), rect.angle)
+					callback(rect, newVal)
+					consumer.accept(newVal)
 			}
 
 
 			val angleText = Text.makeMenuText("Angle", Vec4(0f, 0f, 0f, 1f), 16, Text.ALIGN_CENTER_RIGHT).apply { position = Vec3(0f, .0f, .01f); scale = Vec3(.25f, .3f, 1f) }
-			val angleField = ActionTextField<ActionTextFieldComponent<*>>("Angle Field", Vec3(.27f, 0f, 0f), Vec2(.7f, .3f), shape.angle.toString(), h) { field, _, _ ->
-				val rect = getRect() ?: return@ActionTextField
-				consumer.accept(Rect2D(rect.origin, rect.lengths, field.text.toFloat()))
+			val angleField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Angle Field", Vec3(.27f, 0f, 0f), Vec2(.7f, .3f), current.angle.toString(), h) { field, _, _ ->
+					val rect = getRect() ?: return@createActionTextFieldAt
+					val newVal = Rect2D(rect.origin, rect.lengths, field.text.toFloat())
+					callback(rect, newVal)
+					consumer.accept(newVal)
 			}
 
 			deleteAllChildren()
-			addChild(posText, posXField, posYField, scaleText, scaleXField, scaleYField, angleText, angleField)
+			addChild(posText, posXField.parent, posYField.parent, scaleText, scaleXField.parent, scaleYField.parent, angleText, angleField.parent)
 			init()
 		}),
-		PARALLELOGRAM("Parallelogram", Parallelogram::class, 3, e@{ h, getter, consumer ->
+		PARALLELOGRAM("Parallelogram", Parallelogram::class, 3, e@{ h, getter, consumer, callback ->
 
 			fun getPara(): Parallelogram? {
 				val shape = getter() as? Parallelogram
@@ -470,42 +487,63 @@ open class Shape2DFieldEditor(parent: GameObject, f: Shape2DField, component: Co
 				}
 				return shape
 			}
-			val shape = getPara() ?: return@e
+			val current = getPara() ?: Parallelogram(Vec2(0f), Vec2(1f), Vec2(-1f))
 
 			val posText = Text.makeMenuText("Position", Vec4(0f, 0f, 0f, 1f), 16, Text.ALIGN_CENTER_RIGHT).apply { position = Vec3(0f, .7f, .01f); scale = Vec3(.25f, .3f, 1f) }
-			val posXField = ActionTextField<ActionTextFieldComponent<*>>("Pos.x Field", Vec3(.27f, .7f, 0f), Vec2(.345f, .3f), shape.origin.x.toString(), h) { field, _, _ ->
-				val para = getPara() ?: return@ActionTextField
-				consumer.accept(Parallelogram(Vec2(field.text.toFloat(), para.origin.y), para.side1, para.side2))
+			val posXField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Pos.x Field", Vec3(.27f, .7f, 0f), Vec2(.345f, .3f), current.origin.x.toString(), h) { field, _, _ ->
+					val para = getPara() ?: return@createActionTextFieldAt
+					val newVal = Parallelogram(Vec2(field.text.toFloat(), para.origin.y), para.side1, para.side2)
+					callback(para, newVal)
+					consumer.accept(newVal)
 			}
-			val posYField = ActionTextField<ActionTextFieldComponent<*>>("Pos.y Field", Vec3(.625f, .7f, 0f), Vec2(.345f, .3f), shape.origin.y.toString(), h) { field, _, _ ->
-				val para = getPara() ?: return@ActionTextField
-				consumer.accept(Parallelogram(Vec2(para.origin.x, field.text.toFloat()), para.side1, para.side2))
+			val posYField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Pos.y Field", Vec3(.625f, .7f, 0f), Vec2(.345f, .3f), current.origin.y.toString(), h) { field, _, _ ->
+					val para = getPara() ?: return@createActionTextFieldAt
+					val newVal = Parallelogram(Vec2(para.origin.x, field.text.toFloat()), para.side1, para.side2)
+					callback(para, newVal)
+					consumer.accept(newVal)
 			}
 
 			val side1Text = Text.makeMenuText("Side1", Vec4(0f, 0f, 0f, 1f), 16, Text.ALIGN_CENTER_RIGHT).apply { position = Vec3(0f, .35f, .01f); scale = Vec3(.25f, .3f, 1f) }
-			val side1XField = ActionTextField<ActionTextFieldComponent<*>>("Side1.x Field", Vec3(.27f, .35f, 0f), Vec2(.345f, .3f), shape.side1.x.toString(), h) { field, _, _ ->
-				val para = getPara() ?: return@ActionTextField
-				consumer.accept(Parallelogram(para.origin, Vec2(field.text.toFloat(), para.side1.y), para.side2))
+			val side1XField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Side1.x Field", Vec3(.27f, .35f, 0f), Vec2(.345f, .3f), current.side1.x.toString(), h) { field, _, _ ->
+					val para = getPara() ?: return@createActionTextFieldAt
+					val newVal = Parallelogram(para.origin, Vec2(field.text.toFloat(), para.side1.y), para.side2)
+					callback(para, newVal)
+					consumer.accept(newVal)
 			}
-			val side1YField = ActionTextField<ActionTextFieldComponent<*>>("Side1.y Field", Vec3(.625f, .35f, 0f), Vec2(.345f, .3f), shape.side1.y.toString(), h) { field, _, _ ->
-				val para = getPara() ?: return@ActionTextField
-				consumer.accept(Parallelogram(para.origin, Vec2(para.side1.x, field.text.toFloat()), para.side2))
+			val side1YField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Side1.y Field", Vec3(.625f, .35f, 0f), Vec2(.345f, .3f), current.side1.y.toString(), h) { field, _, _ ->
+					val para = getPara() ?: return@createActionTextFieldAt
+					val newVal = Parallelogram(para.origin, Vec2(para.side1.x, field.text.toFloat()), para.side2)
+					callback(para, newVal)
+					consumer.accept(newVal)
 			}
 
 
 			val side2Text = Text.makeMenuText("Side2", Vec4(0f, 0f, 0f, 1f), 16, Text.ALIGN_CENTER_RIGHT).apply { position = Vec3(0f, .0f, .01f); scale = Vec3(.25f, .3f, 1f) }
-			val side2XField = ActionTextField<ActionTextFieldComponent<*>>("Side2.x Field", Vec3(.27f, 0f, 0f), Vec2(.345f, .3f), shape.side2.x.toString(), h) { field, _, _ ->
-				val para = getPara() ?: return@ActionTextField
-				consumer.accept(Parallelogram(para.origin, para.side1, Vec2(field.text.toFloat(), para.side2.y)))
+			val side2XField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Side2.x Field", Vec3(.27f, 0f, 0f), Vec2(.345f, .3f), current.side2.x.toString(), h) { field, _, _ ->
+					val para = getPara() ?: return@createActionTextFieldAt
+					val newVal = Parallelogram(para.origin, para.side1, Vec2(field.text.toFloat(), para.side2.y))
+					callback(para, newVal)
+					consumer.accept(newVal)
 			}
-			val side2YField = ActionTextField<ActionTextFieldComponent<*>>("Side2.y Field", Vec3(.625f, 0f, 0f), Vec2(.345f, .3f), shape.side2.y.toString(), h) { field, _, _ ->
-				val para = getPara() ?: return@ActionTextField
-				consumer.accept(Parallelogram(para.origin, para.side1, Vec2(para.side2.x, field.text.toFloat())))
+			val side2YField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Side2.y Field", Vec3(.625f, 0f, 0f), Vec2(.345f, .3f), current.side2.y.toString(), h) { field, _, _ ->
+					val para = getPara() ?: return@createActionTextFieldAt
+					val newVal = Parallelogram(para.origin, para.side1, Vec2(para.side2.x, field.text.toFloat()))
+					callback(para, newVal)
+					consumer.accept(newVal)
 			}
 
 			deleteAllChildren()
-			addChild(posText, posXField, posYField, side1Text, side1XField, side1YField, side2Text, side2XField, side2YField)
+			addChild(posText, posXField.parent, posYField.parent, side1Text, side1XField.parent, side1YField.parent, side2Text, side2XField.parent, side2YField.parent)
 			init()
+		}),
+		POLYGON("Polygon", Polygon::class, 0, e@{ _, _, _, _ ->
+
 		});
 
 		companion object {
@@ -554,7 +592,7 @@ open class VecTFieldEditor<T: Number, V, out F : ComponentField<V>>(
 	component: ComponentI,
 	origin: Vec2i,
 	size: Vec2i,
-	callback: (V, V) -> Unit,
+	callback: Callback<V>,
 	vecSize: Int,
 	parseT: (String) -> T,
 	copy: (V) -> V,
@@ -565,12 +603,12 @@ open class VecTFieldEditor<T: Number, V, out F : ComponentField<V>>(
 	val nameField = createText()
 
 	val x = (.7f - ((vecSize - 1) * .01f)) / vecSize
-	val textFields = Array<ActionTextField<*>>(vecSize) {
-		ActionTextField<ActionTextFieldComponent<*>>(
+	val textFields = Array(vecSize) {
+		ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>(
 			"Vec Field $it",
 			Vec3(.27f + it * (x + .01f), 0f, 0f),
 			Vec2(x, 1f),
-			field.getter().inGet(it).toString(),
+			"",
 			16
 		) { textField, _, _ ->
 			try {
@@ -583,11 +621,12 @@ open class VecTFieldEditor<T: Number, V, out F : ComponentField<V>>(
 			} catch (_: NumberFormatException) {
 
 			}
-		}.also { textField -> textField.name = "${parent.name.substring(0, parent.name.length - 13)}.${names[it]} Field Editor" }
+		}.also { textField -> textField.parent.name = "${parent.name.substring(0, parent.name.length - 13)}.${names[it]} Field Editor" }
 	}
 
 	override fun createChildren() {
-		parent.addChild(nameField, *textFields)
+		parent.addChild(nameField)
+		textFields.forEach { parent.addChild(it.parent) }
 	}
 
 	override fun update(scale: Int) {
@@ -607,35 +646,57 @@ open class VecTFieldEditor<T: Number, V, out F : ComponentField<V>>(
 	}
 }
 
-open class VeciFieldEditor<V, out F : ComponentField<V>>(parent: GameObject, field: F, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (V, V) -> Unit, vecSize: Int, copy: (V) -> V, inGet: V.(Int) -> Int, inSet: V.(Int, Int) -> Unit):
+open class VeciFieldEditor<V, out F : ComponentField<V>>(
+	parent: GameObject,
+	field: F,
+	component: ComponentI,
+	origin: Vec2i,
+	size: Vec2i,
+	callback: Callback<V>,
+	vecSize: Int,
+	copy: (V) -> V,
+	inGet: V.(Int) -> Int,
+	inSet: V.(Int, Int) -> Unit
+) :
 	VecTFieldEditor<Int, V, F>(parent, field, component, origin, size, callback, vecSize, Integer::parseInt, copy, inGet, inSet)
 
-open class Vec2iFieldEditor(parent: GameObject, field: Vec2iField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Vec2i, Vec2i) -> Unit) :
+open class Vec2iFieldEditor(parent: GameObject, field: Vec2iField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Vec2i>) :
 	VeciFieldEditor<Vec2i, Vec2iField>(parent, field, component, origin, size, callback, 2, ::Vec2i, Vec2i::get, Vec2i::set)
 
-open class Vec3iFieldEditor(parent: GameObject, field: Vec3iField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Vec3i, Vec3i) -> Unit) :
+open class Vec3iFieldEditor(parent: GameObject, field: Vec3iField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Vec3i>) :
 	VeciFieldEditor<Vec3i, Vec3iField>(parent, field, component, origin, size, callback, 3, ::Vec3i, Vec3i::get, Vec3i::set)
 
-open class Vec4iFieldEditor(parent: GameObject, field: Vec4iField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Vec4i, Vec4i) -> Unit) :
+open class Vec4iFieldEditor(parent: GameObject, field: Vec4iField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Vec4i>) :
 	VeciFieldEditor<Vec4i, Vec4iField>(parent, field, component, origin, size, callback, 4, ::Vec4i, Vec4i::get, Vec4i::set)
 
 
-open class VecFieldEditor<V, out F : ComponentField<V>>(parent: GameObject, field: F, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (V, V) -> Unit, vecSize: Int, copy: (V) -> V, inGet: V.(Int) -> Float, inSet: V.(Int, Float) -> Unit) :
+open class VecFieldEditor<V, out F : ComponentField<V>>(
+	parent: GameObject,
+	field: F,
+	component: ComponentI,
+	origin: Vec2i,
+	size: Vec2i,
+	callback: Callback<V>,
+	vecSize: Int,
+	copy: (V) -> V,
+	inGet: V.(Int) -> Float,
+	inSet: V.(Int, Float) -> Unit
+) :
 	VecTFieldEditor<Float, V, F>(parent, field, component, origin, size, callback, vecSize, java.lang.Float::parseFloat, copy, inGet, inSet)
 
-open class Vec2FieldEditor(parent: GameObject, field: Vec2Field, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Vec2, Vec2) -> Unit) :
+open class Vec2FieldEditor(parent: GameObject, field: Vec2Field, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Vec2>) :
 	VecFieldEditor<Vec2, Vec2Field>(parent, field, component, origin, size, callback, 2, ::Vec2, Vec2::get, Vec2::set)
 
-open class Vec3FieldEditor(parent: GameObject, field: Vec3Field, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Vec3, Vec3) -> Unit) :
+open class Vec3FieldEditor(parent: GameObject, field: Vec3Field, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Vec3>) :
 	VecFieldEditor<Vec3, Vec3Field>(parent, field, component, origin, size, callback, 3, ::Vec3, Vec3::get, Vec3::set)
 
-open class Vec4FieldEditor(parent: GameObject, field: Vec4Field, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Vec4, Vec4) -> Unit) :
+open class Vec4FieldEditor(parent: GameObject, field: Vec4Field, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Vec4>) :
 	VecFieldEditor<Vec4, Vec4Field>(parent, field, component, origin, size, callback, 4, ::Vec4, Vec4::get, Vec4::set)
 
-open class QuatFieldEditor(parent: GameObject, field: QuatField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (Quat, Quat) -> Unit) :
+open class QuatFieldEditor(parent: GameObject, field: QuatField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<Quat>) :
 	VecFieldEditor<Quat, QuatField>(parent, field, component, origin, size, callback, 4, ::Quat, Quat::get, Quat::set)
 
-open class GameObjectFieldEditor(parent: GameObject, f: GameObjectField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: (GameObject?, GameObject?) -> Unit)
+open class GameObjectFieldEditor(parent: GameObject, f: GameObjectField, component: ComponentI, origin: Vec2i, size: Vec2i, callback: Callback<GameObject?>)
 	: FieldEditor<GameObject?, GameObjectField>(parent, f, component, origin, size) {
 
 	val nameText = createText()
@@ -672,7 +733,7 @@ open class GameObjectFieldEditor(parent: GameObject, f: GameObjectField, compone
 
 class EditorType<T, F: ComponentField<T>>(val klass: KClass<F>, val creator: EditorCreator<T, F>)
 
-val editors = mutableListOf<EditorType<*, *>>(
+val editors = mutableListOf(
 	EditorType(BoolField::class, ::BoolFieldEditor),
 	EditorType(IntField::class, ::IntFieldEditor),
 	EditorType(IntRangeField::class, ::IntRangeFieldEditor),
@@ -698,10 +759,11 @@ fun <T, F: ComponentField<T>> addEditor(klass: KClass<F>, creator: EditorCreator
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T, F: ComponentField<T>> createEditor(parent: GameObject, field: F, component: ComponentI, position: Vec2i, size: Vec2i, callback: (T, T) -> Unit): FieldEditor<*, *> {
+fun <T, F : ComponentField<T>> createEditor(parent: GameObject, field: F, component: ComponentI, position: Vec2i, size: Vec2i, callback: Callback<T>): FieldEditor<*, *> {
 	val creator: EditorType<T, F> = (editors.firstOrNull { it.klass == field::class } as? EditorType<T, F>) ?: return DefaultFieldEditor(parent, field, component, position, size, callback)
 	return creator.creator(parent, field, component, position, size, callback)
 }
 
-typealias EditorCreator<T, F> = (parent: GameObject, field: F, component: ComponentI, position: Vec2i, size: Vec2i, callback: (T, T) -> Unit) -> FieldEditor<*, F>
+typealias Callback<T> = (oldValue: T, newValue: T) -> Unit
+typealias EditorCreator<T, F> = (parent: GameObject, field: F, component: ComponentI, position: Vec2i, size: Vec2i, callback: Callback<T>) -> FieldEditor<*, F>
 

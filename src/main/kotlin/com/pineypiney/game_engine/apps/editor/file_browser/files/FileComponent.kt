@@ -9,8 +9,6 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
-import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
-import com.pineypiney.game_engine.objects.menu_items.ActionTextField
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -67,13 +65,19 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 	fun rename(){
 		parent.removeAndDeleteChild(file.name + " Text Object")
 
-		val textField = ActionTextField<ActionTextFieldComponent<*>>(file.name + " Naming Field", Vec3(-.75f, -.4f, .01f), Vec2(1.5f, .25f), file.nameWithoutExtension, 20){ f, _, _ ->
+		val textField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>(
+			file.name + " Naming Field",
+			Vec3(-.75f, -.4f, .01f),
+			Vec2(1.5f, .25f),
+			file.nameWithoutExtension,
+			20
+		) { f, _, _ ->
 			file.renameTo(File(file.parentFile, f.text + '.' + file.extension))
 			browser.refreshDirectory()
 		}
-		parent.addChild(textField)
+		parent.addChild(textField.parent)
 		textField.init()
-		textField.getComponent<TextFieldComponent>()?.forceUpdate = true
+		textField.forceUpdate = true
 	}
 
 	open fun open(){

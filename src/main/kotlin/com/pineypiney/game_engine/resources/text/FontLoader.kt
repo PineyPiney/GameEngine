@@ -15,6 +15,7 @@ import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
 import kool.*
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL12C
 import java.awt.font.FontRenderContext
@@ -182,7 +183,7 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 
 		val charOffsets = stream.readNBytes(256)
 
-		val buffer = ByteBuffer(texWidth * texHeight * channels)
+		val buffer = BufferUtils.createByteBuffer(texWidth * texHeight * channels)
 		for(y in 1..texHeight){
 			buffer.put(buffer.lim - (y * texWidth * channels), stream.readNBytes(texWidth * channels))
 		}

@@ -12,22 +12,18 @@ open class PerspectiveCamera(
 	aspectRatio: Float,
 	pos: Vec3 = Vec3(0, 0, 5),
 	up: Vec3 = Vec3(0, 1, 0),
-	yaw: Double = -90.0,
-	pitch: Double = 0.0,
 	fov: Float = 60f
-) : Camera(aspectRatio, pos, up, yaw, pitch) {
+) : Camera(aspectRatio, pos, up) {
 
 	constructor(
 		window: WindowI,
 		pos: Vec3 = Vec3(0, 0, 5),
 		up: Vec3 = Vec3(0, 1, 0),
-		yaw: Double = -90.0,
-		pitch: Double = 0.0,
 		fov: Float = 60f
-	) : this(window.aspectRatio, pos, up, yaw, pitch, fov)
+	) : this(window.aspectRatio, pos, up, fov)
 
 	var FOV = fov
-		private set(value) {
+		set(value) {
 			field = glm.clamp(value, 0.1f, 180f)
 		}
 

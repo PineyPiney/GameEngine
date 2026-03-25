@@ -5,7 +5,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4ub
-import kool.ByteBuffer
+import org.lwjgl.BufferUtils
 
 class IndicesMeshBuilder(val attributes: Set<VertexAttribute<*>>) {
 
@@ -61,14 +61,14 @@ class IndicesMeshBuilder(val attributes: Set<VertexAttribute<*>>) {
 		if(index != -1) currentVertex[index] = VertexAttribute.Pair(attribute, value)
 	}
 
-	fun quad(): IndicesMeshBuilder{
+	fun startQuad(): IndicesMeshBuilder {
 		addVertex()
 		started = false
 		modifier = Quad()
 		return this
 	}
 
-	fun addVertex(){
+	private fun addVertex() {
 		if(started) {
 
 			val index = vertices.indexOfFirst { it.vertexEquals(currentVertex) }
@@ -83,7 +83,7 @@ class IndicesMeshBuilder(val attributes: Set<VertexAttribute<*>>) {
 		else started = true
 	}
 
-	fun addIndex(index: Int){
+	private fun addIndex(index: Int) {
 		modifier?.let {
 			it.addIndex(index)
 			if(it.complete()) {
@@ -96,7 +96,7 @@ class IndicesMeshBuilder(val attributes: Set<VertexAttribute<*>>) {
 	fun build(): IndicesMesh {
 		addVertex()
 		started = false
-		val vertexBuffer = ByteBuffer(vertexSize * vertices.size)
+		val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
 		for ((i, vertex) in vertices.withIndex()) {
 			vertex.putData(vertexBuffer, i * vertexSize)
 		}
@@ -113,13 +113,13 @@ class IndicesMeshBuilder(val attributes: Set<VertexAttribute<*>>) {
 		val _255 = 1f / 255f
 	}
 
-	abstract class Modifier(){
+	abstract class Modifier {
 		abstract fun addIndex(index: Int)
 		abstract fun complete(): Boolean
 		abstract fun allIndices(): Collection<Int>
 	}
 
-	class Quad(): Modifier(){
+	class Quad : Modifier(){
 		val indices = IntArray(4)
 		var set = 0
 		override fun addIndex(index: Int) {

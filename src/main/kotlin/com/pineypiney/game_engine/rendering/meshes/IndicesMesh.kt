@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.rendering.meshes
 
 import com.pineypiney.game_engine.util.GLFunc
-import kool.ByteBuffer
 import kool.cap
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL31C.*
 import java.nio.ByteBuffer
 
@@ -53,7 +53,7 @@ open class IndicesMesh protected constructor(attributes: Array<VertexAttribute<*
 
 	fun getIndices(): ByteBuffer {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
-		val buffer = ByteBuffer(glGetBufferParameteri(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE))
+		val buffer = BufferUtils.createByteBuffer(glGetBufferParameteri(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE))
 		glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0L, buffer)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 		return buffer

@@ -4,8 +4,8 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
-import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.util.text.Text
 
 class FPSCounter(parent: GameObject, var period: Double, val callback: (Double) -> Unit = {}) :
 	Component(parent),

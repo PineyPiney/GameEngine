@@ -14,12 +14,11 @@ import com.pineypiney.game_engine.objects.components.rendering.ColourRendererCom
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
-import com.pineypiney.game_engine.objects.menu_items.ActionTextField
-import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.fromHex
 import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
 import glm_.i
@@ -76,12 +75,20 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			val objectFields = GameObject("Object Fields", 1)
 			objectFields.pixel(Vec2i(0, -objectFieldsHeight), Vec2i(screen.settings.componentBrowserWidth, objectFieldsHeight), Vec2(0f, 1f))
 
-			val nameText = ActionTextField<TextFieldComponent>("Object Name Field", Vec2i(10, -height), Vec2i(screen.settings.componentBrowserWidth - 20, height), Vec2(0f, 1f), obj.name, screen.settings.textScale){ f, _, _ ->
-				val oldName = obj.name
-				obj.name = f.text
-				screen.setEditingName(f.text)
-				screen.editManager.addEdit(ComponentFieldEdit(obj, screen, "n", oldName, obj.name))
-			}
+			val nameText =
+				ActionTextFieldComponent.createActionTextFieldAtPixel<TextFieldComponent>(
+					"Object Name Field",
+					Vec2i(10, -height),
+					Vec2i(screen.settings.componentBrowserWidth - 20, height),
+					Vec2(0f, 1f),
+					obj.name,
+					screen.settings.textScale
+				) { f, _, _ ->
+					val oldName = obj.name
+					obj.name = f.text
+					screen.setEditingName(f.text)
+					screen.editManager.addEdit(ComponentFieldEdit(obj, screen, "n", oldName, obj.name))
+				}
 			y += space
 
 			val layerLabel = Text.makeMenuText("Layer", Text.Params().withFontSize(screen.settings.textScale).withAlignment(Text.ALIGN_CENTER_RIGHT))
@@ -104,7 +111,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			}
 			activeBox.pixel(Vec2i(0, -y), Vec2i(height, height), Vec2(.27f, 1f))
 
-			objectFields.addChild(nameText, layerLabel, layerText, activeLabel, activeBox)
+			objectFields.addChild(nameText.parent, layerLabel, layerText, activeLabel, activeBox)
 			objectFields.init()
 			componentContainer.addChild(objectFields)
 

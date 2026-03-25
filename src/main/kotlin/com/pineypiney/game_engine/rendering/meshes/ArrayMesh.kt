@@ -2,21 +2,40 @@ package com.pineypiney.game_engine.rendering.meshes
 
 import com.pineypiney.game_engine.util.GLFunc
 import org.lwjgl.opengl.GL31C.*
+import java.nio.FloatBuffer
 
 open class ArrayMesh : Mesh {
 
 	final override val attributes: Map<VertexAttribute<*>, Long>
 	final override val count: Int
 
+	constructor(vertices: FloatBuffer, attributes: Map<VertexAttribute<*>, Long>) : super() {
+		this.attributes = attributes
+		this.count = vertices.capacity() / attributes.keys.sumOf { it.size }
+		bufferData(vertices, ::glBufferData)
+	}
+
+	constructor(vertices: FloatBuffer, attributes: Array<VertexAttribute<*>>) : this(vertices, createAttributes(attributes))
+
 	constructor(vertices: FloatArray, attributes: Map<VertexAttribute<*>, Long>): super(){
 		this.attributes = attributes
 		this.count = vertices.size / attributes.keys.sumOf { it.size }
+		bufferData(vertices, ::glBufferData)
+	}
 
+	constructor(vertices: FloatArray, attributes: Array<VertexAttribute<*>>) : this(vertices, createAttributes(attributes))
+
+	constructor(VAO: Int, VBO: Int, attributes: Map<VertexAttribute<*>, Long>, count: Int) : super(VAO, VBO) {
+		this.attributes = attributes
+		this.count = count
+	}
+
+	fun <D> bufferData(data: D, func: (Int, D, Int) -> Unit) {
 		if (GLFunc.isLoaded) {
 			glBindVertexArray(VAO)
 
 			glBindBuffer(GL_ARRAY_BUFFER, VBO)
-			glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+			func(GL_ARRAY_BUFFER, data, GL_STATIC_DRAW)
 
 			// How to read non-indices array
 			setAttributes()
@@ -24,13 +43,6 @@ open class ArrayMesh : Mesh {
 			glBindBuffer(GL_ARRAY_BUFFER, 0)
 			glBindVertexArray(0)
 		}
-	}
-
-	constructor(vertices: FloatArray, attributes: Array<VertexAttribute<*>>): this(vertices, createAttributes(attributes))
-
-	constructor(VAO: Int, VBO: Int, attributes: Map<VertexAttribute<*>, Long>, count: Int): super(VAO, VBO){
-		this.attributes = attributes
-		this.count = count
 	}
 
 	override fun draw(mode: Int) {

@@ -30,7 +30,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			d.start()
 
 			val keyName = fileName.substringBefore('.')
-			val params = flags[keyName] ?: flags["*"] ?: TextureParameters.default
+			val params = flags[keyName] ?: flags["*"] ?: TextureParameters()
 
 			val p = Texture.createPointer(params)
 			val np = loadTextureFromStream(fileName, stream, params, p)
@@ -99,7 +99,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 		fun loadTextureFromStream(
 			name: String,
 			texture: InputStream,
-			params: TextureParameters = TextureParameters.default,
+			params: TextureParameters = TextureParameters(),
 			pointer: Int = Texture.createPointer(params)
 		): Int {
 			val bb = ResourcesLoader.ioResourceToByteBuffer(texture, 1024)
@@ -110,7 +110,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 		private fun loadTextureFromBuffer(
 			name: String,
 			buffer: ByteBuffer,
-			params: TextureParameters = TextureParameters.default,
+			params: TextureParameters = TextureParameters(),
 			pointer: Int = Texture.createPointer(params)
 		): Int {
 			if (!buffer.hasRemaining()) {
@@ -147,14 +147,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			return data to Vec3i(widthA[0], heightA[0], if (numChan == 0) numChannelsA[0] else numChan)
 		}
 
-		fun writeTextureToPointer(
-			data: ByteBuffer?,
-			width: Int,
-			height: Int,
-			format: Int,
-			internalFormat: Int,
-			debug: Boolean = false
-		) {
+		fun writeTextureToPointer(data: ByteBuffer?, width: Int, height: Int, format: Int, internalFormat: Int, debug: Boolean = false) {
 			if (!GLFunc.isLoaded) {
 				GameEngineI.warn("Could not write texture to pointer because OpenGL has not been loaded")
 				return
@@ -170,18 +163,51 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			glGenerateMipmap(GL_TEXTURE_2D)
 		}
 
+		fun writeTexture3DToPointer(data: ByteBuffer?, width: Int, height: Int, depth: Int, format: Int, internalFormat: Int, debug: Boolean = false) {
+			if (!GLFunc.isLoaded) {
+				GameEngineI.warn("Could not write texture to pointer because OpenGL has not been loaded")
+				return
+			}
+
+			val type = internalFormatToDataType(internalFormat)
+			if (debug) GameEngineI.debug("Calling texImage3D with internalFormat: $internalFormat, width: $width, height: $height, depth: $depth, format: $format, type: $type and data: $data")
+			try {
+				glTexImage3D(GL_TEXTURE_3D, 0, internalFormat, width, height, depth, 0, format, type, data)
+			} catch (_: Exception) {
+				GameEngineI.error("Failed to create texture")
+			}
+
+			glGenerateMipmap(GL_TEXTURE_3D)
+		}
+
 		fun createTexture(
 			data: ByteBuffer?,
 			width: Int,
 			height: Int,
 			format: Int = GL_RGB,
 			internalFormat: Int = format,
-			params: TextureParameters = TextureParameters.default,
+			params: TextureParameters = TextureParameters(),
 			debug: Boolean = false
 		): Int {
 			val pointer = Texture.createPointer(params)
 			if(debug) GameEngineI.debug("Calling writeTextureToPointer on texturePtr: $pointer with parameters: $params")
 			if (pointer != -1) writeTextureToPointer(data, width, height, format, internalFormat, debug)
+			return pointer
+		}
+
+		fun createTexture3D(
+			data: ByteBuffer?,
+			width: Int,
+			height: Int,
+			depth: Int,
+			format: Int = GL_RGB,
+			internalFormat: Int = format,
+			params: TextureParameters = TextureParameters(GL_TEXTURE_3D),
+			debug: Boolean = false
+		): Int {
+			val pointer = Texture.createPointer(params)
+			if (debug) GameEngineI.debug("Calling writeTextureToPointer on texturePtr: $pointer with parameters: $params")
+			if (pointer != -1) writeTexture3DToPointer(data, width, height, depth, format, internalFormat, debug)
 			return pointer
 		}
 
@@ -234,7 +260,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 
 		fun internalFormatToDataType(internalFormat: Int) = when(internalFormat) {
 			GL_RED, GL_R8, GL_R8UI, GL_RG, GL_RG8, GL_RG8UI, GL_RGBA, GL_RGBA8, GL_RGBA8UI -> GL_UNSIGNED_BYTE
-			GL_R8I, GL_RG8I, GL_RGB8I, GL_RGBA8I -> GL_BYTE
+			GL_R8I, GL_RG8I, GL_RGB8I, GL_RGBA8I, GL_R8_SNORM -> GL_BYTE
 			GL_R16, GL_R16UI, GL_RG16, GL_RG16UI, GL_RGBA16, GL_RGBA16UI -> GL_UNSIGNED_SHORT
 			GL_R16I, GL_RG16I, GL_RGB16I, GL_RGBA16I -> GL_SHORT
 			GL_R32UI, GL_RG32UI, GL_RGBA32UI -> GL_UNSIGNED_INT
@@ -243,7 +269,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 		}
 
 		fun internalFormatToFormat(internalFormat: Int) = when(internalFormat) {
-			GL_RED, GL_R8, GL_R16, GL_R16F, GL_R32F -> GL_RED
+			GL_RED, GL_R8, GL_R16, GL_R16F, GL_R32F, GL_R8_SNORM -> GL_RED
 			GL_R8I, GL_R8UI, GL_R16I, GL_R16UI, GL_R32I, GL_R32UI -> GL_RED_INTEGER
 
 			GL_RG, GL_RG8, GL_RG16, GL_RG16F, GL_RG32F -> GL_RG

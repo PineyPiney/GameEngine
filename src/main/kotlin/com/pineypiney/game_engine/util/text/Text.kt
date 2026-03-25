@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.objects.text
+package com.pineypiney.game_engine.util.text
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Initialisable
@@ -208,28 +208,30 @@ open class Text(
 			underlineOffset: Float = -0.2f,
 			underlineAmount: Float = 1f,
 		): GameObject {
-			return object : GameObject("$text Text Object", 1) {
-
-				init {
-					components.add(
-						TextRendererComponent(this, Text(text, colour, font, italic,
-							underlineThickness, underlineOffset, underlineAmount, alignment), fontSize, shader)
-					)
-				}
-			}
+			val obj = GameObject("$text Text Object", 1)
+			obj.components.add(
+				TextRendererComponent(
+					obj, Text(
+						text, colour, font, italic, underlineThickness,
+						underlineOffset, underlineAmount, alignment
+					), fontSize, shader
+				)
+			)
+			return obj
 		}
 
 		fun makeMenuText(text: String, params: Params): GameObject{
-			return object : GameObject("$text Text Object", 1) {
-
-				init{
-					components.add(
-						TextRendererComponent(this, Text(text, params.colour, params.font, params.italic, params.underlineThickness,
-							params.underlineOffset, params.underlineAmount, params.alignment),
-							params.fontSize, params.shader)
-					)
-				}
-			}
+			val obj = GameObject("$text Text Object", 1)
+			obj.components.add(
+				TextRendererComponent(
+					obj, Text(
+						text, params.colour, params.font, params.italic, params.underlineThickness,
+						params.underlineOffset, params.underlineAmount, params.alignment
+					),
+					params.fontSize, params.shader
+				)
+			)
+			return obj
 		}
 
 		fun makeGameText(
@@ -244,27 +246,16 @@ open class Text(
 			underlineOffset: Float = -0.2f,
 			underlineAmount: Float = 1f,
 		): GameObject {
-			return object : GameObject() {
-
-				init {
-					components.add(
-						TextRendererComponent(
-							this,
-							Text(
-								text,
-								colour,
-								font,
-								italic,
-								underlineThickness,
-								underlineOffset,
-								underlineAmount,
-								alignment
-							),
-							fontSize, shader
-						)
-					)
-				}
-			}
+			val obj = GameObject("$text Text Object")
+			obj.components.add(
+				TextRendererComponent(
+					obj, Text(
+						text, colour, font, italic, underlineThickness,
+						underlineOffset, underlineAmount, alignment
+					), fontSize, shader
+				)
+			)
+			return obj
 		}
 	}
 }

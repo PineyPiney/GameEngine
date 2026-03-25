@@ -215,6 +215,7 @@ fun Vec3.rotate(rotation: Quat): Vec3 {
 	return Vec3(rotation.toMat4() * Vec4(this, 1))
 }
 
+infix fun Vec2.transformedBy(m: Mat4) = Vec2(m * Vec4(this, 0, 1))
 infix fun Vec3.transformedBy(m: Mat4) = Vec3(m * Vec4(this, 1))
 
 fun Mat4.translate(vec2: Vec2) = translate(Vec3(vec2, 0))

@@ -10,7 +10,7 @@ val ver: String = "1.0-SNAPSHOT"
 group = "com.pineypiney.game_engine"
 version = ver
 
-val lwjglVersion = "3.3.4"
+val lwjglVersion = "3.3.6"
 
 // Use https://www.lwjgl.org/customize to set natives
 val (lwjglNatives: String, nativesSpec: String) = run {
@@ -55,7 +55,7 @@ dependencies {
 
     // Logback
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-    implementation("ch.qos.logback:logback-classic:1.5.19")
+    implementation("ch.qos.logback:logback-classic:1.5.32")
 
     // GLM
     implementation("kotlin.graphics:kool:0.9.75")

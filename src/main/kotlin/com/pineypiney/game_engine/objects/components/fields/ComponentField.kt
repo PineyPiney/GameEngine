@@ -13,6 +13,7 @@ import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.toString
 import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
+import com.pineypiney.game_engine.util.maths.shapes.Polygon
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import glm_.asHexString
@@ -176,6 +177,11 @@ class Shape2DField(id: String, getter: () -> Shape2D, setter: (Shape2D) -> Unit)
 							shape.side1.toString("", ByteData::float2String) +
 							shape.side2.toString("", ByteData::float2String)
 				}
+				is Polygon -> {
+					"POLY" +
+							ByteData.int2String(shape.vertices.size, 2) +
+							shape.vertices.joinToString("") { it.toString("", ByteData::float2String) }
+				}
 				else -> "DFLT"
 			}
 		}
@@ -188,6 +194,10 @@ class Shape2DField(id: String, getter: () -> Shape2D, setter: (Shape2D) -> Unit)
 				}
 				"PARA" -> {
 					Parallelogram(ByteData.string2Vec2(s.substring(4, 12)), ByteData.string2Vec2(s.substring(12, 20)), ByteData.string2Vec2(s.substring(20, 28)))
+				}
+				"POLY" -> {
+					val numVerts = ByteData.string2Int(s.substring(4), 2)
+					Polygon(List(numVerts) { ByteData.string2Vec2(s.substring(8 * it + 6, 8 * it + 14)) })
 				}
 				else -> Rect2D(Vec2(0f), 1f, 1f)
 			}

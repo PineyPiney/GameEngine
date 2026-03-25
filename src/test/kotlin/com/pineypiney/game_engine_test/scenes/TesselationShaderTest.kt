@@ -4,30 +4,25 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.FPSCounter
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.Movement3D
-import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer.Companion.screenShader
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer.Companion.screenUniforms
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
-import com.pineypiney.game_engine.rendering.meshes.ArrayMesh
 import com.pineypiney.game_engine.rendering.meshes.TessellatedMesh
-import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
-import kool.toFloatArray
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11C
-import java.nio.FloatBuffer
 
 @Suppress("UNUSED")
 class TesselationShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
@@ -47,7 +42,7 @@ class TesselationShaderTest(override val gameEngine: WindowedGameEngineI<*>): Wi
 	val shader = ShaderLoader.get(ResourceKey("vertex/pass_through"), ResourceKey("fragment/texture"), ResourceKey("tessellation/dynamic_lod"), tessEvalKey = ResourceKey("tessellation/random_colour"))
 	val uniformValues = mutableMapOf<String, Any>()
 
-	val obj = GameObject.simpleRenderedGameObject(shader, Vec3(0f), Vec3(1f), generateTessellationMesh(heightMap, 64, .1f), {
+	val obj = GameObject.simpleRenderedGameObject("Switzerland", shader, Vec3(0f), Vec3(1f), TessellatedMesh.generatePlane(heightMap.width * .1f, heightMap.height * .1f, 64), {
 		uniforms.setFloatUniform("scale"){.2f}
 		uniforms.setIntUniform("minTess"){ 4 }
 		uniforms.setIntUniform("maxTess"){ minOf(64, GLFunc.maxTessLevel) }
@@ -104,32 +99,5 @@ class TesselationShaderTest(override val gameEngine: WindowedGameEngineI<*>): Wi
 	override fun updateAspectRatio() {
 		super.updateAspectRatio()
 		GLFunc.viewportO = Vec2i(window.width, window.height)
-	}
-
-	companion object {
-
-		fun generateTessellationMesh(texture: Texture, res: Int, scale: Float): TessellatedMesh{
-			val width = texture.width * scale
-			val height = texture.height * scale
-			val o = Vec3(-width * .5f, 0f, height * .5f)
-			val patchSize = Vec3(width, 0, -height) / res
-			val texDelta = 1f / res
-			val vertices = FloatBuffer.allocate(res * res * 20)
-			for(x in 0..<res){
-				val offsetX = x * res * 20
-				for(y in 0..<res){
-					val offset = offsetX + y * 20
-					(o + patchSize * Vec3(x, 0, y)).to(vertices, offset)
-					(Vec2(x, y) * texDelta).to(vertices, offset + 3)
-					(o + patchSize * Vec3(x + 1, 0, y)).to(vertices, offset + 5)
-					(Vec2(x + 1, y) * texDelta).to(vertices, offset + 8)
-					(o + patchSize * Vec3(x, 0, y + 1)).to(vertices, offset + 10)
-					(Vec2(x, y + 1) * texDelta).to(vertices, offset + 13)
-					(o + patchSize * Vec3(x + 1, 0, y + 1)).to(vertices, offset + 15)
-					(Vec2(x + 1, y + 1) * texDelta).to(vertices, offset + 18)
-				}
-			}
-			return TessellatedMesh(ArrayMesh(vertices.toFloatArray(), arrayOf(VertexAttribute.POSITION, VertexAttribute.TEX_COORD)), 4)
-		}
 	}
 }

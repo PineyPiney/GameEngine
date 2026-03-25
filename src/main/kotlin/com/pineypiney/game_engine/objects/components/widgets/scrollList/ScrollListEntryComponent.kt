@@ -3,11 +3,11 @@ package com.pineypiney.game_engine.objects.components.widgets.scrollList
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
-import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.text.Text
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
@@ -37,34 +37,21 @@ abstract class ScrollListEntryComponent(parent: GameObject) : Component(parent) 
 			underlineOffset: Float = -0.2f,
 			underlineAmount: Float = 1f
 		): GameObject {
-			return object : GameObject("Scroller Text $text", 1) {
-				override fun addComponents() {
-					super.addComponents()
-					val x = this
-					components.add(object : TextRendererComponent(
-						x,
-						Text(
-							text,
-							colour,
-							font,
-							italic,
-							underlineThickness,
-							underlineOffset,
-							underlineAmount,
-							alignment
-						),
-						fontSize, shader
-					) {
-						override fun setUniforms() {
-							super.setUniforms()
-							uniforms.setVec2Uniform(
-								"limits",
-								parent.parent!!.parent!!.parent!!.getComponent<ScrollListComponent>()!!::getLimits
-							)
-						}
-					})
+			val obj = GameObject("Scroller Text $text", 1)
+			obj.components.add(object : TextRendererComponent(
+				obj,
+				Text(text, colour, font, italic, underlineThickness, underlineOffset, underlineAmount, alignment),
+				fontSize, shader
+			) {
+				override fun setUniforms() {
+					super.setUniforms()
+					uniforms.setVec2Uniform(
+						"limits",
+						parent.parent!!.parent!!.parent!!.getComponent<ScrollListComponent>()!!::getLimits
+					)
 				}
-			}
+			})
+			return obj
 		}
 	}
 }

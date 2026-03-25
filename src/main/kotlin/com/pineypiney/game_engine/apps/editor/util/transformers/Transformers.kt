@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.apps.editor.EditorScreen
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
+import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -12,6 +13,7 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.PIF
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 
 class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
@@ -83,6 +85,32 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 			box.components.add(ColouredSpriteComponent(box, Sprite(TextureLoader[ResourceKey("editor/box")], 32f, Vec2(0f)), head.blue))
 
 			o.addChild(xArrow, yArrow, box)
+		}
+		val COLLIDER_EDITOR = Transformers { o, s ->
+			val head = ColliderEditor(o, s)
+			o.components.add(head)
+		}
+
+		fun createSelector(screen: EditorScreen): GameObject {
+			val obj = GameObject("Transformer Selector", 1)
+
+			val moveButton = ButtonComponent.createTextButton("M", Vec2(0f), Vec2(1f, 1f)) {
+				screen.setTransformer(TRANSLATE2D)
+			}
+			val rotateButton = ButtonComponent.createTextButton("R", Vec2(0f, -1f), Vec2(1f, 1f)) {
+				screen.setTransformer(ROTATE2D)
+			}
+			val scaleButton = ButtonComponent.createTextButton("S", Vec2(0f, -2f), Vec2(1f, 1f)) {
+				screen.setTransformer(SCALE2D)
+			}
+			val colliderButton = ButtonComponent.createTextButton("C", Vec2(0f, -3f), Vec2(1f, 1f)) {
+				screen.setTransformer(COLLIDER_EDITOR)
+			}
+
+			obj.addChild(moveButton.parent, rotateButton.parent, scaleButton.parent, colliderButton.parent)
+			obj.pixel(Vec2i(288, 0), Vec2i(20), Vec2(-1f, .4f))
+
+			return obj
 		}
 	}
 }

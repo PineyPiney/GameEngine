@@ -11,7 +11,6 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.util.extension_functions.addToCollectionOr
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape
@@ -56,7 +55,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 		set(value) {
 			objects?.let {
 				it[field].remove(this)
-				it.map.addToCollectionOr(value, this) { ObjectCollectionLayer(value) }
+				it.map.add(value, this)
 			}
 			field = value
 		}
@@ -67,18 +66,9 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 
 	var throwKidsAtRenderer = true
 
-	open fun addComponents() {
-		components.add(transformComponent)
-	}
-
-	open fun addChildren() {
-
-	}
-
 	override fun init() {
-		addComponents()
+		components.add(transformComponent)
 		for (c in components) c.init()
-		addChildren()
 		for (c in children) c.init()
 		for (c in components.filterIsInstance<PostChildrenInit>()) c.postChildrenInit()
 	}
@@ -197,7 +187,12 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 	}
 
 	inline fun <reified C : ComponentI> removeComponent(): Boolean {
-		return components.removeIf { it is C }
+		val component = components.firstOrNull { it is C }
+		if (component != null) {
+			component.delete()
+			components.remove(component)
+			return true
+		} else return false
 	}
 
 	fun  getShape(): Shape<*> {
@@ -345,7 +340,15 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 
 	companion object {
 
+		fun cube(pos: Vec3 = Vec3(0f)): GameObject {
+			val obj = GameObject("Cube")
+			obj.position = pos
+			obj.components.add(ColourRendererComponent(obj, Vec3(0f, 1f, 1f), mesh = Mesh.centerCubeShape))
+			return obj
+		}
+
 		fun simpleRenderedGameObject(
+			name: String,
 			shader: RenderShader,
 			position: Vec3 = Vec3(),
 			scale: Vec3 = Vec3(1f),
@@ -353,83 +356,65 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 			setUniformsFunc: ShaderRenderedComponent.() -> Unit = {},
 			setManualUniforms: ShaderRenderedComponent.() -> Unit = {}
 		): GameObject {
-			return object : GameObject() {
+			val obj = GameObject(name)
 
-				override fun addComponents() {
-					super.addComponents()
-					val x: GameObject = this // Literally no clue, intellij explain yourself
-					components.add(object : ShaderRenderedComponent(x, shader) {
+			obj.position = position
+			obj.scale = scale
 
-						override fun setUniforms() {
-							super.setUniforms()
-							setUniformsFunc()
-						}
-
-						override fun render(renderer: RendererI, tickDelta: Double) {
-							shader.setUp(uniforms, renderer)
-							setManualUniforms()
-							mesh.bindAndDraw()
-						}
-
-						override fun getMeshes(): Collection<Mesh> = listOf(mesh)
-
-					})
+			obj.components.add(object : ShaderRenderedComponent(obj, shader) {
+				override fun setUniforms() {
+					super.setUniforms()
+					setUniformsFunc()
 				}
 
-				override fun init() {
-					super.init()
-					this.position = position
-					this.scale = scale
+				override fun render(renderer: RendererI, tickDelta: Double) {
+					shader.setUp(uniforms, renderer)
+					setManualUniforms()
+					mesh.bindAndDraw()
 				}
-			}
+
+				override fun getMeshes(): Collection<Mesh> = listOf(mesh)
+			})
+
+			return obj
 		}
 
 		fun simpleTextureGameObject(
+			name: String,
 			texture: Texture,
 			shape: Mesh = Mesh.centerSquareShape,
 			shader: RenderShader = MeshedTextureComponent.default2DShader
 		): GameObject {
-			val o = object : GameObject() {
-				override fun addComponents() {
-					super.addComponents()
-					components.add(MeshedTextureComponent(this, texture, shader, shape))
-				}
-			}
+			val o = GameObject(name)
+			o.components.add(MeshedTextureComponent(o, texture, shader, shape))
 
 			return o
 		}
 
 		fun simpleModelledGameObject(
+			name: String,
 			model: Model,
 			shader: RenderShader = ModelRendererComponent.defaultShader,
 			debug: Int = 0
 		): GameObject {
-			val o = object : GameObject() {
-				override fun addComponents() {
-					super.addComponents()
-					components.add(ModelRendererComponent(this, model, shader).apply { this.debug = debug })
-					components.add(model.box.getComponent(this))
-				}
-			}
-
+			val o = GameObject(name)
+			o.components.add(ModelRendererComponent(o, model, shader).apply { this.debug = debug })
+			o.components.add(model.box.getComponent(o))
 			return o
 		}
 
 		fun simpleLightObject(light: Light, render: Boolean = true): GameObject {
-			val o = object : GameObject(light.javaClass.name + " Object") {
-				override fun addComponents() {
-					super.addComponents()
-					components.add(LightComponent(this, light))
-					if (render) components.add(
-						ColourRendererComponent(
-							this,
-							Vec4(1f),
-							ColourRendererComponent.shader3D,
-							Mesh.centerCubeShape
-						)
-					)
-				}
-			}
+			val o = GameObject(light.javaClass.name + " Object")
+
+			o.components.add(LightComponent(o, light))
+			if (render) o.components.add(
+				ColourRendererComponent(
+					o,
+					Vec4(1f),
+					ColourRendererComponent.defaultShader,
+					Mesh.centerCubeShape
+				)
+			)
 			return o
 		}
 	}

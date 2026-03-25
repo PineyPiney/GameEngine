@@ -6,11 +6,11 @@ import com.pineypiney.game_engine.objects.components.rendering.ColourRendererCom
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListComponent
-import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.text.Text
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -58,8 +58,7 @@ open class DropdownComponent(parent: GameObject, var selectedOption: String) : C
 			obj.addChild(list)
 
 			val buttonIcon = TextureLoader[ResourceKey("menu_items/arrow")]
-			val button = ButtonComponent.createSpriteButton("$name Button", Sprite(buttonIcon, buttonIcon.height.toFloat())
-			) { b, _ ->
+			val button = ButtonComponent.createSpriteButton("$name Button", Sprite(buttonIcon, buttonIcon.height.toFloat())) { b, _ ->
 				list.active = !list.active
 				b.parent.getComponent<SpriteComponent>()?.sprite?.flipY = list.active
 			}

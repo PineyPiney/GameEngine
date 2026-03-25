@@ -9,7 +9,7 @@ import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import kool.ByteBuffer
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL30C.*
 import java.nio.ByteBuffer
 
@@ -61,7 +61,7 @@ abstract class Mesh(val VAO: Int, val VBO: Int) : Deleteable {
 
 	fun getData(): ByteBuffer {
 		glBindBuffer(GL_ARRAY_BUFFER, VBO)
-		val buffer = ByteBuffer(glGetBufferParameteri(GL_ARRAY_BUFFER, GL_BUFFER_SIZE))
+		val buffer = BufferUtils.createByteBuffer(glGetBufferParameteri(GL_ARRAY_BUFFER, GL_BUFFER_SIZE))
 		glGetBufferSubData(GL_ARRAY_BUFFER, 0L, buffer)
 		glBindBuffer(GL_ARRAY_BUFFER, 0)
 		return buffer
@@ -79,7 +79,7 @@ abstract class Mesh(val VAO: Int, val VBO: Int) : Deleteable {
 
 	fun <A> setAttribute(attribute: VertexAttribute<A>, values: List<A>){
 		glBindBuffer(GL_ARRAY_BUFFER, VBO)
-		val buffer = ByteBuffer(attribute.bytes)
+		val buffer = BufferUtils.createByteBuffer(attribute.bytes)
 		val step = attributes[attribute] ?: return
 		for(i in 0..<values.size){
 			attribute.set(buffer, 0, values[i])
@@ -133,9 +133,9 @@ abstract class Mesh(val VAO: Int, val VBO: Int) : Deleteable {
 		fun textureQuad(bl: Vec2, tr: Vec2, tbl: Vec2 = Vec2(0f), ttr: Vec2 = Vec2(1f)): IndicesMesh{
 			val vertices = floatArrayOf(
 				bl.x, bl.y, tbl.x, tbl.y,
-				bl.x, tr.y, tbl.x, ttr.y,
+				tr.x, bl.y, ttr.x, tbl.y,
 				tr.x, tr.y, ttr.x, ttr.y,
-				tr.x, bl.y, ttr.x, tbl.y
+				bl.x, tr.y, tbl.x, ttr.y,
 			)
 			return IndicesMesh(vertices, arrayOf(VertexAttribute.POSITION2D, VertexAttribute.TEX_COORD), intArrayOf(0, 1, 2, 0, 2, 3))
 		}

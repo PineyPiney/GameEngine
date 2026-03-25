@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollLi
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListEntryComponent
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.init
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -41,26 +42,18 @@ class ComponentSelector(item: GameObject?, origin: Vec2, size: Vec2, pred: Compo
 				if (field != null) {
 
 					val newItems = getComponents(field!!, "").mapIndexed { i, c ->
-						object : GameObject() {
-							override var name: String = "$c Component Entry"
-
-							override fun addComponents() {
-								super.addComponents()
-								components.add(ComponentSelectorEntry(this, c, i))
-								components.add(
-									ColourRendererComponent(
-										this,
-										Vec4(Vec3(if (i % 2 == 0) 0.4f else 0.6f), 1f),
-										ScrollListEntryComponent.entryColourShader,
-										Mesh.cornerSquareShape
-									)
+						GameObject("$c Component Entry").apply {
+							components.addAll(
+								ComponentSelectorEntry(this, c, i),
+								ColourRendererComponent(
+									this,
+									Vec4(Vec3(if (i % 2 == 0) 0.4f else 0.6f), 1f),
+									ScrollListEntryComponent.entryColourShader,
+									Mesh.cornerSquareShape
 								)
-							}
+							)
 
-							override fun addChildren() {
-								super.addChildren()
-								addChild(ScrollListEntryComponent.makeScrollerText(c, Vec4(1f), fontSize = 0))
-							}
+							addChild(ScrollListEntryComponent.makeScrollerText(c, Vec4(1f), fontSize = 0))
 						}
 					}
 					parent.addChildren(newItems)
@@ -92,7 +85,5 @@ class ComponentSelector(item: GameObject?, origin: Vec2, size: Vec2, pred: Compo
 	}
 
 	class ComponentSelectorEntry(parent: GameObject, val c: String, override val index: Int) :
-		SelectableScrollListEntryComponent(parent) {
-
-	}
+		SelectableScrollListEntryComponent(parent)
 }

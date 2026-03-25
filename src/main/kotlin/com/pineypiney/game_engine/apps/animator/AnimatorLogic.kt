@@ -7,14 +7,15 @@ import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.rendering.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
+import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.OutlinedSliderRendererComponent
-import com.pineypiney.game_engine.objects.menu_items.TextButton
 import com.pineypiney.game_engine.rendering.BufferedGameRenderer
 import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.window.WindowGameLogic
@@ -94,18 +95,15 @@ class AnimatorLogic(
 		Vec2(0.5f, 0.15f),
 		this::setComponent
 	).getComponent<ComponentSelector.ComponentSelectorComponent>()!!
-	private val animationTimeLine = object : GameObject("Animation Timeline", 1) {
+	private val animationTimeLine = GameObject("Animation Timeline", 1).apply {
 
-		init {
-			position = Vec3(-0.4f, -0.9f, 0f)
-			scale = Vec3(0.8f, 0.2f, 1f)
-		}
+		position = Vec3(-0.4f, -0.9f, 0f)
+		scale = Vec3(0.8f, 0.2f, 1f)
 
-		override fun addComponents() {
-			super.addComponents()
-			components.add(AnimationTimeLine(this, this@AnimatorLogic))
-			components.add(OutlinedSliderRendererComponent(this))
-		}
+		components.addAll(
+			AnimationTimeLine(this, this@AnimatorLogic),
+			OutlinedSliderRendererComponent(this)
+		)
 	}
 
 	private val playButton = CheckBoxComponent.createCheckBox("Play Button", true) {
@@ -114,7 +112,7 @@ class AnimatorLogic(
 		os(Vec3(-0.65f, -0.9f, 0f), Vec2(0.2f, 0.2f))
 	}
 
-	private val saveButton = TextButton("Save", Vec2(0.45f, -0.9f), Vec2(0.2f, 0.2f)) { _, _ ->
+	private val saveButton = ButtonComponent.createTextButton("Save", Vec2(0.45f, -0.9f), Vec2(0.2f, 0.2f)) {
 		animationSelector.item?.animation?.save()
 		animationSelector.item?.parent?.let { i ->
 			val n = i.name
@@ -137,7 +135,7 @@ class AnimatorLogic(
 		add(animationTimeLine)
 		add(componentEditor)
 		add(playButton)
-		add(saveButton)
+		add(saveButton.parent)
 	}
 
 	override fun init() {

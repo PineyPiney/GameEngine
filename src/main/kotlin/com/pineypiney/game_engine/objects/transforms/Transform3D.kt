@@ -30,7 +30,7 @@ open class Transform3D(position: Vec3 = Vec3(), rotation: Quat = Quat(), scale: 
 	}
 
 	override fun rotate(angle: Quat) {
-		rotation timesAssign angle
+		rotation = angle * rotation
 		dirtyModel = true
 	}
 

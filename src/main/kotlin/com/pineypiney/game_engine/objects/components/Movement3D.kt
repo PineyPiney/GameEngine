@@ -6,8 +6,12 @@ import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponen
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.cameras.Camera
 import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.maths.eulerToVector
+import com.pineypiney.game_engine.util.maths.up
+import com.pineypiney.game_engine.util.maths.vectorToEuler
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
+import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW
@@ -17,6 +21,9 @@ class Movement3D(parent: GameObject, val camera: Camera, val window: WindowI, va
 	override val whenVisible: Boolean = false
 	var move = true
 	var look = true
+
+	var yaw = -90.0
+	var pitch = 0.0
 
 	override fun shouldInteract(): Boolean {
 		return move || look
@@ -44,10 +51,32 @@ class Movement3D(parent: GameObject, val camera: Camera, val window: WindowI, va
 	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		if(look) {
 			window.input.mouse.setCursorAt(Vec2(0))
-			camera.cameraYaw += cursorDelta.position.x * 20
-			camera.cameraPitch = (camera.cameraPitch + cursorDelta.position.y * 20).coerceIn(-89.99, 89.99)
-			camera.updateCameraVectors()
+			yaw += cursorDelta.position.x * 20
+			pitch = (pitch + cursorDelta.position.y * 20).coerceIn(-89.99, 89.99)
+			updateVectors()
 		}
+	}
+
+	fun updateAngles() {
+		val rotation = Quat(camera.cameraUp, up)
+		val relativeForward = (rotation * camera.cameraFront).normalize()
+		val angles = vectorToEuler(relativeForward)
+		pitch = Math.toDegrees(angles.first.toDouble())
+		yaw = Math.toDegrees(angles.second.toDouble())
+		camera.updateCameraRight()
+	}
+
+	fun updateVectors() {
+		val rotation = Quat(up, camera.cameraUp)
+		val relativeForward = eulerToVector(Math.toRadians(yaw), Math.toRadians(pitch))
+		rotation.times(relativeForward, camera.cameraFront)
+		camera.updateCameraRight()
+	}
+
+	fun resetLook() {
+		yaw = -90.0
+		pitch = 0.0
+		updateVectors()
 	}
 
 	companion object {

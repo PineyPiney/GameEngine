@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollLi
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.SelectableScrollListEntryComponent
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.init
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -38,26 +39,19 @@ class AnimationSelector(item: AnimatedComponent?, origin: Vec2, size: Vec2, pred
 				clearEntries()
 				if (field != null) {
 					val newItems = field!!.animations.mapIndexed { i, a ->
-						object : GameObject() {
-							override var name: String = "${a.name} Animation Entry"
+						GameObject("${a.name} Animation Entry").apply {
 
-							override fun addComponents() {
-								super.addComponents()
-								components.add(AnimationSelectorEntry(this, a.name, i))
-								components.add(
-									ColourRendererComponent(
-										this,
-										Vec4(Vec3(if (i % 2 == 0) 0.4f else 0.6f), 1f),
-										ScrollListEntryComponent.entryColourShader,
-										Mesh.cornerSquareShape
-									)
+							components.addAll(
+								AnimationSelectorEntry(this, a.name, i),
+								ColourRendererComponent(
+									this,
+									Vec4(Vec3(if (i % 2 == 0) 0.4f else 0.6f), 1f),
+									ScrollListEntryComponent.entryColourShader,
+									Mesh.cornerSquareShape
 								)
-							}
+							)
 
-							override fun addChildren() {
-								super.addChildren()
-								addChild(ScrollListEntryComponent.makeScrollerText(a.name, Vec4(1f), fontSize = 0))
-							}
+							addChild(ScrollListEntryComponent.makeScrollerText(a.name, Vec4(1f), fontSize = 0))
 						}
 					}
 					parent.addChildren(newItems)
@@ -77,7 +71,5 @@ class AnimationSelector(item: AnimatedComponent?, origin: Vec2, size: Vec2, pred
 	}
 
 	class AnimationSelectorEntry(parent: GameObject, val a: String, override val index: Int) :
-		SelectableScrollListEntryComponent(parent) {
-
-	}
+		SelectableScrollListEntryComponent(parent)
 }

@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.objects.components.rendering.CaretRendererComp
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
-import com.pineypiney.game_engine.objects.text.Text
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -16,6 +15,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowI
 import glm_.c
 import glm_.vec2.Vec2
@@ -41,36 +41,8 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 			caret = max(min(caret, value.length), 0)
 		}
 
-	var textBox = object : GameObject("${parent.name} text", 1) {
-		override fun init() {
-			super.init()
-			scale = Vec3(1e12f, 1f, 1f)
-		}
-		override fun addComponents() {
-			super.addComponents()
-			components.add(TextFieldText(this,
-				Text(startText, alignment = Text.ALIGN_CENTER_LEFT), textSize, fieldShader))
-		}
-	}
-
-	private var caretObject = object : GameObject("Text Caret", 1) {
-		override fun addComponents() {
-			super.addComponents()
-			components.add(
-				CaretRendererComponent(
-					this,
-					Vec4(.2f, .2f, .2f, 1f),
-					ColourRendererComponent.menuShader,
-					Mesh.cornerSquareShape
-				)
-			)
-		}
-
-		override fun init() {
-			super.init()
-			scale = Vec3(0.01f / this@TextFieldComponent.parent.scale.x, 1f, 1f)
-		}
-	}
+	var textBox = createTextBox(this, startText, textSize)
+	private var caretObject = createCaret(this)
 
 	var caret: Int = startText.length; private set
 
@@ -253,5 +225,26 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		val upperAlphabet = ('A'..'Z') + standard
 		val lowerAlphabet = ('a'..'z') + standard
 		val alphabet = (lowerAlphabet + upperAlphabet).toSet()
+
+		fun createTextBox(field: TextFieldComponent, startText: String, textSize: Int): GameObject {
+			val obj = GameObject("${field.parent.name} text", 1)
+			obj.scale = Vec3(1e12f, 1f, 1f)
+			obj.components.add(field.TextFieldText(obj, Text(startText, alignment = Text.ALIGN_CENTER_LEFT), textSize, fieldShader))
+			return obj
+		}
+
+		fun createCaret(field: TextFieldComponent): GameObject {
+			val obj = GameObject("Text Caret", 1)
+			obj.components.add(
+				CaretRendererComponent(
+					obj,
+					Vec4(.2f, .2f, .2f, 1f),
+					ColourRendererComponent.menuShader,
+					Mesh.cornerSquareShape
+				)
+			)
+			obj.scale = Vec3(0.01f / field.parent.scale.x, 1f, 1f)
+			return obj
+		}
 	}
 }
