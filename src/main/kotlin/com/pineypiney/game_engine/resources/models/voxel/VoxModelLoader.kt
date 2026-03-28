@@ -4,10 +4,11 @@ import com.pineypiney.game_engine.rendering.meshes.IndicesMeshBuilder
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelMesh
-import com.pineypiney.game_engine.resources.readInt
 import com.pineypiney.game_engine.resources.readString
 import com.pineypiney.game_engine.util.BitMap3D
 import com.pineypiney.game_engine.util.extension_functions.getOrSet
+
+import glm_.int
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4i
 import java.io.InputStream
@@ -17,7 +18,7 @@ import kotlin.math.min
 class VoxModelLoader {
 	fun loadVoxModel(name: String, stream: InputStream): Model {
 		stream.readString(4)		// "VOX "
-		stream.readInt(false)	// Version (150 or 200)
+		stream.int(false)    // Version (150 or 200)
 		val models = mutableListOf<VoxelModel>()
 		val rgba = Array(255){ 0 }
 		val nodes = mutableListOf<VoxNode>()
@@ -43,8 +44,8 @@ class VoxModelLoader {
 	@Suppress("UNUSED_VARIABLE", "UNUSED")
 	fun loadVoxChunk(stream: InputStream, models: MutableList<VoxelModel>, rgba: Array<Int>, nodes: MutableList<VoxNode>){
 		val chunkType = stream.readString(4)
-		val chunkSize = stream.readInt(false)
-		val childrenSize = stream.readInt(false)
+		val chunkSize = stream.int(false)
+		val childrenSize = stream.int(false)
 
 		val chunk = stream.readNBytes(chunkSize).inputStream()
 		val children = stream.readNBytes(childrenSize).inputStream()
@@ -54,31 +55,31 @@ class VoxModelLoader {
 				while(children.available() > 0) loadVoxChunk(children, models, rgba, nodes)
 			}
 			"SIZE" -> {
-				val z = chunk.readInt(false)
-				models.add(VoxelModel("Model ${models.size}", chunk.readInt(false), chunk.readInt(false), z))
+				val z = chunk.int(false)
+				models.add(VoxelModel("Model ${models.size}", chunk.int(false), chunk.int(false), z))
 			}
 			"XYZI" -> {
 				val model = models.last()
-				val numVoxels = chunk.readInt(false)
+				val numVoxels = chunk.int(false)
 				while(model.voxels.size < numVoxels && chunk.available() >= 4) {
-					val zxyi = chunk.readInt()
+					val zxyi = chunk.int()
 					model.addVoxel(((zxyi and 0xff0000) shl 8) or ((zxyi and 0xff00) shl 8) or ((zxyi shr 16) and 0xff00) or (zxyi and 255))
 				}
 				model.optimise()
 			}
 			"RGBA" -> {
-				for(i in 0..254) rgba[i] = chunk.readInt()
+				for (i in 0..254) rgba[i] = chunk.int()
 			}
 			// Transform Node
 			"nTRN" -> {
 				// This will point to a Shape Node
-				val nodeID = chunk.readInt(false)
+				val nodeID = chunk.int(false)
 				val nodeInfo = loadDict(chunk)
 
-				val childIndex = chunk.readInt(false)
-				val reserved = chunk.readInt(false)
-				val layer = chunk.readInt(false)
-				val numFrames = chunk.readInt(false)
+				val childIndex = chunk.int(false)
+				val reserved = chunk.int(false)
+				val layer = chunk.int(false)
+				val numFrames = chunk.int(false)
 
 				val node = VoxNode.TransformNode(nodeID, childIndex, nodeInfo)
 
@@ -89,29 +90,29 @@ class VoxModelLoader {
 			}
 			// Group node
 			"nGRP" -> {
-				val nodeID = chunk.readInt(false)
+				val nodeID = chunk.int(false)
 				loadDict(chunk)
 
-				val numChildren = chunk.readInt(false)
-				for(i in 0..<numChildren) chunk.readInt(false)
+				val numChildren = chunk.int(false)
+				for (i in 0..<numChildren) chunk.int(false)
 			}
 			// Shape Node
 			"nSHP" -> {
-				val nodeID = chunk.readInt(false)
+				val nodeID = chunk.int(false)
 				val dict = loadDict(chunk)
 
-				val numModels = chunk.readInt(false)
+				val numModels = chunk.int(false)
 				val models = Array(numModels){ 0 }
 				for(i in 0..<numModels){
-					models[i] = chunk.readInt(false)
+					models[i] = chunk.int(false)
 					val frameDict = loadDict(chunk)
 				}
 				nodes.add(VoxNode.ShapeNode(nodeID, models))
 			}
 			"LAYR" -> {
-				val layer = chunk.readInt(false)
+				val layer = chunk.int(false)
 				val dict = loadDict(chunk)
-				val reserver = chunk.readInt(false)
+				val reserver = chunk.int(false)
 			}
 		}
 
@@ -120,12 +121,12 @@ class VoxModelLoader {
 	}
 
 	fun loadDict(stream: InputStream): Map<String, String>{
-		val numEntries = stream.readInt(false)
+		val numEntries = stream.int(false)
 		if(numEntries == 0) return emptyMap()
 		val map = mutableMapOf<String, String>()
 		(0..<numEntries).forEach { _ ->
-			val key = stream.readString(stream.readInt(false))
-			val value = stream.readString(stream.readInt(false))
+			val key = stream.readString(stream.int(false))
+			val value = stream.readString(stream.int(false))
 			map[key] = value
 		}
 		return map

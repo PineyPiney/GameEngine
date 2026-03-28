@@ -23,19 +23,14 @@ open class ObjectCollection() {
 
 	open fun addObject(o: GameObject?) {
 		if (o != null) {
-			// Add the object to this
 			map.add(o.layer, o)
-
-			// Add this to the object
 			o.objects = this
 		}
 	}
 
 	open fun addObjects(os: Iterable<GameObject>) {
 		for (o in os) {
-			val cur = map[o.layer]
-			if (cur != null) cur.add(o)
-			else map[o.layer] = ObjectCollectionLayer(o.layer, o)
+			map.add(o.layer, o)
 			o.objects = this
 		}
 	}
@@ -46,14 +41,14 @@ open class ObjectCollection() {
 			map[o.layer]?.remove(o)
 
 			// Remove this from the object
-			o.objects = null
+			if (o.objects == this) o.objects = null
 		}
 	}
 
 	open fun removeObjects(os: Iterable<GameObject>) {
 		for (o in os) {
 			map[o.layer]?.remove(o)
-			o.objects = this
+			if (o.objects == this) o.objects = null
 		}
 	}
 

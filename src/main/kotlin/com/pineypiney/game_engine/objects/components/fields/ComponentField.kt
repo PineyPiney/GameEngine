@@ -12,10 +12,7 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.toString
-import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
-import com.pineypiney.game_engine.util.maths.shapes.Polygon
-import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.util.maths.shapes.Shape2D
+import com.pineypiney.game_engine.util.maths.shapes.*
 import glm_.asHexString
 import glm_.intValue
 import glm_.quat.Quat
@@ -182,6 +179,11 @@ class Shape2DField(id: String, getter: () -> Shape2D, setter: (Shape2D) -> Unit)
 							ByteData.int2String(shape.vertices.size, 2) +
 							shape.vertices.joinToString("") { it.toString("", ByteData::float2String) }
 				}
+				is Circle -> {
+					"CIRC" +
+							shape.center.toString("", ByteData::float2String) +
+							ByteData.float2String(shape.radius)
+				}
 				else -> "DFLT"
 			}
 		}
@@ -194,6 +196,9 @@ class Shape2DField(id: String, getter: () -> Shape2D, setter: (Shape2D) -> Unit)
 				}
 				"PARA" -> {
 					Parallelogram(ByteData.string2Vec2(s.substring(4, 12)), ByteData.string2Vec2(s.substring(12, 20)), ByteData.string2Vec2(s.substring(20, 28)))
+				}
+				"CIRC" -> {
+					Circle(ByteData.string2Vec2(s.substring(4, 12)), ByteData.string2Float(s.substring(12, 16)))
 				}
 				"POLY" -> {
 					val numVerts = ByteData.string2Int(s.substring(4), 2)

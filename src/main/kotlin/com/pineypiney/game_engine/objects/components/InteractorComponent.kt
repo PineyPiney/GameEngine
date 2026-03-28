@@ -57,7 +57,7 @@ interface InteractorComponent : ComponentI {
 		return when (state.i) {
 			0 if state.controlType == ControlType.MOUSE -> onPrimary(window, action, state.mods, cursorPos)
 			1 if state.controlType == ControlType.MOUSE -> onSecondary(window, action, state.mods, cursorPos)
-			else -> 0
+			else -> action
 		}
 	}
 

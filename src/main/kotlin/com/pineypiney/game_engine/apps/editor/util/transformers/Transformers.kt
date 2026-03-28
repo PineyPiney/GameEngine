@@ -108,7 +108,7 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 			}
 
 			obj.addChild(moveButton.parent, rotateButton.parent, scaleButton.parent, colliderButton.parent)
-			obj.pixel(Vec2i(288, 0), Vec2i(20), Vec2(-1f, .4f))
+			obj.pixel(Vec2i(screen.settings.objectBrowserWidth, 0), Vec2i(20), Vec2(-1f, .4f))
 
 			return obj
 		}

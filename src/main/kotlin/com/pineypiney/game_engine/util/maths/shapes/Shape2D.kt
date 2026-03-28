@@ -47,7 +47,17 @@ abstract class Shape2D : Shape<Vec2>() {
 
 	abstract fun getBoundingCircle(): Circle
 
-	fun calculateCollision(other: Shape2D, movement: Vec2, stepBias: Vec2 = Vec2(0f)): Collision2D?{
+	open fun getConvexPolygons(): Iterable<Shape2D> = listOf(this)
+
+	open fun calculateCollision(other: Shape2D, movement: Vec2, stepBias: Vec2 = Vec2(0f)): Collision2D? {
+		val convexShapes = getConvexPolygons()
+		val otherShapes = other.getConvexPolygons()
+		val collisions = convexShapes.flatMap { otherShapes.mapNotNull { otherConvex -> it.calculateConvexCollision(otherConvex, movement, stepBias) } }
+		return if (collisions.isEmpty()) null
+		else collisions.maxBy { it.removeShape1FromShape2.length2() }
+	}
+
+	fun calculateConvexCollision(other: Shape2D, movement: Vec2, stepBias: Vec2 = Vec2(0f)): Collision2D? {
 		val still = movement == Vec2(0f)
 		val normals = (getNormals() + other.getNormals() + (min - other.min).normalize()).toSet()
 		val lengths = normals.associateWith {

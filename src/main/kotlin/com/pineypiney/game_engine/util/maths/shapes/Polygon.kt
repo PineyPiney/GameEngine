@@ -24,6 +24,8 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 	}
 
 	val triangles = triangulate()
+	val convexPolygons = decomposeToConvexPolygons()
+	val convex = convexPolygons.size == 1
 
 	override fun intersectedBy(ray: Ray): Array<Vec3> {
 		return tryTriangles { shape ->
@@ -48,7 +50,7 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 		val set = mutableSetOf<Vec2>()
 		for (i in vertices.indices) {
 			val line = vertices[(i + 1) % vertices.size] - vertices[i]
-			set.add(line.normal())
+			set.add(line.normal().normalize())
 		}
 		return set
 	}
@@ -60,6 +62,11 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 	override fun getBoundingCircle(): Circle {
 		val rad = (max - min) / 2
 		return Circle(min + rad, rad.length())
+	}
+
+	override fun getConvexPolygons(): Iterable<Shape2D> {
+		return if (convex) listOf(this)
+		else convexPolygons.map { indexes -> Polygon(indexes.map { vertices[it] }) }
 	}
 
 	override fun transformedBy(model: Mat4): Shape2D {
@@ -139,7 +146,7 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 		return triangles
 	}
 
-	fun decomposeToConvexPolygons(): List<Polygon> {
+	fun decomposeToConvexPolygons(): List<List<Int>> {
 		val polygons = triangles.map { mutableListOf(it.first, it.second, it.third) }
 		val lines = CollectionMap.set<Pair<Int, Int>, Int>()
 
@@ -238,7 +245,7 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 			currentPolygon = p0Index
 		}
 
-		return polygons.filter { it.size >= 3 }.map { indexes -> Polygon(indexes.map { vertices[it] }) }
+		return polygons.filter { it.size >= 3 }
 	}
 
 	override fun toString(): String {

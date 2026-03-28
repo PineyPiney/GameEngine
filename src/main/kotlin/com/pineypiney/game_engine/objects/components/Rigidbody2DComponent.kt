@@ -33,7 +33,7 @@ class Rigidbody2DComponent(parent: GameObject, var mass: Float = 1f, var frictio
 		velocity plusAssign acceleration * interval
 		if(velocity dot oldVelocity < 0f) velocity = Vec2(0f)
 
-		if(velocity != Vec3(0f)) {
+		if (velocity != Vec2(0f)) {
 			val movement = velocity * interval
 			if (collider?.active == true) {
 				val endMovement = Vec2(movement)

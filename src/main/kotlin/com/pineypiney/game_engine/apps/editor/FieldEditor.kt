@@ -26,10 +26,7 @@ import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.capitalise
-import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
-import com.pineypiney.game_engine.util.maths.shapes.Polygon
-import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.util.maths.shapes.Shape2D
+import com.pineypiney.game_engine.util.maths.shapes.*
 import com.pineypiney.game_engine.util.s
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
@@ -373,9 +370,10 @@ open class Shape2DFieldEditor(parent: GameObject, f: Shape2DField, component: Co
 
 	val dropdown = DropdownComponent.createDropdownMenu("Shape Field", ShapeType.entries.map { it.id }.toTypedArray(), 4f, Text.Params().withFontSize(16)) { _, selected ->
 		val shape = when(selected) {
-			"Rectangle" -> Rect2D(Vec2(0f), 1f, 1f)
+			"Rectangle" -> Rect2D(Vec2(-.5f), 1f, 1f)
 			"Parallelogram" -> Parallelogram(Vec2(0f), Vec2(-1f, 1f), Vec2(1f))
 			"Polygon" -> Polygon(listOf(Vec2(-1f), Vec2(-1f, 1f), Vec2(1f), Vec2(1f, -1f)))
+			"Circle" -> Circle(Vec2(0f), 1f)
 			else -> null
 		}
 		if(shape != null){
@@ -544,6 +542,48 @@ open class Shape2DFieldEditor(parent: GameObject, f: Shape2DField, component: Co
 		}),
 		POLYGON("Polygon", Polygon::class, 0, e@{ _, _, _, _ ->
 
+		}),
+		CIRCLE("Circle", Circle::class, 2, e@{ h, getter, consumer, callback ->
+
+			fun getCircle(): Circle? {
+				val shape = getter() as? Circle
+				if (shape == null) {
+					GameEngineI.logger.warn("ShapeType Circle in ShapeFieldEditor received shape type ${getter()::class}")
+				}
+				return shape
+			}
+
+			val current = getCircle() ?: Circle(Vec2(0f), 1f)
+
+			val centerText = Text.makeMenuText("Center", Vec4(0f, 0f, 0f, 1f), 16, Text.ALIGN_CENTER_RIGHT).apply { position = Vec3(0f, .54f, .01f); scale = Vec3(.25f, .46f, 1f) }
+			val centerXField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Pos.x Field", Vec3(.27f, .54f, 0f), Vec2(.345f, .46f), current.center.x.toString(), h) { field, _, _ ->
+					val circle = getCircle() ?: return@createActionTextFieldAt
+					val newVal = Circle(Vec2(field.text.toFloat(), circle.center.y), circle.radius)
+					callback(circle, newVal)
+					consumer.accept(newVal)
+				}
+			val centerYField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Pos.y Field", Vec3(.625f, .54f, 0f), Vec2(.345f, .46f), current.center.y.toString(), h) { field, _, _ ->
+					val circle = getCircle() ?: return@createActionTextFieldAt
+					val newVal = Circle(Vec2(circle.center.x, field.text.toFloat()), circle.radius)
+					callback(circle, newVal)
+					consumer.accept(newVal)
+				}
+
+
+			val radiusText = Text.makeMenuText("Radius", Vec4(0f, 0f, 0f, 1f), 16, Text.ALIGN_CENTER_RIGHT).apply { position = Vec3(0f, .0f, .01f); scale = Vec3(.25f, .46f, 1f) }
+			val radiusField =
+				ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Angle Field", Vec3(.27f, 0f, 0f), Vec2(.7f, .46f), current.radius.toString(), h) { field, _, _ ->
+					val circle = getCircle() ?: return@createActionTextFieldAt
+					val newVal = Circle(circle.center, field.text.toFloat())
+					callback(circle, newVal)
+					consumer.accept(newVal)
+				}
+
+			deleteAllChildren()
+			addChild(centerText, centerXField.parent, centerYField.parent, radiusText, radiusField.parent)
+			init()
 		});
 
 		companion object {

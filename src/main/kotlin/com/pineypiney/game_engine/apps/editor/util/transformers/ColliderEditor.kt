@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.apps.editor.EditorScreen
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
+import com.pineypiney.game_engine.objects.components.fields.Shape2DField
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionPolygonRenderer
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.extension_functions.*
@@ -17,6 +18,7 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW
 import kotlin.math.roundToInt
+import kotlin.math.sign
 
 class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(parent, screen) {
 
@@ -44,6 +46,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 		Cursor.create(screen.gameEngine, "textures/editor/rotate_sw.png", Vec2i(32, 0)),
 		Cursor.create(screen.gameEngine, "textures/editor/rotate_nw.png", Vec2i(32)),
 	)
+	var oldShape: Shape2D? = null
 
 	override var forceUpdate: Boolean = true
 
@@ -120,6 +123,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 		val collider = obj.getComponent<Collider2DComponent>() ?: return action
 		val transformedShape = collider.transformedShape
 		val points = getPoints(transformedShape) ?: return action
+		if (action == 1) oldShape = collider.shape
 
 		if (hovered > -1) {
 			val point = points[hovered]
@@ -127,9 +131,9 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 				1 -> {
 					grabPoint = cursorPos.screenSpace - getScreenPos(point)
 				}
-//				0 -> if (oldPos.x != Float.MAX_VALUE) screen.editManager.addEdit(ComponentFieldEdit.moveEdit(
-//					obj, screen, oldPos, obj.position
-//				))
+				0 -> {
+					saveEdit(collider, collider.shape)
+				}
 			}
 			return INTERRUPT
 		} else if (hoveredLine > -1) {
@@ -142,7 +146,11 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 						val newPoint = Vec2(getWorldPos(cursorPos.screenSpace).transformedBy(obj.worldModel.inverse()))
 						points.add(newPoint)
 						points.addAll(basePoints.subList(hoveredLine + 1, basePoints.size))
-						updateShape(obj, Polygon(points))
+						val newShape = Polygon(points)
+
+						saveEdit(collider, newShape)
+						updateShape(collider, newShape)
+
 						grabPoint = Vec2(0f)
 						hovered = hoveredLine + 1
 						hoveredLine = -1
@@ -177,6 +185,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 		super.onSecondary(window, action, mods, cursorPos)
 
 		val obj = screen.editingObject ?: return action
+		val collider = obj.getComponent<Collider2DComponent>() ?: return action
 		val shape = obj.getComponent<Collider2DComponent>()?.shape ?: return action
 
 		if (hovered > -1) {
@@ -186,7 +195,9 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 					if (shape is Polygon) {
 						val points = shape.vertices.toMutableList()
 						points.removeAt(hovered)
-						updateShape(obj, Polygon(points))
+						val newShape = Polygon(points)
+						saveEdit(collider, newShape)
+						updateShape(collider, newShape)
 						hovered = -1
 					}
 				}
@@ -232,7 +243,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 			} else null
 		}
 		if (newShape != null) {
-			updateShape(obj, newShape)
+			updateShape(collider, newShape)
 		}
 	}
 
@@ -242,6 +253,10 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 				val points = shape.vertices.toMutableList()
 				points[hovered] = dragWorldPoint
 				Polygon(points)
+			}
+			is Circle -> {
+				if (hovered == 0) Circle(dragWorldPoint, shape.radius)
+				else Circle(shape.center, (shape.center - dragWorldPoint).length())
 			}
 
 			is Rect2D -> {
@@ -291,6 +306,10 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 				points[hoveredLine] = dragWorldPoint
 				points[(hoveredLine + 1) % points.size] = dragWorldPoint + secondPointOffset
 				Polygon(points)
+			}
+			is Circle -> {
+				if (hoveredLine > 0) Circle(shape.center, (dragWorldPoint - shape.center).length())
+				else null
 			}
 
 			is Rect2D -> {
@@ -360,9 +379,14 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 		}
 	}
 
-	fun updateShape(obj: GameObject, newShape: Shape2D) {
-		obj.getComponent<Collider2DComponent>()?.shape = newShape
+	fun updateShape(collider: Collider2DComponent, newShape: Shape2D) {
+		collider.shape = newShape
 		screen.componentBrowser.refreshField("Collider2DComponent.shape")
+	}
+
+	fun saveEdit(collider: Collider2DComponent, newShape: Shape2D) {
+		oldShape?.let { if (oldShape != newShape) screen.setFieldValue(collider, Shape2DField("shape", collider::shape) { collider.shape = it }, it, newShape) }
+		oldShape = newShape
 	}
 
 	fun getPoints(shape: Shape2D): List<Vec2>? {
@@ -370,6 +394,9 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 			is Polygon -> shape.vertices
 			is Rect2D -> shape.points.toList()
 			is Parallelogram -> shape.points.toList()
+			is Circle -> {
+				List(9) { shape.center + Vec2.fromAngle(it * .25f * PIF, shape.radius * it.sign) }
+			}
 			else -> null
 		}
 	}

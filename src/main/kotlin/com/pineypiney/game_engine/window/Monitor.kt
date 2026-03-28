@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.window
 
-import com.pineypiney.game_engine.util.GLFunc.Companion.getVec2
-import com.pineypiney.game_engine.util.GLFunc.Companion.getVec2i
+import com.pineypiney.game_engine.util.GLFunc.getVec2
+import com.pineypiney.game_engine.util.GLFunc.getVec2i
 import com.pineypiney.game_engine.util.extension_functions.toArray
 import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW

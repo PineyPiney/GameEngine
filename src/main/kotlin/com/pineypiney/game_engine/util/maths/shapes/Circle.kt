@@ -26,7 +26,7 @@ class Circle(val center: Vec2, val radius: Float) : Shape2D() {
 	}
 
 	override fun containsPoint(point: Vec2): Boolean {
-		return (point - center).length2() > radius * radius
+		return (point - center).length2() <= radius * radius
 	}
 
 	override fun vectorTo(point: Vec2): Vec2 {

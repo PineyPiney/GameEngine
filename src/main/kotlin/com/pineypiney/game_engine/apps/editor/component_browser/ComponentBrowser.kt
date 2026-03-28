@@ -180,15 +180,14 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 	}
 
 	fun <T, F: ComponentField<T>> addComponentField(component: ComponentI, f: F, compCont: GameObject, pixelY: Int, pixelHeight: Int): Int{
-		val fieldID = "${component.id}.${f.id}"
 		val editor = createEditor(
-			GameObject("Field Editor $fieldID", 1),
+			GameObject("Field Editor ${component.id}.${f.id}", 1),
 			f,
 			component,
 			Vec2i(0, -pixelY),
 			Vec2i(screen.settings.componentBrowserWidth, pixelHeight)
 		) { ov, v ->
-			screen.setFieldValue(component, fieldID, f, ov, v)
+			screen.setFieldValue(component, f, ov, v)
 		}.applied().parent
 
 		compCont.addChild(editor)

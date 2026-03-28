@@ -32,12 +32,13 @@ class ButtonComponent(
 	var active: Boolean = true
 
 	override fun onInput(window: WindowI, state: InputState, action: Int, cursorPos: CursorPosition): Int {
-		super.onInput(window, state, action, cursorPos)
+		if (super.onInput(window, state, action, cursorPos) == INTERRUPT) return INTERRUPT
 		if (state == InputState(GLFW.GLFW_GAMEPAD_BUTTON_A, ControlType.GAMEPAD_BUTTON) && active) {
 			when (action) {
 				GLFW.GLFW_PRESS -> onClick(this, cursorPos.position)
 				GLFW.GLFW_RELEASE -> onUnClick(this, cursorPos.position)
 			}
+			return INTERRUPT
 		}
 		return action
 	}
@@ -49,6 +50,7 @@ class ButtonComponent(
 				GLFW.GLFW_PRESS -> onClick(this, cursorPos.position)
 				GLFW.GLFW_RELEASE -> onUnClick(this, cursorPos.position)
 			}
+			return INTERRUPT
 		}
 		return action
 	}
@@ -129,6 +131,33 @@ class ButtonComponent(
 
 			val obj = GameObject(name, 1)
 			obj.os(origin, size)
+			val getColour = { b: ButtonComponent ->
+				when {
+					b.pressed -> clickTint
+					b.hover -> hoverTint
+					else -> baseTint
+				}
+			}
+			addSpriteButton(obj, sprite, baseTint, shader, getColour, action)
+
+			return obj
+		}
+
+		fun createSpriteButton(
+			name: String,
+			sprite: Sprite,
+			pos: Vec2i,
+			size: Vec2i,
+			origin: Vec2 = Vec2(-1f),
+			shader: RenderShader = ColouredSpriteComponent.colouredMenuShader,
+			baseTint: Vec4 = Vec4(1f),
+			hoverTint: Vec4 = Vec4(.95f),
+			clickTint: Vec4 = Vec4(.9f),
+			action: (ButtonComponent, Vec2) -> Unit
+		): GameObject {
+
+			val obj = GameObject(name, 1)
+			obj.pixel(pos, size, origin)
 			val getColour = { b: ButtonComponent ->
 				when {
 					b.pressed -> clickTint

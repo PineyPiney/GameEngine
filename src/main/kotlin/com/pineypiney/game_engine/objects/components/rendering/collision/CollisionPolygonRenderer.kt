@@ -11,11 +11,9 @@ import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.transformedBy
-import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
-import com.pineypiney.game_engine.util.maths.shapes.Polygon
-import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.util.maths.shapes.Shape2D
+import com.pineypiney.game_engine.util.extension_functions.PIF
+import com.pineypiney.game_engine.util.extension_functions.fromAngle
+import com.pineypiney.game_engine.util.maths.shapes.*
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
@@ -36,7 +34,7 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, val wid
 	}
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
-		val shape = obj?.getComponent<Collider2DComponent>()?.shape
+		val shape = obj?.getComponent<Collider2DComponent>()?.transformedShape
 		if(shape != lastShape){
 			lastShape = shape
 			mesh?.delete()
@@ -46,9 +44,10 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, val wid
 				mesh = null
 				pointMesh = null
 			} else {
-				val transformedPoints = points.map { it.transformedBy(obj!!.worldModel) }
-				mesh = createMesh(transformedPoints)
-				pointMesh = createPointMesh(transformedPoints, pointSize)
+				mesh = createMesh(points)
+				pointMesh =
+					if (shape is Circle) createPointMesh(listOf(shape.center), pointSize)
+					else createPointMesh(points, pointSize)
 			}
 		}
 		mesh?.let {
@@ -74,6 +73,7 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, val wid
 				is Rect2D -> shape.points
 				is Parallelogram -> shape.points
 				is Polygon -> shape.vertices
+				is Circle -> List(32) { shape.center + Vec2.fromAngle(it * .0625f * PIF, shape.radius) }
 				else -> null
 			}
 		}

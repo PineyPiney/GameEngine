@@ -72,14 +72,15 @@ class GameObjectSerializer {
 			head.append(lengthAndString(prefab.name, 1))
 			val template = prefab.parse()
 			val edits = mutableListOf<PrefabEdit>()
-			getChanges(prefab, template, "", edits)
+			getEdits(prefab, template, "", edits)
 			val tree = NodeTree.createFrom(edits, PrefabEdit::parentLoc, '$')
+			head.append(ByteData.int2String(tree.nodes.size, 2))
 			for(node in tree.nodes){
-				serialiseNode(node, head, data)
+				serialisePrefabEdit(node, head, data)
 			}
 		}
 
-		private fun serialiseNode(node: NodeTree.Node<PrefabEdit>, head: StringBuilder, data: StringBuilder){
+		private fun serialisePrefabEdit(node: NodeTree.Node<PrefabEdit>, head: StringBuilder, data: StringBuilder) {
 
 			head.append(lengthAndString(node.id, 1))
 
@@ -88,7 +89,7 @@ class GameObjectSerializer {
 				is NodeTree.ListNode -> { parts.add(addListPart("NODE", node.items, PrefabEdit::serialise))}
 				is NodeTree.ItemNode -> { parts.add(addListPart("NODE", listOf(node.item), PrefabEdit::serialise))}
 			}
-			if(node.children.isNotEmpty()) parts.add(addListPart("CHLD", node.children, ::serialiseNode))
+			if (node.children.isNotEmpty()) parts.add(addListPart("CHLD", node.children, ::serialisePrefabEdit))
 
 			head.append(ByteData.int2String(parts.size, 1))
 			for ((h, d) in parts) {
@@ -97,7 +98,7 @@ class GameObjectSerializer {
 			}
 		}
 
-		private fun getChanges(prefab: GameObject, template: GameObject, chain: String, edits: MutableList<PrefabEdit>){
+		private fun getEdits(prefab: GameObject, template: GameObject, chain: String, edits: MutableList<PrefabEdit>) {
 			if(prefab.layer != template.layer) edits.add(PrefabFieldEdit(chain, "l", prefab.layer.toString(), null))
 			if(prefab.active != template.active) edits.add(PrefabFieldEdit(chain, "a", if(prefab.active) "\u0001" else "\u0000", null))
 
@@ -144,7 +145,7 @@ class GameObjectSerializer {
 				// If the template also has the child then the child's changes should also be saved
 				if(other != null) {
 					val newChain = if(chain.isEmpty()) i.name else chain + '$' + i.name
-					getChanges(i, other, newChain, edits)
+					getEdits(i, other, newChain, edits)
 					tempChildren.remove(i.name)
 				}
 				// If the template did not have this child then it needs to be saved as a new child
@@ -177,8 +178,7 @@ class GameObjectSerializer {
 		}
 
 		fun parseChild(head: InputStream, data: InputStream, lateParse: MutableList<Triple<ComponentI, ComponentField<*>, String>>, dest: GameObject? = null, parseLate: Boolean): GameObject {
-			val type = head.short()
-			return when(type){
+			return when (val type = head.short()) {
 				0xdefa -> parseDefaultObject(head, data, lateParse, dest, parseLate)
 				0xefab -> parsePrefab(head, data, lateParse, dest, parseLate)
 				else -> {
@@ -268,8 +268,11 @@ class GameObjectSerializer {
 			val name = head.readString(nameLength)
 			o.name = name
 
-			if(head.available() > 0){
-				o.edits.addAll(parseNode("", head, data, if(parseLate) lateParse else null))
+			val numEdits = head.short()
+			repeat(numEdits) {
+				if (head.available() > 0) {
+					o.edits.addAll(parsePrefabEdit("", head, data, if (parseLate) lateParse else null))
+				}
 			}
 
 			for(edit in o.edits) edit.execute(o)
@@ -277,7 +280,7 @@ class GameObjectSerializer {
 			return o
 		}
 
-		fun parseNode(parent: String, head: InputStream, data: InputStream, lateParse: LateParse?): List<PrefabEdit>{
+		fun parsePrefabEdit(parent: String, head: InputStream, data: InputStream, lateParse: LateParse?): List<PrefabEdit> {
 
 			val nodeNameLength = head.read()
 			val nodeName = if(nodeNameLength == 0) "" else head.readNBytes(nodeNameLength).toString(Charsets.ISO_8859_1)
@@ -301,7 +304,7 @@ class GameObjectSerializer {
 							}
 						}
 					}
-					"CHLD" -> repeat(head.int()) { list.addAll(parseNode(parentLoc, head, data, lateParse)) }
+					"CHLD" -> repeat(head.int()) { list.addAll(parsePrefabEdit(parentLoc, head, data, lateParse)) }
 				}
 			}
 			return list

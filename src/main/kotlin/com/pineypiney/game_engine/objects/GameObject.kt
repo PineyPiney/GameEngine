@@ -334,8 +334,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 		while(children.isNotEmpty()) children.firstOrNull()?.delete() ?: break
 		parent?.removeChild(this)
 
-		objects?.map?.get(layer)?.remove(this)
-		objects = null
+		objects?.removeObject(this)
 	}
 
 	companion object {

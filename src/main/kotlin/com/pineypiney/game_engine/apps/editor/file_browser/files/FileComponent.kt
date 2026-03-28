@@ -81,11 +81,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 	}
 
 	open fun open(){
-		val saveType = SavableFiles.list.firstOrNull { it.ext == file.extension } ?: return
-
-		browser.screen.sceneObjects.delete()
-		saveType.load(file, browser.screen)
-		browser.screen.loadedFile(file)
+		browser.screen.openFile(file)
 	}
 
 	override fun getElement(): Any = file

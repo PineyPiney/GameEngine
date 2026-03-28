@@ -18,13 +18,19 @@ import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.fields.Vec3Field
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
+import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
+import com.pineypiney.game_engine.resources.textures.Sprite
+import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.Cursor
+import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.extension_functions.isBetween
+import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowGameLogic
@@ -82,8 +88,28 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 
 	val cursor = Cursor.create(gameEngine, "textures/cursor.png", Vec2i(39, 1)) ?: Cursor(GLFW.GLFW_ARROW_CURSOR)
 
+	var playStatus = 0
+	val playButton: GameObject
+	val pauseButton: GameObject
+	val stopButton: GameObject
+
+	init {
+		val iconTexture = TextureLoader[ResourceKey("editor/icons")]
+		playButton = ButtonComponent.createSpriteButton("Play Button", Sprite(iconTexture, 40f, Vec2(-1f, 1f), Vec2(.25f, 0f), Vec2(.25f, 1f)), Vec2i(-78, -20), Vec2i(20), Vec2(0f, 1f)) { _, _ ->
+			playStatus = PLAYING
+		}
+		pauseButton = ButtonComponent.createSpriteButton("Pause Button", Sprite(iconTexture, 40f, Vec2(-1f, 1f), Vec2(.5f, 0f), Vec2(.25f, 1f)), Vec2i(-58, -20), Vec2i(20), Vec2(0f, 1f)) { _, _ ->
+			playStatus = PAUSED
+		}
+		stopButton = ButtonComponent.createSpriteButton("Stop Button", Sprite(iconTexture, 40f, Vec2(-1f, 1f), Vec2(.75f, 0f), Vec2(.25f, 1f)), Vec2i(-38, -20), Vec2i(20), Vec2(0f, 1f)) { _, _ ->
+			playStatus = STOPPED
+			openFile(openFile)
+		}
+	}
+
 	override fun addObjects() {
 		add(fileBrowser.parent, objectBrowser.parent, componentBrowser.parent, Transformers.createSelector(this))
+		add(playButton, pauseButton, stopButton)
 		add(fpsText)
 	}
 
@@ -94,6 +120,13 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 
 	override fun render(tickDelta: Double) {
 		renderer.render(this, tickDelta)
+	}
+
+	override fun update(interval: Float, input: Inputs) {
+		super.update(interval, input)
+		if (playStatus == PLAYING) {
+			sceneObjects.update(interval)
+		}
 	}
 
 	override fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
@@ -131,8 +164,8 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 				dragging.hoveringScene = true
 				val sceneRenderer = dragging.parent.getChild("Scene Renderer")
 				if(sceneRenderer != null){
-					sceneObjects.addObject(dragging.parent)
 					remove(dragging.parent)
+					sceneObjects.addObject(dragging.parent)
 					dragging.parent.getChild("Menu Renderer")?.active = false
 					sceneRenderer.active = true
 				}
@@ -191,13 +224,13 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 			val sceneCursor = getSceneCursorPosition(input.mouse.lastPos)
 			if(componentInput(it, state, action, sceneCursor, false)) return InteractorComponent.INTERRUPT
 		}
+		if (action == 1 && state.triggers(InputState(0, ControlType.MOUSE))) {
+			selectSceneObject()
+		}
 		return action
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte) {
-		if(action != 1) return
-		// If hovering the transformer then don't select a new object
-		if(transformer != null && transformer?.getComponent<Transformer>()?.hover == true) return
+	fun selectSceneObject() {
 
 		// Select one of the objects in the scene
 		val allObjects = sceneObjects.map.flatMap { it.value.flatMap { it.catchRenderingComponents() } }
@@ -304,24 +337,22 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	fun <T, F: ComponentField<T>> setFieldValue(component: ComponentI, fieldID: String, field: F, oldValue: T, value: T){
+	fun <T, F : ComponentField<T>> setFieldValue(component: ComponentI, field: F, oldValue: T, value: T) {
 		var newValue = value
-		when(fieldID){
-			"TransformComponent.position" -> {
-				editingObject?.getComponent<EditorPositioningComponent>()?.let{ pc ->
-					(field as? Vec3Field)?.let {
-						if(oldValue != null && value != null) {
-							val p = pc.place(oldValue as Vec3, value as Vec3)
-							field.setter(p)
-							newValue = p as T
-						}
+		if (component is TransformComponent && field.id == "position") {
+			editingObject?.getComponent<EditorPositioningComponent>()?.let { pc ->
+				(field as? Vec3Field)?.let {
+					if (oldValue != null && value != null) {
+						val p = pc.place(oldValue as Vec3, value as Vec3)
+						field.setter(p)
+						newValue = p as T
 					}
 				}
 			}
 		}
 
 		repositionTransformer()
-		editManager.addEdit(ComponentFieldEdit(editingObject ?: return, this, fieldID, field.serialise(component, oldValue), field.serialise(component, newValue)))
+		editManager.addEdit(ComponentFieldEdit(editingObject ?: return, this, "${component.id}.${field.id}", field.serialise(component, oldValue), field.serialise(component, newValue)))
 	}
 
 	fun <C: ContextMenu.Context> setContextMenu(context: C, menu: ContextMenu<C>, pos: Vec2){
@@ -346,6 +377,13 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 			val fileType = SavableFiles.list.firstOrNull { it.ext == file.extension } ?: return
 			fileType.save(file, this)
 		}
+	}
+
+	fun openFile(file: File) {
+		val saveType = SavableFiles.list.firstOrNull { it.ext == file.extension } ?: return
+		sceneObjects.delete()
+		saveType.load(file, this)
+		loadedFile(file)
 	}
 
 	fun loadedFile(file: File){
@@ -427,6 +465,11 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 	}
 
 	companion object {
+
+		const val PLAYING = 2
+		const val PAUSED = 1
+		const val STOPPED = 0
+
 		init {
 			SavableFiles.add("Prefab", "pfb", ByteArray(4), { file, screen ->
 				screen.sceneObjects.map.flatMap { it.value }.firstOrNull()?.let{
