@@ -8,19 +8,14 @@ class LibrarySetUp {
 	companion object {
 
 		fun initLibraries() {
-			initOpenGL()
-			initOpenAL()
+			initGLFW()
 		}
 
-		fun initOpenGL() {
+		fun initGLFW() {
 			GLFWErrorCallback.createPrint(System.err).set()
 
 			// Initialize GLFW. Most GLFW functions will not work before doing this.
 			check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
-		}
-
-		fun initOpenAL() {
-
 		}
 	}
 }

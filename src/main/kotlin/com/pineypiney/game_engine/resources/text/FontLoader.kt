@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.TextureParameters
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.length
 import glm_.*
@@ -32,9 +33,11 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 	override val missing: Font = BitMapFont("broke", Texture.broke, null, mapOf(), null)
 
 	fun loadFonts(streams: ResourcesLoader.Streams){
-		streams.useEachStream { fileName, stream ->
-			if(fileName.substringAfter('.') == "bff"){
-				loadFontFromBFF(fileName, stream)
+		if (GLFunc.isLoaded) {
+			streams.useEachStream { fileName, stream ->
+				if (fileName.substringAfter('.') == "bff") {
+					loadFontOpenGlFromBFF(fileName, stream)
+				}
 			}
 		}
 	}
@@ -162,7 +165,7 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 		return charMap.toMap()
 	}
 
-	fun loadFontFromBFF(fontName: String, stream: InputStream){
+	fun loadFontOpenGlFromBFF(fontName: String, stream: InputStream) {
 		val header = stream.readNBytes(2)
 		if(header[0] != 0xBF.toByte() || header[1] != 0xF2.toByte()) {
 			GameEngineI.logger.warn("Could not load BBF File $fontName, invalid header")

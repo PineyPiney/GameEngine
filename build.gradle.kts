@@ -53,6 +53,8 @@ repositories {
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.24")
 
+    implementation(kotlin("reflect"))
+
     // Logback
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     implementation("ch.qos.logback:logback-classic:1.5.32")
@@ -65,14 +67,15 @@ dependencies {
     // LWJGL
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
 
-    implementation("org.lwjgl", "lwjgl")
-    implementation("org.lwjgl", "lwjgl-assimp")
-    implementation("org.lwjgl", "lwjgl-glfw")
-    implementation("org.lwjgl", "lwjgl-jemalloc")
-    implementation("org.lwjgl", "lwjgl-openal")
-    implementation("org.lwjgl", "lwjgl-opengl")
-    implementation("org.lwjgl", "lwjgl-openvr")
-    implementation("org.lwjgl", "lwjgl-stb")
+    implementation("org.lwjgl:lwjgl")
+    implementation("org.lwjgl:lwjgl-assimp")
+    implementation("org.lwjgl:lwjgl-glfw")
+    implementation("org.lwjgl:lwjgl-jemalloc")
+    implementation("org.lwjgl:lwjgl-openal")
+    implementation("org.lwjgl:lwjgl-opengl")
+    implementation("org.lwjgl:lwjgl-openvr")
+    implementation("org.lwjgl:lwjgl-stb")
+    implementation("org.lwjgl:lwjgl-vulkan")
     runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives + nativesSpec)
     runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = lwjglNatives + nativesSpec)
     runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = lwjglNatives + nativesSpec)
@@ -90,7 +93,6 @@ dependencies {
 
     // Gson for JSON parsing
     implementation("org.json:json:20231013")
-	implementation(kotlin("reflect"))
 }
 
 publishing{

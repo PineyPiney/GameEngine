@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.TextureParameters
+import com.pineypiney.game_engine.util.GLFunc
 import glm_.i
 import glm_.vec2.Vec2t
 import org.lwjgl.BufferUtils
@@ -18,9 +19,21 @@ open class Framebuffer(var width: Int, var height: Int, var format: Int = GL_RGB
 
 	constructor(size: Vec2t<*>, format: Int = GL_RGB, internalFormat: Int = format) : this(size.x.i, size.y.i, format, internalFormat)
 
-	val FBO = glGenFramebuffers()
-	val TCB = glGenTextures()
-	val RBO = glGenRenderbuffers()
+	val FBO: Int
+	val TCB: Int
+	val RBO: Int
+
+	init {
+		if (GLFunc.isLoaded) {
+			FBO = glGenFramebuffers()
+			TCB = glGenTextures()
+			RBO = glGenRenderbuffers()
+		} else {
+			FBO = 0
+			TCB = 0
+			RBO = 0
+		}
+	}
 
 	val parameters = TextureParameters()
 
@@ -28,7 +41,7 @@ open class Framebuffer(var width: Int, var height: Int, var format: Int = GL_RGB
 		if (width > 0 && height > 0 && (width != this.width || height != this.height)) {
 			this.width = width
 			this.height = height
-			generate()
+			if (GLFunc.isLoaded) generate()
 		}
 	}
 

@@ -2,7 +2,6 @@ package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.input.Inputs
 
@@ -24,7 +23,7 @@ abstract class GameLogic : GameLogicI {
 		//gameObjects.update(0f)
 
 		// Reset textures so that the last bound texture isn't carried over
-		Texture.broke.bind()
+//		Texture.broke.bind()
 	}
 
 	override fun update(interval: Float, input: Inputs) {

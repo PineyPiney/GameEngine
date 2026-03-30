@@ -6,9 +6,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
-import com.pineypiney.game_engine.util.input.DefaultInput
-import com.pineypiney.game_engine.util.input.Inputs
-import com.pineypiney.game_engine.window.Window
+import com.pineypiney.game_engine.window.DefaultGLWindow
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngine
 import java.io.File
@@ -61,9 +59,7 @@ class ObjectAnimator(
 			window.init()
 		}
 
-		val window = object : Window("Animator", 960, 540, false, true) {
-			override val input: Inputs = DefaultInput(this)
-		}
+		val window = DefaultGLWindow("Animator", 960, 540)
 
 		fun run(creator: () -> GameObject, tweaker: (GameObject) -> Unit = {}) {
 			init()

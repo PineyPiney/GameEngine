@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.resources.textures.Texture3D
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL30C.*
 
-class TextureCopyFrameBuffer : Initialisable{
+class TextureCopyFramebuffer : Initialisable {
 
 	val FBO = glGenFramebuffers()
 	var srcSize: Vec2i = Vec2i()

@@ -24,7 +24,6 @@ import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.glfw.GLFWVidMode
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
-import org.lwjgl.opengl.GL
 import org.lwjgl.stb.STBImage
 import java.io.InputStream
 
@@ -131,7 +130,6 @@ abstract class Window(
 	}
 
 	override fun init() {
-		configureGL()
 		configureAL()
 	}
 
@@ -150,20 +148,6 @@ abstract class Window(
 		}
 
 		return windowHandle
-	}
-
-	protected open fun configureGL() {
-		// Make the OpenGL context current
-		GLFW.glfwMakeContextCurrent(windowHandle)
-		// Make the window visible
-		GLFW.glfwShowWindow(windowHandle)
-
-		GL.createCapabilities()
-
-		if (vSync) {
-			// Enable v-sync
-			GLFW.glfwSwapInterval(1)
-		}
 	}
 
 	protected open fun configureAL() {
@@ -293,7 +277,6 @@ abstract class Window(
 	}
 
 	override fun update() {
-		GLFW.glfwSwapBuffers(windowHandle)
 		GLFW.glfwPollEvents()
 	}
 
@@ -309,10 +292,6 @@ abstract class Window(
 		val defaultHints = mapOf(
 			GLFW.GLFW_VISIBLE to 0, // the window will stay hidden after creation
 			GLFW.GLFW_RESIZABLE to 1, // the window will be resizable
-			GLFW.GLFW_CONTEXT_VERSION_MAJOR to 4,
-			GLFW.GLFW_CONTEXT_VERSION_MINOR to 1,
-			GLFW.GLFW_OPENGL_PROFILE to GLFW.GLFW_OPENGL_CORE_PROFILE,
-			GLFW.GLFW_OPENGL_FORWARD_COMPAT to 1,
 			GLFW.GLFW_SAMPLES to 4
 		)
 	}

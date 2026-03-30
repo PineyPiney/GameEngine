@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
+import com.pineypiney.game_engine.rendering.TextureCopyFramebuffer
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.repeat
 import glm_.vec2.Vec2i
@@ -12,6 +12,7 @@ import kool.toBuffer
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL45C.*
 import org.lwjgl.stb.STBImageWrite
+import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 
 class Texture3D(
@@ -35,6 +36,8 @@ class Texture3D(
 		// Apparently OpenGL can randomly reset this value.
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 		glTexImage3D(target, 0, format, width, height, depth, 0, format, dataType, buf)
+
+		MemoryUtil.memFree(buf)
 	}
 
 	fun getSliceData(layer: Int, buffer: ByteBuffer, type: Int = dataType) {
@@ -72,6 +75,8 @@ class Texture3D(
 		// Apparently OpenGL can randomly reset this value.
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 		glTexSubImage3D(target, 0, x, y, z, width, height, depth, format, dataType, buf)
+
+		MemoryUtil.memFree(buf)
 	}
 
 	fun setSubData(data: ByteBuffer, origin: Vec3i, size: Vec3i, format: Int = this.format) =
@@ -101,7 +106,7 @@ class Texture3D(
 	fun saveAtlasPNG(file: String, width: Int): Boolean {
 		val height = Math.ceilDiv(depth, width)
 		val atlas = Texture.create("$id Texture Atlas", this.width * width, this.height * height, format, internalFormat)
-		val copier = TextureCopyFrameBuffer()
+		val copier = TextureCopyFramebuffer()
 		copier.init()
 		copier.setDst(atlas)
 		for (layer in 0 until depth) {
@@ -126,7 +131,7 @@ class Texture3D(
 	fun crop(origin: Vec3i, tr: Vec3i): Texture3D {
 		val size = tr - origin
 		val texture = Texture3D("Cropping of $id", TextureLoader.createTexture3D(null, size.x, size.y, size.z, format))
-		val copier = TextureCopyFrameBuffer()
+		val copier = TextureCopyFramebuffer()
 		copier.init()
 
 		val cropOrigin = Vec2i(origin)

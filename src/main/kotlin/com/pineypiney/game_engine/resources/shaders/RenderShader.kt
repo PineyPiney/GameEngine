@@ -8,7 +8,6 @@ import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
-import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.RandomHelper
 import glm_.b
 import org.lwjgl.opengl.GL46C.GL_FRAGMENT_SHADER
@@ -83,16 +82,15 @@ class RenderShader(
 		val fS: String
 
 		init {
-			val (V, v) = GLFunc.version
 			vS =
-				"#version $V${v}0 core\n" +
+				"#version 330 core\n" +
 						"layout (location = 0) in vec2 aPos;\n" +
 						"\n" +
 						"void main(){\n" +
 						"\tgl_Position = vec4(aPos, 0.0, 1.0);\n" +
 						"}"
 			fS =
-				"#version $V${v}0 core\n" +
+				"#version 330 core\n" +
 						"\n" +
 						"out vec4 FragColour;\n" +
 						"\n" +

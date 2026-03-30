@@ -17,6 +17,10 @@ class ShaderLoader private constructor() : Deleteable {
 	private val shaderMap: MutableMap<ResourceKey, SubShader> = mutableMapOf()
 
 	fun loadShaders(streams: ResourcesLoader.Streams) {
+		if (GLFunc.isLoaded) loadShadersOpenGl(streams)
+	}
+
+	fun loadShadersOpenGl(streams: ResourcesLoader.Streams) {
 		streams.useEachStream { fileName, stream ->
 
 			val i = fileName.lastIndexOf(".")

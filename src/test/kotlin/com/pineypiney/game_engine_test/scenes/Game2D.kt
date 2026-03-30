@@ -5,9 +5,7 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.audio.AudioSource
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.InteractorComponent
-import com.pineypiney.game_engine.objects.components.PixelTransformComponent
-import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
+import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.rendering.*
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
@@ -18,7 +16,7 @@ import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSlider
 import com.pineypiney.game_engine.objects.components.widgets.slider.ColourSliderRendererComponent
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
-import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
+import com.pineypiney.game_engine.rendering.TextureCopyFramebuffer
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
@@ -43,7 +41,6 @@ import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.f
-import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -53,6 +50,7 @@ import kool.Buffer
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.openal.AL10
 import org.lwjgl.opengl.GL11C
+import org.lwjgl.system.MemoryUtil
 import kotlin.math.PI
 import kotlin.math.sign
 
@@ -61,12 +59,13 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	override val renderer = DefaultWindowRenderer<Game2D, OrthographicCamera>(window, OrthographicCamera(window))
 	val camera get() = renderer.camera
 
-	private val pressedKeys = mutableSetOf<Short>()
-
 	val standardCursors = intArrayOf(GLFW_RESIZE_EW_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).map { Cursor(it) }
 	val customCursor = Cursor.create(gameEngine, "textures/cursor.png", Vec2i(40, 2)) ?: standardCursors.first()
 
 	private val audio get() = AudioLoader[(ResourceKey("clair_de_lune"))]
+
+
+	val movement = CharacterController2D(GameObject("Controller"), window, 10f).applied()
 
 	private val b = ButtonComponent.createTextButton("Button", Vec2i(-150, -200), Vec2i(300, 100), Vec2(0f, 1f)) {
 		val device = AudioEngine.getAllOutputDevices().random()
@@ -152,6 +151,9 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	}
 
 	override fun addObjects() {
+		movement.parent.components.add(Rigidbody2DComponent(movement.parent, 1f, 0f, 0f).apply { gravity = Vec2(0f) })
+		add(movement.parent)
+
 		add(texture)
 		add(model1)
 		add(model2)
@@ -193,9 +195,12 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		val font = Font.defaultFont as? TrueTypeFont
 
 		if(font != null) {
+
 			val buffer = Buffer(4 * 640 * 1280) { -1 }
 			val texture = Texture("Dst", TextureLoader.createTexture(buffer, 640, 1280, GL11C.GL_RGBA))
-			val copier = TextureCopyFrameBuffer()
+			MemoryUtil.memFree(buffer)
+
+			val copier = TextureCopyFramebuffer()
 			copier.init()
 			copier.setDst(texture)
 
@@ -229,21 +234,8 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 	override fun render(tickDelta: Double) {
 		renderer.render(this, tickDelta)
-
 		rotateGoblin()
-
-		val speed = 10 * Timer.frameDelta
-		val travel = Vec2()
-
-		if(pressedKeys.contains('W'.s)) travel += Vec2(0, speed)
-		if(pressedKeys.contains('S'.s)) travel -= Vec2(0, speed)
-		if(pressedKeys.contains('A'.s)) travel -= Vec2(speed, 0)
-		if(pressedKeys.contains('D'.s)) travel += Vec2(speed, 0)
-
-		if(travel != Vec2(0)){
-			camera.translate(travel)
-			updateText(input.mouse.lastPos.position)
-		}
+		renderer.camera.setPos(Vec3(Vec2(movement.parent.position), 5f))
 	}
 
 	override fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
@@ -275,9 +267,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 			}
 		}
 
-
-		if(action == 0) pressedKeys.remove(state.key)
-		else pressedKeys.add(state.key)
 		return action
 	}
 

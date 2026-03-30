@@ -21,6 +21,10 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 	val flags = mutableMapOf<String, TextureParameters>()
 
 	fun loadTextures(streams: ResourcesLoader.Streams) {
+		if (GLFunc.isLoaded) loadTexturesOpenGl(streams)
+	}
+
+	fun loadTexturesOpenGl(streams: ResourcesLoader.Streams) {
 		val pointers = IntArray(streams.size)
 		glGenTextures(pointers)
 		val pList = pointers.toMutableSet()

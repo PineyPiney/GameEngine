@@ -141,6 +141,21 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		}
 	}
 
+	fun refreshAllFields() {
+		for (container in componentContainer.children) {
+			for (field in container.children) {
+				field.getComponent<FieldEditor<*, *>>()?.update(screen.settings.textScale)
+			}
+		}
+
+		val container = componentContainer.getChild("Object Fields") ?: return
+		val editingObject = screen.editingObject ?: return
+		container.getChild("Object Name Field")?.getComponent<TextFieldComponent>()?.text = editingObject.name
+		screen.setEditingName(editingObject.name)
+		container.getChild("Object Layer Field")?.getComponent<TextFieldComponent>()?.text = editingObject.layer.toString()
+		container.getChild("Object Active Field")?.getComponent<CheckBoxComponent>()?.ticked = editingObject.active
+	}
+
 	/**
 	 *  Create a section in the component browser for [component]
 	 */

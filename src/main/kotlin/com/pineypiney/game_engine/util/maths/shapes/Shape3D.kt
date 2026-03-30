@@ -123,7 +123,7 @@ abstract class Shape3D : Shape<Vec3>() {
 		//if(lengths.any { it.value == 0f }) return Vec3(0f)
 
 		if (!still) {
-			if (stepBias != Vec2(0f)) {
+			if (stepBias != Vec3(0f)) {
 				val stepMag = stepBias.length()
 				for ((normal, mult) in lengths) {
 					val dot = normal dot stepBias

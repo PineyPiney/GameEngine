@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
+import com.pineypiney.game_engine.rendering.TextureCopyFramebuffer
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.repeat
 import glm_.f
@@ -12,6 +12,7 @@ import kool.toBuffer
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL45C.*
 import org.lwjgl.stb.STBImageWrite
+import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 
 class Texture(
@@ -44,7 +45,9 @@ class Texture(
 		// https://stackoverflow.com/questions/9950546/c-opengl-glteximage2d-access-violation
 		// Apparently OpenGL can randomly reset this value.
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
 		glTexImage2D(target, 0, format, width, height, 0, format, dataType, buf)
+		MemoryUtil.memFree(buf)
 	}
 
 	fun setSubData(
@@ -64,7 +67,9 @@ class Texture(
 		// https://stackoverflow.com/questions/9950546/c-opengl-glteximage2d-access-violation
 		// Apparently OpenGL can randomly reset this value.
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
 		glTexSubImage2D(target, 0, x, y, width, height, format, dataType, buf)
+		MemoryUtil.memFree(buf)
 	}
 
 	fun setSubData(data: ByteBuffer, origin: Vec2i, size: Vec2i, format: Int = this.format) =
@@ -108,8 +113,12 @@ class Texture(
 	 */
 	fun crop(origin: Vec2i, tr: Vec2i): Texture{
 		val size = tr - origin
-		val texture = Texture("Cropping of $id", TextureLoader.createTexture(Buffer(size.x * size.y * numChannels), size.x, size.y, format))
-		val copier = TextureCopyFrameBuffer()
+
+		val buffer = MemoryUtil.memAlloc(size.x * size.y * numChannels)
+		val texture = Texture("Cropping of $id", TextureLoader.createTexture(buffer, size.x, size.y, format))
+		MemoryUtil.memFree(buffer)
+
+		val copier = TextureCopyFramebuffer()
 		copier.init()
 		copier.setDst(texture)
 		copier.setSrc(this)

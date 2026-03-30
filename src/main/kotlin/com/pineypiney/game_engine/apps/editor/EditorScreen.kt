@@ -126,6 +126,8 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 		super.update(interval, input)
 		if (playStatus == PLAYING) {
 			sceneObjects.update(interval)
+			repositionTransformer()
+			componentBrowser.refreshAllFields()
 		}
 	}
 
@@ -197,24 +199,20 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 	override fun onInput(state: InputState, action: Int): Int {
 		if (action == 1){
 			when(state.c) {
-				'P' -> {
-					val file = File((editingObject?.name ?: "snake") + ".pfb")
-					if(file.exists()) {
-						val o = GameObjectSerializer.parse(file.inputStream())
-						o.name
-					}
-				}
+				// Save
 				'S' -> {
 					if(state.control){
 						save()
+						return InteractorComponent.INTERRUPT
 					}
 				}
+				// Undo/Redo
 				'Z' -> {
 					if(state.control){
 						if(state.shift) editManager.redo()
 						else editManager.undo()
-
 						repositionTransformer()
+						return InteractorComponent.INTERRUPT
 					}
 				}
 			}

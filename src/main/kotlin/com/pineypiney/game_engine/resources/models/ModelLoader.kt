@@ -12,6 +12,7 @@ import com.pineypiney.game_engine.resources.models.voxel.VoxModelLoader
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.CollectionMap
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.transformedBy
@@ -43,13 +44,19 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 	val voxLoader = VoxModelLoader()
 
 	fun loadModelTextures(streams: ResourcesLoader.Streams){
-		streams.useEachStream { fileName, stream ->
-			modelTextures[ResourceKey(fileName)] = Texture(fileName, TextureLoader.loadTextureFromStream(fileName, stream))
+		if (GLFunc.isLoaded) {
+			streams.useEachStream { fileName, stream ->
+				modelTextures[ResourceKey(fileName)] = Texture(fileName, TextureLoader.loadTextureFromStream(fileName, stream))
+			}
 		}
 	}
 
 	fun loadModels(streams: ResourcesLoader.Streams) {
+		if (GLFunc.isLoaded) loadModelsOpenGl(streams)
+	}
 
+
+	fun loadModelsOpenGl(streams: ResourcesLoader.Streams) {
 		streams.useEachStream { fileName, stream ->
 			when (val fileType = fileName.substringAfterLast('.')) {
 				"pgm" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadPGMModel(fileName, stream)

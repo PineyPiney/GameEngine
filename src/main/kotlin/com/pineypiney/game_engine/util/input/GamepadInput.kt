@@ -14,7 +14,6 @@ open class GamepadInput(val input: Inputs, key: GLFWJoystickCallbackI? = null) {
 				GLFW_DISCONNECTED -> onControllerDisconnect(jid)
 			}
 		}
-
 	}
 
 	// A list of all connected gamepads
@@ -50,4 +49,6 @@ open class GamepadInput(val input: Inputs, key: GLFWJoystickCallbackI? = null) {
 			else -> GamePad(id, input)
 		}
 	}
+
+	fun getController(id: Int): GamePad? = connectedGamepads.firstOrNull { it.id == id }
 }

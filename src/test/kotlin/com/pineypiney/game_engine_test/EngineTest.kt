@@ -21,7 +21,7 @@ import com.pineypiney.game_engine.util.maths.shapes.Circle
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.window.DefaultWindow
+import com.pineypiney.game_engine.window.DefaultGLWindow
 import com.pineypiney.game_engine.window.DefaultWindowedEngine
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine_test.scenes.*
@@ -95,7 +95,7 @@ class EngineTest{
 
 	companion object {
 		fun <G : GameLogicI, E : GameEngineI<G>> runWindowEngine(engine: (WindowI, (E) -> G, Int, Int) -> E, screen: (E) -> G, ups: Int = 20, fps: Int = 2000, version: Vec2i = Vec2i(3)) {
-			LibrarySetUp.initLibraries()
+			LibrarySetUp.initGLFW()
 
 			val window = TestWindow(version = version)
 			window.init()
@@ -105,14 +105,14 @@ class EngineTest{
 
 	@Test
 	fun testAnimator(){
-		LibrarySetUp.initLibraries()
+		LibrarySetUp.initGLFW()
 		ObjectAnimator.run(::createSnake)
 	}
 
 	@Test
 	fun testEditor(){
-		LibrarySetUp.initLibraries()
-		val window = DefaultWindow("Editor").apply { init() }
+		LibrarySetUp.initGLFW()
+		val window = DefaultGLWindow("Editor").apply { init() }
 		DefaultWindowedEngine(window, { EditorScreen(it) }).run()
 	}
 

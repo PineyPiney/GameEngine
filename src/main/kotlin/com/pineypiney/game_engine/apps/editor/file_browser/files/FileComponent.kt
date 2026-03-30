@@ -76,7 +76,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 			browser.refreshDirectory()
 		}
 		parent.addChild(textField.parent)
-		textField.init()
+		textField.parent.init()
 		textField.forceUpdate = true
 	}
 

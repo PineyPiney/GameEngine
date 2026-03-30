@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.rendering.TextureCopyFrameBuffer
+import com.pineypiney.game_engine.rendering.TextureCopyFramebuffer
 import com.pineypiney.game_engine.rendering.meshes.TextMesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -98,7 +98,7 @@ class TrueTypeFont(
 		var x = 0
 		val dimensions = mutableMapOf<Char, Vec4>()
 
-		val copier = TextureCopyFrameBuffer()
+		val copier = TextureCopyFramebuffer()
 		copier.init()
 		copier.setDst(texture)
 		for((c, t) in textures){
