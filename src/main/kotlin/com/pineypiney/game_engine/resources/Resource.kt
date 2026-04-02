@@ -1,5 +1,5 @@
 package com.pineypiney.game_engine.resources
 
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 
-abstract class Resource : Deleteable
+interface Resource : Deletable

@@ -5,6 +5,7 @@
 gradle
 src/main/kotlin/com/pineypiney/game_engine/Test.kt
 
+Dst.png
 *.log
 
 gradle.properties

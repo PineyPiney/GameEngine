@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine.resources
 
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.util.ResourceKey
 
-abstract class AbstractResourceLoader<E> : Deleteable {
+abstract class AbstractResourceLoader<E> : Deletable {
 
 	protected val map: MutableMap<ResourceKey, E> = mutableMapOf()
 	abstract val missing: E

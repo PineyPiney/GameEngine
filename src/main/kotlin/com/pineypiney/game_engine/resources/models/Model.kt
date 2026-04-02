@@ -20,7 +20,7 @@ class Model(
 	val rootBone: Bone? = null,
 	val animations: Array<ModelAnimation> = arrayOf(),
 	val box: Collider = Collider2D(Rect2D(Vec2(), Vec2(1f)))
-) : Resource() {
+) : Resource {
 
 	/**
 	 * @param name The name of a bone, e.g. head

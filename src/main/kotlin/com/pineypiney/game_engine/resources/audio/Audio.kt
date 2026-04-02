@@ -3,7 +3,7 @@ package com.pineypiney.game_engine.resources.audio
 import com.pineypiney.game_engine.resources.Resource
 import org.lwjgl.openal.AL10
 
-class Audio(val buf: Int) : Resource() {
+class Audio(val buf: Int) : Resource {
 
 
 	val frequency get() = AL10.alGetBufferf(buf, AL10.AL_FREQUENCY)

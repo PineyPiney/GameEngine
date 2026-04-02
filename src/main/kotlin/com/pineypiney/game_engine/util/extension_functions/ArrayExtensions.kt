@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.util.extension_functions
 
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.util.Copyable
 
@@ -179,8 +179,8 @@ fun <E : Initialisable> Array<E>.init() {
 /**
  * Deletes all items in an array of deleteable objects
  */
-fun <E : Deleteable> Array<E>.deleteArray() {
-	forEach(Deleteable::delete)
+fun <E : Deletable> Array<E>.deleteArray() {
+	forEach(Deletable::delete)
 }
 
 /**

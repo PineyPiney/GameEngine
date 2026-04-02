@@ -1,12 +1,12 @@
 package com.pineypiney.game_engine.resources.shaders
 
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL43C
 import java.nio.ByteBuffer
 
 // https://wikis.khronos.org/opengl/Shader_Storage_Buffer_Object
-class ShaderStorageBuffer(val size: Int, val binding: Int, val usage: Int) : Deleteable {
+class ShaderStorageBuffer(val size: Int, val binding: Int, val usage: Int) : Deletable {
 
 	val SSBO = GL43C.glGenBuffers()
 

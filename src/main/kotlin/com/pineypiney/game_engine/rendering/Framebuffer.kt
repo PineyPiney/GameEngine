@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -15,7 +15,7 @@ import org.lwjgl.stb.STBImageWrite
 import java.nio.ByteBuffer
 
 open class Framebuffer(var width: Int, var height: Int, var format: Int = GL_RGB, var internalFormat: Int = format, var binding: Int = 0) :
-	Deleteable {
+	Deletable {
 
 	constructor(size: Vec2t<*>, format: Int = GL_RGB, internalFormat: Int = format) : this(size.x.i, size.y.i, format, internalFormat)
 

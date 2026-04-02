@@ -6,16 +6,21 @@ import com.pineypiney.game_engine.vr.HMD
 import com.pineypiney.game_engine.vr.VRGameEngine
 import com.pineypiney.game_engine.window.WindowI
 
-class TestVREngine(val window: WindowI, screen: (TestVREngine) -> TestVRGame, ups: Int, fps: Int, resourcesLoader: ResourcesLoader = FileResourcesLoader()): VRGameEngine<TestVRGame>(resourcesLoader) {
+class TestVREngine(val window: WindowI, val screen: (TestVREngine) -> TestVRGame, ups: Int, fps: Int, resourcesLoader: ResourcesLoader = FileResourcesLoader()) :
+	VRGameEngine<TestVRGame>(resourcesLoader) {
 
 	override val TARGET_UPS: Int = ups
 	override val TARGET_FPS: Int = fps
 
 	override val hmd: HMD = HMD()
 
-	override val activeScreen: TestVRGame = screen(this)
+	override lateinit var activeScreen: TestVRGame
 
 	override val inputVR: TestVRInput = TestVRInput()
+
+	override fun setLogic() {
+		activeScreen = screen(this)
+	}
 
 	override fun handleVRInput() {
 		super.handleVRInput()

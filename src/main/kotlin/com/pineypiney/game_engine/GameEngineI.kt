@@ -16,6 +16,8 @@ interface GameEngineI<E : GameLogicI> : Runnable {
 	val TARGET_UPS: Int
 
 	fun init()
+	fun loadResources()
+	fun setLogic()
 	fun gameLoop()
 	fun update(interval: Float)
 	fun render(tickDelta: Double)

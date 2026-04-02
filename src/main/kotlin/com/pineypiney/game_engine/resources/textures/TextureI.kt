@@ -9,7 +9,7 @@ import org.lwjgl.opengl.GL13C.GL_TEXTURE0
 import org.lwjgl.opengl.GL13C.glActiveTexture
 import java.nio.ByteBuffer
 
-abstract class TextureI : Resource() {
+abstract class TextureI : Resource {
 
 	abstract val id: String
 	abstract val texturePointer: Int

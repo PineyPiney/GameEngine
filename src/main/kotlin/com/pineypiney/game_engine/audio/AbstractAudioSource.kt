@@ -1,11 +1,11 @@
 package com.pineypiney.game_engine.audio
 
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 import glm_.i
 import glm_.vec3.Vec3
 import org.lwjgl.openal.AL10
 
-abstract class AbstractAudioSource : Deleteable {
+abstract class AbstractAudioSource : Deletable {
 
 	val ptr: Int = AL10.alGenSources()
 

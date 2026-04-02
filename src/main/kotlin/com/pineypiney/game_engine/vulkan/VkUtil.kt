@@ -1,15 +1,20 @@
 package com.pineypiney.game_engine.vulkan
 
 import com.pineypiney.game_engine.window.WindowI
+import glm_.vec2.Vec2i
+import glm_.vec3.Vec3i
 import kool.free
 import kool.indices
 import kool.map
+import kool.mapIndexed
 import org.lwjgl.PointerBuffer
 import org.lwjgl.glfw.GLFWVulkan
 import org.lwjgl.system.CustomBuffer
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.Struct
+import org.lwjgl.util.vma.Vma
+import org.lwjgl.util.vma.VmaAllocationCreateInfo
 import org.lwjgl.vulkan.*
 import java.nio.IntBuffer
 import java.nio.LongBuffer
@@ -19,12 +24,16 @@ object VkUtil {
 	fun translateVulkanResult(result: Int): String {
 		return when (result) {
 			VK10.VK_SUCCESS -> "Command successfully completed."
+
+			// Warnings are > 0
 			VK10.VK_NOT_READY -> "A fence or query has not yet completed."
 			VK10.VK_TIMEOUT -> "A wait operation has not completed in the specified time."
 			VK10.VK_EVENT_SET -> "An event is signaled."
 			VK10.VK_EVENT_RESET -> "An event is unsignaled."
 			VK10.VK_INCOMPLETE -> "A return array was too small for the result."
 			KHRSwapchain.VK_SUBOPTIMAL_KHR -> "A swapchain no longer matches the surface properties exactly, but can still be used to present to the surface successfully."
+
+			// Errors are < 0
 			VK10.VK_ERROR_OUT_OF_HOST_MEMORY -> "A host memory allocation has failed."
 			VK10.VK_ERROR_OUT_OF_DEVICE_MEMORY -> "A device memory allocation has failed."
 			VK10.VK_ERROR_INITIALIZATION_FAILED -> "Initialization of an object could not be completed for implementation-specific reasons."
@@ -96,22 +105,24 @@ object VkUtil {
 	}
 
 	@Throws(AssertionError::class)
-	fun <E, B : CustomBuffer<B>> getBuffer(name: String, instance: E, func: (E, IntArray, B?) -> Int, creator: (Int) -> B): B {
-		val array = IntArray(1)
-		processError(func(instance, array, null), "Failed to get number of $name")
-		val buffer = creator(array[0])
-		processError(func(instance, array, buffer), "Failed to get $name") {
+	fun <E, B : CustomBuffer<B>> getBuffer(name: String, instance: E, func: (E, IntBuffer, B?) -> Int, creator: (Int) -> B): B {
+		val count = MemoryUtil.memAllocInt(1)
+		processError(func(instance, count, null), "Failed to get number of $name")
+		val buffer = creator(count[0])
+		processError(func(instance, count, buffer), "Failed to get $name") {
 			buffer.free()
 		}
+		count.free()
 		return buffer
 	}
 
 	@Throws(AssertionError::class)
-	fun <E, B> getBuffer(instance: E, func: (E, IntArray, B?) -> Unit, creator: (Int) -> B): B {
-		val array = IntArray(1)
-		func(instance, array, null)
-		val buffer = creator(array[0])
-		func(instance, array, buffer)
+	fun <E, B> getBuffer(instance: E, func: (E, IntBuffer, B?) -> Unit, creator: (Int) -> B): B {
+		val count = MemoryUtil.memAllocInt(1)
+		func(instance, count, null)
+		val buffer = creator(count[0])
+		func(instance, count, buffer)
+		count.free()
 		return buffer
 	}
 
@@ -145,20 +156,20 @@ object VkUtil {
 		for (layer in usedLayers) {
 			enabledLayerNames.put(MemoryUtil.memUTF8(layer))
 		}
-		return enabledLayerNames
+		return enabledLayerNames.flip()
 	}
 
 	fun getAvailableLayers(): Set<String> {
 		val set = mutableSetOf<String>()
-		val array = IntArray(1)
-		VK10.vkEnumerateInstanceLayerProperties(array, null)
-		val count = array[0]
+		val buffer = MemoryUtil.memAllocInt(1)
+		VK10.vkEnumerateInstanceLayerProperties(buffer, null)
+		val count = buffer[0]
 
 		if (count > 0) {
 			try {
 				val stack = MemoryStack.stackPush()
 				val instanceLayers = VkLayerProperties.malloc(count, stack)
-				VK10.vkEnumerateInstanceLayerProperties(array, instanceLayers)
+				VK10.vkEnumerateInstanceLayerProperties(buffer, instanceLayers)
 				for (i in 0 until count) set.add(instanceLayers[i].layerNameString())
 			} catch (_: Throwable) {
 			}
@@ -168,23 +179,27 @@ object VkUtil {
 
 	fun createInstance(debug: Boolean): VkInstance {
 
+		val extensions = arrayOf(
+			EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
+//			KHRBufferDeviceAddress.VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME
+		)
+
 		val layers = arrayOf(
-			"VK_LAYER_LUNARG_standard_validation",
 			"VK_LAYER_KHRONOS_validation",
 		)
+
+		val requiredExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions() ?: throw Error("Missing required extensions")
+		val enabledExtensionNames = MemoryUtil.memAllocPointer(requiredExtensions.remaining() + extensions.size)
+		enabledExtensionNames.put(requiredExtensions)
+		val pExtensions = extensions.map { MemoryUtil.memUTF8(it) }
+		for (extension in pExtensions) enabledExtensionNames.put(extension)
+		enabledExtensionNames.flip()
+
+		val enabledLayerNames: PointerBuffer? = if (debug) allocateLayerBuffer(layers) else null
 
 		val appInfo = VkApplicationInfo.calloc()
 			.`sType$Default`()
 			.apiVersion(VK14.VK_API_VERSION_1_3)
-
-		val requiredExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions() ?: throw Error("Missing required extensions")
-		val enabledExtensionNames = MemoryUtil.memAllocPointer(requiredExtensions.remaining() + 1)
-		enabledExtensionNames.put(requiredExtensions)
-		val debugExtension = MemoryUtil.memUTF8(EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME)
-		enabledExtensionNames.put(debugExtension)
-		enabledExtensionNames.flip()
-
-		val enabledLayerNames: PointerBuffer? = if (debug) allocateLayerBuffer(layers) else null
 
 		val createInfo = VkInstanceCreateInfo.calloc()
 			.`sType$Default`()
@@ -201,7 +216,7 @@ object VkUtil {
 		val instance = VkInstance(handle, createInfo)
 
 		createInfo.free()
-		debugExtension.free()
+		for (extension in pExtensions) extension.free()
 		enabledExtensionNames.free()
 		enabledLayerNames?.free()
 		appInfo.pApplicationName()?.free()
@@ -211,6 +226,19 @@ object VkUtil {
 		return instance
 	}
 
+	fun setupDebugger(instance: VkInstance, flags: Int, callback: VkDebugReportCallbackEXTI): Long {
+		val debuggerInfo = VkDebugReportCallbackCreateInfoEXT.calloc()
+			.`sType$Default`()
+			.pfnCallback(callback)
+			.flags(flags)
+		val b = MemoryUtil.memAllocLong(1)
+		processError(EXTDebugReport.vkCreateDebugReportCallbackEXT(instance, debuggerInfo, null, b), "Failed to link debug callback")
+		val handle = b[0]
+		b.free()
+		debuggerInfo.free()
+		return handle
+	}
+
 	fun getPhysicalDevices(instance: VkInstance): List<VulkanPhysicalDevice> {
 		val physicalDevices = getBuffer("GPUs", instance, VK10::vkEnumeratePhysicalDevices, MemoryUtil::memAllocPointer)
 
@@ -218,49 +246,6 @@ object VkUtil {
 		physicalDevices.free()
 
 		return devices
-	}
-
-	fun getDevice(physicalDevice: VkPhysicalDevice): VulkanDevice {
-		val properties = getBuffer(physicalDevice, VK10::vkGetPhysicalDeviceQueueFamilyProperties, VkQueueFamilyProperties::calloc)
-		var index = properties.indexOfFirst { property ->
-			property.queueFlags() and VK10.VK_QUEUE_GRAPHICS_BIT != 0
-		}
-		if (index == -1) index = properties.capacity()
-		properties.free()
-
-		val priorities = MemoryUtil.memAllocFloat(1).put(0f)
-		priorities.flip()
-
-		val queueCreateInfo = VkDeviceQueueCreateInfo.calloc(1)
-			.`sType$Default`()
-			.queueFamilyIndex(index)
-			.pQueuePriorities(priorities)
-
-		val extensions = MemoryUtil.memAllocPointer(1)
-		val swapchainExt = MemoryUtil.memUTF8(KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME)
-		extensions.put(swapchainExt)
-		extensions.flip()
-
-		val deviceCreateInfo = VkDeviceCreateInfo.calloc()
-			.`sType$Default`()
-			.pQueueCreateInfos(queueCreateInfo)
-			.ppEnabledExtensionNames(extensions)
-
-		val pointer = MemoryUtil.memAllocPointer(1)
-		processError(VK10.vkCreateDevice(physicalDevice, deviceCreateInfo, null, pointer), "Failed to create Vulkan device") {
-			pointer.free()
-		}
-
-		val memoryProperties = VkPhysicalDeviceMemoryProperties.calloc()
-		VK10.vkGetPhysicalDeviceMemoryProperties(physicalDevice, memoryProperties)
-
-		val device = VulkanDevice(VkDevice(pointer.get(), physicalDevice, deviceCreateInfo), index, memoryProperties)
-		pointer.free()
-		deviceCreateInfo.free()
-		swapchainExt.free()
-		extensions.free()
-		priorities.free()
-		return device
 	}
 
 	fun createSurface(instance: VkInstance, window: WindowI): VulkanSurface {
@@ -378,6 +363,7 @@ object VkUtil {
 			.minImageCount(numberImages)
 			.imageFormat(colourFormat)
 			.imageColorSpace(colourSpace)
+			.imageUsage(VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT)
 			.preTransform(preTransform)
 			.imageArrayLayers(1)
 			.imageSharingMode(VK10.VK_SHARING_MODE_EXCLUSIVE)
@@ -385,7 +371,7 @@ object VkUtil {
 			.oldSwapchain(oldSwapchain?.handle ?: VK10.VK_NULL_HANDLE)
 			.clipped(true)
 			.compositeAlpha(KHRSurface.VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
-			.imageExtent(VkExtent2D.calloc().width(width).height(height))
+			.imageExtent(VkExtent2D.calloc().set(width, height))
 
 		val longBuffer = MemoryUtil.memAllocLong(1)
 		val err = KHRSwapchain.vkCreateSwapchainKHR(device.device, swapchainCreateInfo, null, longBuffer)
@@ -396,32 +382,25 @@ object VkUtil {
 		oldSwapchain?.delete()
 
 		val swapchainImages = getBuffer(device.device, longBuffer[0], KHRSwapchain::vkGetSwapchainImagesKHR, MemoryUtil::memAllocLong)
-		val images = LongArray(swapchainImages.capacity())
-		val imageViews = LongArray(images.size)
 
 		val viewCreateInfo = VkImageViewCreateInfo.calloc()
 			.`sType$Default`()
 			.format(colourFormat)
 			.viewType(VK10.VK_IMAGE_VIEW_TYPE_2D)
-			.subresourceRange { range ->
-				range
-					.aspectMask(VK10.VK_IMAGE_ASPECT_COLOR_BIT)
-					.levelCount(1)
-			}
+			.subresourceRange(VkStructs.createImageRange(VK10.VK_IMAGE_ASPECT_COLOR_BIT))
 
 		val viewBuffer = MemoryUtil.memAllocLong(1)
-		for (i in images.indices) {
-			images[i] = swapchainImages[i]
-			viewCreateInfo.image(images[i])
+		val images = swapchainImages.mapIndexed { index, image ->
+			viewCreateInfo.image(image)
 			processError(VK10.vkCreateImageView(device.device, viewCreateInfo, null, viewBuffer), "Failed to create Image View")
-			imageViews[i] = viewBuffer.get(0)
+			VulkanSwapchainImage(device, image, viewBuffer.get(0), Vec2i(width, height))
 		}
 
 		viewCreateInfo.free()
 		viewBuffer.free()
 		swapchainImages.free()
 
-		return VulkanSwapchainHandler(device, longBuffer, images, imageViews)
+		return VulkanSwapchainHandler(device, longBuffer, images)
 	}
 
 	fun createFenceInfo(flags: Int): VkFenceCreateInfo {
@@ -456,5 +435,72 @@ object VkUtil {
 		val buffer = MemoryUtil.memAllocLong(1)
 		VK10.vkCreateSemaphore(device.device, createInfo, null, buffer)
 		return VulkanSemaphoreHandler(device, buffer)
+	}
+
+	fun createImage(device: VulkanDevice, type: Int, format: Int, size: Vec3i): VulkanImage {
+
+		val extents = VkExtent3D.calloc().set(size)
+		val usage = VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT or
+				VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT or
+				VK10.VK_IMAGE_USAGE_STORAGE_BIT or
+				VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+
+		val imageCreateInfo = VkStructs.createImageInfo(type, format, extents, VK10.VK_SAMPLE_COUNT_1_BIT, VK10.VK_IMAGE_TILING_OPTIMAL, usage)
+		val vmaInfo = VmaAllocationCreateInfo.calloc()
+			.usage(Vma.VMA_MEMORY_USAGE_GPU_ONLY)
+			.requiredFlags(VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+
+		val longBuffer = MemoryUtil.memAllocLong(1)
+		val pointerBuffer = MemoryUtil.memAllocPointer(1)
+		var err = Vma.vmaCreateImage(device.allocator, imageCreateInfo, vmaInfo, longBuffer, pointerBuffer, null)
+		val handle = longBuffer[0]
+		val allocation = pointerBuffer[0]
+//		pointerBuffer.free()
+		processError(err, "Failed to create Vulkan Image") {
+//			longBuffer.free()
+		}
+
+		val viewCreateInfo = VkStructs.createImageViewInfo(type, handle, format, VkStructs.createImageRange(VK10.VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1))
+		err = VK10.vkCreateImageView(device.device, viewCreateInfo, null, longBuffer)
+		val view = longBuffer[0]
+//		longBuffer.free()
+		processError(err, "Failed to create Vulkan Image View")
+
+		return VulkanImage(device, handle, view, allocation, Vec2i(extents.width(), extents.height()))
+	}
+
+	fun createPipelineLayout(device: VulkanDevice, layouts: LongBuffer, constants: VkPushConstantRange.Buffer? = null): Long {
+
+		val pipelineLayoutCreateInfo = VkPipelineLayoutCreateInfo.calloc()
+			.`sType$Default`()
+			.pSetLayouts(layouts)
+			.pPushConstantRanges(constants)
+		val buf = MemoryUtil.memAllocLong(1)
+		processError(VK10.vkCreatePipelineLayout(device.device, pipelineLayoutCreateInfo, null, buf), "Failed to create Pipeline Layout")
+		val layout = buf[0]
+		buf.free()
+		pipelineLayoutCreateInfo.free()
+		return layout
+	}
+
+	fun createComputePipeline(device: VulkanDevice, module: Long, layout: Long): Long {
+		val stageCreateInfo = VkPipelineShaderStageCreateInfo.calloc()
+			.`sType$Default`()
+			.stage(VK10.VK_SHADER_STAGE_COMPUTE_BIT)
+			.module(module)
+			.pName(MemoryUtil.memUTF8("main"))
+		val pipelineCreateInfo = VkComputePipelineCreateInfo.calloc(1)
+			.`sType$Default`()
+			.layout(layout)
+			.stage(stageCreateInfo)
+
+		val buf = MemoryUtil.memAllocLong(1)
+		val err = VK10.vkCreateComputePipelines(device.device, 0L, pipelineCreateInfo, null, buf)
+		val pipeline = buf[0]
+		buf.free()
+		pipelineCreateInfo.free()
+		stageCreateInfo.free()
+		processError(err, "Failed to create Compute Pipeline")
+		return pipeline
 	}
 }

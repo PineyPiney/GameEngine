@@ -5,13 +5,41 @@ import org.lwjgl.vulkan.*
 
 object VkStructs {
 
-	fun createImageRange(aspectMask: Int, levelRange: IntRange = 0..VK10.VK_REMAINING_MIP_LEVELS, layerRange: IntRange = 0..VK10.VK_REMAINING_ARRAY_LAYERS): VkImageSubresourceRange {
-		return VkImageSubresourceRange.calloc()
-			.aspectMask(aspectMask)
-			.baseMipLevel(levelRange.first)
-			.levelCount(levelRange.last - levelRange.first)
-			.baseArrayLayer(layerRange.first)
-			.layerCount(layerRange.last - layerRange.first)
+	fun createImageInfo(imageType: Int, format: Int, extent: VkExtent3D, samples: Int, tiling: Int, usage: Int): VkImageCreateInfo {
+		return VkImageCreateInfo.calloc()
+			.`sType$Default`()
+			.imageType(imageType)
+			.format(format)
+			.extent(extent)
+			.mipLevels(1)
+			.arrayLayers(1)
+			.samples(samples)
+			.tiling(tiling)
+			.usage(usage)
+	}
+
+	fun createImageViewInfo(viewType: Int, image: Long, format: Int, imageRange: VkImageSubresourceRange): VkImageViewCreateInfo {
+		return VkImageViewCreateInfo.calloc()
+			.`sType$Default`()
+			.viewType(viewType)
+			.image(image)
+			.format(format)
+			.subresourceRange(imageRange)
+	}
+
+	fun createImageRange(
+		aspectMask: Int,
+		baseLevel: Int = 0,
+		levelCount: Int = VK10.VK_REMAINING_MIP_LEVELS,
+		baseLayer: Int = 0,
+		layerCount: Int = VK10.VK_REMAINING_ARRAY_LAYERS
+	): VkImageSubresourceRange {
+		return VkImageSubresourceRange.calloc().set(aspectMask, baseLevel, levelCount, baseLayer, layerCount)
+
+	}
+
+	fun createImageLayers(aspectMask: Int, level: Int = 0, baseLayer: Int = 0, layers: Int = VK10.VK_REMAINING_ARRAY_LAYERS): VkImageSubresourceLayers {
+		return VkImageSubresourceLayers.calloc().set(aspectMask, level, baseLayer, layers)
 
 	}
 
@@ -59,11 +87,11 @@ object VkStructs {
 
 	fun createPresentInfo(swapchain: VulkanSwapchainHandler, waitSemaphore: VulkanSemaphoreHandler?): VkPresentInfoKHR {
 		return VkPresentInfoKHR.calloc()
+			.`sType$Default`()
 			.pSwapchains(swapchain.buffer)
 			.swapchainCount(1)
 			.pWaitSemaphores(waitSemaphore?.buffer)
 			.swapchainCount(1)
 			.pImageIndices(swapchain.imageIndices)
-
 	}
 }

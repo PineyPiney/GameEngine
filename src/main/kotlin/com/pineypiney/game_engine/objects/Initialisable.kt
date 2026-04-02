@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.objects
 
-interface Initialisable : Deleteable {
+interface Initialisable : Deletable {
 
 	fun init()
 }

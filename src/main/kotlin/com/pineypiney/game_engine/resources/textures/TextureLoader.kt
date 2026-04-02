@@ -106,7 +106,7 @@ class TextureLoader private constructor() : DeletableResourcesLoader<Texture>() 
 			params: TextureParameters = TextureParameters(),
 			pointer: Int = Texture.createPointer(params)
 		): Int {
-			val bb = ResourcesLoader.ioResourceToByteBuffer(texture, 1024)
+			val bb = ResourcesLoader.ioResourceToByteBuffer(texture)
 			val p = loadTextureFromBuffer(name, bb, params, pointer)
 			return p
 		}

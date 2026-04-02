@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.vulkan
 
 import com.pineypiney.game_engine.LibrarySetUp
-import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.util.input.DefaultInput
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.window.Window
@@ -9,8 +8,8 @@ import com.pineypiney.game_engine.window.WindowGameLogic
 import org.lwjgl.glfw.GLFW
 
 class Logic(override val gameEngine: VulkanGameEngine<Logic>) : WindowGameLogic() {
-	override val renderer: WindowRendererI<Logic> =
-		VulkanBufferedRenderer<Logic>(window, gameEngine.device, gameEngine.surface, gameEngine.colourFormatSpace.first, gameEngine.colourFormatSpace.second)
+	override val renderer: VulkanBufferedRenderer<Logic> =
+		VulkanBufferedRenderer<Logic>(window, gameEngine.vulkanManager)
 
 	override fun addObjects() {
 

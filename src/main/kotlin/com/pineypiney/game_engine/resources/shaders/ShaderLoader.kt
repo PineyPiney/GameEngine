@@ -1,26 +1,46 @@
 package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addToMapOr
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.toString
+import com.pineypiney.game_engine.vulkan.VkUtil
+import com.pineypiney.game_engine.vulkan.VulkanComputePipeline
+import com.pineypiney.game_engine.vulkan.VulkanGameEngine
+import com.pineypiney.game_engine.vulkan.VulkanManager
 import glm_.bool
+import kool.free
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.system.MemoryUtil
+import org.lwjgl.util.shaderc.Shaderc
+import org.lwjgl.util.shaderc.ShadercIncludeResolve
+import org.lwjgl.util.shaderc.ShadercIncludeResult
+import org.lwjgl.util.shaderc.ShadercIncludeResultRelease
+import org.lwjgl.vulkan.*
+import java.io.InputStream
+import java.nio.ByteBuffer
 
-class ShaderLoader private constructor() : Deleteable {
+
+class ShaderLoader private constructor() : Deletable {
 
 	// This map stores the bytebuffer codes of each shader file
 	private val shaderMap: MutableMap<ResourceKey, SubShader> = mutableMapOf()
+	val shaderModules: MutableMap<ResourceKey, Long> = mutableMapOf()
 
 	fun loadShaders(streams: ResourcesLoader.Streams) {
 		if (GLFunc.isLoaded) loadShadersOpenGl(streams)
+		else {
+			val engine = streams.engine
+			if (engine is VulkanGameEngine<*>) loadShadersVulkan(engine.vulkanManager, streams.engine.resourcesLoader, streams)
+		}
 	}
 
-	fun loadShadersOpenGl(streams: ResourcesLoader.Streams) {
+	private fun loadShadersOpenGl(streams: ResourcesLoader.Streams) {
 		streams.useEachStream { fileName, stream ->
 
 			val i = fileName.lastIndexOf(".")
@@ -52,14 +72,54 @@ class ShaderLoader private constructor() : Deleteable {
 				return@useEachStream
 			}
 
-			loadShader(fileName.removeSuffix(".$suf"), stream.readBytes(), type)
+			loadShaderOpenGl(fileName.removeSuffix(".$suf"), stream.readBytes(), type)
 		}
 	}
 
-	private fun loadShader(name: String, bytes: ByteArray, type: Int) {
+	private fun loadShaderOpenGl(name: String, bytes: ByteArray, type: Int) {
 		val code = bytes.copyOf().toString(Charsets.UTF_8)
 		val shader = generateSubShader(name, code, type)
 		shaderMap[ResourceKey(name)] = shader
+	}
+
+	private fun loadShadersVulkan(vulkan: VulkanManager, loader: ResourcesLoader, streams: ResourcesLoader.Streams) {
+		streams.useEachStream { fileName, stream ->
+
+			val i = fileName.lastIndexOf(".")
+			if (i <= 0) return@useEachStream
+			val suf = fileName.substring(i + 1)
+
+			if (suf != "cs" || fileName.endsWith("gradient.cs")) return@useEachStream
+
+			val type = when (suf) {
+				"vs" -> VK13.VK_SHADER_STAGE_VERTEX_BIT
+				"fs" -> VK13.VK_SHADER_STAGE_FRAGMENT_BIT
+				"tcs" -> VK13.VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT
+				"tes" -> VK13.VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT
+				"gs" -> VK13.VK_SHADER_STAGE_GEOMETRY_BIT
+				"cs" -> VK13.VK_SHADER_STAGE_COMPUTE_BIT
+				else -> 0
+			}
+
+			loadShaderVulkan(vulkan, loader, ResourceKey(fileName.removeSuffix(".$suf")), fileName, stream, type)
+
+		}
+	}
+
+	private fun loadShaderVulkan(vulkan: VulkanManager, loader: ResourcesLoader, key: ResourceKey, fileName: String, stream: InputStream, stage: Int) {
+
+		val buffer = compileGlslAsSpirv(loader, fileName, stream, stage) ?: return
+//			Shaderc.shaderc_compile_options_set_target_env
+		val shaderCreateInfo = VkShaderModuleCreateInfo.calloc()
+			.`sType$Default`()
+			.pCode(buffer)
+
+		val pointer = MemoryUtil.memAllocLong(1)
+		VK10.vkCreateShaderModule(vulkan.device.device, shaderCreateInfo, null, pointer)
+		val shaderModule = pointer[0]
+		pointer.free()
+		vulkan.deletionQueue.push(shaderModule, VK10::vkDestroyShaderModule)
+		shaderModules[key] = shaderModule
 	}
 
 	fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, tessCtrlKey: ResourceKey? = null, tessEvalKey: ResourceKey? = null, geometryKey: ResourceKey? = null): RenderShader {
@@ -175,6 +235,20 @@ class ShaderLoader private constructor() : Deleteable {
 			return ComputeShader(ID, name, shader.uniforms)
 		}
 
+		fun generateComputePipelineVulkan(vulkan: VulkanManager, module: Long, constantSize: Int): VulkanComputePipeline {
+
+			val pushConstant = if (constantSize <= 0) null else VkPushConstantRange.calloc(1)
+				.size(constantSize)
+				.stageFlags(VK10.VK_SHADER_STAGE_COMPUTE_BIT)
+
+			val pipelineLayout = VkUtil.createPipelineLayout(vulkan.device, vulkan.pLayout, pushConstant)
+			val pipeline = VkUtil.createComputePipeline(vulkan.device, module, pipelineLayout)
+
+			val res = VulkanComputePipeline(vulkan.device, pipelineLayout, pipeline, pushConstant)
+			vulkan.deletionQueue.push(res)
+			return res
+		}
+
 		fun createShaderFromString(code: String, shaderType: Int, shaderName: String): Int {
 			if (!GLFunc.isLoaded) {
 				GameEngineI.warn("OpenGL is not loaded, cannot create shader")
@@ -272,6 +346,78 @@ class ShaderLoader private constructor() : Deleteable {
 					GameEngineI.warn("Could not compile $type shader $shaderName \n$infoLog")
 				}
 			}
+		}
+
+
+		private fun vulkanStageToShadercKind(stage: Int): Int {
+			when (stage) {
+				VK13.VK_SHADER_STAGE_VERTEX_BIT -> return Shaderc.shaderc_vertex_shader
+				VK13.VK_SHADER_STAGE_FRAGMENT_BIT -> return Shaderc.shaderc_fragment_shader
+				VK13.VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT -> return Shaderc.shaderc_tess_control_shader
+				VK13.VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT -> return Shaderc.shaderc_tess_evaluation_shader
+				VK13.VK_SHADER_STAGE_GEOMETRY_BIT -> return Shaderc.shaderc_geometry_shader
+				VK13.VK_SHADER_STAGE_COMPUTE_BIT -> return Shaderc.shaderc_compute_shader
+
+				NVRayTracing.VK_SHADER_STAGE_RAYGEN_BIT_NV -> return Shaderc.shaderc_raygen_shader
+				NVRayTracing.VK_SHADER_STAGE_ANY_HIT_BIT_NV -> return Shaderc.shaderc_anyhit_shader
+				NVRayTracing.VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV -> return Shaderc.shaderc_closesthit_shader
+				NVRayTracing.VK_SHADER_STAGE_MISS_BIT_NV -> return Shaderc.shaderc_miss_shader
+				NVRayTracing.VK_SHADER_STAGE_INTERSECTION_BIT_NV -> return Shaderc.shaderc_intersection_shader
+				else -> throw IllegalArgumentException("Stage: " + stage)
+			}
+		}
+
+		fun compileGlslAsSpirv(loader: ResourcesLoader, fileName: String, stream: InputStream, stage: Int): ByteBuffer? {
+			val buffer = ResourcesLoader.ioResourceToByteBuffer(stream)
+			val compiler = Shaderc.shaderc_compiler_initialize()
+			val options = Shaderc.shaderc_compile_options_initialize()
+
+			val resolver: ShadercIncludeResolve = Resolver(loader, fileName.substringBeforeLast('/') + '/')
+			val releaser: ShadercIncludeResultRelease = Releaser()
+			Shaderc.shaderc_compile_options_set_target_env(options, Shaderc.shaderc_target_env_vulkan, Shaderc.shaderc_env_version_vulkan_1_2)
+			Shaderc.shaderc_compile_options_set_target_spirv(options, Shaderc.shaderc_spirv_version_1_4)
+			Shaderc.shaderc_compile_options_set_optimization_level(options, Shaderc.shaderc_optimization_level_performance)
+			Shaderc.shaderc_compile_options_set_include_callbacks(options, resolver, releaser, 0L)
+
+			val res = Shaderc.shaderc_compile_into_spv(compiler, buffer, vulkanStageToShadercKind(stage), MemoryUtil.memUTF8(fileName), MemoryUtil.memUTF8("main"), options)
+			val returnBytes: ByteBuffer?
+
+			if (Shaderc.shaderc_result_get_compilation_status(res) == Shaderc.shaderc_compilation_status_success) {
+				val size = Shaderc.shaderc_result_get_length(res).toInt()
+				returnBytes = BufferUtils.createByteBuffer(size)
+					.put(Shaderc.shaderc_result_get_bytes(res))
+					.flip()
+			} else {
+				returnBytes = null
+				GameEngineI.logger.warn("Could not compile shader $fileName: ${Shaderc.shaderc_result_get_error_message(res)}")
+			}
+
+			Shaderc.shaderc_result_release(res)
+			Shaderc.shaderc_compiler_release(compiler)
+			resolver.free()
+			releaser.free()
+
+			return returnBytes
+		}
+
+	}
+
+	class Resolver(val loader: ResourcesLoader, val fileLocation: String) : ShadercIncludeResolve() {
+		override fun invoke(user_data: Long, requested_source: Long, type: Int, requesting_source: Long, include_depth: Long): Long {
+			val src = fileLocation + MemoryUtil.memUTF8(requested_source)
+			val stream = loader.getStream(src) ?: throw AssertionError("Failed to resolve include $src")
+			val res = ShadercIncludeResult.calloc()
+				.content(ResourcesLoader.ioResourceToByteBuffer(stream))
+				.source_name(MemoryUtil.memUTF8(src))
+			return res.address()
+		}
+	}
+
+	class Releaser : ShadercIncludeResultRelease() {
+		override fun invoke(user_data: Long, include_result: Long) {
+			val result = ShadercIncludeResult.create(include_result)
+			result.source_name().free()
+			result.free()
 		}
 	}
 }

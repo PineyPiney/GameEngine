@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.util
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import glm_.vec2.Vec2i
@@ -11,7 +11,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWImage
 import java.io.InputStream
 
-class Cursor(val handle: Long) : Deleteable {
+class Cursor(val handle: Long) : Deletable {
 
 	constructor(texture: InputStream, point: Vec2i) : this(createHandle(texture, point))
 
@@ -28,7 +28,7 @@ class Cursor(val handle: Long) : Deleteable {
 	companion object {
 		fun createHandle(texture: InputStream, point: Vec2i): Long {
 			// The data must be in RGBA 32-bit format
-			val bytes = ResourcesLoader.ioResourceToByteBuffer(texture, 2048)
+			val bytes = ResourcesLoader.ioResourceToByteBuffer(texture)
 			val (data, info) = TextureLoader.loadTextureData(bytes)
 			val pixels = data?.toByteArray()?.toList()?.chunked(info.z) ?: return 0L
 			val flipped = pixels.chunked(info.x).reversed().flatten()

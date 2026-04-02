@@ -19,7 +19,14 @@ class ObjectAnimator(
 
 	private val engine = object : WindowedGameEngine<AnimatorLogic>(resources) {
 
-		init {
+		override lateinit var activeScreen: AnimatorLogic
+
+		var lastFrameTime = 0.0
+		override val window: WindowI get() = Companion.window
+
+		override fun loadResources() {
+			super.loadResources()
+
 			GameEngineI.defaultFont = "Large Font"
 
 			// Create all the fonts
@@ -27,10 +34,9 @@ class ObjectAnimator(
 			FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader)
 		}
 
-		override val activeScreen: AnimatorLogic = AnimatorLogic(this, null, creator)
-
-		var lastFrameTime = 0.0
-		override val window: WindowI get() = Companion.window
+		override fun setLogic() {
+			activeScreen = AnimatorLogic(this, null, creator)
+		}
 
 		override fun init() {
 			super.init()

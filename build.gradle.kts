@@ -13,21 +13,21 @@ version = ver
 val lwjglVersion = "3.3.6"
 
 // Use https://www.lwjgl.org/customize to set natives
-val (lwjglNatives: String, nativesSpec: String) = run {
+val lwjglNatives: String = run {
     val name = System.getProperty("os.name")
     val arch = System.getProperty("os.arch")
     val a64 = arch.startsWith("aarch64")
     when {
         name.startsWith("Windows") -> {
-            "natives-windows" to
+            "natives-windows" +
             if(arch.contains("64")) if(a64) "-arm64" else ""
             else "-x86"
         }
         arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) } -> {
-            "natives-macos" to if(a64) "-arm64" else ""
+            "natives-macos" + if (a64) "-arm64" else ""
         }
         arrayOf("Linux", "SunOS", "Unit").any { name.startsWith(it) } ->
-            "natives-linux" to
+            "natives-linux" +
             if (arrayOf("arm", "aarch64").any { arch.startsWith(it) })
                 if (arch.contains("64") || arch.startsWith("armv8")) "-arm64" else "-arm32"
             else if (arch.startsWith("ppc"))
@@ -74,16 +74,22 @@ dependencies {
     implementation("org.lwjgl:lwjgl-openal")
     implementation("org.lwjgl:lwjgl-opengl")
     implementation("org.lwjgl:lwjgl-openvr")
+    implementation("org.lwjgl:lwjgl-shaderc")
+    implementation("org.lwjgl:lwjgl-spvc")
     implementation("org.lwjgl:lwjgl-stb")
+    implementation("org.lwjgl:lwjgl-vma")
     implementation("org.lwjgl:lwjgl-vulkan")
-    runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives + nativesSpec)
-    runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = lwjglNatives + nativesSpec)
-    runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = lwjglNatives + nativesSpec)
-    runtimeOnly("org.lwjgl", "lwjgl-jemalloc", classifier = lwjglNatives + nativesSpec)
-    runtimeOnly("org.lwjgl", "lwjgl-openal", classifier = lwjglNatives + nativesSpec)
-    runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives + nativesSpec)
-    runtimeOnly("org.lwjgl", "lwjgl-openvr", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = lwjglNatives + nativesSpec)
+    implementation("org.lwjgl", "lwjgl", classifier = lwjglNatives)
+    implementation("org.lwjgl", "lwjgl-assimp", classifier = lwjglNatives)
+    implementation("org.lwjgl", "lwjgl-glfw", classifier = lwjglNatives)
+    implementation("org.lwjgl", "lwjgl-jemalloc", classifier = lwjglNatives)
+    implementation("org.lwjgl", "lwjgl-openal", classifier = lwjglNatives)
+    implementation("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
+    implementation("org.lwjgl", "lwjgl-openvr", classifier = lwjglNatives)
+    implementation("org.lwjgl", "lwjgl-shaderc", classifier = lwjglNatives)
+    implementation("org.lwjgl", "lwjgl-spvc", classifier = lwjglNatives)
+    implementation("org.lwjgl", "lwjgl-stb", classifier = lwjglNatives)
+    implementation("org.lwjgl", "lwjgl-vma", classifier = lwjglNatives)
 
     // JavaCV for video processing
     implementation("org.bytedeco:javacv:$javacv")

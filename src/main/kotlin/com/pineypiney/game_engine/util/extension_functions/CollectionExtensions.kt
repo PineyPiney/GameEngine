@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.util.extension_functions
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.objects.Initialisable
 import kotlin.experimental.or
 
@@ -82,7 +82,7 @@ fun <E : Initialisable> Map<*, E?>.init() {
 /**
  * Delete all items in a collection of deletable objects
  */
-fun <E : Deleteable> Iterable<E?>?.delete() {
+fun <E : Deletable> Iterable<E?>?.delete() {
 	this?.forEach {
 		it?.delete()
 	}
@@ -91,7 +91,7 @@ fun <E : Deleteable> Iterable<E?>?.delete() {
 /**
  * Delete all items in a map of deletable objects
  */
-fun <E : Deleteable> Map<*, E?>.delete() {
+fun <E : Deletable> Map<*, E?>.delete() {
 	for (i in values) i?.delete()
 }
 

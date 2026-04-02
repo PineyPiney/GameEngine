@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources
 
-abstract class Media : Resource() {
+abstract class Media : Resource {
 
 	open var status: MediaStatus = MediaStatus.STOPPED
 

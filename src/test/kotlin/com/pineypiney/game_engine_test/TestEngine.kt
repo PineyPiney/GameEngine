@@ -10,12 +10,16 @@ import com.pineypiney.game_engine.window.WindowedGameEngine
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.vec4.Vec4
 
-class TestEngine<E: WindowGameLogic>(override val window: WindowI ,screen: (WindowedGameEngineI<E>) -> E, ups: Int, fps: Int): WindowedGameEngine<E>(FileResourcesLoader()) {
+class TestEngine<E : WindowGameLogic>(override val window: WindowI, val screen: (WindowedGameEngineI<E>) -> E, ups: Int, fps: Int) : WindowedGameEngine<E>(FileResourcesLoader()) {
 
 	override val TARGET_UPS: Int = ups
 	override val TARGET_FPS: Int = fps
 
-	init {
+	override lateinit var activeScreen: E
+
+	override fun loadResources() {
+		super.loadResources()
+
 		GameEngineI.defaultFont = "SemiSlab"
 
 		// Create all the fonts
@@ -23,7 +27,9 @@ class TestEngine<E: WindowGameLogic>(override val window: WindowI ,screen: (Wind
 		FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader, res = 200)
 	}
 
-	override var activeScreen: E = screen(this)
+	override fun setLogic() {
+		activeScreen = screen(this)
+	}
 
 	override fun init() {
 		super.init()

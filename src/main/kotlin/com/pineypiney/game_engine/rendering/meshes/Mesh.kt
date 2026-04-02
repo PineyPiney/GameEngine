@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.rendering.meshes
 
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.Vectors
 import com.pineypiney.game_engine.util.extension_functions.getOrNull
@@ -13,7 +13,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL30C.*
 import java.nio.ByteBuffer
 
-abstract class Mesh(val VAO: Int, val VBO: Int) : Deleteable {
+abstract class Mesh(val VAO: Int, val VBO: Int) : Deletable {
 
 	constructor(): this(if (GLFunc.isLoaded) glGenVertexArrays() else -1, if (GLFunc.isLoaded) glGenBuffers() else -1)
 

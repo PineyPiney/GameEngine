@@ -1,12 +1,12 @@
 package com.pineypiney.game_engine.resources.video
 
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.objects.Initialisable
 import glm_.i
 import java.nio.ByteBuffer
 import kotlin.math.floor
 
-abstract class VideoData<E : Deleteable> : Initialisable {
+abstract class VideoData<E : Deletable> : Initialisable {
 
 	abstract val video: Video
 

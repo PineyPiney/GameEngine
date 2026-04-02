@@ -218,7 +218,7 @@ abstract class Window(
 	 * @param icon The input stream for the data for the new icon
 	 */
 	override fun setIcon(icon: InputStream) {
-		val iconByteBuffer = ResourcesLoader.ioResourceToByteBuffer(icon, 1024)
+		val iconByteBuffer = ResourcesLoader.ioResourceToByteBuffer(icon)
 		val (loadedBuffer, v) = TextureLoader.loadTextureData(iconByteBuffer, false)
 		if (loadedBuffer == null) return
 

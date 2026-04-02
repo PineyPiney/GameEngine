@@ -8,6 +8,7 @@ import glm_.vec4.Vec4i
 import glm_.vec4.Vec4ub
 import kool.map
 import kool.toBuffer
+import org.lwjgl.BufferUtils
 import org.lwjgl.PointerBuffer
 import org.lwjgl.system.Struct
 import org.lwjgl.system.StructBuffer
@@ -69,6 +70,13 @@ fun ByteBuffer.putVec4ub(offset: Int, vec: Vec4ub): ByteBuffer{
 
 fun ShortBuffer.toByteBuffer(): ByteBuffer {
 	return map { listOf((it and 0xff).b, (it shr 8).b) }.flatten().toByteArray().toBuffer()
+}
+
+fun ByteBuffer.resize(newCapacity: Int): ByteBuffer {
+	val newBuffer = BufferUtils.createByteBuffer(newCapacity)
+	flip()
+	newBuffer.put(this)
+	return newBuffer
 }
 
 inline fun <reified E : Struct<E>> StructBuffer<E, *>.toArray() = Array<E>(capacity()) { get() }

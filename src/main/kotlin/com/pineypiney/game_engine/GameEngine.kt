@@ -13,11 +13,6 @@ abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: Re
 	private var accumulator = 0.0
 	protected var interval: Float = 1f
 
-	init {
-		// Load the resources for the game
-		resourcesLoader.loadResources()
-	}
-
 	override fun run() {
 		init()
 		while (shouldRun()) gameLoop()
@@ -26,8 +21,15 @@ abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: Re
 
 	override fun init() {
 		timer.init()
+		loadResources()
+		setLogic()
 		activeScreen.init()
 		interval = 1f / TARGET_UPS
+	}
+
+	override fun loadResources() {
+		// Load the resources for the game
+		resourcesLoader.loadResources(this)
 	}
 
 	override fun gameLoop() {

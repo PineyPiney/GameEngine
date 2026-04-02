@@ -1,10 +1,10 @@
 package com.pineypiney.game_engine.apps.editor.util.edits
 
-import com.pineypiney.game_engine.objects.Deleteable
+import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.popFirstOrNull
 
-class EditManager : Deleteable {
+class EditManager : Deletable {
 
 	private val undoList = mutableSetOf<Edit>()
 	private val redoList = mutableSetOf<Edit>()

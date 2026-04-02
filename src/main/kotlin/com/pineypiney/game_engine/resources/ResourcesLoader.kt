@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.video.VideoLoader
+import com.pineypiney.game_engine.util.extension_functions.resize
 import com.pineypiney.game_engine.util.extension_functions.round
 import org.lwjgl.BufferUtils
 import java.io.InputStream
@@ -27,22 +28,22 @@ abstract class ResourcesLoader(val location: String) {
 
 	abstract fun getStream(name: String): InputStream?
 
-	fun loadResources() {
-		GameEngineI.info("Loaded Shaders in ${timeActionM { ShaderLoader.INSTANCE.loadShaders(Streams(this, "shaders/")) }.round(2)} ms", this)
-		GameEngineI.info("Loaded Textures in ${timeActionM(::loadTextures).round(2)} ms")
-		GameEngineI.info("Loaded Audio in ${timeActionM { AudioLoader.INSTANCE.loadAudio(Streams(this, audioLocation)) }.round(2)} ms")
-		GameEngineI.info("Loaded Models in ${timeActionM(::loadModels).round(2)} ms")
-		GameEngineI.info("Loaded Fonts in ${timeActionM { FontLoader.INSTANCE.loadFonts(Streams(this, fontLocation)) }.round(2)} ms")
+	fun loadResources(engine: GameEngineI<*>) {
+		GameEngineI.info("Loaded Shaders in ${timeActionM { ShaderLoader.INSTANCE.loadShaders(Streams(engine, "shaders/")) }.round(2)} ms", this)
+		GameEngineI.info("Loaded Textures in ${timeActionM { loadTextures(engine) }.round(2)} ms")
+		GameEngineI.info("Loaded Audio in ${timeActionM { AudioLoader.INSTANCE.loadAudio(Streams(engine, audioLocation)) }.round(2)} ms")
+		GameEngineI.info("Loaded Models in ${timeActionM { loadModels(engine) }.round(2)} ms")
+		GameEngineI.info("Loaded Fonts in ${timeActionM { FontLoader.INSTANCE.loadFonts(Streams(engine, fontLocation)) }.round(2)} ms")
 	}
 
-	fun loadTextures() {
-		TextureLoader.INSTANCE.loadParameters(Streams(this, textureLocation, setOf("params")))
-		TextureLoader.INSTANCE.loadTextures(Streams(this, textureLocation, TextureLoader.fileTypes))
+	fun loadTextures(engine: GameEngineI<*>) {
+		TextureLoader.INSTANCE.loadParameters(Streams(engine, textureLocation, setOf("params")))
+		TextureLoader.INSTANCE.loadTextures(Streams(engine, textureLocation, TextureLoader.fileTypes))
 	}
 
-	fun loadModels() {
-		ModelLoader.INSTANCE.loadModelTextures(Streams(this, modelLocation, TextureLoader.fileTypes))
-		ModelLoader.INSTANCE.loadModels(Streams(this, modelLocation))
+	fun loadModels(engine: GameEngineI<*>) {
+		ModelLoader.INSTANCE.loadModelTextures(Streams(engine, modelLocation, TextureLoader.fileTypes))
+		ModelLoader.INSTANCE.loadModels(Streams(engine, modelLocation))
 	}
 
 	fun cleanUp() {
@@ -67,7 +68,7 @@ abstract class ResourcesLoader(val location: String) {
 			return timeAction(action) * 1e-6
 		}
 
-		fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int = 1024, resize: Boolean = true): ByteBuffer {
+		fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int = stream.available(), resize: Boolean = true): ByteBuffer {
 
 			val rbc: ReadableByteChannel = Channels.newChannel(stream)
 			var buffer: ByteBuffer = BufferUtils.createByteBuffer(bufferSize)
@@ -78,30 +79,22 @@ abstract class ResourcesLoader(val location: String) {
 					break
 				}
 				if (buffer.remaining() == 0) {
-					buffer = resizeBuffer(buffer, buffer.capacity() * 2)
+					buffer = buffer.resize(buffer.capacity() * 2)
 				}
 			}
 
 			buffer.flip()
 			return buffer
 		}
-
-		private fun resizeBuffer(buffer: ByteBuffer, newCapacity: Int): ByteBuffer {
-			val newBuffer = BufferUtils.createByteBuffer(newCapacity)
-			buffer.flip()
-			newBuffer.put(buffer)
-			return newBuffer
-		}
 	}
 
 
-
-	class Streams(val loader: ResourcesLoader, val prefix: String, val extensions: Set<String>? = null): Iterator<Pair<String, InputStream?>>, Iterable<Pair<String, InputStream?>> {
+	class Streams(val engine: GameEngineI<*>, val prefix: String, val extensions: Set<String>? = null) : Iterator<Pair<String, InputStream?>>, Iterable<Pair<String, InputStream?>> {
 
 		val size: Int
 		val allStreams: Iterator<String>
 		init {
-			val list = loader.streamList.filter { it.startsWith(prefix) }.filter {
+			val list = engine.resourcesLoader.streamList.filter { it.startsWith(prefix) }.filter {
 				extensions?.contains(it.substringAfterLast('.')) ?: true
 			}
 			size = list.size
@@ -110,7 +103,7 @@ abstract class ResourcesLoader(val location: String) {
 
 		override fun next(): Pair<String, InputStream?> {
 			val name = allStreams.next()
-			return name.removePrefix(prefix) to loader.getStream(name)
+			return name.removePrefix(prefix) to engine.resourcesLoader.getStream(name)
 		}
 
 		override fun hasNext(): Boolean = allStreams.hasNext()
