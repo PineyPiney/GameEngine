@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.resources
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -26,9 +27,12 @@ abstract class ResourcesLoader(val location: String) {
 
 	abstract val streamList: Set<String>
 
+	abstract val factory: ResourceFactory
+
 	abstract fun getStream(name: String): InputStream?
 
 	fun loadResources(engine: GameEngineI<*>) {
+		Mesh.initDefaultShapes(factory)
 		GameEngineI.info("Loaded Shaders in ${timeActionM { ShaderLoader.INSTANCE.loadShaders(Streams(engine, "shaders/")) }.round(2)} ms", this)
 		GameEngineI.info("Loaded Textures in ${timeActionM { loadTextures(engine) }.round(2)} ms")
 		GameEngineI.info("Loaded Audio in ${timeActionM { AudioLoader.INSTANCE.loadAudio(Streams(engine, audioLocation)) }.round(2)} ms")

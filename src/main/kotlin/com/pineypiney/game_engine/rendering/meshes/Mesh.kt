@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.rendering.meshes
 
 import com.pineypiney.game_engine.objects.Deletable
-import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.util.Vectors
 import com.pineypiney.game_engine.util.extension_functions.getOrNull
 import glm_.f
@@ -9,65 +9,28 @@ import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL11C.GL_TRIANGLES
 import java.nio.ByteBuffer
 
-abstract class Mesh(val VAO: Int, val VBO: Int) : Deletable {
+interface Mesh : Deletable {
 
-	constructor(): this(if (GLFunc.isLoaded) glGenVertexArrays() else -1, if (GLFunc.isLoaded) glGenBuffers() else -1)
+	val attributes: Map<VertexAttribute<*, *>, Long>
+	val stride: Int
 
-	abstract val attributes: Map<VertexAttribute<*>, Long>
+	fun bind(api: RenderingApi)
 
-	abstract val count: Int
-	val stride by lazy { attributes.keys.sumOf { it.bytes } }
+	fun draw(api: RenderingApi, mode: Int = GL_TRIANGLES)
 
-	open fun bind() {
-		glBindVertexArray(this.VAO)
+	fun drawInstanced(api: RenderingApi, amount: Int, mode: Int = GL_TRIANGLES)
+
+	fun bindAndDraw(api: RenderingApi, mode: Int = GL_TRIANGLES) {
+		bind(api)
+		draw(api, mode)
 	}
 
-	abstract fun draw(mode: Int = GL_TRIANGLES)
+	fun getData(): ByteBuffer
 
-	fun bindAndDraw(mode: Int = GL_TRIANGLES) {
-		bind()
-		draw(mode)
-	}
-
-	abstract fun drawInstanced(amount: Int, mode: Int = GL_TRIANGLES)
-
-	fun setAttributes(){
-		// How to read non-indices array
-
-		var index = 0
-		for ((attrib, step) in attributes) {
-
-			glEnableVertexAttribArray(index)
-			when (attrib.type) {
-				GL_FLOAT -> glVertexAttribPointer(index, attrib.size, GL_FLOAT, false, stride, step)
-				GL_INT -> glVertexAttribIPointer(index, attrib.size, GL_INT, stride, step)
-                GL_UNSIGNED_BYTE -> glVertexAttribIPointer(index, attrib.size, GL_UNSIGNED_BYTE, stride, step)
-			}
-
-			index++
-		}
-	}
-
-	fun getBufferSize(): Int{
-		glBindBuffer(GL_ARRAY_BUFFER, VBO)
-		val size = glGetBufferParameteri(GL_ARRAY_BUFFER, GL_BUFFER_SIZE)
-		glBindBuffer(GL_ARRAY_BUFFER, VBO)
-		return size
-	}
-
-	fun getData(): ByteBuffer {
-		glBindBuffer(GL_ARRAY_BUFFER, VBO)
-		val buffer = BufferUtils.createByteBuffer(glGetBufferParameteri(GL_ARRAY_BUFFER, GL_BUFFER_SIZE))
-		glGetBufferSubData(GL_ARRAY_BUFFER, 0L, buffer)
-		glBindBuffer(GL_ARRAY_BUFFER, 0)
-		return buffer
-	}
-
-	fun <A> getAttribute(attribute: VertexAttribute<A>): List<A>{
+	fun <A> getAttribute(attribute: VertexAttribute<A, *>): List<A> {
 		val buffer = getData()
 		val list = mutableListOf<A>()
 		val step = attributes.getOrNull(attribute)?.toInt() ?: return emptyList()
@@ -75,22 +38,6 @@ abstract class Mesh(val VAO: Int, val VBO: Int) : Deletable {
 			list.add(attribute.get(buffer, i*stride + step))
 		}
 		return list
-	}
-
-	fun <A> setAttribute(attribute: VertexAttribute<A>, values: List<A>){
-		glBindBuffer(GL_ARRAY_BUFFER, VBO)
-		val buffer = BufferUtils.createByteBuffer(attribute.bytes)
-		val step = attributes[attribute] ?: return
-		for(i in 0..<values.size){
-			attribute.set(buffer, 0, values[i])
-			glBufferSubData(GL_ARRAY_BUFFER, i * stride + step, buffer)
-		}
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0)
-	}
-
-	override fun delete() {
-		glDeleteVertexArrays(VAO)
 	}
 
 	fun getBounds(transform: Mat4 = Mat4(1f)): Pair<Vec3, Vec3> {
@@ -105,42 +52,40 @@ abstract class Mesh(val VAO: Int, val VBO: Int) : Deletable {
 		else return Vec3() to Vec3()
 	}
 
-	object EmptyMesh : Mesh(){
-		override val attributes: Map<VertexAttribute<*>, Long> = emptyMap()
+	object EmptyMesh : OpenGlMesh() {
+		override val attributes: Map<VertexAttribute<*, *>, Long> = emptyMap()
 		override val count: Int = 0
 
-		override fun draw(mode: Int) {}
-		override fun drawInstanced(amount: Int, mode: Int) {}
-
+		override fun draw(api: RenderingApi, mode: Int) {}
+		override fun drawInstanced(api: RenderingApi, amount: Int, mode: Int) {}
 	}
 
 	companion object {
-
-		fun floatArrayOf(vararg elements: Number): FloatArray {
-			return elements.map { it.f }.toFloatArray()
-		}
-
-		fun createAttributes(array: Array<VertexAttribute<*>>): Map<VertexAttribute<*>, Long>{
-			val map = mutableMapOf<VertexAttribute<*>, Long>()
+		fun createAttributes(iter: Iterable<VertexAttribute<*, *>>): Map<VertexAttribute<*, *>, Long> {
+			val map = mutableMapOf<VertexAttribute<*, *>, Long>()
 			var i = 0L
-			for(attrib in array){
+			for (attrib in iter) {
 				map[attrib] = i
 				i += attrib.bytes
 			}
 			return map
 		}
 
-		fun textureQuad(bl: Vec2, tr: Vec2, tbl: Vec2 = Vec2(0f), ttr: Vec2 = Vec2(1f)): IndicesMesh{
+		fun floatArrayOf(vararg elements: Number): FloatArray {
+			return elements.map { it.f }.toFloatArray()
+		}
+
+		fun textureQuad(factory: ResourceFactory, bl: Vec2, tr: Vec2, tbl: Vec2 = Vec2(0f), ttr: Vec2 = Vec2(1f)): Mesh {
 			val vertices = floatArrayOf(
 				bl.x, bl.y, tbl.x, tbl.y,
 				tr.x, bl.y, ttr.x, tbl.y,
 				tr.x, tr.y, ttr.x, ttr.y,
 				bl.x, tr.y, tbl.x, ttr.y,
 			)
-			return IndicesMesh(vertices, arrayOf(VertexAttribute.POSITION2D, VertexAttribute.TEX_COORD), intArrayOf(0, 1, 2, 0, 2, 3))
+			return factory.createIndexedMesh(vertices, intArrayOf(0, 1, 2, 0, 2, 3), createAttributes(listOf(VertexAttribute.POSITION2D, VertexAttribute.TEX_COORD)))
 		}
 
-		fun textureCuboid(blf: Vec3, trb: Vec3, tbl: Vec2 = Vec2(0f), ttr: Vec2 = Vec2(1f)): ArrayMesh{
+		fun textureCuboid(factory: ResourceFactory, blf: Vec3, trb: Vec3, tbl: Vec2 = Vec2(0f), ttr: Vec2 = Vec2(1f)): Mesh {
 			val vertices = floatArrayOf(
 				// positions		 // normals		 // texture co-ords
 				// Back
@@ -191,17 +136,25 @@ abstract class Mesh(val VAO: Int, val VBO: Int) : Deletable {
 				trb.x, trb.y, blf.z, 0.0, 1.0, 0.0, ttr.x, tbl.y,
 				blf.x, trb.y, blf.z, 0.0, 1.0, 0.0, tbl.x, tbl.y,
 			)
-
-			return ArrayMesh(vertices, arrayOf(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEX_COORD))
+			return factory.createArrayMesh(vertices, createAttributes(setOf(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEX_COORD)))
 		}
 
+		lateinit var cornerSquareShape: Mesh; private set
+		lateinit var centerSquareShape: Mesh; private set
+		lateinit var screenQuadShape: Mesh; private set
+		lateinit var footSquare: Mesh; private set
 
-		val cornerSquareShape = textureQuad(Vec2(), Vec2(1f))
-		val centerSquareShape = textureQuad(Vec2(-0.5f), Vec2(0.5f))
-		val screenQuadShape = textureQuad(Vec2(-1f), Vec2(1f))
-		val footSquare = textureQuad(Vec2(-0.5f, 0f), Vec2(0.5f, 1f))
+		lateinit var cornerCubeShape: Mesh; private set
+		lateinit var centerCubeShape: Mesh; private set
 
-		val cornerCubeShape = textureCuboid(Vec3(0f), Vec3(1f))
-		val centerCubeShape = textureCuboid(Vec3(-.5f), Vec3(.5f))
+		fun initDefaultShapes(factory: ResourceFactory) {
+			cornerSquareShape = textureQuad(factory, Vec2(), Vec2(1f))
+			centerSquareShape = textureQuad(factory, Vec2(-0.5f), Vec2(0.5f))
+			screenQuadShape = textureQuad(factory, Vec2(-1f), Vec2(1f))
+			footSquare = textureQuad(factory, Vec2(-0.5f, 0f), Vec2(0.5f, 1f))
+
+			cornerCubeShape = textureCuboid(factory, Vec3(0f), Vec3(1f))
+			centerCubeShape = textureCuboid(factory, Vec3(-.5f), Vec3(.5f))
+		}
 	}
 }

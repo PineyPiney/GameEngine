@@ -14,7 +14,7 @@ import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL11C.*
 import org.lwjgl.opengl.GL30C
 
-open class DefaultWindowRenderer<G: WindowGameLogic, R: CameraI>(override val window: WindowI, override val camera: R): BufferedGameRenderer<G>() {
+open class DefaultWindowRenderer<G : WindowGameLogic, R : CameraI>(override val window: WindowI, override val camera: R) : OpenGlGameRenderer<G>() {
 
 	constructor(window: WindowI, camera: (WindowI) -> R): this(window, camera(window))
 
@@ -48,7 +48,7 @@ open class DefaultWindowRenderer<G: WindowGameLogic, R: CameraI>(override val wi
 		Framebuffer.unbind()
 		clear()
 		screenShader.setUp(screenUniforms, this)
-		framebuffer.draw()
+		framebuffer.draw(getRenderingApi())
 		glClear(GL_DEPTH_BUFFER_BIT)
 	}
 

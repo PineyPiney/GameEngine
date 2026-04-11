@@ -2,7 +2,9 @@ package com.pineypiney.game_engine.util.extension_functions
 
 import glm_.*
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4i
 import glm_.vec4.Vec4ub
@@ -13,7 +15,9 @@ import org.lwjgl.PointerBuffer
 import org.lwjgl.system.Struct
 import org.lwjgl.system.StructBuffer
 import unsigned.Ushort
+import java.nio.BufferOverflowException
 import java.nio.ByteBuffer
+import java.nio.IntBuffer
 import java.nio.ShortBuffer
 
 
@@ -66,6 +70,20 @@ fun ByteBuffer.getVec4ub(offset: Int): Vec4ub {
 fun ByteBuffer.putVec4ub(offset: Int, vec: Vec4ub): ByteBuffer{
     put(offset, vec.x.b).put(offset + 1, vec.y.b).put(offset + 2, vec.z.b).put(offset + 3, vec.w.b)
     return this
+}
+
+fun ByteBuffer.put(v: ToBuffer) {
+	if (remaining() < v.size()) throw BufferOverflowException()
+	v to this
+	position(position() + v.size())
+}
+
+fun IntBuffer.getVec2i(): Vec2i {
+	return Vec2i(get(), get())
+}
+
+fun IntBuffer.getVec3i(): Vec3i {
+	return Vec3i(get(), get(), get())
 }
 
 fun ShortBuffer.toByteBuffer(): ByteBuffer {

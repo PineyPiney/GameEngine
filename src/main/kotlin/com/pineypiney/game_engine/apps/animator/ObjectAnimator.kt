@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.resources.FileResourcesLoader
+import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.window.DefaultGLWindow
@@ -12,7 +13,7 @@ import com.pineypiney.game_engine.window.WindowedGameEngine
 import java.io.File
 
 class ObjectAnimator(
-	val resources: ResourcesLoader = FileResourcesLoader(File("src/main/resources")),
+	val resources: ResourcesLoader = FileResourcesLoader(OpenGlResourceFactory(), File("src/main/resources")),
 	creator: () -> GameObject,
 	val tweaker: (GameObject) -> Unit = {}
 ) {

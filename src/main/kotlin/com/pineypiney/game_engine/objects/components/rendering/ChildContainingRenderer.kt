@@ -46,7 +46,7 @@ class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Ve
 
 		// Write to the stencil
 		shader.setUp(uniforms, renderer)
-		mesh.bindAndDraw()
+		mesh.bindAndDraw(renderer.getRenderingApi())
 
 		// Stencil only passes if the stencil value is 1, and don't write to the stencil
 		GLFunc.stencilFRM = Vec3i(GL11C.GL_EQUAL, 1, 255)

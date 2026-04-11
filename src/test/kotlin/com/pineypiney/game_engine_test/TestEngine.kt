@@ -2,6 +2,7 @@ package com.pineypiney.game_engine_test
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.FileResourcesLoader
+import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.window.WindowGameLogic
@@ -10,7 +11,8 @@ import com.pineypiney.game_engine.window.WindowedGameEngine
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.vec4.Vec4
 
-class TestEngine<E : WindowGameLogic>(override val window: WindowI, val screen: (WindowedGameEngineI<E>) -> E, ups: Int, fps: Int) : WindowedGameEngine<E>(FileResourcesLoader()) {
+class TestEngine<E : WindowGameLogic>(override val window: WindowI, val screen: (WindowedGameEngineI<E>) -> E, ups: Int, fps: Int) :
+	WindowedGameEngine<E>(FileResourcesLoader(OpenGlResourceFactory())) {
 
 	override val TARGET_UPS: Int = ups
 	override val TARGET_FPS: Int = fps

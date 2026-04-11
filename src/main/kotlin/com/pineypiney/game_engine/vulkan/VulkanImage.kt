@@ -6,7 +6,7 @@ import org.lwjgl.util.vma.Vma
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK13
 
-class VulkanImage(override val device: VulkanDevice, override val image: Long, override val imageView: Long, val allocation: Long, val size: Vec2i) : VulkanImageI {
+class VulkanImage(override val device: VulkanDevice, override val image: Long, override val imageView: Long, override val format: Int, val allocation: Long, val size: Vec2i) : VulkanImageI {
 
 	override val extents: Vec3i = Vec3i(size, 1)
 	override var layout: Int = VK10.VK_IMAGE_LAYOUT_UNDEFINED

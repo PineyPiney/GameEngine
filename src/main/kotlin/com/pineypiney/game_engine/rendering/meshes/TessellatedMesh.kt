@@ -16,7 +16,7 @@ class TessellatedMesh: ArrayMesh {
 
 	val patchVertices: Int
 
-	constructor(vertices: FloatArray, attributes: Map<VertexAttribute<*>, Long>, patchVertices: Int): super(vertices, attributes){
+	constructor(vertices: FloatArray, attributes: Map<VertexAttribute<*, *>, Long>, patchVertices: Int) : super(vertices, attributes) {
 		this.patchVertices = patchVertices
 	}
 
@@ -24,9 +24,9 @@ class TessellatedMesh: ArrayMesh {
 		this.patchVertices = patchVertices
 	}
 
-	override fun draw(mode: Int) {
+	override fun draw(api: RenderingApi, mode: Int) {
 		GLFunc.patchVertices = this.patchVertices
-		super.draw(GL40C.GL_PATCHES)
+		super.draw(api, GL40C.GL_PATCHES)
 	}
 
 	companion object {
@@ -51,7 +51,7 @@ class TessellatedMesh: ArrayMesh {
 					(Vec2(x + 1, y + 1) * texDelta).to(vertices, offset + 18)
 				}
 			}
-			return TessellatedMesh(ArrayMesh(vertices.toFloatArray(), arrayOf(VertexAttribute.POSITION, VertexAttribute.TEX_COORD)), 4)
+			return TessellatedMesh(ArrayMesh(vertices.toFloatArray(), setOf(VertexAttribute.POSITION, VertexAttribute.TEX_COORD)), 4)
 		}
 
 		fun generateIcoSphere(radius: Float, res: Int): TessellatedMesh {
@@ -132,7 +132,7 @@ class TessellatedMesh: ArrayMesh {
 				}
 			}
 
-			return TessellatedMesh(ArrayMesh(buffer, arrayOf(VertexAttribute.POSITION)), 3)
+			return TessellatedMesh(ArrayMesh(buffer, setOf(VertexAttribute.POSITION)), 3)
 		}
 	}
 }

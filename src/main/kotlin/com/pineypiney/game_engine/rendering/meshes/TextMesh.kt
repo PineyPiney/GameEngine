@@ -3,7 +3,8 @@ package com.pineypiney.game_engine.rendering.meshes
 import com.pineypiney.game_engine.resources.textures.Texture
 import glm_.vec2.Vec2
 
-class TextMesh(chars: Array<CharacterMesh>, val texture: Texture = Texture.broke, val deleteTexture: Boolean = false) : IndicesMesh(chars.flatMap { it.getVertices() }.toFloatArray(), arrayOf(
+class TextMesh(chars: Array<CharacterMesh>, val texture: Texture = Texture.broke, val deleteTexture: Boolean = false) : OpenGlIndexedMesh(
+	chars.flatMap { it.getVertices() }.toFloatArray(), listOf(
 	VertexAttribute.POSITION2D, VertexAttribute.TEX_COORD
 ), createIndices(chars.size)) {
 

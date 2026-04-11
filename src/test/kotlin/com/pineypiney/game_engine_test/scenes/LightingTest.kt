@@ -19,7 +19,7 @@ import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.resources.models.GLTFModelSaver
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
-import com.pineypiney.game_engine.resources.models.ModelMesh
+import com.pineypiney.game_engine.resources.models.OpenGlModelMesh
 import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -38,7 +38,6 @@ import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.mat2x2.Mat2
 import glm_.pow
-import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -69,7 +68,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 	val model get() = Model("icosahedron",  arrayOf(createSphereMeshWithTangents(1f, 3)))
 	val firstModel = Model("model", arrayOf(createInvertedCuboid(AxisAlignedCuboid(Vec3(0f), Vec3(1f)))))
 	val modelShader = ShaderLoader[ResourceKey("vertex/tangent_model"), ResourceKey("fragment/pbr_lit_tangent_model")]
-	private val litModel = GameObject.simpleModelledGameObject("Lit Model", firstModel, modelShader)
+	private val litModel = GameObject.simpleModelledGameObject("Lit Model", firstModel, ModelRendererComponent.debugTrisShader)
 
 	val debugShader = ShaderLoader[ResourceKey("vertex/tangent_model"), ResourceKey("fragment/colour_in"), ResourceKey("geometry/visualise_tangents")]
 	val debugModel = GameObject.simpleModelledGameObject("Debug Model", firstModel, debugShader)
@@ -118,7 +117,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 	override fun addObjects() {
 		add(zArrow, litModel, debugModel)
 		add(light, torch, sun.apply { position = Vec3(0f, 900f, 0f); scale = Vec3(50f) })
-		add(fpsText)
+		add(fpsText, movementController.parent)
 		add(roughnessSlider.parent, metallicSlider.parent, specularSlider.parent, specTintSlider.parent, sheenSlider.parent, sheenTintSlider.parent, anisotropicSlider.parent, fresnelBox.parent)
 		add(vecIdSlider.parent)
 	}
@@ -137,24 +136,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 
 	override fun render(tickDelta: Double) {
 		renderer.render(this, tickDelta)
-
-		val speed = 10 * Timer.frameDelta
-		val travel = Vec3()
-
-		val forward = camera.cameraUp cross camera.cameraRight
-		if(pressedKeys.contains('W'.s)) travel += forward
-		if(pressedKeys.contains('S'.s)) travel -= forward
-		if(pressedKeys.contains('A'.s)) travel -= camera.cameraRight
-		if(pressedKeys.contains('D'.s)) travel += camera.cameraRight
-		if(pressedKeys.contains(' '.s)) travel += camera.cameraUp
-		if(pressedKeys.contains(GLFW_KEY_LEFT_CONTROL.s)) travel -= camera.cameraUp
-
-		vel += (travel - vel) * Timer.frameDelta * if(travel.length2() < vel.length2()) 4f else 2f
-
-		if(vel != Vec3(0)){
-			camera.translate(vel * speed)
-			torch.position = camera.cameraPos
-		}
+		torch.position = camera.cameraPos
 	}
 
 	override fun onInput(state: InputState, action: Int): Int {
@@ -203,7 +185,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, if (movementController.look) GLFW_CURSOR_DISABLED else GLFW_CURSOR_CAPTURED)
 	}
 
-	fun createSphereMesh(radius: Float, subdivisions: Int): ModelMesh{
+	fun createSphereMesh(radius: Float, subdivisions: Int): OpenGlModelMesh {
 
 		val d = Debug().start()
 
@@ -347,10 +329,15 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		d.add()
 		d.printDiffs()
 
-		return ModelMesh("icosahedron", points.map { MeshVertex.builder(it.normal * radius).normal(it.normal).tex(it.tex).build() }.toTypedArray(), indices.toIntArray(), material = PBRMaterial("icosphere", mapOf("baseColour" to TextureLoader[ResourceKey("ico_texture")])))
+		return OpenGlModelMesh(
+			"icosahedron",
+			points.map { MeshVertex.builder(it.normal * radius).normal(it.normal).tex(it.tex).build() }.toTypedArray(),
+			indices.toIntArray(),
+			material = PBRMaterial("icosphere", mapOf("baseColour" to TextureLoader[ResourceKey("ico_texture")]))
+		)
 	}
 
-	fun createSphereMeshWithTangents(radius: Float, subdivisions: Int): ModelMesh{
+	fun createSphereMeshWithTangents(radius: Float, subdivisions: Int): OpenGlModelMesh {
 
 		val d = Debug().start()
 
@@ -456,13 +443,15 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 				if(abs(it.first.normal.y) == 1f) Vec3(1f, 0f, 0f) else (it.first.normal.cross(Vec3(0f, 1f, 0f))).normalize()
 			).fillBones().build()
 		}.toTypedArray()
-		return ModelMesh("icosahedron", floats, indices.toIntArray(), material = PBRMaterial("icosphere", mapOf(
+		return OpenGlModelMesh(
+			"icosahedron", floats, indices.toIntArray(), material = PBRMaterial(
+				"icosphere", mapOf(
 			//"baseColour" to TextureLoader[ResourceKey("ico_texture")],
 			//"normals" to TextureLoader[ResourceKey("cratered_normals")]
 		)))
 	}
 
-	fun createUVSphereMeshWithTangents(radius: Float, divisions: Int): ModelMesh {
+	fun createUVSphereMeshWithTangents(radius: Float, divisions: Int): OpenGlModelMesh {
 
 		val numRings = divisions + 1
 		val numSections = 2 * numRings
@@ -516,13 +505,15 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 			a.copyInto(vertices, (i * sectionDivisions) + 1)
 		}
 		vertices[vertices.size - 1] = top
-		return ModelMesh("UV Sphere", vertices, indices, material = PBRMaterial("uv sphere", mapOf(
+		return OpenGlModelMesh(
+			"UV Sphere", vertices, indices, material = PBRMaterial(
+				"uv sphere", mapOf(
 			//"baseColour" to TextureLoader[ResourceKey("wood")],
 			//"normals" to TextureLoader[ResourceKey("planet_normals")]
 		), Vec4(.93f, .66f, .6f, 1f)))
 	}
 
-	fun createInvertedCuboid(cuboid: AxisAlignedCuboid): ModelMesh {
+	fun createInvertedCuboid(cuboid: AxisAlignedCuboid): OpenGlModelMesh {
 		val indices = IntArray(72)
 
 
@@ -593,7 +584,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameL
 		}
 		intArrayOf(37, 36, 44, 39, 38, 45, 41, 40, 46, 43, 42, 47).copyInto(indices, 60)
 
-		return ModelMesh("Inverted Cuboid", topVerts.toTypedArray(), indices, material = PBRMaterial("invCub Mat", mapOf()))
+		return OpenGlModelMesh("Inverted Cuboid", topVerts.toTypedArray(), indices, material = PBRMaterial("invCub Mat", mapOf()))
 	}
 
 	companion object {

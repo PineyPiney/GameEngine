@@ -1,13 +1,13 @@
 package com.pineypiney.game_engine.resources.models.voxel
 
-import com.pineypiney.game_engine.rendering.meshes.IndicesMeshBuilder
+import com.pineypiney.game_engine.rendering.meshes.IndexedMeshBuilder
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
+import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelMesh
 import com.pineypiney.game_engine.resources.readString
 import com.pineypiney.game_engine.util.BitMap3D
 import com.pineypiney.game_engine.util.extension_functions.getOrSet
-
 import glm_.int
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4i
@@ -16,7 +16,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 class VoxModelLoader {
-	fun loadVoxModel(name: String, stream: InputStream): Model {
+	fun loadVoxModel(factory: ResourceFactory, name: String, stream: InputStream): Model {
 		stream.readString(4)		// "VOX "
 		stream.int(false)    // Version (150 or 200)
 		val models = mutableListOf<VoxelModel>()
@@ -37,7 +37,7 @@ class VoxModelLoader {
 		}
 
 
-		val meshes = models.map { it.generateMesh(rgba) }
+		val meshes = models.map { it.generateMesh(factory, rgba) }
 		return Model(name, meshes.toTypedArray())
 	}
 
@@ -172,9 +172,9 @@ class VoxModelLoader {
 			return maps
 		}
 
-		fun generateMesh(colours: Array<Int>): ModelMesh {
+		fun generateMesh(factory: ResourceFactory, colours: Array<Int>): ModelMesh {
 
-			val builder = IndicesMeshBuilder(VertexAttribute.POSITION, VertexAttribute.COLOUR)
+			val builder = IndexedMeshBuilder(VertexAttribute.POSITION, VertexAttribute.COLOUR)
 
 			val colourMaps = toColourMaps()
 			for((colourIndex, map) in colourMaps){
@@ -256,7 +256,7 @@ class VoxModelLoader {
 				}
 			}
 
-			return builder.buildModel(name)
+			return builder.buildModel(name, factory)
 		}
 
 		companion object {

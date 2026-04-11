@@ -369,7 +369,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 				override fun render(renderer: RendererI, tickDelta: Double) {
 					shader.setUp(uniforms, renderer)
 					setManualUniforms()
-					mesh.bindAndDraw()
+					mesh.bindAndDraw(renderer.getRenderingApi())
 				}
 
 				override fun getMeshes(): Collection<Mesh> = listOf(mesh)

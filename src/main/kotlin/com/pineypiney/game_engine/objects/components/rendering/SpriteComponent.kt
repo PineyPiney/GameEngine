@@ -34,7 +34,7 @@ open class SpriteComponent(
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
 		sprite.texture.bind()
-		sprite.fetchMesh().bindAndDraw()
+		sprite.fetchMesh().bindAndDraw(renderer.getRenderingApi())
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(sprite.fetchMesh())

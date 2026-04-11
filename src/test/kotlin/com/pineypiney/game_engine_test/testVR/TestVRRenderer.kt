@@ -1,8 +1,10 @@
 package com.pineypiney.game_engine_test.testVR
 
-import com.pineypiney.game_engine.rendering.BufferedGameRenderer
 import com.pineypiney.game_engine.rendering.Framebuffer
+import com.pineypiney.game_engine.rendering.OpenGlGameRenderer
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.OpenGlRendering
+import com.pineypiney.game_engine.rendering.meshes.RenderingApi
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.vr.HMD
@@ -19,6 +21,7 @@ class TestVRRenderer(w: Int, h: Int, override val hmd: HMD): VRRenderer<TestVRGa
 	override var view: Mat4 = I
 
 	val viewOffset = Vec3()
+	private val meshRenderer = OpenGlRendering()
 
 	override fun init() {
 		super.init()
@@ -44,13 +47,15 @@ class TestVRRenderer(w: Int, h: Int, override val hmd: HMD): VRRenderer<TestVRGa
 
 		GLFunc.viewportO = game.gameEngine.window.framebufferSize
 
-		val shader = BufferedGameRenderer.screenShader
+		val shader = OpenGlGameRenderer.screenShader
 		shader.use()
-		shader.setUniforms(BufferedGameRenderer.screenUniforms, this)
-		leftDisplay.draw(Mesh.textureQuad(Vec2(-0.5, 0), Vec2(1, 2)))
-		rightDisplay.draw(Mesh.textureQuad(Vec2(0.5, 0), Vec2(1, 2)))
+		shader.setUniforms(OpenGlGameRenderer.screenUniforms, this)
+		leftDisplay.draw(getRenderingApi(), Mesh.textureQuad(game.gameEngine.resourcesLoader.factory, Vec2(-0.5, 0), Vec2(1, 2)))
+		rightDisplay.draw(getRenderingApi(), Mesh.textureQuad(game.gameEngine.resourcesLoader.factory, Vec2(0.5, 0), Vec2(1, 2)))
 		game.gameEngine.window.update()
 	}
+
+	override fun getRenderingApi(): RenderingApi = meshRenderer
 
 	override fun getView(eye: Int): Mat4 {
 		return super.getView(eye) * (I.translate(viewOffset).inverse())

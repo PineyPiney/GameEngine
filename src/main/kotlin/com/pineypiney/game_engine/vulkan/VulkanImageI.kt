@@ -14,6 +14,7 @@ interface VulkanImageI : Resource {
 	val image: Long
 	val imageView: Long
 	val extents: Vec3i
+	val format: Int
 	var layout: Int
 
 

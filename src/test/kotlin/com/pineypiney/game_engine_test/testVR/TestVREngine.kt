@@ -1,12 +1,13 @@
 package com.pineypiney.game_engine_test.testVR
 
 import com.pineypiney.game_engine.resources.FileResourcesLoader
+import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.vr.HMD
 import com.pineypiney.game_engine.vr.VRGameEngine
 import com.pineypiney.game_engine.window.WindowI
 
-class TestVREngine(val window: WindowI, val screen: (TestVREngine) -> TestVRGame, ups: Int, fps: Int, resourcesLoader: ResourcesLoader = FileResourcesLoader()) :
+class TestVREngine(val window: WindowI, val screen: (TestVREngine) -> TestVRGame, ups: Int, fps: Int, resourcesLoader: ResourcesLoader = FileResourcesLoader(OpenGlResourceFactory())) :
 	VRGameEngine<TestVRGame>(resourcesLoader) {
 
 	override val TARGET_UPS: Int = ups

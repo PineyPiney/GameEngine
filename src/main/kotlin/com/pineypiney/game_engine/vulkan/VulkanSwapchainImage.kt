@@ -5,7 +5,7 @@ import glm_.vec3.Vec3i
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK13
 
-class VulkanSwapchainImage(override val device: VulkanDevice, override val image: Long, override val imageView: Long, val size: Vec2i) : VulkanImageI {
+class VulkanSwapchainImage(override val device: VulkanDevice, override val image: Long, override val imageView: Long, override val format: Int, val size: Vec2i) : VulkanImageI {
 
 	override val extents: Vec3i = Vec3i(size, 1)
 	override var layout: Int = VK10.VK_IMAGE_LAYOUT_UNDEFINED

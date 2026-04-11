@@ -44,7 +44,7 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		mesh.bindAndDraw()
+		mesh.bindAndDraw(renderer.getRenderingApi())
 	}
 
 	fun setOriginAndPoint(origin: Vec2, point: Vec2){
@@ -53,7 +53,7 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 		mesh = generateMesh()
 	}
 
-	fun generateMesh(): Mesh{
+	fun generateMesh(): Mesh {
 		val length = (point - origin).length()
 		if(length == 0f) return Mesh.EmptyMesh
 		val vec = (point - origin) / length
@@ -71,7 +71,7 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 				headBase - (perp * 2), point, headBase + (perp * 2)
 			)
 		}
-		return ArrayMesh(array.flatMap { it.array.toList() }.toFloatArray(), arrayOf(VertexAttribute.POSITION2D))
+		return ArrayMesh(array.flatMap { it.array.toList() }.toFloatArray(), setOf(VertexAttribute.POSITION2D))
 	}
 
 	companion object {

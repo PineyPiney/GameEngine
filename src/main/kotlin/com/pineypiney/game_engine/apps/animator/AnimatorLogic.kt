@@ -10,8 +10,8 @@ import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.OutlinedSliderRendererComponent
-import com.pineypiney.game_engine.rendering.BufferedGameRenderer
 import com.pineypiney.game_engine.rendering.Framebuffer
+import com.pineypiney.game_engine.rendering.OpenGlGameRenderer
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.util.GLFunc
@@ -35,7 +35,7 @@ class AnimatorLogic(
 	var creator: () -> GameObject
 ) : WindowGameLogic() {
 
-	override val renderer = object : BufferedGameRenderer<AnimatorLogic>() {
+	override val renderer = object : OpenGlGameRenderer<AnimatorLogic>() {
 
 		override val view = I
 		override val projection = I
@@ -72,7 +72,7 @@ class AnimatorLogic(
 			GLFunc.viewportO = window.framebufferSize
 			clear()
 			screenShader.setUp(screenUniforms, this)
-			framebuffer.draw()
+			framebuffer.draw(getRenderingApi())
 			GL11C.glClear(GL11C.GL_DEPTH_BUFFER_BIT)
 		}
 

@@ -4,28 +4,28 @@ import com.pineypiney.game_engine.util.GLFunc
 import org.lwjgl.opengl.GL31C.*
 import java.nio.FloatBuffer
 
-open class ArrayMesh : Mesh {
+open class ArrayMesh : OpenGlMesh {
 
-	final override val attributes: Map<VertexAttribute<*>, Long>
+	final override val attributes: Map<VertexAttribute<*, *>, Long>
 	final override val count: Int
 
-	constructor(vertices: FloatBuffer, attributes: Map<VertexAttribute<*>, Long>) : super() {
+	constructor(vertices: FloatBuffer, attributes: Map<VertexAttribute<*, *>, Long>) : super() {
 		this.attributes = attributes
 		this.count = vertices.capacity() / attributes.keys.sumOf { it.size }
 		bufferData(vertices, ::glBufferData)
 	}
 
-	constructor(vertices: FloatBuffer, attributes: Array<VertexAttribute<*>>) : this(vertices, createAttributes(attributes))
+	constructor(vertices: FloatBuffer, attributes: Iterable<VertexAttribute<*, *>>) : this(vertices, Mesh.createAttributes(attributes))
 
-	constructor(vertices: FloatArray, attributes: Map<VertexAttribute<*>, Long>): super(){
+	constructor(vertices: FloatArray, attributes: Map<VertexAttribute<*, *>, Long>) : super() {
 		this.attributes = attributes
 		this.count = vertices.size / attributes.keys.sumOf { it.size }
 		bufferData(vertices, ::glBufferData)
 	}
 
-	constructor(vertices: FloatArray, attributes: Array<VertexAttribute<*>>) : this(vertices, createAttributes(attributes))
+	constructor(vertices: FloatArray, attributes: Iterable<VertexAttribute<*, *>>) : this(vertices, Mesh.createAttributes(attributes))
 
-	constructor(VAO: Int, VBO: Int, attributes: Map<VertexAttribute<*>, Long>, count: Int) : super(VAO, VBO) {
+	constructor(VAO: Int, VBO: Int, attributes: Map<VertexAttribute<*, *>, Long>, count: Int) : super(VAO, VBO) {
 		this.attributes = attributes
 		this.count = count
 	}
@@ -45,11 +45,11 @@ open class ArrayMesh : Mesh {
 		}
 	}
 
-	override fun draw(mode: Int) {
+	override fun draw(api: RenderingApi, mode: Int) {
 		glDrawArrays(mode, 0, count)
 	}
 
-	override fun drawInstanced(amount: Int, mode: Int) {
+	override fun drawInstanced(api: RenderingApi, amount: Int, mode: Int) {
 		glDrawArraysInstanced(mode, 0, count, amount)
 	}
 

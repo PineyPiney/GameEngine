@@ -8,11 +8,10 @@ import com.pineypiney.game_engine.window.WindowGameLogic
 import org.lwjgl.glfw.GLFW
 
 class Logic(override val gameEngine: VulkanGameEngine<Logic>) : WindowGameLogic() {
-	override val renderer: VulkanBufferedRenderer<Logic> =
-		VulkanBufferedRenderer<Logic>(window, gameEngine.vulkanManager)
+	override val renderer: VulkanBufferedRenderer<Logic> = VulkanBufferedRenderer<Logic>(window, gameEngine)
 
 	override fun addObjects() {
-
+		add(renderer.movement.parent)
 	}
 
 	override fun render(tickDelta: Double) {
@@ -34,6 +33,6 @@ fun main() {
 	}
 	window.init()
 
-	val engine = VulkanGameEngine(window, ::Logic)
+	val engine = VulkanGameEngine(window, VulkanManager(window), ::Logic)
 	engine.run()
 }

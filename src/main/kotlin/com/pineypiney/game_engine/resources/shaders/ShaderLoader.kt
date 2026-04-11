@@ -7,11 +7,9 @@ import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addToMapOr
 import com.pineypiney.game_engine.util.extension_functions.delete
-import com.pineypiney.game_engine.util.extension_functions.toString
 import com.pineypiney.game_engine.vulkan.VkUtil
-import com.pineypiney.game_engine.vulkan.VulkanComputePipeline
-import com.pineypiney.game_engine.vulkan.VulkanGameEngine
 import com.pineypiney.game_engine.vulkan.VulkanManager
+import com.pineypiney.game_engine.vulkan.pipeline.VulkanComputePipeline
 import glm_.bool
 import kool.free
 import org.lwjgl.BufferUtils
@@ -22,7 +20,6 @@ import org.lwjgl.util.shaderc.ShadercIncludeResolve
 import org.lwjgl.util.shaderc.ShadercIncludeResult
 import org.lwjgl.util.shaderc.ShadercIncludeResultRelease
 import org.lwjgl.vulkan.*
-import java.io.InputStream
 import java.nio.ByteBuffer
 
 
@@ -33,83 +30,37 @@ class ShaderLoader private constructor() : Deletable {
 	val shaderModules: MutableMap<ResourceKey, Long> = mutableMapOf()
 
 	fun loadShaders(streams: ResourcesLoader.Streams) {
-		if (GLFunc.isLoaded) loadShadersOpenGl(streams)
-		else {
-			val engine = streams.engine
-			if (engine is VulkanGameEngine<*>) loadShadersVulkan(engine.vulkanManager, streams.engine.resourcesLoader, streams)
-		}
-	}
 
-	private fun loadShadersOpenGl(streams: ResourcesLoader.Streams) {
 		streams.useEachStream { fileName, stream ->
 
 			val i = fileName.lastIndexOf(".")
 			if (i <= 0) return@useEachStream
 			val suf = fileName.substring(i + 1)
 
-			val type = when (suf) {
-				"vs" -> GL_VERTEX_SHADER
-				"fs" -> GL_FRAGMENT_SHADER
-				"tcs" -> GL_TESS_CONTROL_SHADER
-				"tes" -> GL_TESS_EVALUATION_SHADER
-				"gs" -> GL_GEOMETRY_SHADER
-				"cs" -> GL_COMPUTE_SHADER
-				else -> 0
+			val stage = when (suf) {
+				"vs" -> ShaderStage.VERTEX
+				"fs" -> ShaderStage.FRAGMENT
+				"tcs" -> ShaderStage.TESS_CTRL
+				"tes" -> ShaderStage.TESS_EVAL
+				"gs" -> ShaderStage.GEOMETRY
+				"cs" -> ShaderStage.COMPUTE
+				else -> return@useEachStream
 			}
 
-			if((type == GL_TESS_CONTROL_SHADER || type == GL_TESS_EVALUATION_SHADER) && !GLFunc.versionAtLeast(4, 1)) {
-				if(!warnedTess){
-					GameEngineI.logger.warn("Tried to create Tesselation Shader, which requires OpenGL 4.1 or higher, but created OpenGL Instance is version ${GLFunc.version.toString(".", Int::toString)}")
-					warnedTess = true
-				}
-				return@useEachStream
-			}
-			if(type == GL_COMPUTE_SHADER && !GLFunc.versionAtLeast(4, 3)){
-				if(!warnedCompute){
-					GameEngineI.logger.warn("Tried to create Compute Shader, which requires OpenGL 4.3 or higher, but created OpenGL Instance is version ${GLFunc.version.toString(".", Int::toString)}")
-					warnedCompute = true
-				}
-				return@useEachStream
-			}
-
-			loadShaderOpenGl(fileName.removeSuffix(".$suf"), stream.readBytes(), type)
+			val code = stream.readBytes().toString(Charsets.UTF_8)
+			streams.engine.resourcesLoader.factory.createSubShader(streams.engine.resourcesLoader, fileName, suf, stage, code)
 		}
 	}
 
-	private fun loadShaderOpenGl(name: String, bytes: ByteArray, type: Int) {
-		val code = bytes.copyOf().toString(Charsets.UTF_8)
+	fun loadShaderOpenGl(name: String, code: String, type: Int) {
 		val shader = generateSubShader(name, code, type)
 		shaderMap[ResourceKey(name)] = shader
 	}
 
-	private fun loadShadersVulkan(vulkan: VulkanManager, loader: ResourcesLoader, streams: ResourcesLoader.Streams) {
-		streams.useEachStream { fileName, stream ->
+	fun loadShaderVulkan(vulkan: VulkanManager, loader: ResourcesLoader, key: ResourceKey, fileName: String, code: String, stage: Int) {
 
-			val i = fileName.lastIndexOf(".")
-			if (i <= 0) return@useEachStream
-			val suf = fileName.substring(i + 1)
+		val buffer = compileGlslAsSpirv(loader, fileName, code, stage) ?: return
 
-			if (suf != "cs" || fileName.endsWith("gradient.cs")) return@useEachStream
-
-			val type = when (suf) {
-				"vs" -> VK13.VK_SHADER_STAGE_VERTEX_BIT
-				"fs" -> VK13.VK_SHADER_STAGE_FRAGMENT_BIT
-				"tcs" -> VK13.VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT
-				"tes" -> VK13.VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT
-				"gs" -> VK13.VK_SHADER_STAGE_GEOMETRY_BIT
-				"cs" -> VK13.VK_SHADER_STAGE_COMPUTE_BIT
-				else -> 0
-			}
-
-			loadShaderVulkan(vulkan, loader, ResourceKey(fileName.removeSuffix(".$suf")), fileName, stream, type)
-
-		}
-	}
-
-	private fun loadShaderVulkan(vulkan: VulkanManager, loader: ResourcesLoader, key: ResourceKey, fileName: String, stream: InputStream, stage: Int) {
-
-		val buffer = compileGlslAsSpirv(loader, fileName, stream, stage) ?: return
-//			Shaderc.shaderc_compile_options_set_target_env
 		val shaderCreateInfo = VkShaderModuleCreateInfo.calloc()
 			.`sType$Default`()
 			.pCode(buffer)
@@ -173,6 +124,8 @@ class ShaderLoader private constructor() : Deletable {
 		var warnedTess = false
 		var warnedCompute = false
 
+		val versionRegex = Regex("#version\\s+\\d{3}(\\s+core)?[^\\S\\n]*\\n")
+
 		fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): RenderShader {
 			return INSTANCE.getShader(vertexKey, fragmentKey, geometryKey)
 		}
@@ -185,9 +138,21 @@ class ShaderLoader private constructor() : Deletable {
 			return INSTANCE.getComputeShader(computeKey)
 		}
 
+		fun addMacro(code: String, name: String): String {
+			val versionLocation = versionRegex.find(code)
+			return if (versionLocation != null) {
+				code.substring(0, versionLocation.range.last) + "\n#define $name" + code.substring(versionLocation.range.last)
+			} else code
+		}
+
 		fun generateSubShader(name: String, code: String, type: Int): SubShader {
 
-			val id = createShaderFromString(code, type, name)
+			var openglCode = addMacro(code, "OPENGL")
+			openglCode = openglCode.replace("gl_VertexIndex", "gl_VertexID")
+			openglCode = openglCode.replace("gl_InstanceIndex", "gl_InstanceID")
+
+
+			val id = createShaderFromString(openglCode, type, name)
 
 			val uniforms = compileUniforms(code)
 
@@ -241,12 +206,13 @@ class ShaderLoader private constructor() : Deletable {
 				.size(constantSize)
 				.stageFlags(VK10.VK_SHADER_STAGE_COMPUTE_BIT)
 
+			val pipelineBuilder = VulkanComputePipeline.Builder()
 			val pipelineLayout = VkUtil.createPipelineLayout(vulkan.device, vulkan.pLayout, pushConstant)
-			val pipeline = VkUtil.createComputePipeline(vulkan.device, module, pipelineLayout)
+			val pipeline = pipelineBuilder.setModule(module).setLayout(pipelineLayout).build(vulkan.device)
 
-			val res = VulkanComputePipeline(vulkan.device, pipelineLayout, pipeline, pushConstant)
-			vulkan.deletionQueue.push(res)
-			return res
+			pipelineBuilder.delete()
+			vulkan.deletionQueue.push(pipeline)
+			return pipeline
 		}
 
 		fun createShaderFromString(code: String, shaderType: Int, shaderName: String): Int {
@@ -367,8 +333,15 @@ class ShaderLoader private constructor() : Deletable {
 			}
 		}
 
-		fun compileGlslAsSpirv(loader: ResourcesLoader, fileName: String, stream: InputStream, stage: Int): ByteBuffer? {
-			val buffer = ResourcesLoader.ioResourceToByteBuffer(stream)
+		fun compileGlslAsSpirv(loader: ResourcesLoader, fileName: String, code: String, stage: Int): ByteBuffer? {
+
+			// VULKAN is automatically defined I guess?
+//			var vulkanCode = addMacro(code, "VULKAN")
+			var vulkanCode = code.replace("gl_VertexID", "gl_VertexIndex")
+			vulkanCode = vulkanCode.replace("gl_InstanceID", "gl_InstanceIndex")
+
+			val buffer = MemoryUtil.memUTF8(vulkanCode, false)
+
 			val compiler = Shaderc.shaderc_compiler_initialize()
 			val options = Shaderc.shaderc_compile_options_initialize()
 
@@ -389,7 +362,8 @@ class ShaderLoader private constructor() : Deletable {
 					.flip()
 			} else {
 				returnBytes = null
-				GameEngineI.logger.warn("Could not compile shader $fileName: ${Shaderc.shaderc_result_get_error_message(res)}")
+				// TODO
+//				GameEngineI.logger.warn("Could not compile shader $fileName to spirv: ${Shaderc.shaderc_result_get_error_message(res)}")
 			}
 
 			Shaderc.shaderc_result_release(res)

@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
+import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.models.animations.BoneState
 import com.pineypiney.game_engine.resources.models.animations.KeyFrame
@@ -39,7 +40,7 @@ import java.nio.ByteOrder
 
 class GLTFModelLoader {
 
-	fun loadModel(fileName: String, json: JSONObject, buffers: List<ByteArray>, map: MutableMap<ResourceKey, Model>) {
+	fun loadModel(factory: ResourceFactory, fileName: String, json: JSONObject, buffers: List<ByteArray>, map: MutableMap<ResourceKey, Model>) {
 
 		if (json.isEmpty) return
 		if(!json.has("nodes")) return
@@ -124,7 +125,7 @@ class GLTFModelLoader {
             val primitives = meshJson.getJSONArray("primitives")
 			val meshes = mutableListOf<ModelMesh>()
             for ((_, primitive) in primitives.objects) {
-                loadPrimitive(fileName, name, primitive, meshes, accessors, materials)
+				loadPrimitive(factory, fileName, name, primitive, meshes, accessors, materials)
             }
 			meshCollections.add(meshes)
         }
@@ -212,10 +213,18 @@ class GLTFModelLoader {
 		}
 	}
 
-    fun loadPrimitive(fileName: String, name: String, primitive: JSONObject, meshes: MutableCollection<ModelMesh>, accessors: List<Array<Any>>, materials: List<ModelMaterial>){
+	fun loadPrimitive(
+		factory: ResourceFactory,
+		fileName: String,
+		name: String,
+		primitive: JSONObject,
+		meshes: MutableCollection<ModelMesh>,
+		accessors: List<Array<Any>>,
+		materials: List<ModelMaterial>
+	) {
 
         val attributes = primitive.getJSONObject("attributes")
-        val attributeMap = mutableMapOf<VertexAttribute<*>, Array<Any>>()
+		val attributeMap = mutableMapOf<VertexAttribute<*, *>, Array<Any>>()
 
         val pos = attributes.getInt("POSITION")
         attributeMap[VertexAttribute.POSITION] = accessors[pos]
@@ -267,7 +276,7 @@ class GLTFModelLoader {
 			MeshVertex(values)
 
         }
-        meshes.add(ModelMesh(name, vertices, indArray.toIntArray(), material = materials.getOrElse(material){ PBRMaterial.default }))
+		meshes.add(factory.createModelMesh(name, vertices, indArray.toIntArray(), material = materials.getOrElse(material) { PBRMaterial.default }))
     }
 
     fun loadBones(fileName: String, nodesJson: JSONArray, boneJson: JSONObject, bones: MutableSet<Bone>) {
@@ -339,7 +348,7 @@ class GLTFModelLoader {
 			val bufferLocation = buffersJson.getJSONObject(i).getString("uri")
 			buffers.add(loadBinFile(resourcesLoader, fileName.substringBeforeLast('/') + "/" + bufferLocation))
 		}
-		return loadModel(fileName, json, buffers, map)
+		return loadModel(resourcesLoader.factory, fileName, json, buffers, map)
 	}
 
 	fun loadBinFile(resourcesLoader: ResourcesLoader, name: String): ByteArray {
@@ -348,7 +357,7 @@ class GLTFModelLoader {
 	}
 
 	// https://docs.fileformat.com/3d/glb/ Praise the lord
-	fun loadGLBFile(fileName: String, stream: InputStream, map: MutableMap<ResourceKey, Model>) {
+	fun loadGLBFile(factory: ResourceFactory, fileName: String, stream: InputStream, map: MutableMap<ResourceKey, Model>) {
 		stream.readNBytes(12) // Header
 		var json = JSONObject()
 		val buffers = mutableListOf<ByteArray>()
@@ -364,7 +373,7 @@ class GLTFModelLoader {
 			}
 		}
 
-		return loadModel(fileName, json, buffers, map)
+		return loadModel(factory, fileName, json, buffers, map)
 	}
 
 	fun samplerType(json: JSONObject): TextureParameters{

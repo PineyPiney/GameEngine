@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponentI
+import com.pineypiney.game_engine.rendering.meshes.RenderingApi
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.maths.I
@@ -10,7 +11,7 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.lwjgl.opengl.GL11C
 
-class ObjectRenderer(override val viewPos: Vec3, viewportSize: Vec2i = Vec2i(64), override val projection: Mat4 = I): RendererI {
+class ObjectRenderer(override val viewPos: Vec3, val parentRenderer: RendererI, viewportSize: Vec2i = Vec2i(64), override val projection: Mat4 = I) : RendererI {
 
 	private val framebuffer = Framebuffer(viewportSize.x, viewportSize.y, GL11C.GL_RGBA)
 
@@ -41,6 +42,8 @@ class ObjectRenderer(override val viewPos: Vec3, viewportSize: Vec2i = Vec2i(64)
 	fun getTexture(id: String): Texture{
 		return framebuffer.copyTexture(id)
 	}
+
+	override fun getRenderingApi(): RenderingApi = parentRenderer.getRenderingApi()
 
 	override fun delete() {
 		framebuffer.delete()

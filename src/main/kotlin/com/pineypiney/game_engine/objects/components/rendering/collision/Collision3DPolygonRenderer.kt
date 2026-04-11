@@ -31,7 +31,7 @@ class Collision3DPolygonRenderer(parent: GameObject, val obj: GameObject, val wi
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
 		GLFunc.lineWidth = width
-		mesh.bindAndDraw(GL11C.GL_LINE_LOOP)
+		mesh.bindAndDraw(renderer.getRenderingApi(), GL11C.GL_LINE_LOOP)
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
@@ -39,10 +39,10 @@ class Collision3DPolygonRenderer(parent: GameObject, val obj: GameObject, val wi
 	companion object {
 		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/collider"))
 
-		fun createMesh(shape: Shape3D): Mesh{
+		fun createMesh(shape: Shape3D): Mesh {
 			when(shape){
-				is Triangle3D -> return ArrayMesh(shape.points.flatMap { listOf(it.x, it.y, it.z) }.toFloatArray(), arrayOf(VertexAttribute.POSITION))
-				is TriangulatedSolid -> return ArrayMesh(shape.triangles.flatMap { tri -> tri.points.flatMap { listOf(it.x, it.y, it.z) }}.toFloatArray(), arrayOf(VertexAttribute.POSITION))
+				is Triangle3D -> return ArrayMesh(shape.points.flatMap { listOf(it.x, it.y, it.z) }.toFloatArray(), setOf(VertexAttribute.POSITION))
+				is TriangulatedSolid -> return ArrayMesh(shape.triangles.flatMap { tri -> tri.points.flatMap { listOf(it.x, it.y, it.z) } }.toFloatArray(), setOf(VertexAttribute.POSITION))
 			}
 			return Mesh.centerSquareShape
 		}

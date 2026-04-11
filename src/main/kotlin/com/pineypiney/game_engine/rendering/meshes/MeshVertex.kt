@@ -9,13 +9,16 @@ import kool.emptyByteBuffer
 import org.lwjgl.BufferUtils
 import java.nio.ByteBuffer
 
-class MeshVertex(val map: Set<VertexAttribute.Pair<*>>) {
+class MeshVertex(val map: Set<VertexAttribute.Pair<*, *>>) {
 
 	val position: Vec3
-		get() = map.firstOrNull { it.id == VertexAttribute.POSITION }?.value as? Vec3 ?: Vec3(map.first { it.id == VertexAttribute.POSITION2D }.value as Vec2)
+		get() = getAttributeOrNull(VertexAttribute.POSITION)?.value as? Vec3 ?: Vec3(getAttribute(VertexAttribute.POSITION2D).value as Vec2)
 
-	val attributes: Array<VertexAttribute<*>>
-		get() = map.map { it.id }.toTypedArray()
+	val attributes: List<VertexAttribute<*, *>>
+		get() = map.map { it.id }
+
+	fun getAttribute(attribute: VertexAttribute<*, *>) = map.first { it.id == attribute }
+	fun getAttributeOrNull(attribute: VertexAttribute<*, *>) = map.firstOrNull { it.id == attribute }
 
 	fun putData(buffer: ByteBuffer, offset: Int){
 		var off = offset
@@ -25,8 +28,25 @@ class MeshVertex(val map: Set<VertexAttribute.Pair<*>>) {
 		}
 	}
 
-	fun vertexEquals(array: Array<VertexAttribute.Pair<*>>): Boolean{
+	fun vertexEquals(array: Array<VertexAttribute.Pair<*, *>>): Boolean {
 		return map.all { (a, v) -> v == (array.firstOrNull { it.id == a }?.value ?: return false) }
+	}
+
+	fun <T, P> convertAttribute(attrib: VertexAttribute<T, P>): VertexAttribute.Pair<*, P>? {
+		@Suppress("UNCHECKED_CAST")
+		val previousValue = (map.firstOrNull { it.id.parent == attrib.parent } as? VertexAttribute.Pair<*, P>) ?: return null
+		return previousValue.convert(attrib)
+	}
+
+	fun convert(attributes: Iterable<VertexAttribute<*, *>>): MeshVertex {
+		val newAttributes = attributes.map { it.defaultPair() }.toMutableList()
+
+		for ((i, attrib) in attributes.withIndex()) {
+			val conversion = convertAttribute(attrib) ?: continue
+			newAttributes[i] = conversion
+		}
+
+		return MeshVertex(newAttributes.toSet())
 	}
 
 	override fun toString(): String {
@@ -58,7 +78,7 @@ class MeshVertex(val map: Set<VertexAttribute.Pair<*>>) {
 			attributes.add(VertexAttribute.POSITION2D pair pos)
 		}
 
-		val attributes = mutableSetOf<VertexAttribute.Pair<*>>()
+		val attributes = mutableSetOf<VertexAttribute.Pair<*, *>>()
 
 		fun tex(tex: Vec2): Builder {
 			attributes.add(VertexAttribute.TEX_COORD pair tex)

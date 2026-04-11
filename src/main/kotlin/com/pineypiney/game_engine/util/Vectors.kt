@@ -32,4 +32,20 @@ object Vectors {
 		}
 		return min to max
 	}
+
+	fun <E> minMaxVec3(values: Iterable<E>, getter: (E) -> Vec3): Pair<Vec3, Vec3> {
+
+		val min = Vec3(getter(values.first()))
+		val max = Vec3(getter(values.first()))
+		for (v in values) {
+			val (x, y, z) = getter(v)
+			min.x = minOf(min.x, x)
+			min.y = minOf(min.y, y)
+			min.z = minOf(min.z, z)
+			max.x = maxOf(max.x, x)
+			max.y = maxOf(max.y, y)
+			max.z = maxOf(max.z, z)
+		}
+		return min to max
+	}
 }

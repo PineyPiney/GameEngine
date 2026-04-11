@@ -25,7 +25,7 @@ open class OutlinedSliderRendererComponent(parent: GameObject) : ShaderRenderedC
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
 		val shape = Mesh.cornerSquareShape
-		shape.bindAndDraw()
+		shape.bindAndDraw(renderer.getRenderingApi())
 		/*
 		// This only updates the stencil if the pixel passes all tests
 		//GLFunc.stencilTest = true

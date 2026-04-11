@@ -4,10 +4,10 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.FPSCounter
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.Movement3D
-import com.pineypiney.game_engine.rendering.BufferedGameRenderer.Companion.screenShader
-import com.pineypiney.game_engine.rendering.BufferedGameRenderer.Companion.screenUniforms
 import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.Framebuffer
+import com.pineypiney.game_engine.rendering.OpenGlGameRenderer.Companion.screenShader
+import com.pineypiney.game_engine.rendering.OpenGlGameRenderer.Companion.screenUniforms
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.meshes.TessellatedMesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -77,7 +77,7 @@ class TesselationShaderTest(override val gameEngine: WindowedGameEngineI<*>): Wi
 		Framebuffer.unbind()
 		renderer.clear()
 		screenShader.setUp(screenUniforms, renderer)
-		renderer.framebuffer.draw()
+		renderer.framebuffer.draw(renderer.getRenderingApi())
 		GL11C.glClear(GL11C.GL_DEPTH_BUFFER_BIT)
 	}
 

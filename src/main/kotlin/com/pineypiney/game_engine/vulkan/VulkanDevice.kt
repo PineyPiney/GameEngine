@@ -1,14 +1,17 @@
 package com.pineypiney.game_engine.vulkan
 
 import com.pineypiney.game_engine.objects.Deletable
+import com.pineypiney.game_engine.util.DeletionQueue
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.util.vma.Vma
 import org.lwjgl.util.vma.VmaAllocatorCreateInfo
 import org.lwjgl.util.vma.VmaVulkanFunctions
 import org.lwjgl.vulkan.VK10
+import org.lwjgl.vulkan.VK12
+import org.lwjgl.vulkan.VkBufferDeviceAddressInfo
 import org.lwjgl.vulkan.VkDevice
 
-class VulkanDevice(val device: VkDevice, val physicalDevice: VulkanPhysicalDevice, val queueFamilyIndex: Int) : Deletable {
+class VulkanDevice(val device: VkDevice, val physicalDevice: VulkanPhysicalDevice, val queueFamilyIndex: Int, val deletionQueue: DeletionQueue) : Deletable {
 
 	val allocator: Long
 
@@ -27,6 +30,13 @@ class VulkanDevice(val device: VkDevice, val physicalDevice: VulkanPhysicalDevic
 		allocator = buffer[0]
 		buffer.free()
 		VkUtil.processError(err, "Failed to create Vulkan Memory Allocator")
+	}
+
+	fun getBufferAddress(buffer: VmaBuffer): Long {
+		val deviceAddressInfo = VkBufferDeviceAddressInfo.calloc()
+			.`sType$Default`()
+			.buffer(buffer.buffer)
+		return VK12.vkGetBufferDeviceAddress(device, deviceAddressInfo)
 	}
 
 	fun waitIdle() = VK10.vkDeviceWaitIdle(device)

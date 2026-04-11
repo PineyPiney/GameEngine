@@ -26,7 +26,7 @@ open class ColourSliderRendererComponent(parent: GameObject, shader: RenderShade
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		mesh.bindAndDraw()
+		mesh.bindAndDraw(renderer.getRenderingApi())
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)

@@ -66,7 +66,7 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 
 	override fun getConvexPolygons(): Iterable<Shape2D> {
 		return if (convex) listOf(this)
-		else convexPolygons.map { indexes -> Polygon(indexes.map { vertices[it] }) }
+		else convexPolygons.map { indices -> Polygon(indices.map { vertices[it] }) }
 	}
 
 	override fun transformedBy(model: Mat4): Shape2D {
@@ -157,11 +157,11 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 			for (line in polyLines) lines.add(line, i)
 		}
 
-		// An array of indexes each pointing to a polygon,
+		// An array of indices each pointing to a polygon,
 		// This allows polygons to be deleted when they are merged,
 		// and the lines will point to an index which will point to
 		// the new polygon
-		val polygonIndexes = IntArray(polygons.size) { it }
+		val polygonIndices = IntArray(polygons.size) { it }
 		val sharedLines = lines.filterValues { polys -> polys.size == 2 }.entries.toMutableList()
 
 		// The current polygon whose lines are being checked
@@ -174,15 +174,15 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 			val (line, polys) = if (currentPolygon == -1) {
 				sharedLines.first()
 			} else {
-				val first = sharedLines.firstOrNull { (_, polys) -> polys.any { polygonIndexes[it] == currentPolygon } }
+				val first = sharedLines.firstOrNull { (_, polys) -> polys.any { polygonIndices[it] == currentPolygon } }
 				if (first == null) {
 					currentPolygon = -1
 					sharedLines.first()
 				} else first
 			}
 
-			val p0Index = polygonIndexes[polys.first()]
-			val p1Index = polygonIndexes[polys.last()]
+			val p0Index = polygonIndices[polys.first()]
+			val p1Index = polygonIndices[polys.last()]
 			val p0 = polygons[p0Index]
 			val p1 = polygons[p1Index]
 
@@ -237,7 +237,7 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 			// and set the pointer to the consumed polygon to point to the new polygon
 			p0.addAll(addAtEnd)
 			p1.clear()
-			polygonIndexes[polys.last()] = p0Index
+			polygonIndices[polys.last()] = p0Index
 
 			// Removed the dissolved line and set the current polygon to the
 			// consuming polygon

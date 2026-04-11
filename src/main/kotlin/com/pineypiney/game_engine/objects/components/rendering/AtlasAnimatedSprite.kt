@@ -74,7 +74,7 @@ open class AtlasAnimatedSprite(parent: GameObject, texture: Texture, ppu: Float,
 
 		shader.setUp(uniforms, renderer)
 		texture.bind()
-		meshes.getOrNull(currentFrame)?.bindAndDraw()
+		meshes.getOrNull(currentFrame)?.bindAndDraw(renderer.getRenderingApi())
 	}
 
 	fun restart(){

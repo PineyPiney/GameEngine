@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider2DCompone
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.ArrayMesh
-import com.pineypiney.game_engine.rendering.meshes.IndicesMeshBuilder
+import com.pineypiney.game_engine.rendering.meshes.IndexedMeshBuilder
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.shaders.RenderShader
@@ -52,9 +52,9 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, val wid
 		}
 		mesh?.let {
 			shader.setUp(uniforms, renderer)
-			it.bindAndDraw(GL11C.GL_LINE_LOOP)
+			it.bindAndDraw(renderer.getRenderingApi(), GL11C.GL_LINE_LOOP)
 		}
-		pointMesh?.bindAndDraw()
+		pointMesh?.bindAndDraw(renderer.getRenderingApi())
 	}
 
 	override fun delete() {
@@ -79,11 +79,11 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, val wid
 		}
 
 		fun createMesh(points: Iterable<Vec2>): Mesh {
-			return ArrayMesh(points.flatMap { listOf(it.x, it.y) }.toFloatArray(), arrayOf(VertexAttribute.POSITION2D))
+			return ArrayMesh(points.flatMap { listOf(it.x, it.y) }.toFloatArray(), setOf(VertexAttribute.POSITION2D))
 		}
 
 		fun createPointMesh(points: Iterable<Vec2>, pointWidth: Float): Mesh {
-			val builder = IndicesMeshBuilder(VertexAttribute.POSITION2D)
+			val builder = IndexedMeshBuilder(VertexAttribute.POSITION2D)
 			for (point in points) {
 				builder.startQuad()
 					.vertex(point.x - pointWidth, point.y - pointWidth)

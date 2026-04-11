@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.objects.components.rendering.collision.Collisi
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.RenderingApi
 import com.pineypiney.game_engine.resources.models.Bone
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
@@ -44,6 +45,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		updateAnimation()
+		val api = renderer.getRenderingApi()
 
 		if(debug and Model.DEBUG_WIREFRAME > 0) {
 			val wireframeShader = ShaderLoader[ResourceKey(shader.vName), ResourceKey("fragment/colour_opaque")]
@@ -53,7 +55,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 			for (mesh in model.meshes) {
 				val newModel = parent.worldModel * mesh.transform
 				wireframeShader.setMat4("model", newModel)
-				mesh.bindAndDraw()
+				mesh.bindAndDraw(api)
 			}
 			GLFunc.polygonMode = GL11C.GL_FILL
 			wireframeShader.delete()
@@ -70,10 +72,10 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 			val newModel = parent.worldModel * mesh.transform
 			shader.setMat4("model", newModel)
 
-			mesh.bindAndDraw()
+			mesh.bindAndDraw(api)
 		}
 
-		if (debug and Model.DEBUG_BONES > 0) renderBones(parent, renderer.view, renderer.projection)
+		if (debug and Model.DEBUG_BONES > 0) renderBones(api, parent, renderer.view, renderer.projection)
 		val renderer = parent.getChild(parent.name + " Collider Renderer")?.renderer
 		if(debug and Model.DEBUG_COLLIDER > 0){
 			if(renderer == null) {
@@ -92,9 +94,9 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 		shader.setLightUniforms(parent)
 	}
 
-	fun renderBones(parent: GameObject, view: Mat4, projection: Mat4) {
+	fun renderBones(renderingApi: RenderingApi, parent: GameObject, view: Mat4, projection: Mat4) {
 		// Render Bones
-		Mesh.centerSquareShape.bind()
+		Mesh.centerSquareShape.bind(renderingApi)
 		val boneShader = Bone.boneShader
 
 		boneShader.use()
@@ -103,7 +105,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 
 		val bones: List<Bone> = model.rootBone?.getAllChildren() ?: listOf()
 		for (it in bones) {
-			it.render(boneShader, parent.worldModel)
+			it.render(renderingApi, boneShader, parent.worldModel)
 		}
 	}
 

@@ -4,7 +4,6 @@ import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import kool.free
-import kool.indices
 import kool.map
 import kool.mapIndexed
 import org.lwjgl.PointerBuffer
@@ -181,7 +180,6 @@ object VkUtil {
 
 		val extensions = arrayOf(
 			EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
-//			KHRBufferDeviceAddress.VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME
 		)
 
 		val layers = arrayOf(
@@ -281,38 +279,13 @@ object VkUtil {
 		return VkCommandBuffer(handle, device.device)
 	}
 
-	fun getColourFormatAndSpace(device: VulkanPhysicalDevice, surface: Long): Pair<Int, Int> {
-		val properties = getBuffer(device.physicalDevice, VK10::vkGetPhysicalDeviceQueueFamilyProperties, VkQueueFamilyProperties::calloc)
+	fun getColourFormatAndSpace(device: VulkanPhysicalDevice, surface: VulkanSurface): Pair<Int, Int> {
 
-		// Find which queues support presentation
-		val canPresent = MemoryUtil.memAllocInt(properties.capacity())
-		for (i in canPresent.indices) {
-			canPresent.position(i)
-			processError(KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR(device.physicalDevice, i, surface, canPresent), "Failed to get physical device's surface support")
-		}
+		val formats = device.getSurfaceFormats(surface)
 
-		// Search for a queue that supports both graphics and presentation
-		var graphicsQIndex = Int.MAX_VALUE
-		var presentQIndex = Int.MAX_VALUE
-		for (i in canPresent.indices) {
-			if (properties[i].queueFlags() and VK10.VK_QUEUE_GRAPHICS_BIT != 0) {
-				// If this queue supports both graphics and presentation then use this one
-				if (canPresent[i] == VK10.VK_TRUE) {
-					graphicsQIndex = i
-					presentQIndex = i
-					break
-				} else if (graphicsQIndex == Int.MAX_VALUE) graphicsQIndex = i
-			} else if (canPresent[i] == VK10.VK_TRUE) presentQIndex = i
-		}
-		properties.free()
-
-		if (graphicsQIndex == Int.MAX_VALUE) throw AssertionError("No Graphics Queue found")
-		else if (presentQIndex == Int.MAX_VALUE) throw AssertionError("No Presentation Queue found")
-		else if (presentQIndex != graphicsQIndex) throw AssertionError("No Queue found that support Graphics and Presentation")
-
-		val formats = getBuffer("Physical Device Surface Formats", device.physicalDevice, surface, KHRSurface::vkGetPhysicalDeviceSurfaceFormatsKHR, VkSurfaceFormatKHR::calloc)
 		val colourFormat = if (formats.capacity() == 1 && formats[0].format() == VK10.VK_FORMAT_UNDEFINED) VK10.VK_FORMAT_B8G8R8A8_UNORM
 		else formats[0].format()
+
 		val colourSpace = formats[0].colorSpace()
 		formats.free()
 
@@ -393,7 +366,7 @@ object VkUtil {
 		val images = swapchainImages.mapIndexed { index, image ->
 			viewCreateInfo.image(image)
 			processError(VK10.vkCreateImageView(device.device, viewCreateInfo, null, viewBuffer), "Failed to create Image View")
-			VulkanSwapchainImage(device, image, viewBuffer.get(0), Vec2i(width, height))
+			VulkanSwapchainImage(device, image, viewBuffer.get(0), colourFormat, Vec2i(width, height))
 		}
 
 		viewCreateInfo.free()
@@ -434,16 +407,12 @@ object VkUtil {
 	fun createSemaphore(device: VulkanDevice, createInfo: VkSemaphoreCreateInfo): VulkanSemaphoreHandler {
 		val buffer = MemoryUtil.memAllocLong(1)
 		VK10.vkCreateSemaphore(device.device, createInfo, null, buffer)
-		return VulkanSemaphoreHandler(device, buffer)
+		return VulkanSemaphoreHandler(device, buffer, createInfo.flags())
 	}
 
-	fun createImage(device: VulkanDevice, type: Int, format: Int, size: Vec3i): VulkanImage {
+	fun createImage(device: VulkanDevice, type: Int, format: Int, usage: Int, aspect: Int, size: Vec3i): VulkanImage {
 
 		val extents = VkExtent3D.calloc().set(size)
-		val usage = VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT or
-				VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT or
-				VK10.VK_IMAGE_USAGE_STORAGE_BIT or
-				VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 
 		val imageCreateInfo = VkStructs.createImageInfo(type, format, extents, VK10.VK_SAMPLE_COUNT_1_BIT, VK10.VK_IMAGE_TILING_OPTIMAL, usage)
 		val vmaInfo = VmaAllocationCreateInfo.calloc()
@@ -460,13 +429,13 @@ object VkUtil {
 //			longBuffer.free()
 		}
 
-		val viewCreateInfo = VkStructs.createImageViewInfo(type, handle, format, VkStructs.createImageRange(VK10.VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1))
+		val viewCreateInfo = VkStructs.createImageViewInfo(type, handle, format, VkStructs.createImageRange(aspect, 0, 1, 0, 1))
 		err = VK10.vkCreateImageView(device.device, viewCreateInfo, null, longBuffer)
 		val view = longBuffer[0]
 //		longBuffer.free()
 		processError(err, "Failed to create Vulkan Image View")
 
-		return VulkanImage(device, handle, view, allocation, Vec2i(extents.width(), extents.height()))
+		return VulkanImage(device, handle, view, format, allocation, Vec2i(extents.width(), extents.height()))
 	}
 
 	fun createPipelineLayout(device: VulkanDevice, layouts: LongBuffer, constants: VkPushConstantRange.Buffer? = null): Long {
@@ -475,6 +444,7 @@ object VkUtil {
 			.`sType$Default`()
 			.pSetLayouts(layouts)
 			.pPushConstantRanges(constants)
+
 		val buf = MemoryUtil.memAllocLong(1)
 		processError(VK10.vkCreatePipelineLayout(device.device, pipelineLayoutCreateInfo, null, buf), "Failed to create Pipeline Layout")
 		val layout = buf[0]
@@ -483,24 +453,11 @@ object VkUtil {
 		return layout
 	}
 
-	fun createComputePipeline(device: VulkanDevice, module: Long, layout: Long): Long {
-		val stageCreateInfo = VkPipelineShaderStageCreateInfo.calloc()
-			.`sType$Default`()
-			.stage(VK10.VK_SHADER_STAGE_COMPUTE_BIT)
-			.module(module)
-			.pName(MemoryUtil.memUTF8("main"))
-		val pipelineCreateInfo = VkComputePipelineCreateInfo.calloc(1)
-			.`sType$Default`()
-			.layout(layout)
-			.stage(stageCreateInfo)
+	fun createPipelineLayout(device: VulkanDevice, layouts: LongBuffer, constantsSize: Int, stage: Int): Long {
+		val constants = VkPushConstantRange.calloc(1)
+			.size(constantsSize)
+			.stageFlags(stage)
 
-		val buf = MemoryUtil.memAllocLong(1)
-		val err = VK10.vkCreateComputePipelines(device.device, 0L, pipelineCreateInfo, null, buf)
-		val pipeline = buf[0]
-		buf.free()
-		pipelineCreateInfo.free()
-		stageCreateInfo.free()
-		processError(err, "Failed to create Compute Pipeline")
-		return pipeline
+		return createPipelineLayout(device, layouts, constants)
 	}
 }

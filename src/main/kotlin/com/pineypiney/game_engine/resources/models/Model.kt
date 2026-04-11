@@ -16,7 +16,7 @@ import glm_.vec2.Vec2
 
 class Model(
 	val name: String,
-	val meshes: Array<ModelMesh> = arrayOf(ModelMesh.default),
+	val meshes: Array<out ModelMesh> = arrayOf(OpenGlModelMesh.default),
 	val rootBone: Bone? = null,
 	val animations: Array<ModelAnimation> = arrayOf(),
 	val box: Collider = Collider2D(Rect2D(Vec2(), Vec2(1f)))

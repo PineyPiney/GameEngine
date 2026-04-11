@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.resources.DeletableResourcesLoader
+import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.models.animations.*
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
@@ -52,18 +53,13 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 	}
 
 	fun loadModels(streams: ResourcesLoader.Streams) {
-		if (GLFunc.isLoaded) loadModelsOpenGl(streams)
-	}
-
-
-	fun loadModelsOpenGl(streams: ResourcesLoader.Streams) {
 		streams.useEachStream { fileName, stream ->
 			when (val fileType = fileName.substringAfterLast('.')) {
-				"pgm" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadPGMModel(fileName, stream)
+				"pgm" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadPGMModel(streams.engine.resourcesLoader.factory, fileName, stream)
 				"obj" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadObjModel(streams.engine.resourcesLoader, fileName, stream)
 				"gltf" -> gltfLoader.loadGLTFFile(streams.engine.resourcesLoader, fileName, stream, map)
-				"glb" -> gltfLoader.loadGLBFile(fileName, stream, map)
-				"vox" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = voxLoader.loadVoxModel(fileName, stream)
+				"glb" -> gltfLoader.loadGLBFile(streams.engine.resourcesLoader.factory, fileName, stream, map)
+				"vox" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = voxLoader.loadVoxModel(streams.engine.resourcesLoader.factory, fileName, stream)
 			}
 		}
 	}
@@ -88,7 +84,8 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 
 				"o" -> {
 					if (vertices.isNotEmpty()) {
-						meshes.add(ModelMesh(name, vertices.toTypedArray(), indices.toIntArray(), material = material))
+						val mesh = loader.factory.createModelMesh(name, vertices.toTypedArray(), indices.toIntArray(), material = material)
+						meshes.add(mesh)
 					}
 					name = parts[1]
 				}
@@ -140,7 +137,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 				}
 			}
 		}
-		meshes.add(ModelMesh(name, vertices.toTypedArray(), indices.toIntArray(), material = material))
+		meshes.add(loader.factory.createModelMesh(name, vertices.toTypedArray(), indices.toIntArray(), material = material))
 
 		return Model(fileName, meshes.toTypedArray())
 	}
@@ -184,7 +181,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		textures[type] = modelTextures[ResourceKey(location)] ?: return
 	}
 
-	private fun loadPGMModel(fileName: String, stream: InputStream): Model {
+	private fun loadPGMModel(factory: ResourceFactory, fileName: String, stream: InputStream): Model {
 		// https://www.hameister.org/KotlinXml.html
 		val builder: DocumentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
 		val doc: Document = builder.parse(stream)
@@ -226,7 +223,7 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 			}
 
 			meshes.add(
-				ModelMesh(
+				factory.createModelMesh(
 					geo.name,
 					vertices.toTypedArray(),
 					geo.indices,

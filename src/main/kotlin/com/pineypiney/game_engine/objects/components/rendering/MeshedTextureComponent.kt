@@ -20,7 +20,7 @@ open class MeshedTextureComponent(
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
 		texture.bind()
-		mesh.bindAndDraw()
+		mesh.bindAndDraw(renderer.getRenderingApi())
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)

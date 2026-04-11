@@ -6,9 +6,9 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
 
-open class FileResourcesLoader(val file: File = File("src/main/resources")) : ResourcesLoader(file.path.replace(s, '/')) {
+open class FileResourcesLoader(override val factory: ResourceFactory, val file: File = File("src/main/resources")) : ResourcesLoader(file.path.replace(s, '/')) {
 
-	constructor(location: String) : this(File(location))
+	constructor(factory: ResourceFactory, location: String) : this(factory, File(location))
 
 	override val streamList: Set<String> = createStreamList()
 

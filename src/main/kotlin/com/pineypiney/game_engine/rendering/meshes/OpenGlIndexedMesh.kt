@@ -6,14 +6,11 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL31C.*
 import java.nio.ByteBuffer
 
-open class IndicesMesh protected constructor(attributes: Array<VertexAttribute<*>>, indices: IntArray) : Mesh() {
+open class OpenGlIndexedMesh protected constructor(override val attributes: Map<VertexAttribute<*, *>, Long>, override val count: Int) : OpenGlMesh() {
 
 	private val EBO = if (GLFunc.isLoaded) glGenBuffers() else -1
 
-	override val attributes: Map<VertexAttribute<*>, Long> = createAttributes(attributes)
-	override val count: Int = indices.size
-
-	constructor(vertices: FloatArray, attributes: Array<VertexAttribute<*>>, indices: IntArray): this(attributes, indices){
+	constructor(vertices: FloatArray, attributes: Map<VertexAttribute<*, *>, Long>, indices: IntArray) : this(attributes, indices.size) {
 		if (GLFunc.isLoaded) {
 			glBindVertexArray(VAO)
 
@@ -32,7 +29,9 @@ open class IndicesMesh protected constructor(attributes: Array<VertexAttribute<*
 		}
 	}
 
-	constructor(vertices: ByteBuffer, attributes: Array<VertexAttribute<*>>, indices: IntArray): this(attributes, indices){
+	constructor(vertices: FloatArray, attributes: Iterable<VertexAttribute<*, *>>, indices: IntArray) : this(vertices, Mesh.createAttributes(attributes), indices)
+
+	constructor(vertices: ByteBuffer, attributes: Iterable<VertexAttribute<*, *>>, indices: IntArray) : this(Mesh.createAttributes(attributes), indices.size) {
 		if (GLFunc.isLoaded) {
 			glBindVertexArray(VAO)
 
@@ -66,22 +65,26 @@ open class IndicesMesh protected constructor(attributes: Array<VertexAttribute<*
 		return array
 	}
 
-	override fun bind() {
-		super.bind()
+	override fun bind(api: RenderingApi) {
+		super.bind(api)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
 	}
 
-	override fun draw(mode: Int) {
-		glDrawElements(mode, count, GL_UNSIGNED_INT, 0)
+	override fun draw(api: RenderingApi, mode: Int) {
+		api.drawIndexed(count, mode, 0)
 	}
 
-	override fun drawInstanced(amount: Int, mode: Int) {
-		glDrawElementsInstanced(mode, count, GL_UNSIGNED_INT, 0, amount)
+	override fun drawInstanced(api: RenderingApi, amount: Int, mode: Int) {
+		api.drawIndexedInstanced(count, mode, amount)
 	}
 
 	override fun delete() {
 		super.delete()
 		glDeleteBuffers(VBO)
 		glDeleteBuffers(EBO)
+	}
+
+	companion object {
+		fun empty() = OpenGlIndexedMesh(emptyMap(), 0)
 	}
 }

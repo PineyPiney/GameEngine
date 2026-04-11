@@ -55,7 +55,7 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLog
 
 			override fun render(renderer: RendererI, tickDelta: Double) {
 				shader.setUp(uniforms, renderer)
-				mesh.bindAndDraw()
+				mesh.bindAndDraw(renderer.getRenderingApi())
 			}
 		})
 	}

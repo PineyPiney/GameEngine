@@ -118,6 +118,10 @@ object GLFunc {
 		}
 	val sampleBuffers: Int get() = glGetInteger(GL_SAMPLE_BUFFERS)
 
+	var scissor: Vec4i
+		get() = Vec4i(0, getInts(GL_SCISSOR_BOX, 4))
+		set(value) = glScissor(value.x, value.y, value.z, value.w)
+
 	// Stencil Buffer
 	var stencilClear: Int
 		get() = glGetInteger(GL_STENCIL_CLEAR_VALUE)

@@ -53,7 +53,7 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		shader.use()
 		shader.setUniforms(uniforms, renderer)
 		text.mesh.texture.bind()
-		text.mesh.bindAndDraw()
+		text.mesh.bindAndDraw(renderer.getRenderingApi())
 	}
 
 	fun renderUnderline(
@@ -70,7 +70,7 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		if (shader.hasView) shader.setVP(renderer)
 		shader.setMat4("model", newModel)
 		shader.setVec4("colour", text.colour)
-		Mesh.cornerSquareShape.bindAndDraw()
+		Mesh.cornerSquareShape.bindAndDraw(renderer.getRenderingApi())
 	}
 
 	fun getScreenScale(renderer: RendererI) = size * 2f / renderer.viewportSize.y

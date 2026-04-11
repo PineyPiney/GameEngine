@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.resources.ResourceFactory
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import kotlin.math.max
@@ -83,7 +84,7 @@ class Sprite(texture: Texture, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), origi
 			s.y = -s.y
 		}
 		val tr = bl + renderSize
-		return Mesh.textureQuad(bl, tr, o, o + s)
+		return Mesh.textureQuad(ResourceFactory.INSTANCE, bl, tr, o, o + s)
 	}
 	
 	fun recalculateMesh(){

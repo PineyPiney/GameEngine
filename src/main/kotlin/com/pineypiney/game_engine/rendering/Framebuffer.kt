@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.rendering
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.RenderingApi
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.TextureParameters
@@ -82,10 +83,10 @@ open class Framebuffer(var width: Int, var height: Int, var format: Int = GL_RGB
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO)
 	}
 
-	open fun draw(shape: Mesh = Mesh.screenQuadShape) {
+	open fun draw(renderingApi: RenderingApi, shape: Mesh = Mesh.screenQuadShape) {
 		glActiveTexture(GL_TEXTURE0)
 		glBindTexture(GL_TEXTURE_2D, TCB)
-		shape.bindAndDraw()
+		shape.bindAndDraw(renderingApi)
 	}
 
 	fun copyTexture(id: String, params: TextureParameters = TextureParameters()): Texture {
