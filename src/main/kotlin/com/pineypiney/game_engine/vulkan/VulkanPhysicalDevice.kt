@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.vulkan
 
-import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.getVec2i
 import com.pineypiney.game_engine.util.extension_functions.getVec3i
@@ -49,6 +48,24 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 		return memoryProperties
 	}
 
+	fun getImageFormatProperties(format: Int, type: Int, tiling: Int, usage: Int, flags: Int): VkImageFormatProperties2? {
+		val formatInfo = VkPhysicalDeviceImageFormatInfo2.calloc()
+			.`sType$Default`()
+			.format(format)
+			.type(type)
+			.tiling(tiling)
+			.usage(usage)
+			.flags(flags)
+		val formatProperties = VkImageFormatProperties2.calloc().`sType$Default`()
+		val err = VK11.vkGetPhysicalDeviceImageFormatProperties2(physicalDevice, formatInfo, formatProperties)
+		formatInfo.free()
+		if (err == VK10.VK_ERROR_FORMAT_NOT_SUPPORTED) {
+			formatProperties.free()
+			return null
+		}
+		return formatProperties
+	}
+
 	fun getLimits() = properties.properties().limits()
 
 	fun getMaxComputeWorkGroupSize() = getLimits().maxComputeWorkGroupSize().getVec3i()
@@ -57,7 +74,19 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 	fun getMaxViewportDimensions() = getLimits().maxViewportDimensions().getVec2i()
 
 	fun getSurfaceFormats(surface: VulkanSurface): VkSurfaceFormatKHR.Buffer {
-		return VkUtil.getBuffer("Physical Device Surface Formats", physicalDevice, surface.handle, KHRSurface::vkGetPhysicalDeviceSurfaceFormatsKHR, VkSurfaceFormatKHR::calloc)
+		return VkUtil.getDeviceBuffer("Physical Device Surface Formats", physicalDevice, surface.handle, KHRSurface::vkGetPhysicalDeviceSurfaceFormatsKHR, VkSurfaceFormatKHR::calloc)
+	}
+
+	fun getSurfaceColour(surface: VulkanSurface): Pair<Int, Int> {
+		val formats = getSurfaceFormats(surface)
+
+		val colourFormat = if (formats.capacity() == 1 && formats[0].format() == VK10.VK_FORMAT_UNDEFINED) VK10.VK_FORMAT_B8G8R8A8_UNORM
+		else formats[0].format()
+
+		val colourSpace = formats[0].colorSpace()
+		formats.free()
+
+		return colourFormat to colourSpace
 	}
 
 	fun getQueueFamilies(): Iterable<VulkanQueueFamily> {
@@ -65,7 +94,7 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 		return properties.mapIndexed { index, familyProperties -> VulkanQueueFamily(familyProperties, index, this) }
 	}
 
-	fun createDevice(deletionQueue: DeletionQueue): VulkanDevice {
+	fun createDevice(): VulkanDevice {
 
 		val properties = getQueueFamilies()
 		var index = properties.indexOfFirst { property ->
@@ -104,7 +133,7 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 			pointer.free()
 		}
 
-		val device = VulkanDevice(VkDevice(pointer.get(), physicalDevice, deviceCreateInfo), this, index, deletionQueue)
+		val device = VulkanDevice(VkDevice(pointer.get(), physicalDevice, deviceCreateInfo), this, index)
 		pointer.free()
 		deviceCreateInfo.free()
 		swapchainExt.free()

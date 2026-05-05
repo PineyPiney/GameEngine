@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.audio
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.i
+import kool.free
 import org.lwjgl.BufferUtils
 import org.lwjgl.openal.AL10
 import java.io.BufferedInputStream
@@ -44,7 +45,12 @@ open class AudioLoader protected constructor() {
 
 	operator fun get(key: ResourceKey): Audio = bufferAudio(map[key] ?: missing)
 
-	fun delete() = map.clear()
+	fun delete() {
+		for ((_, audio) in map) {
+			audio.first.free()
+		}
+		map.clear()
+	}
 
 	companion object {
 		val INSTANCE: AudioLoader = AudioLoader()

@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.util.input
 
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.i
@@ -13,6 +13,7 @@ import kool.toByteArray
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWGamepadState
+import java.nio.ByteBuffer
 import kotlin.math.abs
 import kotlin.math.floor
 
@@ -22,7 +23,7 @@ open class GamePad(val id: Int, val inputs: Inputs) {
 	val numAxes = GLFW.glfwGetJoystickAxes(id)?.cap ?: 0
 	val state = GLFWGamepadState(BufferUtils.createByteBuffer(GLFWGamepadState.SIZEOF))
 
-	val name = GLFW.glfwGetGamepadName(id)
+	val name: String? = GLFW.glfwGetGamepadName(id)
 
 	// Joy stick and trigger values
 	val axesStates = FloatArray(numAxes)
@@ -52,7 +53,7 @@ open class GamePad(val id: Int, val inputs: Inputs) {
 		state.axes().forEachIndexed(::updateAxes)
 
 		state.buttons().forEachIndexed(::updateButton)
-		GLFW.glfwGetJoystickButtons(id)?.let { updateBonusButtons(it.toByteArray()) }
+		GLFW.glfwGetJoystickButtons(id)?.let { it: ByteBuffer -> updateBonusButtons(it.toByteArray()) }
 	}
 
 	fun updateAxes(axis: Int, state: Float) {
@@ -92,7 +93,7 @@ open class GamePad(val id: Int, val inputs: Inputs) {
 
 	open fun getButton(button: Int) = buttonStates[button]
 
-	open fun getButtonIcon(type: ControlType, id: Int): Pair<Texture, Vec4> {
+	open fun getButtonIcon(type: ControlType, id: Int): Pair<Texture2D, Vec4> {
 		return when (type) {
 			ControlType.GAMEPAD_BUTTON -> {
 				val x = (id % 4) * .25f
@@ -101,10 +102,10 @@ open class GamePad(val id: Int, val inputs: Inputs) {
 			}
 
 			ControlType.GAMEPAD_AXIS -> {
-				Texture.broke to Vec4()
+				Texture2D.missing to Vec4()
 			}
 
-			else -> Texture.broke to Vec4()
+			else -> Texture2D.missing to Vec4()
 		}
 	}
 }

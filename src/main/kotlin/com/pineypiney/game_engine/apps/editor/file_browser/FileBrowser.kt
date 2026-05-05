@@ -14,7 +14,7 @@ import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.rendering.ObjectRenderer
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.textures.Sprite
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.CursorPosition
@@ -37,7 +37,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 ), UpdatingAspectRatioComponent {
 
 	var currentDirectory = root
-	val loadedTextures = mutableMapOf<String, Texture>()
+	val loadedTextures = mutableMapOf<String, Texture2D>()
 	val prefabRenderer = ObjectRenderer(Vec3(0f, 0f, 0f), screen.renderer, Vec2i(screen.settings.fileBrowserIconSize))
 
 	private val filesContainer = GameObject("Files", 1)

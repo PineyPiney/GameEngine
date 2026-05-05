@@ -2,13 +2,15 @@ package com.pineypiney.game_engine.resources.video
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.resources.Media
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.ResourceFactory
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import glm_.i
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 
 class Video(
 	val name: String,
+	val factory: ResourceFactory,
 	val attributes: VideoAttributes,
 	val images: Array<ByteBuffer>,
 	val audioSamples: Array<ShortBuffer>
@@ -42,7 +44,7 @@ class Video(
 //        audio.init()
 	}
 
-	fun getCurrentTexture(): Texture {
+	fun getCurrentTexture(): Texture2D {
 		// Update the time stamp
 		updateTimeStamp()
 		return textureData.current

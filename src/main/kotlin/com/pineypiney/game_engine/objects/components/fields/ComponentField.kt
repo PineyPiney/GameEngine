@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.ResourceKey
@@ -56,8 +56,12 @@ open class ComponentField<T>(
 
 	fun serialise(head: StringBuilder, data: StringBuilder, component: ComponentI) {
 		val s = serialiseValue(component)
-		head.append(ByteData.int2String(id.length, 1) + id + ByteData.int2String(s.length))
+		head.append(smallString(id) + ByteData.int2String(s.length))
 		data.append(s)
+	}
+
+	companion object {
+		fun smallString(string: String) = string.length.toChar() + string
 	}
 }
 
@@ -123,31 +127,44 @@ class ShaderField(id: String, getter: () -> RenderShader, setter: (RenderShader)
 	companion object {
 		fun serialise(shader: RenderShader): String {
 			val sb = StringBuilder()
-			val g = shader.gName != null
-			sb.append(if (g) '3' else '2')
-			sb.append(shader.vName.length.toChar() + shader.vName)
-			sb.append(shader.fName.length.toChar() + shader.fName)
-			if (g) sb.append(shader.gName.length.toChar() + shader.gName)
+			sb.append(smallString(shader.vertex.name))
+			sb.append(smallString(shader.fragment.name))
+			for (stage in RenderShader.OPTIONAL_STAGES) {
+				val module = shader.getSubShader(stage)
+				if (module == null) sb.append(Char(0))
+				else sb.append(smallString(module.name))
+			}
 			return sb.toString()
 		}
 
 		fun parse(s: String): RenderShader{
-			val hasG = s[0] == '3'
-			val vl = s[1].code
-			val v = s.substring(2, 2+vl)
-			val fl = s[2+vl].code
-			val f = s.substring(3+vl, 3+vl+fl)
-			if(hasG){
-				val gl = s[3+vl+fl].code
-				val g = s.substring(4+vl+fl, 4+vl+fl+gl)
-				return ShaderLoader[ResourceKey(v), ResourceKey(f), ResourceKey(g)]
-			}
-			else return ShaderLoader[ResourceKey(v), ResourceKey(f)]
+			var p = 0
+			val vl = s[p++].code
+			val v = s.substring(p, 1 + vl)
+			p += vl
+
+			val fl = s[p++].code
+			val f = s.substring(p, p + fl)
+			p += fl
+
+			val tcl = s[p++].code
+			val tc = if (tcl == 0) null else ResourceKey(s.substring(p, p + tcl))
+			p += tcl
+
+			val tel = s[p++].code
+			val te = if (tel == 0) null else ResourceKey(s.substring(p, p + tel))
+			p += tel
+
+			val gl = s[p++].code
+			val g = if (gl == 0) null else ResourceKey(s.substring(p, p + gl))
+
+			return ShaderLoader[ResourceKey(v), ResourceKey(f), tc, te, g]
 		}
 	}
 }
 
-class TextureField(id: String, getter: () -> Texture, setter: (Texture) -> Unit): ComponentField<Texture>(id,
+class TextureField(id: String, getter: () -> Texture2D, setter: (Texture2D) -> Unit) : ComponentField<Texture2D>(
+	id,
 	getter, setter, { it.id },
 	{ s -> TextureLoader[ResourceKey(s)] })
 

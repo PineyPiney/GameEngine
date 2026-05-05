@@ -3,10 +3,11 @@ package com.pineypiney.game_engine.rendering
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.RenderingApi
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
+import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.resources.textures.TextureParameters
+import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture2D
+import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.GLFunc
 import glm_.i
 import glm_.vec2.Vec2t
@@ -15,10 +16,10 @@ import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.stb.STBImageWrite
 import java.nio.ByteBuffer
 
-open class Framebuffer(var width: Int, var height: Int, var format: Int = GL_RGB, var internalFormat: Int = format, var binding: Int = 0) :
+open class Framebuffer(var width: Int, var height: Int, var internalFormat: TextureFormat = TextureFormat.RGB8, var binding: Int = 0) :
 	Deletable {
 
-	constructor(size: Vec2t<*>, format: Int = GL_RGB, internalFormat: Int = format) : this(size.x.i, size.y.i, format, internalFormat)
+	constructor(size: Vec2t<*>, format: TextureFormat = TextureFormat.RGB8) : this(size.x.i, size.y.i, format)
 
 	val FBO: Int
 	val TCB: Int
@@ -53,9 +54,9 @@ open class Framebuffer(var width: Int, var height: Int, var format: Int = GL_RGB
 	open fun generate() {
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO)
 		glBindTexture(GL_TEXTURE_2D, TCB)
-		parameters.load()
+		parameters.loadOpenGL()
 
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat.opengl, width, height, 0, internalFormat.openglLayout, internalFormat.pixelType, null as ByteBuffer?)
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TCB, 0)
 
 
@@ -89,34 +90,36 @@ open class Framebuffer(var width: Int, var height: Int, var format: Int = GL_RGB
 		shape.bindAndDraw(renderingApi)
 	}
 
-	fun copyTexture(id: String, params: TextureParameters = TextureParameters()): Texture {
+	fun copyTexture(id: String, params: TextureParameters = TextureParameters()): Texture2D {
 		bind()
-		val texture = Texture.create(id, width, height, format, internalFormat, params = params)
+		val texture = Texture2D.create(id, width, height, internalFormat, params = params)
 		texture.bind()
-		glCopyTexImage2D(params.target, 0, internalFormat, 0, 0, width, height, 0)
+		glCopyTexImage2D(params.target, 0, internalFormat.opengl, 0, 0, width, height, 0)
 		return texture
 	}
 
-	fun copyTo(texture: Texture){
+	fun copyTo(texture: Texture2D) {
 		bind()
 		texture.bind()
-		glCopyTexImage2D(texture.target, 0, internalFormat, 0, 0, width, height, 0)
 
+		if (texture is OpenGlTexture2D) {
+			glCopyTexImage2D(texture.target, 0, internalFormat.opengl, 0, 0, width, height, 0)
+		}
 	}
 
 	fun savePNG(file: String): Boolean {
-		val d = getTextureData()
+		val d = getTextureData(TextureFormat.RGBA8)
 		d.limit(d.capacity())
-		val numChannels = TextureLoader.formatToChannels(format)
+		val numChannels = TextureLoader.formatToChannels(internalFormat)
 		val fileName = if (file.endsWith(".png")) file else "$file.png"
 		STBImageWrite.stbi_flip_vertically_on_write(true)
 		return STBImageWrite.stbi_write_png(fileName, width, height, numChannels, d, numChannels * width)
 	}
 
-	fun getTextureData(): ByteBuffer {
+	fun getTextureData(format: TextureFormat): ByteBuffer {
 		glBindTexture(GL_TEXTURE_2D, TCB)
-		val buffer = BufferUtils.createByteBuffer(width * height * TextureLoader.formatToChannels(format))
-		glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, buffer)
+		val buffer = BufferUtils.createByteBuffer(width * height * format.pixelSize)
+		glGetTexImage(GL_TEXTURE_2D, 0, format.openglLayout, format.pixelType, buffer)
 		return buffer
 	}
 

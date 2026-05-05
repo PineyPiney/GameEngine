@@ -4,9 +4,9 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 
-class TextureMapsComponent(parent: GameObject, val textures: Map<String, Texture> = emptyMap()) :
+class TextureMapsComponent(parent: GameObject, val textures: Map<String, Texture2D> = emptyMap()) :
 	Component(parent),
 	PreRenderComponent {
 
@@ -18,7 +18,7 @@ class TextureMapsComponent(parent: GameObject, val textures: Map<String, Texture
 	override fun init() {
 		super.init()
 		renderer?.let {
-			for ((name, texture) in textures) it.uniforms.setIntUniform(name, texture::binding)
+			for ((name, texture) in textures) it.uniforms.setIntUniform(name, texture::getTextureBinding)
 		}
 	}
 

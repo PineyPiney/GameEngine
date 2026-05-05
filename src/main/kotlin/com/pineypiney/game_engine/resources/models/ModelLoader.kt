@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
-import com.pineypiney.game_engine.resources.DeletableResourcesLoader
+import com.pineypiney.game_engine.resources.DeletableResourceLoader
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.models.animations.*
@@ -10,8 +10,9 @@ import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.materials.PhongMaterial
 import com.pineypiney.game_engine.resources.models.pgm.*
 import com.pineypiney.game_engine.resources.models.voxel.VoxModelLoader
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.CollectionMap
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
@@ -36,10 +37,10 @@ import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
 import kotlin.math.PI
 
-class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
+class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 
-	override val missing: Model = Model.brokeModel
-	val modelTextures = mutableMapOf<ResourceKey, Texture>()
+	override val missing: Model = Model.missing
+	val modelTextures = mutableMapOf<ResourceKey, Texture2D>()
 
 	val gltfLoader = GLTFModelLoader()
 	val voxLoader = VoxModelLoader()
@@ -47,7 +48,8 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 	fun loadModelTextures(streams: ResourcesLoader.Streams){
 		if (GLFunc.isLoaded) {
 			streams.useEachStream { fileName, stream ->
-				modelTextures[ResourceKey(fileName)] = Texture(fileName, TextureLoader.loadTextureFromStream(fileName, stream))
+				val texture = streams.engine.resourcesLoader.factory.loadTexture2DFromFile(fileName, stream, TextureParameters())
+				modelTextures[ResourceKey(fileName)] = texture
 			}
 		}
 	}
@@ -146,14 +148,15 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 		val materials = mutableSetOf<ModelMaterial>()
 		val stream = loader.getStream(loader.modelLocation + rootFile + fileName) ?: return materials
 		var name = ""
-		val textures = mutableMapOf<PhongMaterial.TextureType, Texture>()
+		val textures = mutableMapOf<PhongMaterial.TextureType, Texture2D>()
 		for (line in stream.readAllBytes().toString(Charsets.UTF_8).split('\n')) {
 			if (line.isEmpty() || line.trimStart().startsWith('#')) continue
 			val parts = line.trim().split(' ')
 			when (parts[0]) {
 				"newmtl" -> {
 					if (textures.isNotEmpty()) {
-						materials.add(PhongMaterial(name, textures))
+						materials.add(PhongMaterial(name, textures.toMap()))
+						textures.clear()
 					}
 					name = parts[1]
 				}
@@ -168,13 +171,14 @@ class ModelLoader private constructor() : DeletableResourcesLoader<Model>() {
 
 			}
 		}
+
 		materials.add(PhongMaterial(name, textures))
 
 		return materials
 	}
 
 	private fun updateTextureType(
-		textures: MutableMap<PhongMaterial.TextureType, Texture>,
+		textures: MutableMap<PhongMaterial.TextureType, Texture2D>,
 		type: PhongMaterial.TextureType,
 		location: String
 	) {

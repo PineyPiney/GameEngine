@@ -9,7 +9,7 @@ import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.OpenGlGameRenderer.Companion.screenShader
 import com.pineypiney.game_engine.rendering.OpenGlGameRenderer.Companion.screenUniforms
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
-import com.pineypiney.game_engine.rendering.meshes.TessellatedMesh
+import com.pineypiney.game_engine.rendering.meshes.opengl.TessellatedMesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.GLFunc

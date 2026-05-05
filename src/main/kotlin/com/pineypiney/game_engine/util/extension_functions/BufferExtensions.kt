@@ -10,8 +10,9 @@ import glm_.vec4.Vec4i
 import glm_.vec4.Vec4ub
 import kool.map
 import kool.toBuffer
-import org.lwjgl.BufferUtils
 import org.lwjgl.PointerBuffer
+import org.lwjgl.system.MemoryStack
+import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.Struct
 import org.lwjgl.system.StructBuffer
 import unsigned.Ushort
@@ -72,10 +73,11 @@ fun ByteBuffer.putVec4ub(offset: Int, vec: Vec4ub): ByteBuffer{
     return this
 }
 
-fun ByteBuffer.put(v: ToBuffer) {
+fun ByteBuffer.put(v: ToBuffer): ByteBuffer {
 	if (remaining() < v.size()) throw BufferOverflowException()
 	v to this
 	position(position() + v.size())
+	return this
 }
 
 fun IntBuffer.getVec2i(): Vec2i {
@@ -91,10 +93,11 @@ fun ShortBuffer.toByteBuffer(): ByteBuffer {
 }
 
 fun ByteBuffer.resize(newCapacity: Int): ByteBuffer {
-	val newBuffer = BufferUtils.createByteBuffer(newCapacity)
-	flip()
-	newBuffer.put(this)
-	return newBuffer
+	return MemoryUtil.memAlloc(newCapacity).put(flip())
+}
+
+fun ByteBuffer.resize(newCapacity: Int, stack: MemoryStack): ByteBuffer {
+	return stack.malloc(newCapacity).put(flip())
 }
 
 inline fun <reified E : Struct<E>> StructBuffer<E, *>.toArray() = Array<E>(capacity()) { get() }

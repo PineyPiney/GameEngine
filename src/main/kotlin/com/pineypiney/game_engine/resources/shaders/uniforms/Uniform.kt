@@ -1,11 +1,11 @@
 package com.pineypiney.game_engine.resources.shaders.uniforms
 
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.OpenGlShader
 
 abstract class Uniform<E : Any>(val name: String, val default: E, var getter: UniformGetter<E>) {
 
-	abstract fun apply(shader: Shader, renderer: RendererI)
+	abstract fun apply(shader: OpenGlShader, renderer: RendererI)
 
 	fun getValue(renderer: RendererI) = getter(renderer) ?: default
 

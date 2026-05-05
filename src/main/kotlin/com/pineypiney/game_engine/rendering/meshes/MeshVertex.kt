@@ -28,21 +28,25 @@ class MeshVertex(val map: Set<VertexAttribute.Pair<*, *>>) {
 		}
 	}
 
-	fun vertexEquals(array: Array<VertexAttribute.Pair<*, *>>): Boolean {
+	fun vertexEquals(array: Iterable<VertexAttribute.Pair<*, *>>): Boolean {
 		return map.all { (a, v) -> v == (array.firstOrNull { it.id == a }?.value ?: return false) }
 	}
 
-	fun <T, P> convertAttribute(attrib: VertexAttribute<T, P>): VertexAttribute.Pair<*, P>? {
-		@Suppress("UNCHECKED_CAST")
-		val previousValue = (map.firstOrNull { it.id.parent == attrib.parent } as? VertexAttribute.Pair<*, P>) ?: return null
-		return previousValue.convert(attrib)
+	fun <T, P> convertAttribute(attrib: VertexAttribute<T, P>): VertexAttribute.Pair<*, P> {
+		var rawValue = attrib.parent.defaultValue()
+		for (previousAttrib in map.filter { it.id.parent == attrib.parent }) {
+			@Suppress("UNCHECKED_CAST")
+			val previousValue = (previousAttrib as? VertexAttribute.Pair<*, P>) ?: continue
+			rawValue = previousValue.convert(rawValue)
+		}
+		return attrib.pair(attrib.fromParent(rawValue))
 	}
 
 	fun convert(attributes: Iterable<VertexAttribute<*, *>>): MeshVertex {
 		val newAttributes = attributes.map { it.defaultPair() }.toMutableList()
 
 		for ((i, attrib) in attributes.withIndex()) {
-			val conversion = convertAttribute(attrib) ?: continue
+			val conversion = convertAttribute(attrib)
 			newAttributes[i] = conversion
 		}
 
@@ -71,6 +75,7 @@ class MeshVertex(val map: Set<VertexAttribute.Pair<*, *>>) {
 	}
 
 	class Builder(){
+
 		constructor(pos: Vec3): this() {
 			attributes.add(VertexAttribute.POSITION pair pos)
 		}

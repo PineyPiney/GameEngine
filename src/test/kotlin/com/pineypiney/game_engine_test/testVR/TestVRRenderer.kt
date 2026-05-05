@@ -2,9 +2,9 @@ package com.pineypiney.game_engine_test.testVR
 
 import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.OpenGlGameRenderer
+import com.pineypiney.game_engine.rendering.OpenGlRendering
+import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.OpenGlRendering
-import com.pineypiney.game_engine.rendering.meshes.RenderingApi
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.vr.HMD

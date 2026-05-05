@@ -6,8 +6,8 @@ import com.pineypiney.game_engine.objects.components.fields.IntFieldRange
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox2DRenderer
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.RenderingApi
 import com.pineypiney.game_engine.resources.models.Bone
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
@@ -20,7 +20,7 @@ import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import org.lwjgl.opengl.GL11C
 
-open class ModelRendererComponent(parent: GameObject, var model: Model = Model.brokeModel, shader: RenderShader = defaultShader) :
+open class ModelRendererComponent(parent: GameObject, var model: Model = Model.missing, shader: RenderShader = defaultShader) :
 	ShaderRenderedComponent(parent, shader) {
 
 	protected var animation: ModelAnimation? = null
@@ -48,7 +48,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.b
 		val api = renderer.getRenderingApi()
 
 		if(debug and Model.DEBUG_WIREFRAME > 0) {
-			val wireframeShader = ShaderLoader[ResourceKey(shader.vName), ResourceKey("fragment/colour_opaque")]
+			val wireframeShader = ShaderLoader[ResourceKey(shader.vertex.name), ResourceKey("fragment/colour_opaque")]
 			wireframeShader.setUp(uniforms, renderer)
 			wireframeShader.setVec3("colour", Vec3(0f))
 			GLFunc.polygonMode = GL11C.GL_LINE

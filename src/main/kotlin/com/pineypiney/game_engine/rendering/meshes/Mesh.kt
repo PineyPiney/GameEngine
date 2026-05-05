@@ -1,6 +1,8 @@
 package com.pineypiney.game_engine.rendering.meshes
 
 import com.pineypiney.game_engine.objects.Deletable
+import com.pineypiney.game_engine.rendering.RenderingApi
+import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlMesh
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.util.Vectors
 import com.pineypiney.game_engine.util.extension_functions.getOrNull
@@ -147,7 +149,7 @@ interface Mesh : Deletable {
 		lateinit var cornerCubeShape: Mesh; private set
 		lateinit var centerCubeShape: Mesh; private set
 
-		fun initDefaultShapes(factory: ResourceFactory) {
+		fun initDefaultMeshes(factory: ResourceFactory) {
 			cornerSquareShape = textureQuad(factory, Vec2(), Vec2(1f))
 			centerSquareShape = textureQuad(factory, Vec2(-0.5f), Vec2(0.5f))
 			screenQuadShape = textureQuad(factory, Vec2(-1f), Vec2(1f))

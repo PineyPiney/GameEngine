@@ -4,21 +4,14 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.deleteArray
-import com.pineypiney.game_engine.vulkan.VulkanManager
-import org.lwjgl.vulkan.VkAllocationCallbacks
-import org.lwjgl.vulkan.VkDevice
 
-class DeletionQueue(val vulkan: VulkanManager) {
+open class DeletionQueue {
 
 	val deletables = mutableListOf<Deletable>()
 
 	fun push(function: () -> Unit): DeletionQueue {
 		deletables.add(Container(function))
 		return this
-	}
-
-	fun <E> push(obj: E, func: (VkDevice, E, VkAllocationCallbacks?) -> Unit): DeletionQueue {
-		return push { func(vulkan.device.device, obj, null) }
 	}
 
 	fun push(deletable: Deletable): DeletionQueue {

@@ -46,8 +46,8 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLog
 					val uniform = uniforms[name] ?: continue
 					setUniform(uniform, uniforms)
 				}
-				uniformValues["bottomColour"] = Colour(0xE6CEC0u).rgbValue
-				uniformValues["topColour"] = Colour(0xF7E3DDu).rgbValue
+				uniformValues["bottomColour"] = Colour(0xE6CEC0u).rgbVec
+				uniformValues["topColour"] = Colour(0xF7E3DDu).rgbVec
 				uniformValues["delta"] = .7f
 				//uniforms.setVec3Uniform("colour"){ Colour(0xEED8CFu).rgbValue }
 				//uniforms.setFloatUniform("delta"){ 1f }

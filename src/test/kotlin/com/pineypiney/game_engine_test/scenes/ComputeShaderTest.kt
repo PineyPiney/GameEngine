@@ -14,8 +14,8 @@ import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniform
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
-import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.resources.textures.TextureFormat
+import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture2D
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.CursorPosition
@@ -43,7 +43,7 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>): Window
 	val uniformValues = mutableMapOf<String, Any>()
 	val compute = ShaderLoader[ResourceKey("compute/gradient")]
 
-	val texture = Texture("ComputeTexture", TextureLoader.createTexture(null, 1024, 1024, GL43C.GL_RGBA, GL30C.GL_RGBA, debug = true))
+	val texture = OpenGlTexture2D("ComputeTexture", OpenGlTexture2D.createPointer(null, TextureFormat.R8, 1024, 1024, GL30C.GL_RGBA, debug = true))
 	init {
 		GL43C.glBindImageTexture(0, texture.texturePointer, 0, false, 0, GL43C.GL_READ_WRITE, GL43C.GL_RGBA8UI)
 	}

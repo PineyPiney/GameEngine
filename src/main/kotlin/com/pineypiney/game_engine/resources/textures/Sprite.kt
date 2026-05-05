@@ -6,13 +6,21 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import kotlin.math.max
 
-class Sprite(texture: Texture, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), origin: Vec2 = Vec2(), size: Vec2 = Vec2(1f), flipX: Boolean = false, flipY: Boolean = false) {
+class Sprite(texture: Texture2D, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), origin: Vec2 = Vec2(), size: Vec2 = Vec2(1f), flipX: Boolean = false, flipY: Boolean = false) {
 
-	constructor(texture: Texture, ppu: Float, spriteCenter: Vec2i, origin: Vec2i = Vec2i(), size: Vec2i = texture.size, flipX: Boolean = false, flipY: Boolean = false) : this(texture, ppu, Vec2(spriteCenter) / size, Vec2(origin) / texture.size, Vec2(size) / texture.size, flipX, flipY)
+	constructor(texture: Texture2D, ppu: Float, spriteCenter: Vec2i, origin: Vec2i = Vec2i(), size: Vec2i = texture.size, flipX: Boolean = false, flipY: Boolean = false) : this(
+		texture,
+		ppu,
+		Vec2(spriteCenter) / size,
+		Vec2(origin) / texture.size,
+		Vec2(size) / texture.size,
+		flipX,
+		flipY
+	)
 
 	private var shouldRecalculate = false
 
-	var texture: Texture = texture
+	var texture: Texture2D = texture
 		set(value) {
 			field = value
 			shouldRecalculate = true

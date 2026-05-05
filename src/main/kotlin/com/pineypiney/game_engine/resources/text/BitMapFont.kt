@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.rendering.meshes.TextMesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.extension_functions.sumOf
 import glm_.f
 import glm_.i
@@ -15,8 +15,8 @@ import kotlin.math.min
 
 class BitMapFont(
 	override val name: String,
-	val texture: Texture,
-	val boldTexture: Texture? = null,
+	val texture: Texture2D,
+	val boldTexture: Texture2D? = null,
 	private val charDimensions: Map<Char, Vec4i>,
 	private val boldCharDimensions: Map<Char, Vec4i>?,
 	val letterWidth: Int = 32,
@@ -53,7 +53,7 @@ class BitMapFont(
 		val dimensions = getPixelSize(text)
 		var letterX = characterSpacing
 		var letterY = 0f
-		val quads = mutableSetOf<TextMesh.CharacterMesh>()
+		val quads = mutableSetOf<TextMesh.CharacterQuad>()
 
 		val (alignX, alignY) = getAlignmentOffset(text, bounds, alignment)
 		var line = 0
@@ -73,7 +73,7 @@ class BitMapFont(
 		return TextMesh(quads.toTypedArray(), if(bold) boldTexture?:texture else texture)
 	}
 
-	fun createTextVertices(char: Char, top: Float, bottom: Float, offset: Vec2): TextMesh.CharacterMesh {
+	fun createTextVertices(char: Char, top: Float, bottom: Float, offset: Vec2): TextMesh.CharacterQuad {
 		val pixelHeight = top - bottom
 
 		// Index of letter within bitmap, where 0 is the letter in the top left, counting along the rows
@@ -87,7 +87,7 @@ class BitMapFont(
 		val texturePos = Vec2(letterPoint.x.f / texture.width, (letterPoint.y - top) / texture.height)
 
 		val height = pixelHeight / letterWidth
-		return TextMesh.CharacterMesh(offset, Vec2(getCharWidth(char), height) + offset, texturePos, texturePos + letterSize)
+		return TextMesh.CharacterQuad(offset, Vec2(getCharWidth(char), height) + offset, texturePos, texturePos + letterSize)
 	}
 
 	private fun getPixelSize(text: String): Vec4 {
@@ -106,5 +106,10 @@ class BitMapFont(
 	fun getPixelWidth(text: String): Int {
 		// Starting at 2 accounts for the margin at the beginning of the text
 		return (getWidth(text) * letterWidth).i
+	}
+
+	override fun delete() {
+		texture.delete()
+		boldTexture?.delete()
 	}
 }

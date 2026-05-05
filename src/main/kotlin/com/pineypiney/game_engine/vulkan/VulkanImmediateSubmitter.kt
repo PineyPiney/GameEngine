@@ -1,20 +1,33 @@
 package com.pineypiney.game_engine.vulkan
 
 import com.pineypiney.game_engine.objects.Deletable
+import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK13
+import org.lwjgl.vulkan.VkQueue
 
-class VulkanImmediateSubmitter(val vulkan: VulkanManager) : Deletable {
+class VulkanImmediateSubmitter(device: VulkanDevice, val queue: VkQueue) : Deletable {
 
-	val immediateCommands = PoolAndBuffer.create(vulkan.device)
-	val immediateFence = VkUtil.createFence(vulkan.device, VK10.VK_FENCE_CREATE_SIGNALED_BIT)
+	constructor(vulkan: VulkanManager) : this(vulkan.device, vulkan.queue)
+
+	val immediateCommands: PoolAndBuffer
+	val immediateFence: VulkanFence
+
+	init {
+		MemoryStack.stackPush().use { stack ->
+			immediateCommands = PoolAndBuffer.create(device, stack)
+			immediateFence = device.createFence(stack, VK10.VK_FENCE_CREATE_SIGNALED_BIT)
+		}
+	}
 
 	fun submitImmediate(func: (cmd: PoolAndBuffer) -> Unit) {
 		immediateFence.reset()
 		immediateCommands.immediateSubmit(func)
-		val cmdInfo = VkStructs.createBufferSubmits(immediateCommands.buffer, 0)
-		val submitInfo = VkStructs.createSubmitInfo2s(cmdInfo, null, null)
-		VK13.vkQueueSubmit2(vulkan.queue, submitInfo, immediateFence.handle)
+		MemoryStack.stackPush().use { stack ->
+			val cmdInfo = VkStructs.createBufferSubmits(stack, immediateCommands.buffer, 0)
+			val submitInfo = VkStructs.createSubmitInfo2s(stack, cmdInfo, null, null)
+			VK13.vkQueueSubmit2(queue, submitInfo, immediateFence.handle)
+		}
 		immediateFence.wait(1e9)
 	}
 

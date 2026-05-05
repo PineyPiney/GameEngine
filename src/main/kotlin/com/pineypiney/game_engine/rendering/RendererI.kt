@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.objects.Initialisable
-import com.pineypiney.game_engine.rendering.meshes.RenderingApi
 import com.pineypiney.game_engine.window.Viewport
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2i

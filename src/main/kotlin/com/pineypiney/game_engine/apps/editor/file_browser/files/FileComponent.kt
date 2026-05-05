@@ -10,14 +10,14 @@ import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
 import com.pineypiney.game_engine.resources.textures.Sprite
-import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.resources.textures.Texture2D
+import com.pineypiney.game_engine.resources.textures.TextureFormat
+import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import kool.toBuffer
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.stb.STBImage
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
@@ -102,7 +102,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 		val tex = browser.loadedTextures[ext] ?: let {
 
 			// Get icon
-			val image = FileSystemView.getFileSystemView().getSystemIcon(file, size, size) ?: return Sprite(Texture.broke, size.toFloat(), center)
+			val image = FileSystemView.getFileSystemView().getSystemIcon(file, size, size) ?: return Sprite(Texture2D.missing, size.toFloat(), center)
 
 			// Convert icon to BufferedImage
 			val imBuf = BufferedImage(image.iconWidth, image.iconHeight, BufferedImage.TYPE_INT_ARGB)
@@ -114,7 +114,12 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 			ImageIO.write(imBuf, "png", bytes)
 			val pngBuffer = bytes.toByteArray().toBuffer()
 			val rawBuffer = STBImage.stbi_load_from_memory(pngBuffer, IntArray(1), IntArray(1), IntArray(1), 4)
-			Texture("$ext Icon", TextureLoader.createTexture(rawBuffer, size, size, GL11C.GL_RGBA))
+			if (rawBuffer != null) {
+				val texName = "$ext Icon"
+				val texture = browser.screen.gameEngine.resourcesLoader.factory.createTexture2D(texName, size, size, TextureFormat.RGBA8, TextureFormat.RGBA8, rawBuffer, TextureParameters())
+				STBImage.stbi_image_free(rawBuffer)
+				texture
+			} else Texture2D.missing
 		}
 		val sprite = Sprite(tex, max(size, size).toFloat(), center)
 		browser.loadedTextures[ext] = tex

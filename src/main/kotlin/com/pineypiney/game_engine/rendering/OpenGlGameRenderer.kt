@@ -2,8 +2,6 @@ package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.rendering.meshes.OpenGlRendering
-import com.pineypiney.game_engine.rendering.meshes.RenderingApi
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey

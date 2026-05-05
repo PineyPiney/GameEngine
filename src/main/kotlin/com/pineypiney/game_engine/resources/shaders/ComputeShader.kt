@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.util.GLFunc
 import glm_.vec3.Vec3i
-import org.lwjgl.opengl.GL46C.GL_VERTEX_SHADER
 import org.lwjgl.opengl.GL46C.glDispatchCompute
 
 @Suppress("UNUSED")
@@ -10,7 +9,7 @@ class ComputeShader(
 	ID: Int,
 	val name: String,
 	uniforms: Map<String, String>
-) : Shader(ID, uniforms) {
+) : OpenGlShader(ID, uniforms) {
 
 	fun dispatch(x: Int = 1, y: Int = 1, z: Int = 1){
 		glDispatchCompute(x, y, z)
@@ -39,8 +38,8 @@ class ComputeShader(
 						"}"
 		}
 
-		val brokeShader: ComputeShader = ShaderLoader.generateComputeShader(
-			"broke", ShaderLoader.generateSubShader("broke", cS, GL_VERTEX_SHADER)
+		val brokeShader: ComputeShader = ShaderLoader.generateComputeShaderOpenGl(
+			"broke", ShaderLoader.generateSubShaderOpenGl("broke", cS, ShaderStage.COMPUTE)
 		)
 	}
 }

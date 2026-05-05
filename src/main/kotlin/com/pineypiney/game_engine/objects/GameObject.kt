@@ -10,7 +10,7 @@ import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.RenderShader
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape
@@ -380,7 +380,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 
 		fun simpleTextureGameObject(
 			name: String,
-			texture: Texture,
+			texture: Texture2D,
 			shape: Mesh = Mesh.centerSquareShape,
 			shader: RenderShader = MeshedTextureComponent.default2DShader
 		): GameObject {

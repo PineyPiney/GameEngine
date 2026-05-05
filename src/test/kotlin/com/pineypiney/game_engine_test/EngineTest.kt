@@ -182,7 +182,7 @@ class EngineTest{
 	@Test
 	fun colourTest(){
 		val colour = Colour(45.075f, 22.799f, 22.102f, 1f, Colour.ColourModel.CIEXYZ)
-		val rgb = colour.rgbValue
+		val rgb = colour.rgbVec
 		val hsv = colour.hsvValue
 		val hsl = colour.hslValue
 		val cie = colour.cieValue

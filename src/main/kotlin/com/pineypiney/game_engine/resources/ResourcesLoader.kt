@@ -4,13 +4,17 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.ModelLoader
+import com.pineypiney.game_engine.resources.models.ModelMesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
+import com.pineypiney.game_engine.resources.textures.Texture2D
+import com.pineypiney.game_engine.resources.textures.Texture3D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.video.VideoLoader
 import com.pineypiney.game_engine.util.extension_functions.resize
 import com.pineypiney.game_engine.util.extension_functions.round
-import org.lwjgl.BufferUtils
+import kool.free
+import org.lwjgl.system.MemoryUtil
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
@@ -31,8 +35,16 @@ abstract class ResourcesLoader(val location: String) {
 
 	abstract fun getStream(name: String): InputStream?
 
+	fun loadInitialResources() {
+		Mesh.initDefaultMeshes(factory)
+		Texture2D.initDefaultTextures(factory)
+		Texture3D.initDefaultTextures(factory)
+		ModelMesh.initDefault(factory)
+	}
+
 	fun loadResources(engine: GameEngineI<*>) {
-		Mesh.initDefaultShapes(factory)
+
+
 		GameEngineI.info("Loaded Shaders in ${timeActionM { ShaderLoader.INSTANCE.loadShaders(Streams(engine, "shaders/")) }.round(2)} ms", this)
 		GameEngineI.info("Loaded Textures in ${timeActionM { loadTextures(engine) }.round(2)} ms")
 		GameEngineI.info("Loaded Audio in ${timeActionM { AudioLoader.INSTANCE.loadAudio(Streams(engine, audioLocation)) }.round(2)} ms")
@@ -56,11 +68,16 @@ abstract class ResourcesLoader(val location: String) {
 		AudioLoader.INSTANCE.delete()
 		VideoLoader.INSTANCE.delete()
 		ModelLoader.INSTANCE.delete()
+		FontLoader.INSTANCE.delete()
 	}
 
 	companion object {
 
-		fun lowercaseExtension(file: String): String = file.split('.').run { this[0] + '.' + this[1].lowercase() }
+		fun lowercaseExtension(file: String): String {
+			val i = file.lastIndexOf('.')
+			return if (i == -1) file
+			else file.substring(0..i) + file.substring(i + 1).lowercase()
+		}
 
 		fun timeAction(action: () -> Unit): Long {
 			val start = System.nanoTime()
@@ -75,20 +92,21 @@ abstract class ResourcesLoader(val location: String) {
 		fun ioResourceToByteBuffer(stream: InputStream, bufferSize: Int = stream.available(), resize: Boolean = true): ByteBuffer {
 
 			val rbc: ReadableByteChannel = Channels.newChannel(stream)
-			var buffer: ByteBuffer = BufferUtils.createByteBuffer(bufferSize)
+			var buffer: ByteBuffer = MemoryUtil.memAlloc(bufferSize)
 
 			while (true) {
 				val bytes = rbc.read(buffer)
-				if (bytes == -1 || !resize) {
+				if (stream.available() == 0 || bytes == -1 || !resize) {
 					break
 				}
 				if (buffer.remaining() == 0) {
-					buffer = buffer.resize(buffer.capacity() * 2)
+					val newBuffer = buffer.resize(buffer.capacity() * 2)
+					buffer.free()
+					buffer = newBuffer
 				}
 			}
 
-			buffer.flip()
-			return buffer
+			return buffer.flip()
 		}
 	}
 

@@ -1,8 +1,10 @@
 package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.objects.Initialisable
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.Texture3D
+import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture2D
+import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture3D
 import glm_.vec2.Vec2i
 import org.lwjgl.opengl.GL30C.*
 
@@ -20,31 +22,39 @@ class TextureCopyFramebuffer : Initialisable {
 
 	fun bind() = glBindFramebuffer(GL_FRAMEBUFFER, FBO)
 
-	fun setSrc(src: Texture){
-		srcSize = src.size
-		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, src.target, src.texturePointer, 0)
+	fun setSrc(src: Texture2D) {
+		if (src is OpenGlTexture2D) {
+			srcSize = src.size
+			glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, src.target, src.texturePointer, 0)
+		}
 	}
 
 	fun setSrc(src: Texture3D, layer: Int) {
-		srcSize = Vec2i(src.size)
-		glFramebufferTexture3D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, src.target, src.texturePointer, 0, layer)
+		if (src is OpenGlTexture3D) {
+			srcSize = Vec2i(src.size)
+			glFramebufferTexture3D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, src.target, src.texturePointer, 0, layer)
+		}
 	}
 
-	fun setDst(dst: Texture){
-		dstSize = dst.size
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, dst.target, dst.texturePointer, 0)
+	fun setDst(dst: Texture2D) {
+		if (dst is OpenGlTexture2D) {
+			dstSize = dst.size
+			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, dst.target, dst.texturePointer, 0)
+		}
 	}
 
 	fun setDst(dst: Texture3D, layer: Int) {
-		dstSize = Vec2i(dst.size)
-		glFramebufferTexture3D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, dst.target, dst.texturePointer, 0, layer)
+		if (dst is OpenGlTexture3D) {
+			dstSize = Vec2i(dst.size)
+			glFramebufferTexture3D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, dst.target, dst.texturePointer, 0, layer)
+		}
 	}
 
 	fun copyTexture(srcOrigin: Vec2i = Vec2i(0), srcTR: Vec2i = srcSize, dstOrigin: Vec2i = Vec2i(0), dstTR: Vec2i = dstSize, mask: Int = GL_COLOR_BUFFER_BIT, filter: Int = GL_LINEAR){
 		glBlitFramebuffer(srcOrigin.x, srcOrigin.y, srcTR.x, srcTR.y, dstOrigin.x, dstOrigin.y, dstTR.x, dstTR.y, mask, filter)
 	}
 
-	fun copyOntoDst(src: Texture, dstOrigin: Vec2i = Vec2i(0), dstTR: Vec2i = dstOrigin + src.size){
+	fun copyOntoDst(src: Texture2D, dstOrigin: Vec2i = Vec2i(0), dstTR: Vec2i = dstOrigin + src.size) {
 		setSrc(src)
 		copyTexture(dstOrigin = dstOrigin, dstTR = dstTR)
 	}

@@ -1,9 +1,10 @@
 package com.pineypiney.game_engine.rendering.meshes
 
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlIndexedMesh
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import glm_.vec2.Vec2
 
-class TextMesh(chars: Array<CharacterMesh>, val texture: Texture = Texture.broke, val deleteTexture: Boolean = false) : OpenGlIndexedMesh(
+class TextMesh(chars: Array<CharacterQuad>, val texture: Texture2D = Texture2D.missing, val deleteTexture: Boolean = false) : OpenGlIndexedMesh(
 	chars.flatMap { it.getVertices() }.toFloatArray(), listOf(
 	VertexAttribute.POSITION2D, VertexAttribute.TEX_COORD
 ), createIndices(chars.size)) {
@@ -22,7 +23,7 @@ class TextMesh(chars: Array<CharacterMesh>, val texture: Texture = Texture.broke
 		}
 	}
 
-	class CharacterMesh(val bl: Vec2, val tr: Vec2, val tbl: Vec2, val ttr: Vec2){
+	class CharacterQuad(val bl: Vec2, val tr: Vec2, val tbl: Vec2, val ttr: Vec2) {
 
 		fun getVertices(): List<Float>{
 			return listOf(

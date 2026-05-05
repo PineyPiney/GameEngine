@@ -2,12 +2,14 @@ package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.resources.AbstractResourceLoader
+import com.pineypiney.game_engine.resources.DeletableResourceLoader
+import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.shaders.RenderShader
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
+import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.resources.textures.TextureParameters
+import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.length
@@ -16,27 +18,25 @@ import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
 import kool.*
-import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL12C
 import java.awt.font.FontRenderContext
 import java.awt.image.BufferedImage
 import java.io.InputStream
+import java.nio.ByteBuffer
 import javax.imageio.ImageIO
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import java.awt.Font as JavaFont
 
-class FontLoader private constructor() : AbstractResourceLoader<Font>() {
+class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 
-	override val missing: Font = BitMapFont("broke", Texture.broke, null, mapOf(), null)
+	override val missing: Font = BitMapFont("broke", Texture2D.missing, null, mapOf(), null)
 
 	fun loadFonts(streams: ResourcesLoader.Streams){
 		if (GLFunc.isLoaded) {
 			streams.useEachStream { fileName, stream ->
 				if (fileName.substringAfter('.') == "bff") {
-					loadFontOpenGlFromBFF(fileName, stream)
+					loadFontOpenGlFromBFF(streams.engine.resourcesLoader.factory, fileName, stream)
 				}
 			}
 		}
@@ -97,11 +97,11 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 		)
 
 
-		val boldTexture: Texture?
+		val boldTexture: Texture2D?
 		val boldMap: Map<Char, Vec4i>?
 		when (loadBold) {
 			true -> {
-				boldTexture = loadBoldFromTexture(fontName, image, columns, rows, 3, 5)
+				boldTexture = loadBoldFromTexture(fontName, image, resourcesLoader.factory, columns, rows, 3, 5)
 				boldMap = charMap.mapValues { it.value + Vec4i(-4, -4, 4, 4) }
 				//boldTexture.savePNG("src/main/resources/${resourcesLoader.fontLocation}${boldTexture.fileName}.png")
 			}
@@ -165,7 +165,7 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 		return charMap.toMap()
 	}
 
-	fun loadFontOpenGlFromBFF(fontName: String, stream: InputStream) {
+	fun loadFontOpenGlFromBFF(factory: ResourceFactory, fontName: String, stream: InputStream) {
 		val header = stream.readNBytes(2)
 		if(header[0] != 0xBF.toByte() || header[1] != 0xF2.toByte()) {
 			GameEngineI.logger.warn("Could not load BBF File $fontName, invalid header")
@@ -181,20 +181,20 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 		}
 
 		val channels = stream.read() / 8
-		val format = TextureLoader.channelsToFormat(channels)
+		val format = TextureLoader.channelsToStbiFormat(channels)
 		val firstChar = stream.read()
 
 		val charOffsets = stream.readNBytes(256)
 
-		val buffer = BufferUtils.createByteBuffer(texWidth * texHeight * channels)
+		val buffer = ByteBuffer.allocateDirect(texWidth * texHeight * channels)
 		for(y in 1..texHeight){
-			buffer.put(buffer.lim - (y * texWidth * channels), stream.readNBytes(texWidth * channels))
+			buffer.put(buffer.limit() - (y * texWidth * channels), stream.readNBytes(texWidth * channels))
 		}
 
-		val pointer = TextureLoader.createTexture(buffer, texWidth, texHeight, format, GL11C.GL_RED, params = TextureParameters(flip = false))
-
 		val key = fontName.substringBefore('.')
-		map[ResourceKey(key)] = BitMapFont(key, Texture(key, pointer), null, charOffsets.withIndex().associate { (i, w) ->
+		val texture = factory.createTexture2D(key, texWidth, texHeight, format, format, buffer, TextureParameters())
+
+		map[ResourceKey(key)] = BitMapFont(key, texture, null, charOffsets.withIndex().associate { (i, w) ->
 			Char(i) to Vec4i(0, charHeight * .05, w, charHeight * .6f) }, null, charWidth, charHeight, 0f, 1f, firstChar)
 	}
 
@@ -246,21 +246,23 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 			val buffer = pixels.toByteArray().toBuffer()
 
 			//GameEngineI.debug("Loading character $char, code ${char.code.asHexString}")
-			Texture("$fontName $char", TextureLoader.createTexture(buffer, textureSize.x, textureSize.y, GL12C.GL_RED))
+			val textureName = "$fontName $char"
+			resourcesLoader.factory.createTexture2D(textureName, textureSize.x, textureSize.y, TextureFormat.R8, TextureFormat.R8, buffer, TextureParameters())
 		}
 
 		val name = fontName.substringBefore('.')
-		this.map[ResourceKey(name)] = TrueTypeFont(name, font, map, ctx, shader)
+		this.map[ResourceKey(name)] = TrueTypeFont(name, font, resourcesLoader.factory, map, ctx, shader)
 	}
 
 	fun loadBoldFromTexture(
 		name: String,
 		image: BufferedImage,
+		factory: ResourceFactory,
 		columns: Int,
 		rows: Int,
 		boldWidth: Int,
 		outerBoldWidth: Int
-	): Texture {
+	): Texture2D {
 		val t = Timer.getCurrentTime()
 		val d = 2 * outerBoldWidth + 1
 		val fadeDist = outerBoldWidth - boldWidth
@@ -301,15 +303,8 @@ class FontLoader private constructor() : AbstractResourceLoader<Font>() {
 				}
 			}
 		}
-		val texture = Texture(
-			"${name.substringBeforeLast('.')} bold",
-			TextureLoader.createTexture(
-				boldBuffer.toIntArray().toByteBuffer(),
-				boldTextureWidth,
-				boldTextureHeight,
-				GL11C.GL_RGBA
-			)
-		)
+		val textureName = "${name.substringBeforeLast('.')} bold"
+		val texture = factory.createTexture2D(textureName, boldTextureWidth, boldTextureHeight, TextureFormat.RGBA8, TextureFormat.RGBA8, boldBuffer.toIntArray().toByteBuffer(), TextureParameters())
 
 		boldBuffer.clear()
 

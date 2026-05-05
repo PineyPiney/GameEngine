@@ -1,17 +1,19 @@
 package com.pineypiney.game_engine.vulkan
 
 import com.pineypiney.game_engine.objects.Deletable
-import com.pineypiney.game_engine.vulkan.pipeline.VulkanComputePipeline
-import com.pineypiney.game_engine.vulkan.pipeline.VulkanPipeline
+import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipeline
+import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.window.Viewport
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import kool.free
+import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
 import java.nio.ByteBuffer
 
-class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer) : Deletable {
+class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: DeletionQueue) : Deletable {
 
 	fun begin(info: VkCommandBufferBeginInfo) {
 		VkUtil.processError(VK10.vkBeginCommandBuffer(buffer, info), "Failed to begin Command Buffer")
@@ -29,12 +31,20 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer) : Deletable {
 		VK13.vkCmdBeginRendering(buffer, info)
 	}
 
+	fun setViewport(stack: MemoryStack, viewport: Viewport) {
+		VK10.vkCmdSetViewport(buffer, 0, VkStructs.createViewports(stack, listOf(viewport)))
+	}
+
 	fun setViewport(viewport: Viewport) {
-		VK10.vkCmdSetViewport(buffer, 0, VkStructs.createViewports(listOf(viewport)))
+		MemoryStack.stackPush().use { stack -> setViewport(stack, viewport) }
+	}
+
+	fun setScissors(stack: MemoryStack, viewport: Viewport) {
+		VK10.vkCmdSetScissor(buffer, 0, VkStructs.createScissors(stack, listOf(viewport)))
 	}
 
 	fun setScissors(viewport: Viewport) {
-		VK10.vkCmdSetScissor(buffer, 0, VkStructs.createScissors(listOf(viewport)))
+		MemoryStack.stackPush().use { stack -> setScissors(stack, viewport) }
 	}
 
 	fun bindPipeline(pipeline: VulkanPipeline) {
@@ -45,14 +55,21 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer) : Deletable {
 		VK10.vkCmdBindIndexBuffer(this.buffer, buffer, offset, type)
 	}
 
-	fun bindDescriptorSets(vulkan: VulkanManager, pipeline: VulkanComputePipeline) {
-		val buf = MemoryUtil.memAllocLong(1).put(vulkan.descriptorSet).flip()
-		VK10.vkCmdBindDescriptorSets(buffer, VK10.VK_PIPELINE_BIND_POINT_COMPUTE, pipeline.layout, 0, buf, null)
+	fun bindDescriptorSet(pipeline: VulkanPipeline, set: VulkanDescriptorSet) {
+		val buf = MemoryUtil.memAllocLong(1).put(set.handle).flip()
+		VK10.vkCmdBindDescriptorSets(buffer, pipeline.getBindPoint(), pipeline.layout.handle, 0, buf, null)
+		buf.free()
+	}
+
+	fun bindDescriptorSets(pipeline: VulkanPipeline, sets: Iterable<VulkanDescriptorSet>) {
+		val buf = MemoryUtil.memAllocLong(sets.count())
+		for (set in sets) buf.put(set.handle)
+		VK10.vkCmdBindDescriptorSets(buffer, pipeline.getBindPoint(), pipeline.layout.handle, 0, buf.flip(), null)
 		buf.free()
 	}
 
 	fun pushConstants(pipeline: VulkanPipeline, stage: Int, constants: ByteBuffer) {
-		VK10.vkCmdPushConstants(buffer, pipeline.layout, stage, 0, constants)
+		VK10.vkCmdPushConstants(buffer, pipeline.layout.handle, stage, 0, constants)
 	}
 
 	fun draw(vertexCount: Int, instanceCount: Int = 1, firstVertex: Int = 0, firstInstance: Int = 0) {
@@ -67,9 +84,9 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer) : Deletable {
 		VK13.vkCmdEndRendering(buffer)
 	}
 
-	fun clearColourImage(colour: Vec4, image: VulkanImageI) {
-		val colour = VkStructs.clearColour(colour)
-		val clearRange = VkStructs.createImageRange(VK10.VK_IMAGE_ASPECT_COLOR_BIT)
+	fun clearColourImage(stack: MemoryStack, colour: Vec4, image: VulkanImage) {
+		val colour = VkStructs.clearColour(stack, colour)
+		val clearRange = VkStructs.createImageRange(stack, VK10.VK_IMAGE_ASPECT_COLOR_BIT)
 		VK10.vkCmdClearColorImage(buffer, image.image, VK10.VK_IMAGE_LAYOUT_GENERAL, colour, clearRange)
 	}
 
@@ -93,6 +110,18 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer) : Deletable {
 		VK10.vkCmdCopyBuffer(buffer, src, dst, regions)
 	}
 
+	fun copyBufferToImage(src: Long, dst: Long, layout: Int, regions: VkBufferImageCopy.Buffer) {
+		VK10.vkCmdCopyBufferToImage(buffer, src, dst, layout, regions)
+	}
+
+	fun copyBufferToImage(src: VmaBuffer, image: VulkanImage, regions: VkBufferImageCopy.Buffer) {
+		VK10.vkCmdCopyBufferToImage(buffer, src.buffer, image.image, image.layout, regions)
+	}
+
+	fun copyImageToBuffer(src: VmaBuffer, image: VulkanImage, regions: VkBufferImageCopy.Buffer) {
+		VK10.vkCmdCopyImageToBuffer(buffer, image.image, image.layout, src.buffer, regions)
+	}
+
 	fun end() {
 		VK10.vkEndCommandBuffer(buffer)
 	}
@@ -102,23 +131,27 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer) : Deletable {
 		begin(VK10.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)
 		func(this)
 		end()
-
-
 	}
 
 	fun resetBuffer(flags: Int = 0) {
 		VK10.vkResetCommandBuffer(buffer, flags)
+		deletion.flush()
 	}
 
 	override fun delete() {
+		deletion.flush()
 		VK10.vkDestroyCommandPool(buffer.device, pool, null)
 	}
 
 	companion object {
-		fun create(device: VulkanDevice): PoolAndBuffer {
-			val pool = VkUtil.createCommandPool(device)
-			val buffer = VkUtil.createCommandBuffer(device, pool)
-			return PoolAndBuffer(pool, buffer)
+		fun create(device: VulkanDevice, stack: MemoryStack): PoolAndBuffer {
+			MemoryStack.stackPush().use { stack ->
+				val pool = device.createCommandPool(stack)
+				val buffer = device.createCommandBuffer(stack, pool)
+				val deletion = DeletionQueue()
+				return PoolAndBuffer(pool, buffer, deletion)
+			}
+
 		}
 	}
 }

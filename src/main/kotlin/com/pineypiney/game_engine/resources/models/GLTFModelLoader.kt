@@ -10,9 +10,10 @@ import com.pineypiney.game_engine.resources.models.animations.KeyFrame
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
-import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.resources.textures.TextureParameters
+import com.pineypiney.game_engine.resources.textures.Texture2D
+import com.pineypiney.game_engine.resources.textures.parameters.TextureFilter
+import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
+import com.pineypiney.game_engine.resources.textures.parameters.TextureWrap
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.exceptions.ModelParseException
 import com.pineypiney.game_engine.util.extension_functions.*
@@ -32,7 +33,6 @@ import kool.count
 import kool.toBuffer
 import org.json.JSONArray
 import org.json.JSONObject
-import org.lwjgl.opengl.GL11C
 import unsigned.ui
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -77,7 +77,7 @@ class GLTFModelLoader {
 			accessors.add(Array(count) { matrix.make(view, it * size, type) })
 		}
 
-		val textures = loadTextures(json, bufferViews)
+		val textures = loadTextures(factory, json, bufferViews)
 
 
         // Load Materials
@@ -87,7 +87,7 @@ class GLTFModelLoader {
 
 		materialsJson.forEachObject { materialJson, _ ->
 			val name = materialJson.getString("name")
-			val materialTextures = mutableMapOf<String, Texture>()
+			val materialTextures = mutableMapOf<String, Texture2D>()
 
 			fun getTextureIndex(json: JSONObject, name: String) = (json.getOrNull(name) as? JSONObject)?.getInt("index") ?: -1
 
@@ -307,7 +307,7 @@ class GLTFModelLoader {
         return bone
     }
 
-    fun loadTextures(json: JSONObject, bufferViews: List<ByteArray>): List<Texture>{
+	fun loadTextures(factory: ResourceFactory, json: JSONObject, bufferViews: List<ByteArray>): List<Texture2D> {
         if(!json.has("samplers")) return emptyList()
         val samplersJson = json.getJSONArray("samplers")
         val samplers = mutableListOf<TextureParameters>()
@@ -329,12 +329,13 @@ class GLTFModelLoader {
         }
 
         val texturesJson = json.getJSONArray("textures")
-        val textures = mutableListOf<Texture>()
+		val textures = mutableListOf<Texture2D>()
         for(i in 0..<texturesJson.length()){
             val textureJson = texturesJson.getJSONObject(i)
             val sampler = samplers[textureJson.getInt("sampler")]
             val image = images[textureJson.getInt("source")]
-            textures.add(Texture(image.first, TextureLoader.loadTextureFromStream(image.first, image.second.inputStream(), sampler)))
+			val texture = factory.loadTexture2DFromFile(image.first, image.second.inputStream(), sampler)
+			textures.add(texture)
         }
         return textures
     }
@@ -377,12 +378,14 @@ class GLTFModelLoader {
 	}
 
 	fun samplerType(json: JSONObject): TextureParameters{
+
+		// GLTF uses OpenGL parameter values
 		return TextureParameters(
 			flip = false,
-			minFilter = json.getIntOrNull("minFilter") ?: GL11C.GL_LINEAR_MIPMAP_LINEAR,
-			magFilter = json.getIntOrNull("magFilter") ?: GL11C.GL_LINEAR,
-			wrapS = json.getIntOrNull("wrapS") ?: GL11C.GL_REPEAT,
-			wrapT = json.getIntOrNull("wrapT") ?: GL11C.GL_REPEAT
+			minFilter = json.getIntOrNull("minFilter")?.let { opengl -> TextureFilter.entries.firstOrNull { it.opengl == opengl } } ?: TextureFilter.LINEAR_LINEAR,
+			magFilter = json.getIntOrNull("magFilter")?.let { opengl -> TextureFilter.entries.firstOrNull { it.opengl == opengl } } ?: TextureFilter.LINEAR,
+			wrapS = json.getIntOrNull("wrapS")?.let { opengl -> TextureWrap.entries.firstOrNull { it.opengl == opengl } } ?: TextureWrap.REPEAT,
+			wrapT = json.getIntOrNull("wrapT")?.let { opengl -> TextureWrap.entries.firstOrNull { it.opengl == opengl } } ?: TextureWrap.REPEAT
 		)
 	}
 

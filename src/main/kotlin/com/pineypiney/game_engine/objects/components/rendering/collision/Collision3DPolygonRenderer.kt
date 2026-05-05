@@ -4,9 +4,9 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.rendering.meshes.ArrayMesh
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
+import com.pineypiney.game_engine.rendering.meshes.opengl.ArrayMesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.GLFunc

@@ -19,6 +19,7 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
+import kool.free
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.glfw.GLFWVidMode
@@ -220,6 +221,7 @@ abstract class Window(
 	override fun setIcon(icon: InputStream) {
 		val iconByteBuffer = ResourcesLoader.ioResourceToByteBuffer(icon)
 		val (loadedBuffer, v) = TextureLoader.loadTextureData(iconByteBuffer, false)
+		iconByteBuffer.free()
 		if (loadedBuffer == null) return
 
 		val iconBuffer = GLFWImage.create(1)

@@ -18,9 +18,8 @@ import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.models.ModelLoader
-import com.pineypiney.game_engine.resources.models.OpenGlModelMesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
@@ -53,8 +52,9 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 	private val movementController = Movement3D.default(window, camera, 10f)
 
+	var indicesMult = 1f
 	private val indexSlider = ActionSliderComponent.createFloatSliderAt("Index Slider", Vec2(-1f), Vec2(1f, .3f), .98f, 1f, 1f) {
-		OpenGlModelMesh.indicesMult = it.value
+		indicesMult = it.value
 	}
 
 	private val crosshair = GameObject.simpleRenderedGameObject("Crosshair", ShaderLoader[ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")], Vec3(0f), Vec3(Vec2(.2f), 1f)) {}
@@ -133,7 +133,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 		val shape = Cuboid(Vec3(0f), Quat.identity, Vec3(1f)) transformedBy object3D.worldModel
 		val hit = shape.intersectedBy(ray).isEmpty()
-		object3D.getComponent<MeshedTextureComponent>()!!.texture = if(hit) Texture.broke else TextureLoader[ResourceKey("snake/snake_0")]
+		object3D.getComponent<MeshedTextureComponent>()!!.texture = if (hit) Texture2D.missing else TextureLoader[ResourceKey("snake/snake_0")]
 
 		if(updateRay){
 			cursorRay.position = ray.rayOrigin + (ray.direction * cursorRay.scale.x * 1.5f)

@@ -3,9 +3,11 @@ package com.pineypiney.game_engine.resources.text
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.TextureCopyFramebuffer
 import com.pineypiney.game_engine.rendering.meshes.TextMesh
+import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.shaders.RenderShader
-import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.resources.textures.Texture2D
+import com.pineypiney.game_engine.resources.textures.TextureFormat
+import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import glm_.c
 import glm_.f
 import glm_.vec2.Vec2
@@ -13,8 +15,6 @@ import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 import glm_.vec4.swizzle.xy
 import glm_.vec4.swizzle.zw
-import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11C
 import java.awt.Shape
 import java.awt.font.FontRenderContext
 import java.awt.geom.Rectangle2D
@@ -23,14 +23,15 @@ import java.awt.Font as JavaFont
 class TrueTypeFont(
 	override val name: String,
 	val font: JavaFont,
-	val textures: Map<Char, Texture>,
+	val factory: ResourceFactory,
+	val textures: Map<Char, Texture2D>,
 	val ctx: FontRenderContext = FontRenderContext(null, true, true),
 	override val shader: RenderShader = fontShader
 ) : Font() {
 
 	override var lineSpacing: Float = 1f
 	val res = 200
-	val missing = textures[127.c] ?: Texture.broke
+	val missing = textures[127.c] ?: Texture2D.missing
 
 	// This is the width of a space character
 	val space = calcSpace()
@@ -60,7 +61,7 @@ class TrueTypeFont(
 	}
 
 	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextMesh {
-		val list = mutableListOf<TextMesh.CharacterMesh>()
+		val list = mutableListOf<TextMesh.CharacterQuad>()
 		val glyph = font.createGlyphVector(ctx, text)
 
 		val (alignX, alignY) = getAlignmentOffset(text, bounds, alignment)
@@ -86,15 +87,15 @@ class TrueTypeFont(
 
 	fun getOutline(char: Char) = getOutline(char.toString())
 
-	fun createTexture(chars: Set<Char>): Pair<Texture, Map<Char, Vec4>>{
-		if(chars.isEmpty()) return Texture.none to emptyMap()
+	fun createTexture(chars: Set<Char>): Pair<Texture2D, Map<Char, Vec4>> {
+		if (chars.isEmpty()) return Texture2D.none to emptyMap()
 
 		val textures = chars.associateWith { getTexture(it) }
 		val width = textures.values.sumOf { it.width }
 		val height = textures.maxOf { it.value.height }
 		val invWidth = 1f / width
 		val invHeight = 1f / height
-		val texture = Texture("", TextureLoader.createTexture(BufferUtils.createByteBuffer(width * height * 3), width, height, GL11C.GL_RGB))
+		val texture = factory.createTexture2D("", width, height, TextureFormat.RGB8, TextureFormat.R8, null, TextureParameters())
 		var x = 0
 		val dimensions = mutableMapOf<Char, Vec4>()
 
@@ -123,14 +124,14 @@ class TrueTypeFont(
 		return texture to dimensions
 	}
 
-	fun createChar(bounds: Rectangle2D, offset: Vec2, textureDimensions: Vec4): TextMesh.CharacterMesh {
+	fun createChar(bounds: Rectangle2D, offset: Vec2, textureDimensions: Vec4): TextMesh.CharacterQuad {
 		val width = bounds.width.f.let { if (it == 0f) 0.2f else it }
 		val height = bounds.height.f.let { if (it == 0f) 0.2f else it }
 		val pos = Vec2(bounds.x, -(bounds.y + bounds.height)) + offset
-		return TextMesh.CharacterMesh(pos, Vec2(width, height) + pos, textureDimensions.xy, textureDimensions.zw)
+		return TextMesh.CharacterQuad(pos, Vec2(width, height) + pos, textureDimensions.xy, textureDimensions.zw)
 	}
 
-	fun getTexture(char: Char): Texture {
+	fun getTexture(char: Char): Texture2D {
 		return textures[char] ?: missing
 	}
 
@@ -140,5 +141,9 @@ class TrueTypeFont(
 		val shapeB = glyph.getGlyphOutline(0)
 		val space = shapeA.bounds2D.x - shapeB.bounds2D.run { x + width }
 		return space.f
+	}
+
+	override fun delete() {
+
 	}
 }

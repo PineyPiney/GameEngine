@@ -7,8 +7,9 @@ import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.OpenGlIndexedMesh
+import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlIndexedMesh
 import com.pineypiney.game_engine.resources.OpenGlResourceFactory
+import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.maths.I
@@ -29,8 +30,7 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 
 	var sceneMesh: Mesh = OpenGlIndexedMesh.empty()
 	override fun init() {
-		framebuffer.format = GL11C.GL_RGBA
-		framebuffer.internalFormat = GL11C.GL_RGBA
+		framebuffer.internalFormat = TextureFormat.RGBA8
 		super.init()
 		GLFunc.multiSample = true
 	}
@@ -40,7 +40,7 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 		camera.getView(view)
 		camera.getProjection(projection)
 
-		GLFunc.clearColour = backgroundColour.rgbaValue
+		GLFunc.clearColour = backgroundColour.rgbaVec
 		GLFunc.depthTest = depth
 
 		viewportSize = sceneBox.size

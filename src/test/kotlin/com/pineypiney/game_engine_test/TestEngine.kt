@@ -23,6 +23,7 @@ class TestEngine<E : WindowGameLogic>(override val window: WindowI, val screen: 
 		super.loadResources()
 
 		GameEngineI.defaultFont = "SemiSlab"
+//		GameEngineI.defaultFont = "Simplified Hans Light"
 
 		// Create all the fonts
 		FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)

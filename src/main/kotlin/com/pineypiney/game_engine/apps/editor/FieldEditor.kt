@@ -22,7 +22,8 @@ import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.shaders.ShaderStage
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.capitalise
@@ -198,26 +199,37 @@ open class IntRangeFieldEditor(parent: GameObject, f: IntRangeField, component: 
 
 }
 
-open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: Callback<RenderShader>)
-	: FieldEditor<RenderShader, ShaderField>(parent, f, component, origin, Vec2i(size.x, getHeight(size.y, 3))) {
+open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: Callback<RenderShader>) :
+	FieldEditor<RenderShader, ShaderField>(parent, f, component, origin, Vec2i(size.x, getHeight(size.y, 5))) {
 
-	val vertexText = createText("Vertex", pos = Vec2(0f, .7f), size = Vec2(.25f, .3f))
-	val vertexField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Vertex Field", Vec3(.27f, .7f, 0f), Vec2(.7f, .3f), "", 16) { _, _, _ ->
+	val vertexText = createText("Vertex", pos = Vec2(0f, .82f), size = Vec2(.25f, .18f))
+	val vertexField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Vertex Field", Vec3(.27f, .82f, 0f), Vec2(.7f, .18f), "", 16) { _, _, _ ->
 		updateValue()
 	}
-	val fragmentText = createText("Fragment", pos = Vec2(0f, .35f), size = Vec2(.25f, .3f))
-	val fragmentField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Fragment Field", Vec3(.27f, .35f, 0f), Vec2(.7f, .3f), "", 16) { _, _, _ ->
+	val fragmentText = createText("Fragment", pos = Vec2(0f, .615f), size = Vec2(.25f, .18f))
+	val fragmentField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Fragment Field", Vec3(.27f, .615f, 0f), Vec2(.7f, .18f), "", 16) { _, _, _ ->
 		updateValue()
 	}
-	val geometryText = createText("Geometry", pos = Vec2(0f, .0f), size = Vec2(.25f, .3f))
-	val geometryField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Geometry Field", Vec3(.27f, 0f, 0f), Vec2(.7f, .3f), "", 16) { _, _, _ ->
+	val tessCtrlText = createText("Tesselation Control", pos = Vec2(0f, .41f), size = Vec2(.25f, .18f))
+	val tessCtrlField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Tesselation Control Field", Vec3(.27f, .41f, 0f), Vec2(.7f, .18f), "", 16) { _, _, _ ->
+		updateValue()
+	}
+	val tessEvalText = createText("Tesselation Evaluation", pos = Vec2(0f, .205f), size = Vec2(.25f, .18f))
+	val tessEvalField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Tesselation Evaluation Field", Vec3(.27f, .205f, 0f), Vec2(.7f, .18f), "", 16) { _, _, _ ->
+		updateValue()
+	}
+	val geometryText = createText("Geometry", pos = Vec2(0f, .0f), size = Vec2(.25f, .18f))
+	val geometryField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Geometry Field", Vec3(.27f, 0f, 0f), Vec2(.7f, .18f), "", 16) { _, _, _ ->
 		updateValue()
 	}
 
 	fun updateValue(){
 		try {
-			val newS = if(geometryField.text.isEmpty()) ShaderLoader[ResourceKey(vertexField.text), ResourceKey(fragmentField.text)]
-			else ShaderLoader[ResourceKey(vertexField.text), ResourceKey(fragmentField.text), ResourceKey(geometryField.text)]
+			val tcKey = if (tessCtrlField.text.isEmpty()) null else ResourceKey(tessCtrlField.text)
+			val teKey = if (tessEvalField.text.isEmpty()) null else ResourceKey(tessEvalField.text)
+			val geKey = if (geometryField.text.isEmpty()) null else ResourceKey(geometryField.text)
+
+			val newS = ShaderLoader[ResourceKey(vertexField.text), ResourceKey(fragmentField.text), tcKey, teKey, geKey]
 			val oldVal = field.getter()
 			field.setter(newS)
 			callback(oldVal, newS)
@@ -227,25 +239,29 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 	}
 
 	override fun createChildren() {
-		parent.addChild(vertexText, vertexField.parent, fragmentText, fragmentField.parent, geometryText, geometryField.parent)
+		parent.addChild(vertexText, vertexField.parent, fragmentText, fragmentField.parent, tessCtrlText, tessCtrlField.parent, tessEvalText, tessEvalField.parent, geometryText, geometryField.parent)
 	}
 
 	override fun update(scale: Int) {
 		val s = field.getter()
-		vertexField.text = s.vName
-		fragmentField.text = s.fName
-		geometryField.text = s.gName ?: ""
+		vertexField.text = s.vertex.name
+		fragmentField.text = s.fragment.name
+		tessCtrlField.text = s.getSubShader(ShaderStage.TESS_CTRL)?.name ?: ""
+		tessEvalField.text = s.getSubShader(ShaderStage.TESS_EVAL)?.name ?: ""
+		geometryField.text = s.getSubShader(ShaderStage.GEOMETRY)?.name ?: ""
 	}
 
 	override fun onHoverElement(element: Any, cursorPos: Vec2): Boolean {
 		if(element is File){
-			val fields = arrayOf(vertexField, fragmentField, geometryField)
+			val fields = arrayOf(vertexField, fragmentField, tessCtrlField, tessEvalField, geometryField)
 			val relCur = (cursorPos.y - parent.transformComponent.worldPosition.y) / parent.transformComponent.worldScale.y
 			val ext = element.extension.lowercase()
 			val m = when (ext) {
-				"vs" if relCur >= .67f -> 0
-				"fs" if relCur in .33f.. .67f -> 1
-				"gs" if relCur <= .33f -> 2
+				"vs" if relCur >= .8f -> 0
+				"fs" if relCur in .6f.. .8f -> 1
+				"tcs" if relCur in .4f.. .6f -> 2
+				"tes" if relCur in .2f.. .4f -> 3
+				"gs" if relCur <= .2f -> 4
 				else -> -1
 			}
 
@@ -264,6 +280,8 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 			when(element.extension){
 				"vs" -> vertexField.text = path
 				"fs" -> fragmentField.text = path
+				"tcs" -> tessCtrlField.text = path
+				"tes" -> tessEvalField.text = path
 				"gs" -> geometryField.text = path
 				else -> return
 			}
@@ -272,8 +290,8 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 	}
 }
 
-open class TextureFieldEditor(parent: GameObject, f: TextureField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: Callback<Texture>)
-	: FieldEditor<Texture, TextureField>(parent, f, component, origin, size) {
+open class TextureFieldEditor(parent: GameObject, f: TextureField, component: ComponentI, origin: Vec2i, size: Vec2i, val callback: Callback<Texture2D>) :
+	FieldEditor<Texture2D, TextureField>(parent, f, component, origin, size) {
 
 	val nameText = createText()
 

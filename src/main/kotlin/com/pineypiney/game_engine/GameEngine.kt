@@ -21,6 +21,7 @@ abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: Re
 
 	override fun init() {
 		timer.init()
+		resourcesLoader.loadInitialResources()
 		loadResources()
 		setLogic()
 		activeScreen.init()
@@ -75,7 +76,7 @@ abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: Re
 	}
 
 	override fun cleanUp() {
-		resourcesLoader.cleanUp()
 		activeScreen.cleanUp()
+		resourcesLoader.cleanUp()
 	}
 }

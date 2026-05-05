@@ -274,5 +274,16 @@ fun String.substringFromLast(delimiter: Char, missingDelimiterValue: String = th
 	return if (index == -1) missingDelimiterValue else substring(index)
 }
 
+fun String.splitAndTrim(splitRegex: Regex, trimPredicate: (Char) -> Boolean = Char::isWhitespace): List<String> {
+	return split(splitRegex).map { it.trim(trimPredicate) }.filter { it.isNotEmpty() }
+}
+
+fun String.splitAndTrim(splitChar: Char, trimPredicate: (Char) -> Boolean = Char::isWhitespace): List<String> {
+	return split(splitChar).map { it.trim(trimPredicate) }.filter { it.isNotEmpty() }
+}
+
+fun String.splitAndTrimWhitespace() = splitAndTrim(Regex("\\s+"))
+fun String.splitAndTrimLineBreak() = splitAndTrim(Regex("\\n+"))
+
 //operator fun UByte.compareTo(other: Ubyte) = toInt() compareTo other.toInt()
 //operator fun Ubyte.compareTo(other: UByte) = toInt() compareTo other.toInt()

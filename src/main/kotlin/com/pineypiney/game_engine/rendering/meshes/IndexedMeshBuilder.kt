@@ -16,7 +16,7 @@ class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
 	val vertices = mutableListOf<MeshVertex>()
 	val indices = mutableListOf<Int>()
 
-	val currentVertex = attributes.map(VertexAttribute<*, *>::defaultPair).toTypedArray()
+	val currentVertex = attributes.map(VertexAttribute<*, *>::defaultPair).toMutableList()
 	var started = false
 
 	var modifier: Modifier? = null
@@ -67,9 +67,31 @@ class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
 		}
 	}
 
-	fun <T> addAttribute(attribute: VertexAttribute<T, *>, value: T) {
+	fun <T, P> addAttribute(attribute: VertexAttribute<T, P>, value: T) {
 		val index = currentVertex.indexOfFirst { it.id == attribute }
 		if(index != -1) currentVertex[index] = VertexAttribute.Pair(attribute, value)
+		else {
+			val parent = attribute.parent
+			var rawValue = parent.defaultValue()
+			val sameParentIndices = currentVertex.indices.filter { i -> currentVertex[i].id.parent == parent }
+
+			// Get complete parent value
+			for (i in sameParentIndices) {
+				@Suppress("UNCHECKED_CAST")
+				val previousValue = (currentVertex[i] as? VertexAttribute.Pair<*, P>) ?: continue
+				rawValue = previousValue.convert(rawValue)
+			}
+
+			// Modify parent value with new attribute
+			rawValue = attribute.toParent(rawValue, value)
+
+			// Set new parent value
+			for (i in sameParentIndices) {
+				@Suppress("UNCHECKED_CAST")
+				val previousValue = (currentVertex[i] as? VertexAttribute.Pair<*, P>) ?: continue
+				currentVertex[i] = previousValue.id pairParent rawValue
+			}
+		}
 	}
 
 	fun startQuad(): IndexedMeshBuilder {
@@ -114,14 +136,15 @@ class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
 		return vertexBuffer
 	}
 
-	fun build(): OpenGlIndexedMesh {
+	fun build(): Mesh {
 		addVertex()
 		started = false
 		val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
 		for ((i, vertex) in vertices.withIndex()) {
 			vertex.putData(vertexBuffer, i * vertexSize)
 		}
-		return OpenGlIndexedMesh(vertexBuffer, attributes, indices.toIntArray())
+
+		return ResourceFactory.INSTANCE.createIndexedMesh(vertexBuffer, indices.toIntArray(), Mesh.createAttributes(attributes))
 	}
 
 	fun buildModel(id: String, factory: ResourceFactory): ModelMesh {

@@ -1,7 +1,9 @@
 package com.pineypiney.game_engine.resources.models
 
+import com.pineypiney.game_engine.rendering.meshes.IndexedMeshBuilder
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
+import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.util.maths.I
@@ -29,5 +31,18 @@ interface ModelMesh : Mesh {
 
 	fun reset() {
 
+	}
+
+	companion object {
+		lateinit var missing: ModelMesh; private set
+
+		fun initDefault(factory: ResourceFactory) {
+			val builder = IndexedMeshBuilder().startQuad()
+				.vertex(0f, 0f, 0f).texture(0f, 0f)
+				.vertex(1f, 0f, 0f).texture(1f, 0f)
+				.vertex(1f, 1f, 0f).texture(1f, 1f)
+				.vertex(0f, 1f, 0f).texture(0f, 1f)
+			missing = builder.buildModel("missing", factory)
+		}
 	}
 }

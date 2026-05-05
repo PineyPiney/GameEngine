@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec2.Vec2
 
@@ -23,13 +23,13 @@ open class SpriteComponent(
 		}
 
 	constructor(parent: GameObject,
-				texture: Texture = Texture.broke,
-				pixelsPerUnit: Float = 100f,
-				shader: RenderShader = defaultShader,
-				spriteCenter: Vec2 = Vec2(.5f)
+	            texture: Texture2D = Texture2D.missing,
+	            pixelsPerUnit: Float = 100f,
+	            shader: RenderShader = defaultShader,
+	            spriteCenter: Vec2 = Vec2(.5f)
 	): this(parent, Sprite(texture, pixelsPerUnit, spriteCenter), shader)
 
-	constructor(parent: GameObject) : this(parent, Texture.broke)
+	constructor(parent: GameObject) : this(parent, Texture2D.missing)
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)

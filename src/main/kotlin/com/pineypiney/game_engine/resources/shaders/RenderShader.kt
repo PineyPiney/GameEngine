@@ -10,20 +10,16 @@ import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.util.RandomHelper
 import glm_.b
-import org.lwjgl.opengl.GL46C.GL_FRAGMENT_SHADER
-import org.lwjgl.opengl.GL46C.GL_VERTEX_SHADER
 import kotlin.experimental.and
 
 @Suppress("UNUSED")
 class RenderShader(
 	ID: Int,
-	val vName: String,
-	val fName: String,
-	val tcName: String? = null,
-	val teName: String? = null,
-	val gName: String? = null,
+	val vertex: SubShader,
+	val fragment: SubShader,
+	val stages: Map<ShaderStage, SubShader>,
 	uniforms: Map<String, String>
-) : Shader(ID, uniforms) {
+) : OpenGlShader(ID, uniforms) {
 
 	val screenMask: Byte =
 		RandomHelper.createMask(uniforms::containsKey, "view", "projection", "guiProjection", "viewport", "viewPos").b
@@ -72,11 +68,15 @@ class RenderShader(
 		else spotLight.setShaderUniforms(this, "spotlight")
 	}
 
+	fun getSubShader(stage: ShaderStage) = stages[stage]
+
 	override fun toString(): String {
-		return "Shader[$vName, $fName]"
+		return "Shader[${vertex.name}, ${fragment.name}]"
 	}
 
 	companion object {
+
+		val OPTIONAL_STAGES = setOf(ShaderStage.TESS_CTRL, ShaderStage.TESS_EVAL, ShaderStage.GEOMETRY)
 
 		val vS: String
 		val fS: String
@@ -99,9 +99,9 @@ class RenderShader(
 						"}"
 		}
 
-		val brokeShader: RenderShader = ShaderLoader.generateShader(
-			"broke", ShaderLoader.generateSubShader("broke", vS, GL_VERTEX_SHADER),
-			"broke", ShaderLoader.generateSubShader("broke", fS, GL_FRAGMENT_SHADER)
+		val brokeShader: RenderShader = ShaderLoader.generateGraphicsShaderOpenGl(
+			ShaderLoader.generateSubShaderOpenGl("broke", vS, ShaderStage.VERTEX),
+			ShaderLoader.generateSubShaderOpenGl("broke", fS, ShaderStage.FRAGMENT)
 		)
 	}
 }

@@ -8,14 +8,23 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.delete
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import kotlin.math.min
 
-open class AtlasAnimatedSprite(parent: GameObject, texture: Texture, ppu: Float, numFrames: Int, var fps: Float, spriteCenter: Vec2 = Vec2(.5f), shader: RenderShader = SpriteComponent.defaultShader, val frameCallback: AtlasAnimatedSprite.(Int) -> Unit = {}): ShaderRenderedComponent(parent, shader) {
+open class AtlasAnimatedSprite(
+	parent: GameObject,
+	texture: Texture2D,
+	ppu: Float,
+	numFrames: Int,
+	var fps: Float,
+	spriteCenter: Vec2 = Vec2(.5f),
+	shader: RenderShader = SpriteComponent.defaultShader,
+	val frameCallback: AtlasAnimatedSprite.(Int) -> Unit = {}
+) : ShaderRenderedComponent(parent, shader) {
 
 	constructor(parent: GameObject, data: AtlasAnimationData, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), shader: RenderShader = SpriteComponent.defaultShader, frameCallback: AtlasAnimatedSprite.(Int) -> Unit = {}): this(parent, data.texture, ppu, data.numFrames, data.fps, spriteCenter, shader, frameCallback){
 		loop = data.loop
@@ -29,7 +38,7 @@ open class AtlasAnimatedSprite(parent: GameObject, texture: Texture, ppu: Float,
 	@EditorIgnore
 	var shouldChange = true
 
-	var texture: Texture = texture
+	var texture: Texture2D = texture
 		set(value) { if(field != value) { field = value; shouldChange = true } }
 	var ppu: Float = ppu
 		set(value) { if(field != value) { field = value; shouldChange = true } }
@@ -112,7 +121,7 @@ open class AtlasAnimatedSprite(parent: GameObject, texture: Texture, ppu: Float,
 		val atlasShader = ShaderLoader[ResourceKey("vertex/2D"), ResourceKey("fragment/animation_atlas")]
 	}
 
-	open class AtlasAnimationData(val texture: Texture, val numFrames: Int, val fps: Float, val loop: Boolean = true, val startAtBeginning: Boolean = false){
+	open class AtlasAnimationData(val texture: Texture2D, val numFrames: Int, val fps: Float, val loop: Boolean = true, val startAtBeginning: Boolean = false) {
 		fun start(animator: AtlasAnimatedSprite){
 			animator.texture = texture
 			animator.numFrames = numFrames

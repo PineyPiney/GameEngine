@@ -341,7 +341,7 @@ inline infix fun <reified T> Array<T>.repeat(times: Int): Array<T> {
  */
 infix fun ByteArray.repeat(times: Int): ByteArray {
 	var a = copyOf()
-	for (i in 2..times) {
+	repeat(times - 1) {
 		a += this
 	}
 	return a

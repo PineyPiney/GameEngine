@@ -2,18 +2,19 @@ package com.pineypiney.game_engine.resources.video
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.resources.textures.Texture2D
+import com.pineypiney.game_engine.resources.textures.TextureFormat
+import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.extension_functions.deleteArray
 import java.nio.ByteBuffer
 
-class VideoImages(override val video: Video) : VideoData<Texture>() {
+class VideoImages(override val video: Video) : VideoData<Texture2D>() {
 
-	val format = VideoLoader.ffmpegToGL(video.pixelFormat).y
+	val format = VideoLoader.formatFromFfmpeg(video.pixelFormat)
 
-	val textures = Array(4) { Texture(video.name, TextureLoader.createTexture(null, video.width, video.height)) }
+	val textures = Array(4) { video.factory.createTexture2D(video.name, video.width, video.height, format, TextureFormat.R8, null, TextureParameters()) }
 
-	val current: Texture get() = textures[currentIndex % textures.size]
+	val current: Texture2D get() = textures[currentIndex % textures.size]
 
 	override fun init() {
 		nextUpdate = 0

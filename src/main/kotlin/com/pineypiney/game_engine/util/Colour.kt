@@ -60,13 +60,20 @@ class Colour {
 	val b: Byte
 	val a: Byte
 
+	val ri get() = r.toInt()
+	val gi get() = g.toInt()
+	val bi get() = b.toInt()
+	val ai get() = a.toInt()
+
 	val rf get() = r.toUByte().toFloat() * b2f
 	val gf get() = g.toUByte().toFloat() * b2f
 	val bf get() = b.toUByte().toFloat() * b2f
 	val af get() = a.toUByte().toFloat() * b2f
 
-	val rgbValue: Vec3 get() = Vec3(rf, gf, bf)
-	val rgbaValue: Vec4 get() = Vec4(rf, gf, bf, af)
+	val rgbVec: Vec3 get() = Vec3(rf, gf, bf)
+	val rgbaVec: Vec4 get() = Vec4(rf, gf, bf, af)
+	val rgbInt: Int get() = bi or (gi shl 8) or (ri shl 16)
+	val rgbaInt: Int get() = bi or (gi shl 8) or (ri shl 16) or (ai shl 24)
 	val linearRgbValue: Vec3 get() = Vec3(sRGB2Linear(rf), sRGB2Linear(gf), sRGB2Linear(bf))
 	val hsvValue: Vec3 get() = rgb2hsv(rf, gf, bf)
 	val hslValue: Vec3 get() = rgb2hsl(rf, gf, bf)
@@ -176,7 +183,7 @@ class Colour {
 		// https://stackoverflow.com/a/9493060
 		fun hsl2rgb(h: Float, s: Float, l: Float): Vec3{
 			fun hueToRgb(p: Float, q: Float, ti: Float): Float {
-				var t = ti.wrap(0f, 1f)
+				val t = ti.wrap(0f, 1f)
 				if (t < 1f/6) return p + (q - p) * 6f * t
 				if (t < 1f/2) return q
 				if (t < 2f/3) return p + (q - p) * (2f/3 - t) * 6f

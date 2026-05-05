@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import glm_.vec2.Vec2i
+import kool.free
 import kool.toBuffer
 import kool.toByteArray
 import org.lwjgl.glfw.GLFW
@@ -30,6 +31,7 @@ class Cursor(val handle: Long) : Deletable {
 			// The data must be in RGBA 32-bit format
 			val bytes = ResourcesLoader.ioResourceToByteBuffer(texture)
 			val (data, info) = TextureLoader.loadTextureData(bytes)
+			bytes.free()
 			val pixels = data?.toByteArray()?.toList()?.chunked(info.z) ?: return 0L
 			val flipped = pixels.chunked(info.x).reversed().flatten()
 			val rgba = flipped.flatMap { p -> List(4) { p.getOrElse(it) { -1 } } }

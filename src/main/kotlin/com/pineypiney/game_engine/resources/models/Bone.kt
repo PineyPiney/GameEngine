@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.resources.models
 
+import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.RenderingApi
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey

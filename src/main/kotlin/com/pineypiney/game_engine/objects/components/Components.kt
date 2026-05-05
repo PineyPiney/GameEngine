@@ -14,7 +14,7 @@ import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollBa
 import com.pineypiney.game_engine.objects.components.widgets.slider.*
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.RenderShader
-import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
@@ -140,8 +140,8 @@ class Components {
 			addFieldType(::Vec4Field, {Vec4()})
 			addFieldType(::QuatField, {Quat()})
 			addFieldType(::ShaderField, {RenderShader.brokeShader})
-			addFieldType(::TextureField, {Texture.broke})
-			addFieldType(::ModelField, {Model.brokeModel})
+			addFieldType(::TextureField, { Texture2D.missing }, Texture2D::class)
+			addFieldType(::ModelField, { Model.missing })
 			addFieldType(::Shape2DField, {Rect2D(Vec2(0f), 1f, 1f)}, Shape2D::class)
 			addFieldType(::GameObjectField, { null }, GameObject::class)
 		}

@@ -19,8 +19,8 @@ layout(buffer_reference, std430) readonly buffer VertexBuffer{
 //push constants block
 layout(push_constant) uniform constants
 {
-	mat4 model;
 	VertexBuffer vertexBuffer;
+	mat4 model;
 };
 
 layout (location = 0) out vec3 outColor;

@@ -23,8 +23,9 @@ import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.resources.text.TrueTypeFont
-import com.pineypiney.game_engine.resources.textures.Texture
-import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.resources.textures.Texture2D
+import com.pineypiney.game_engine.resources.textures.TextureFormat
+import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture2D
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
@@ -47,10 +48,10 @@ import glm_.vec3.Vec3
 import glm_.vec3.swizzle.xy
 import glm_.vec4.Vec4
 import kool.Buffer
+import kool.free
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.openal.AL10
 import org.lwjgl.opengl.GL11C
-import org.lwjgl.system.MemoryUtil
 import kotlin.math.PI
 import kotlin.math.sign
 
@@ -108,7 +109,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		mutableMapOf("green" to 0.5f, "blue" to 0.5f)
 	)
 
-	private val texture = GameObject.simpleTextureGameObject("broke texture", Texture.broke)
+	private val texture = GameObject.simpleTextureGameObject("broke texture", Texture2D.missing)
 	private val model1 = GameObject.simpleModelledGameObject("goblin", ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
 	private val model2 = GameObject.simpleModelledGameObject("goblin", ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
 
@@ -197,8 +198,8 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		if(font != null) {
 
 			val buffer = Buffer(4 * 640 * 1280) { -1 }
-			val texture = Texture("Dst", TextureLoader.createTexture(buffer, 640, 1280, GL11C.GL_RGBA))
-			MemoryUtil.memFree(buffer)
+			val texture = OpenGlTexture2D("Dst", OpenGlTexture2D.createPointer(buffer, TextureFormat.RGBA8, 640, 1280, GL11C.GL_RGBA))
+			buffer.free()
 
 			val copier = TextureCopyFramebuffer()
 			copier.init()

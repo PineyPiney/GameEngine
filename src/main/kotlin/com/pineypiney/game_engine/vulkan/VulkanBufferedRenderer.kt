@@ -6,18 +6,25 @@ import com.pineypiney.game_engine.objects.components.Movement3D
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponentI
 import com.pineypiney.game_engine.rendering.Framebuffer
+import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.rendering.cameras.Camera
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.meshes.IndexedMeshBuilder
-import com.pineypiney.game_engine.rendering.meshes.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
+import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanIndexedMesh
 import com.pineypiney.game_engine.resources.models.ModelLoader
+import com.pineypiney.game_engine.resources.models.VulkanModelMesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanGraphicsPipeline
+import com.pineypiney.game_engine.resources.textures.Texture2D
+import com.pineypiney.game_engine.resources.textures.TextureFormat
+import com.pineypiney.game_engine.resources.textures.TextureLoader
+import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage2D
+import com.pineypiney.game_engine.resources.textures.vulkan.VulkanSwapchainImage
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.deleteArray
 import com.pineypiney.game_engine.util.extension_functions.put
-import com.pineypiney.game_engine.vulkan.pipeline.VulkanGraphicsPipeline
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import glm_.detail.GLM_DEPTH_CLIP_SPACE
@@ -27,8 +34,7 @@ import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
-import glm_.vec4.Vec4
-import org.lwjgl.system.MemoryUtil
+import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.*
 
 open class VulkanBufferedRenderer<G : WindowGameLogic>(override val window: WindowI, val engine: VulkanGameEngine<Logic>) : WindowRendererI<G> {
@@ -45,65 +51,72 @@ open class VulkanBufferedRenderer<G : WindowGameLogic>(override val window: Wind
 
 	val movement = Movement3D.default(window, camera as Camera, 1f)
 
+	val surface = VkUtil.createSurface(vulkan.instance, window)
+	val colourFormatSpace = vulkan.gpu.getSurfaceColour(surface)
+	var swapchain = VkUtil.createSwapchain(vulkan.device, surface, null, window.width, window.height, colourFormatSpace.first, colourFormatSpace.second)
 
-	val swapchain get() = vulkan.swapchain
-	val drawImage get() = vulkan.drawImage
-	val depthImage get() = vulkan.depthImage
+	// The image that is drawn to each frame, it is then blitted onto the swapchain's current image
+	lateinit var drawImage: VulkanImage2D
+	lateinit var depthImage: VulkanImage2D
 
 	var frameIndex = 0
 	val frameObjects = Array(swapchain.images.size) { VulkanFrameObjects(vulkan.device) }
 
 	val computePipeline = ShaderLoader.generateComputePipelineVulkan(vulkan, ShaderLoader.INSTANCE.shaderModules[ResourceKey("compute/mouse_pos_vulkan")]!!, 8)
 
+	init {
+		updateFrameImages()
+	}
+
 	val graphicsPipelineBuilder = VulkanGraphicsPipeline.Builder()
 	val trianglePipeline = graphicsPipelineBuilder
-		.setLayout(VkUtil.createPipelineLayout(vulkan.device, vulkan.pLayout))
 		.shaders("vulkan/triangle", "vulkan/colour")
+		.generateLayout(vulkan.device)
 		.inputTopology(VK10.VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
 		.polygonMode(VK10.VK_POLYGON_MODE_FILL)
 		.cullMode(VK10.VK_CULL_MODE_NONE, VK10.VK_FRONT_FACE_CLOCKWISE)
 		.disableMultisampling()
 		.disableBlending()
 		.disableDepthTest()
-		.colourFormat(drawImage.format)
+		.colourFormat(drawImage.format.vulkan)
 		.depthFormat(VK10.VK_FORMAT_UNDEFINED)
 		.build(vulkan.device)
 
-	val meshLayout = VkUtil.createPipelineLayout(vulkan.device, vulkan.pLayout, 72, VK10.VK_SHADER_STAGE_VERTEX_BIT)
 	val meshPipeline = graphicsPipelineBuilder.clear()
-		.setLayout(meshLayout)
-		.shaders("vulkan/2D", "fragment/colour_primitives")
+		.shaders("vulkan/2D", "vulkan/texture")
+		.generateLayout(vulkan.device)
 		.inputTopology(VK10.VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
 		.polygonMode(VK10.VK_POLYGON_MODE_FILL)
 		.cullMode(VK10.VK_CULL_MODE_NONE, VK10.VK_FRONT_FACE_CLOCKWISE)
 		.disableMultisampling()
 		.disableBlending()
 		.enableDepthTest(true, VK10.VK_COMPARE_OP_GREATER_OR_EQUAL)
-		.colourFormat(drawImage.format)
-		.depthFormat(depthImage.format)
+		.colourFormat(drawImage.format.vulkan)
+		.depthFormat(depthImage.format.vulkan)
 		.build(vulkan.device)
 
-	val mesh: VulkanIndexedMesh
+	val mesh: VulkanIndexedMesh = ModelLoader[ResourceKey("gltf/Arrow")].meshes.first() as VulkanModelMesh
+	val quadMesh: VulkanIndexedMesh
+
+	val brokeTexture = TextureLoader[ResourceKey("broke")] as VulkanImage2D
+	val missingTexture = Texture2D.missing as VulkanImage2D
 
 	init {
 		vulkan.deletionQueue.pushAll(trianglePipeline, meshPipeline)
 
 		val meshBuilder = IndexedMeshBuilder(VertexAttribute.POSITION, VertexAttribute.TEX_U, VertexAttribute.NORMAL, VertexAttribute.TEX_V, VertexAttribute.COLOUR)
 		meshBuilder.startQuad()
-			.vertex(.5f, -.5f, 0f).colour(0f, 0f, 0f, 1f)
-			.vertex(.5f, .5f, 0f).colour(.5f, .5f, .5f, 1f)
-			.vertex(-.5f, .5f, 0f).colour(1f, 0f, 0f, 1f)
-			.vertex(-.5f, -.5f, 0f).colour(0f, 1f, 0f, 1f)
+			.vertex(.5f, -.5f, 0f).texture(1f, 0f)
+			.vertex(.5f, .5f, 0f).texture(1f, 1f)
+			.vertex(-.5f, .5f, 0f).texture(0f, 1f)
+			.vertex(-.5f, -.5f, 0f).texture(0f, 0f)
 
-		val model = ModelLoader[ResourceKey("gltf/Arrow")]
-		mesh = model.meshes.first() as VulkanModelMesh
-//		mesh = meshBuilder.buildModel("Vulkan Mesh", engine.resourcesLoader.factory) as ModelMeshVulkan
+		quadMesh = meshBuilder.build() as VulkanIndexedMesh
 	}
 
 	override fun init() {
 		camera.range = Vec2(1000f, 0.1f)
 		camera.init()
-		updateDescriptorSets()
 	}
 
 	override fun render(game: G, tickDelta: Double) {
@@ -117,6 +130,8 @@ open class VulkanBufferedRenderer<G : WindowGameLogic>(override val window: Wind
 		projection[1, 1] = projection[1, 1] * -1
 
 		val frameObjects = frameObjects[frameIndex]
+		frameObjects.deletionQueue.flush()
+		frameObjects.frameDescriptorAllocator.clearPools()
 
 		frameObjects.swapchainSemaphore.recreate()
 		frameObjects.renderSemaphore.recreate()
@@ -127,7 +142,7 @@ open class VulkanBufferedRenderer<G : WindowGameLogic>(override val window: Wind
 		// Get the next swapchain image to draw to, and signal the swapchain semaphore once fetched
 		val swapchainImage = swapchain.acquireNextImage(1000000000, frameObjects.swapchainSemaphore, null)
 		if (swapchainImage == null) {
-			vulkan.updateSwapchain(window.size)
+			updateSwapchain(window.size)
 			return
 		}
 
@@ -158,63 +173,84 @@ open class VulkanBufferedRenderer<G : WindowGameLogic>(override val window: Wind
 	fun renderWithFramebuffer(commandBuffer: PoolAndBuffer, swapchainImage: VulkanSwapchainImage) {
 
 		// Set the Draw Image's mode to general
-		drawImage.transition(commandBuffer.buffer, VK10.VK_IMAGE_LAYOUT_GENERAL, false)
+		drawImage.transition(commandBuffer, VK10.VK_IMAGE_LAYOUT_GENERAL, false)
+		val api = getRenderingApi()
 
 		// Execute Compute Shader
+		computePipeline.bind(api)
 		commandBuffer.bindPipeline(computePipeline)
-		commandBuffer.bindDescriptorSets(vulkan, computePipeline)
+		api.updateUniforms(computePipeline)
 		val mousePos = window.input.mouse.lastPos.pixels
-		val constants = MemoryUtil.memAlloc(8).putInt(mousePos.x).putInt(window.height - mousePos.y).flip()
-		commandBuffer.pushConstants(computePipeline, VK10.VK_SHADER_STAGE_COMPUTE_BIT, constants)
-//		commandBuffer.dispatch(Math.ceilDiv(swapchainImage.size.x, 16), Math.ceilDiv(swapchainImage.size.y, 16))
+		computePipeline.getBuffer("mousePos")?.put(mousePos)
+
+		computePipeline.updatePushConstants(frameObjects[frameIndex])
+		commandBuffer.dispatch(Math.ceilDiv(swapchainImage.size.x, 16), Math.ceilDiv(swapchainImage.size.y, 16))
 
 		// Execute Graphics Shader
-		drawImage.transition(commandBuffer.buffer, VK10.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-		depthImage.transition(commandBuffer.buffer, VK12.VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL)
+		drawImage.transition(commandBuffer, VK10.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		depthImage.transition(commandBuffer, VK12.VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL)
 		renderGeometry(commandBuffer)
 
+
 		// Copy the Draw Image to the Swapchain Image
-		drawImage.transition(commandBuffer.buffer, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
-		swapchainImage.transition(commandBuffer.buffer, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, false)
-		drawImage.copyTo(commandBuffer.buffer, swapchainImage, drawImage.size, window.framebufferSize)
+		drawImage.transition(commandBuffer, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+		swapchainImage.transition(commandBuffer, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, false)
+		drawImage.copyTo(commandBuffer, swapchainImage)
 
 		// Prepare the Swapchain Image for presentation
-		swapchainImage.transition(commandBuffer.buffer, KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+		swapchainImage.transition(commandBuffer, KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
 	}
 
 	fun renderGeometry(cmd: PoolAndBuffer) {
 
-		val colourClearValue = VkStructs.clearColour(Vec4(.1f, .1f, .1f, 1f))
-		val colourAttachments = VkStructs.createAttachmentInfos(drawImage, VkClearValue.calloc().color(colourClearValue))
+		MemoryStack.stackPush().use { stack ->
 
-		val depthClearValue = VkStructs.clearDepthStencil(0f, 0)
-		val clearValue = VkClearValue.calloc().depthStencil(depthClearValue)
-		val depthAttachment = VkStructs.createAttachmentInfo(depthImage, clearValue)
+			val colourAttachments = VkStructs.createAttachmentInfos(stack, drawImage, null)
 
-		val renderInfo = VkStructs.createRenderingInfo(glm.min(window.size, drawImage.size), colourAttachments, depthAttachment)
-		cmd.beginRendering(renderInfo)
+			val depthClearValue = VkStructs.clearDepthStencil(stack, 0f, 0)
+			val clearValue = VkClearValue.calloc().depthStencil(depthClearValue)
+			val depthAttachment = VkStructs.createAttachmentInfo(stack, depthImage, clearValue)
 
-		val api = getRenderingApi()
+			val renderInfo = VkStructs.createRenderingInfo(stack, glm.min(window.size, drawImage.size), colourAttachments, depthAttachment)
+			cmd.beginRendering(renderInfo)
 
-		val viewport = getViewport()
-		api.setViewport(viewport)
-		api.setScissors(viewport)
+			val api = getRenderingApi()
+			val frameObjects = frameObjects[frameIndex]
 
-		// Draw Triangle
-		trianglePipeline.bind(api)
+			val viewport = getViewport()
+			api.setViewport(viewport)
+			api.setScissors(viewport)
+
+			// Draw Triangle
+			trianglePipeline.bind(api)
 //		api.draw(3, 0)
 
 
-		// Draw Rectangle
-		meshPipeline.bind(api)
-		val bytes = MemoryUtil.memAlloc(72)
-		bytes.put(projection * view)
-		bytes.putLong(mesh.vertexBufferAddress)
-		cmd.pushConstants(meshPipeline, VK10.VK_SHADER_STAGE_VERTEX_BIT, bytes.flip())
-		api.bindIndices(mesh.indexBuffer.buffer, 0L, VK10.VK_INDEX_TYPE_UINT32)
-		api.drawIndexed(mesh.count, 0)
+			// Draw Model Mesh
+			meshPipeline.bind(api)
 
-		cmd.endRendering()
+			meshPipeline.setImage("ourTexture", brokeTexture)
+			api.updateUniforms(meshPipeline)
+
+			meshPipeline.getBuffer("model")?.put(projection * view)
+			meshPipeline.getBuffer("vertexBuffer")?.putLong(mesh.vertexBufferAddress)
+			meshPipeline.updatePushConstants(frameObjects)
+
+			mesh.bindAndDraw(api)
+
+
+			// Draw Quad
+			meshPipeline.setImage("ourTexture", missingTexture)
+			api.updateUniforms(meshPipeline)
+
+			meshPipeline.getBuffer("model")?.put(projection * view * Mat4(1f).translate(Vec3(2f, 0f, 0f)))
+			meshPipeline.getBuffer("vertexBuffer")?.putLong(quadMesh.vertexBufferAddress)
+			meshPipeline.updatePushConstants(frameObjects)
+
+			quadMesh.bindAndDraw(api)
+
+			cmd.endRendering()
+		}
 	}
 
 	fun renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: Framebuffer? = null) =
@@ -243,39 +279,52 @@ open class VulkanBufferedRenderer<G : WindowGameLogic>(override val window: Wind
 	}
 
 	fun submit(cmd: PoolAndBuffer) {
-		val frameObjects = frameObjects[frameIndex]
-		val cmdInfo = VkStructs.createBufferSubmits(cmd.buffer, 0)
-		// Wait for the swapchain semaphore
-		val waitInfo = VkStructs.createSemaphoreSubmits(frameObjects.swapchainSemaphore, KHRSynchronization2.VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, 0, 1L)
-		// Signal the render semaphore
-		val signalInfo = VkStructs.createSemaphoreSubmits(frameObjects.renderSemaphore, VK13.VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, 0, 1L)
-		val submitInfo = VkStructs.createSubmitInfo2s(cmdInfo, signalInfo, waitInfo)
-		VK13.vkQueueSubmit2(vulkan.queue, submitInfo, frameObjects.renderFence.handle)
+		MemoryStack.stackPush().use { stack ->
+			val frameObjects = frameObjects[frameIndex]
+			val cmdInfo = VkStructs.createBufferSubmits(stack, cmd.buffer, 0)
+			// Wait for the swapchain semaphore
+			val waitInfo = VkStructs.createSemaphoreSubmits(stack, frameObjects.swapchainSemaphore, KHRSynchronization2.VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, 0, 1L)
+			// Signal the render semaphore
+			val signalInfo = VkStructs.createSemaphoreSubmits(stack, frameObjects.renderSemaphore, VK13.VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, 0, 1L)
+			val submitInfo = VkStructs.createSubmitInfo2s(stack, cmdInfo, signalInfo, waitInfo)
+			VK13.vkQueueSubmit2(vulkan.queue, submitInfo, frameObjects.renderFence.handle)
+		}
 	}
 
 	fun present() {
-		// Wait for the render semaphore, and then present the swapchain to the screen
-		val presentInfo = VkStructs.createPresentInfo(swapchain, frameObjects[frameIndex].renderSemaphore)
-		val err = KHRSwapchain.vkQueuePresentKHR(vulkan.queue, presentInfo)
-		if (err == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR || err == KHRSwapchain.VK_SUBOPTIMAL_KHR) {
-			vulkan.updateSwapchain(window.size)
-		} else VkUtil.processError(err, "Failed to present swapchain image to screen")
+		MemoryStack.stackPush().use { stack ->
+			// Wait for the render semaphore, and then present the swapchain to the screen
+			val presentInfo = VkStructs.createPresentInfo(stack, swapchain, frameObjects[frameIndex].renderSemaphore)
+			val err = KHRSwapchain.vkQueuePresentKHR(vulkan.queue, presentInfo)
+			if (err == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR || err == KHRSwapchain.VK_SUBOPTIMAL_KHR) {
+				updateSwapchain(window.size)
+			} else VkUtil.processError(err, "Failed to present swapchain image to screen")
+		}
 	}
 
-	fun updateDescriptorSets() {
-		val imageInfo = VkDescriptorImageInfo.calloc(1)
-			.imageLayout(VK10.VK_IMAGE_LAYOUT_GENERAL)
-			.imageView(drawImage.imageView)
+	fun updateSwapchain(size: Vec2i) {
+		vulkan.device.waitIdle()
+		swapchain = VkUtil.createSwapchain(vulkan.device, surface, swapchain, size.x, size.y, colourFormatSpace.first, colourFormatSpace.second)
+	}
 
-		val writeSet = VkWriteDescriptorSet.calloc(1)
-			.`sType$Default`()
-			.dstBinding(0)
-			.dstSet(vulkan.descriptorSet)
-			.descriptorCount(1)
-			.descriptorType(VK10.VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)
-			.pImageInfo(imageInfo)
+	fun updateFrameImages() {
+		val usage = VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT or
+				VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT or
+				VK10.VK_IMAGE_USAGE_STORAGE_BIT or
+				VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 
-		VK10.vkUpdateDescriptorSets(vulkan.device.device, writeSet, null)
+		drawImage = VkUtil.createImage(vulkan.device, "Draw Image", VK10.VK_IMAGE_TYPE_2D, TextureFormat.RGBA16F, usage, VK10.VK_IMAGE_ASPECT_COLOR_BIT, Vec2i(window.size))
+		depthImage = VkUtil.createImage(
+			vulkan.device,
+			"Depth Image",
+			VK10.VK_IMAGE_TYPE_2D,
+			TextureFormat.DEPTH32F,
+			VK10.VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+			VK10.VK_IMAGE_ASPECT_DEPTH_BIT,
+			Vec2i(window.size)
+		)
+
+		computePipeline.setImage("image", drawImage, VK10.VK_IMAGE_LAYOUT_GENERAL)
 	}
 
 	override fun getRenderingApi(): RenderingApi {
@@ -290,9 +339,17 @@ open class VulkanBufferedRenderer<G : WindowGameLogic>(override val window: Wind
 
 		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, guiProjection)
 		guiProjection[1, 1] = guiProjection[1, 1] * -1f
+
+		drawImage.delete()
+		depthImage.delete()
+		updateFrameImages()
 	}
 
 	override fun delete() {
 		frameObjects.deleteArray()
+		drawImage.delete()
+		depthImage.delete()
+		swapchain.delete()
+		surface.delete()
 	}
 }

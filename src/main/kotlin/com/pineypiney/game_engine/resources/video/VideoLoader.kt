@@ -1,12 +1,11 @@
 package com.pineypiney.game_engine.resources.video
 
 import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.util.ResourceKey
-import glm_.vec3.Vec3i
 import kool.cap
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.javacv.FFmpegFrameGrabber
-import org.lwjgl.opengl.GL12C.*
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 
@@ -41,7 +40,7 @@ class VideoLoader private constructor() {
 			grabber.stop()
 			grabber.release()
 
-			return Video(key.key, att, images.toTypedArray(), audio.toTypedArray())
+			return Video(key.key, loader.factory, att, images.toTypedArray(), audio.toTypedArray())
 		}
 
 		/*
@@ -103,16 +102,16 @@ class VideoLoader private constructor() {
 
 		 */
 
-		fun ffmpegToGL(format: Int): Vec3i {
-			return when (format) {
-				AV_PIX_FMT_RGB24 -> Vec3i(GL_RGB, GL_RGB, GL_UNSIGNED_BYTE)
-				AV_PIX_FMT_BGR24 -> Vec3i(GL_RGB, GL_BGR, GL_UNSIGNED_BYTE)
-				AV_PIX_FMT_RGB8 -> Vec3i(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE_3_3_2)
-				AV_PIX_FMT_BGR8 -> Vec3i(GL_RGB8, GL_BGR, GL_UNSIGNED_BYTE_3_3_2)
-				AV_PIX_FMT_GRAY8 -> Vec3i(GL_RED, GL_RED, GL_UNSIGNED_BYTE)
-				AV_PIX_FMT_RGBA -> Vec3i(GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE)
-				AV_PIX_FMT_BGRA -> Vec3i(GL_RGBA, GL_BGRA, GL_UNSIGNED_BYTE)
-				else -> Vec3i(GL_RED, GL_GREEN, GL_UNSIGNED_BYTE)
+		fun formatFromFfmpeg(ffmpeg: Int): TextureFormat {
+			return when (ffmpeg) {
+				AV_PIX_FMT_RGB24 -> TextureFormat.RGB8
+				AV_PIX_FMT_BGR24 -> TextureFormat.BGR8
+				AV_PIX_FMT_RGB8 -> TextureFormat.RGB332
+				AV_PIX_FMT_BGR8 -> TextureFormat.BGR332
+				AV_PIX_FMT_GRAY8 -> TextureFormat.R8
+				AV_PIX_FMT_RGBA -> TextureFormat.RGBA8
+				AV_PIX_FMT_BGRA -> TextureFormat.BGRA8
+				else -> TextureFormat.RGB8
 			}
 		}
 	}

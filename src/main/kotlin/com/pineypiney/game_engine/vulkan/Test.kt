@@ -1,7 +1,9 @@
 package com.pineypiney.game_engine.vulkan
 
 import com.pineypiney.game_engine.LibrarySetUp
+import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.util.input.DefaultInput
+import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.window.WindowGameLogic
@@ -16,6 +18,15 @@ class Logic(override val gameEngine: VulkanGameEngine<Logic>) : WindowGameLogic(
 
 	override fun render(tickDelta: Double) {
 		renderer.render(this, tickDelta)
+	}
+
+	override fun onInput(state: InputState, action: Int): Int {
+		if (super.onInput(state, action) == InteractorComponent.INTERRUPT) return InteractorComponent.INTERRUPT
+		else if (action == 1 && state.triggers(InputState(GLFW.GLFW_KEY_ESCAPE))) {
+			window.shouldClose = true
+			return action
+		}
+		return action
 	}
 }
 
@@ -33,6 +44,6 @@ fun main() {
 	}
 	window.init()
 
-	val engine = VulkanGameEngine(window, VulkanManager(window), ::Logic)
+	val engine = VulkanGameEngine(window, VulkanManager(), ::Logic)
 	engine.run()
 }
