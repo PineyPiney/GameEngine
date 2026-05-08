@@ -1,5 +1,9 @@
 package com.pineypiney.game_engine.resources.models
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import com.google.gson.JsonPrimitive
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
@@ -31,8 +35,6 @@ import glm_.vec3.*
 import glm_.vec4.*
 import kool.count
 import kool.toBuffer
-import org.json.JSONArray
-import org.json.JSONObject
 import unsigned.ui
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -40,14 +42,14 @@ import java.nio.ByteOrder
 
 class GLTFModelLoader {
 
-	fun loadModel(factory: ResourceFactory, fileName: String, json: JSONObject, buffers: List<ByteArray>, map: MutableMap<ResourceKey, Model>) {
+	fun loadModel(factory: ResourceFactory, fileName: String, json: JsonObject, buffers: List<ByteArray>, map: MutableMap<ResourceKey, Model>) {
 
 		if (json.isEmpty) return
 		if(!json.has("nodes")) return
 
-		val nodesArray = json.getJSONArray("nodes")
+		val nodesArray = json.getAsJsonArray("nodes")
 
-		val bufferViewsJson = json.getJSONArray("bufferViews")
+		val bufferViewsJson = json.getAsJsonArray("bufferViews")
 		val bufferViews = mutableListOf<ByteArray>()
 		bufferViewsJson.forEachObject { o, _ ->
 			val buffer = buffers[o.getInt("buffer")]
@@ -58,7 +60,7 @@ class GLTFModelLoader {
 			bufferViews.add(buffer.copyOfRange(offset, offset + length))
 		}
 
-		val accessorsJson = json.getJSONArray("accessors")
+		val accessorsJson = json.getAsJsonArray("accessors")
 		val accessors = mutableListOf<Array<Any>>()
 		for ((_, o) in accessorsJson.objects) {
 			val view = bufferViews[o.getInt("bufferView")].toBuffer()
@@ -82,17 +84,17 @@ class GLTFModelLoader {
 
         // Load Materials
 
-		val materialsJson = json.getJSONArray("materials")
+		val materialsJson = json.getAsJsonArray("materials")
 		val materials = mutableListOf<PBRMaterial>()
 
 		materialsJson.forEachObject { materialJson, _ ->
 			val name = materialJson.getString("name")
 			val materialTextures = mutableMapOf<String, Texture2D>()
 
-			fun getTextureIndex(json: JSONObject, name: String) = (json.getOrNull(name) as? JSONObject)?.getInt("index") ?: -1
+			fun getTextureIndex(json: JsonObject, name: String) = json.getObjectOrNull(name)?.getInt("index") ?: -1
 
 			if(materialJson.has("pbrMetallicRoughness")) {
-				val pbrJson = materialJson.getJSONObject("pbrMetallicRoughness")
+				val pbrJson = materialJson.getAsJsonObject("pbrMetallicRoughness")
 				val baseColour = pbrJson.getVec4("baseColourFactor") ?: Vec4(1f)
 				textures.getOrNull(getTextureIndex(pbrJson, "baseColorTexture"))?.let { materialTextures["baseColour"] = it }
 
@@ -117,12 +119,12 @@ class GLTFModelLoader {
 
         // Load Meshes
 
-		val meshesJson = json.getJSONArray("meshes")
+		val meshesJson = json.getAsJsonArray("meshes")
 		val meshCollections = mutableListOf<List<ModelMesh>>()
 
         meshesJson.forEachObject { meshJson, _ ->
             val name = meshJson.getString("name")
-            val primitives = meshJson.getJSONArray("primitives")
+			val primitives = meshJson.getAsJsonArray("primitives")
 			val meshes = mutableListOf<ModelMesh>()
             for ((_, primitive) in primitives.objects) {
 				loadPrimitive(factory, fileName, name, primitive, meshes, accessors, materials)
@@ -135,7 +137,7 @@ class GLTFModelLoader {
 
         val bones = mutableSetOf<Bone>()
         if(json.has("skins")) {
-            val skinJson = json.getJSONArray("skins")
+			val skinJson = json.getAsJsonArray("skins")
             skinJson.forEachObject { skin, _ ->
                 loadBones(fileName, nodesArray, skin, bones)
             }
@@ -146,12 +148,12 @@ class GLTFModelLoader {
 
 		val animations = mutableListOf<ModelAnimation>()
 
-		val animationsJson = if (json.has("animations")) json.getJSONArray("animations") else null
+		val animationsJson = if (json.has("animations")) json.getAsJsonArray("animations") else null
 		animationsJson?.forEachObject { animationJson, _ ->
 			val name = animationJson.getString("name")
 			val states = mutableMapOf<Float, MutableList<BoneState>>()
 
-			val samplers = animationJson.getJSONArray("samplers").mapObjects { samplerJson, si ->
+			val samplers = animationJson.getAsJsonArray("samplers").mapObjects { samplerJson, si ->
 				val times = accessors[samplerJson.getInt("input")].map { it as Number }
 				val values = accessors[samplerJson.getInt("output")]
 				val pairs = mutableMapOf<Float, Any>()
@@ -159,10 +161,10 @@ class GLTFModelLoader {
 				si to pairs.toMap()
 			}.toMap()
 
-			for ((_, channelJson) in animationJson.getJSONArray("channels").objects) {
+			for ((_, channelJson) in animationJson.getAsJsonArray("channels").objects) {
 				val sampler = samplers[channelJson.getInt("sampler")] ?: continue
-				val target = channelJson.getJSONObject("target")
-				val node = nodesArray.getJSONObject(target.getInt("node"))
+				val target = channelJson.getAsJsonObject("target")
+				val node = nodesArray.getObject(target.getInt("node"))
 				val mesh = node.getString("name")
 				val path = target.getString("path")
 
@@ -181,10 +183,10 @@ class GLTFModelLoader {
 			animations.add(ModelAnimation(name, frames.toTypedArray()))
 		}
 
-		json.getJSONArray("scenes").forEachObject { sceneJson, _ ->
-			for(nodeID in sceneJson.getJSONArray("nodes")) {
-				if (nodeID !is Int) continue
-				val nodeJson = nodesArray.getJSONObject(nodeID)
+		json.getAsJsonArray("scenes").forEachObject { sceneJson, _ ->
+			for (nodeID in sceneJson.getAsJsonArray("nodes")) {
+				if (nodeID !is JsonPrimitive) continue
+				val nodeJson = nodesArray.getObject(nodeID.asInt)
 				val meshID = nodeJson.getIntOrNull("mesh") ?: continue
 				val meshes = meshCollections[meshID]
 
@@ -217,13 +219,13 @@ class GLTFModelLoader {
 		factory: ResourceFactory,
 		fileName: String,
 		name: String,
-		primitive: JSONObject,
+		primitive: JsonObject,
 		meshes: MutableCollection<ModelMesh>,
 		accessors: List<Array<Any>>,
 		materials: List<ModelMaterial>
 	) {
 
-        val attributes = primitive.getJSONObject("attributes")
+		val attributes = primitive.getAsJsonObject("attributes")
 		val attributeMap = mutableMapOf<VertexAttribute<*, *>, Array<Any>>()
 
         val pos = attributes.getInt("POSITION")
@@ -279,15 +281,15 @@ class GLTFModelLoader {
 		meshes.add(factory.createModelMesh(name, vertices, indArray.toIntArray(), material = materials.getOrElse(material) { PBRMaterial.default }))
     }
 
-    fun loadBones(fileName: String, nodesJson: JSONArray, boneJson: JSONObject, bones: MutableSet<Bone>) {
+	fun loadBones(fileName: String, nodesJson: JsonArray, boneJson: JsonObject, bones: MutableSet<Bone>) {
 //        val bindMatrix = boneJson.getIntOrNull("inverseBindMatrices")
-        val jointIndices = boneJson.getJSONArray("joints").map { it as Int }
+		val jointIndices = boneJson.getAsJsonArray("joints").map { it.asInt }
 
         bones.add(loadBone(nodesJson, jointIndices.first(), jointIndices, null))
     }
 
-    fun loadBone(nodesJson: JSONArray, boneIndex: Int, indices: List<Int>, parent: Bone?): Bone {
-        val nodeJson = nodesJson.getJSONObject(boneIndex)
+	fun loadBone(nodesJson: JsonArray, boneIndex: Int, indices: List<Int>, parent: Bone?): Bone {
+		val nodeJson = nodesJson.getObject(boneIndex)
         val boneName =  nodeJson.getStringOrNull("name") ?: "bone_$boneIndex"
 
         val translation = nodeJson.getVec3("translation") ?: Vec3()
@@ -299,24 +301,24 @@ class GLTFModelLoader {
         val bone = Bone(parent, indices.indexOf(boneIndex), boneName, boneName, (Mat4().translate(translation) * roundedRotation.toMat4()).scale(scale))
 
         if(nodeJson.has("children")) {
-            for (f in nodeJson.getJSONArray("children")) {
-                bone.addChild(loadBone(nodesJson, f as Int, indices, bone))
+			for (f in nodeJson.getAsJsonArray("children")) {
+				bone.addChild(loadBone(nodesJson, f.asInt, indices, bone))
             }
         }
 
         return bone
     }
 
-	fun loadTextures(factory: ResourceFactory, json: JSONObject, bufferViews: List<ByteArray>): List<Texture2D> {
+	fun loadTextures(factory: ResourceFactory, json: JsonObject, bufferViews: List<ByteArray>): List<Texture2D> {
         if(!json.has("samplers")) return emptyList()
-        val samplersJson = json.getJSONArray("samplers")
+		val samplersJson = json.getAsJsonArray("samplers")
         val samplers = mutableListOf<TextureParameters>()
-        for(i in 0..<samplersJson.length()) samplers.add(samplerType(samplersJson.getJSONObject(i)))
+		for (i in 0..<samplersJson.size()) samplers.add(samplerType(samplersJson.getObject(i)))
 
-        val imagesJson = json.getJSONArray("images")
+		val imagesJson = json.getAsJsonArray("images")
         val images = mutableListOf<Triple<String, ByteArray, Boolean>>()
-        for(i in 0..<imagesJson.length()){
-            val imageJson = imagesJson.getJSONObject(i)
+		for (i in 0..<imagesJson.size()) {
+			val imageJson = imagesJson.getObject(i)
             if(imageJson.has("uri")){
                 images.add(Triple("Model Image $i", ByteArray(0), false))
             }
@@ -328,10 +330,10 @@ class GLTFModelLoader {
             }
         }
 
-        val texturesJson = json.getJSONArray("textures")
+		val texturesJson = json.getAsJsonArray("textures")
 		val textures = mutableListOf<Texture2D>()
-        for(i in 0..<texturesJson.length()){
-            val textureJson = texturesJson.getJSONObject(i)
+		for (i in 0..<texturesJson.size()) {
+			val textureJson = texturesJson.getObject(i)
             val sampler = samplers[textureJson.getInt("sampler")]
             val image = images[textureJson.getInt("source")]
 			val texture = factory.loadTexture2DFromFile(image.first, image.second.inputStream(), sampler)
@@ -342,11 +344,11 @@ class GLTFModelLoader {
 
 
 	fun loadGLTFFile(resourcesLoader: ResourcesLoader, fileName: String, stream: InputStream, map: MutableMap<ResourceKey, Model>) {
-		val json = JSONObject(stream.readAllBytes().toString(Charsets.UTF_8))
-		val buffersJson = json.getJSONArray("buffers")
+		val json = JsonParser.parseString(stream.readAllBytes().toString(Charsets.UTF_8)).asJsonObject
+		val buffersJson = json.getAsJsonArray("buffers")
 		val buffers = mutableListOf<ByteArray>()
-		for (i in 0..<buffersJson.length()) {
-			val bufferLocation = buffersJson.getJSONObject(i).getString("uri")
+		for (i in 0..<buffersJson.size()) {
+			val bufferLocation = buffersJson.getObject(i).getString("uri")
 			buffers.add(loadBinFile(resourcesLoader, fileName.substringBeforeLast('/') + "/" + bufferLocation))
 		}
 		return loadModel(resourcesLoader.factory, fileName, json, buffers, map)
@@ -360,7 +362,7 @@ class GLTFModelLoader {
 	// https://docs.fileformat.com/3d/glb/ Praise the lord
 	fun loadGLBFile(factory: ResourceFactory, fileName: String, stream: InputStream, map: MutableMap<ResourceKey, Model>) {
 		stream.readNBytes(12) // Header
-		var json = JSONObject()
+		var json = JsonObject()
 		val buffers = mutableListOf<ByteArray>()
 		while (stream.available() != 0) {
 			val chunkHeader = stream.readNBytes(8) ?: break
@@ -369,7 +371,11 @@ class GLTFModelLoader {
 			val bytes = stream.readNBytes(size)
 
 			when (type) {
-				"JSON" -> json = JSONObject(bytes.toString(Charsets.UTF_8))
+				"JSON" -> {
+					val string = bytes.toString(Charsets.UTF_8)
+					val parsed = JsonParser.parseString(string)
+					json = parsed.asJsonObject
+				}
 				"BIN" + 0.c -> buffers.add(bytes)
 			}
 		}
@@ -377,7 +383,7 @@ class GLTFModelLoader {
 		return loadModel(factory, fileName, json, buffers, map)
 	}
 
-	fun samplerType(json: JSONObject): TextureParameters{
+	fun samplerType(json: JsonObject): TextureParameters {
 
 		// GLTF uses OpenGL parameter values
 		return TextureParameters(

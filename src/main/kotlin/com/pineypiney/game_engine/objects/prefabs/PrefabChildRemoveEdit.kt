@@ -1,17 +1,21 @@
 package com.pineypiney.game_engine.objects.prefabs
 
+import com.google.gson.JsonElement
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.util.ByteData
+import com.pineypiney.game_engine.objects.LateParse
+import com.pineypiney.game_engine.util.serialisation.Codec
 
-class PrefabChildRemoveEdit(parentLoc: String, val child: String) : PrefabEdit(parentLoc) {
-	override fun execute(obj: GameObject) {
-		val d = findDescendant(obj) ?: return
+class PrefabChildRemoveEdit(val child: String) : PrefabEdit() {
+
+	override fun execute(obj: GameObject, parentLoc: String, list: LateParse<JsonElement>) {
+		val d = findDescendant(obj, parentLoc) ?: return
 		val c = d.children.firstOrNull { it.name == child } ?: return
 		d.removeAndDeleteChild(c)
 	}
 
-	override fun serialise(head: StringBuilder, data: StringBuilder) {
-		head.append("CHRM" + ByteData.int2String(child.length, 1))
-		data.append(child)
+	override fun getID(): String = "chrm"
+
+	companion object {
+		val CODEC: Codec<PrefabChildRemoveEdit> = Codec.STRING.map("child", PrefabChildRemoveEdit::child, ::PrefabChildRemoveEdit)
 	}
 }

@@ -5,9 +5,9 @@ import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelMesh
-import com.pineypiney.game_engine.resources.readString
 import com.pineypiney.game_engine.util.BitMap3D
 import com.pineypiney.game_engine.util.extension_functions.getOrSet
+import com.pineypiney.game_engine.util.extension_functions.string
 import glm_.int
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4i
@@ -17,7 +17,7 @@ import kotlin.math.min
 
 class VoxModelLoader {
 	fun loadVoxModel(factory: ResourceFactory, name: String, stream: InputStream): Model {
-		stream.readString(4)		// "VOX "
+		stream.string(4)        // "VOX "
 		stream.int(false)    // Version (150 or 200)
 		val models = mutableListOf<VoxelModel>()
 		val rgba = Array(255){ 0 }
@@ -43,7 +43,7 @@ class VoxModelLoader {
 
 	@Suppress("UNUSED_VARIABLE", "UNUSED")
 	fun loadVoxChunk(stream: InputStream, models: MutableList<VoxelModel>, rgba: Array<Int>, nodes: MutableList<VoxNode>){
-		val chunkType = stream.readString(4)
+		val chunkType = stream.string(4)
 		val chunkSize = stream.int(false)
 		val childrenSize = stream.int(false)
 
@@ -125,8 +125,8 @@ class VoxModelLoader {
 		if(numEntries == 0) return emptyMap()
 		val map = mutableMapOf<String, String>()
 		(0..<numEntries).forEach { _ ->
-			val key = stream.readString(stream.int(false))
-			val value = stream.readString(stream.int(false))
+			val key = stream.string(stream.int(false))
+			val value = stream.string(stream.int(false))
 			map[key] = value
 		}
 		return map

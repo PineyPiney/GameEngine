@@ -49,6 +49,7 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 		clearFrameBuffer(sceneFramebuffer)
 
 		for((_, layer) in game.sceneObjects.map) renderLayer(layer, tickDelta, sceneFramebuffer.FBO, sort)
+
 		GLFunc.depthTest = false
 		game.transformer?.let {
 			for(obj in it.catchRenderingComponents()) renderObject(obj, tickDelta, sceneFramebuffer.FBO)
@@ -63,7 +64,7 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, guiProjection)
 		clearFrameBuffer()
 
-		renderLayer(1, game, tickDelta, framebuffer){ transformComponent.worldPosition.z}
+		renderLayer(1, game, tickDelta, framebuffer) { transformComponent.worldPosition.z }
 
 		// This draws the buffer onto the screen
 		Framebuffer.unbind()

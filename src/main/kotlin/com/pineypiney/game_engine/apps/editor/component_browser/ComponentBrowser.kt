@@ -18,6 +18,7 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.fromHex
 import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.serialisation.Codec
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
@@ -87,7 +88,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 					val oldName = obj.name
 					obj.name = f.text
 					screen.setEditingName(f.text)
-					screen.editManager.addEdit(ComponentFieldEdit(obj, screen, "n", oldName, obj.name))
+					screen.editManager.addEdit(ComponentFieldEdit(obj, screen, "n", Codec.STRING.encodeBytes(oldName), Codec.STRING.encodeBytes(obj.name)))
 				}
 			y += space
 
@@ -97,7 +98,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			val (layerText, _) = ActionTextFieldComponent.createActionTextField<TextFieldComponent>("Object Layer Field", obj.layer.toString(), 16){ f, _, _ ->
 				val oldLayer = obj.layer
 				obj.layer = f.text.parseInt()
-				screen.editManager.addEdit(ComponentFieldEdit(obj, screen, "l", oldLayer.toString(), f.text))
+				screen.editManager.addEdit(ComponentFieldEdit(obj, screen, "l", Codec.INT.encodeBytes(oldLayer), Codec.INT.encodeBytes(obj.layer)))
 			}
 			layerText.pixel(Vec2i(0, -y), Vec2i(fieldLength, height), Vec2(.27f, 1f))
 			y += space
@@ -107,7 +108,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			activeLabel.position.z = 0.01f
 			val (activeBox, _) = CheckBoxComponent.createCheckBox("Object Active Field", obj.active){ b ->
 				obj.active = b
-				screen.editManager.addEdit(ComponentFieldEdit(obj, screen, "a", (!b).i.toChar().toString(), b.i.toChar().toString()))
+				screen.editManager.addEdit(ComponentFieldEdit(obj, screen, "a", byteArrayOf((1 - b.i).toByte()), byteArrayOf(b.i.toByte())))
 			}
 			activeBox.pixel(Vec2i(0, -y), Vec2i(height, height), Vec2(.27f, 1f))
 

@@ -48,7 +48,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 		val api = renderer.getRenderingApi()
 
 		if(debug and Model.DEBUG_WIREFRAME > 0) {
-			val wireframeShader = ShaderLoader[ResourceKey(shader.vertex.name), ResourceKey("fragment/colour_opaque")]
+			val wireframeShader = ShaderLoader[ResourceKey(shader.vertex.id), ResourceKey("fragment/colour_opaque")]
 			wireframeShader.setUp(uniforms, renderer)
 			wireframeShader.setVec3("colour", Vec3(0f))
 			GLFunc.polygonMode = GL11C.GL_LINE

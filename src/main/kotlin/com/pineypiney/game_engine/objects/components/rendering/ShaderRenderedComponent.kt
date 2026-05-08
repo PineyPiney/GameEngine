@@ -1,8 +1,8 @@
 package com.pineypiney.game_engine.objects.components.rendering
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.resources.shaders.ShadUn
 import com.pineypiney.game_engine.resources.shaders.RenderShader
+import com.pineypiney.game_engine.resources.shaders.ShadUn
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 
 abstract class ShaderRenderedComponent(parent: GameObject, s: RenderShader) : RenderedComponent(parent) {

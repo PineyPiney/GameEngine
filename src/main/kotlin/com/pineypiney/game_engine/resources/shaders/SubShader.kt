@@ -3,9 +3,9 @@ package com.pineypiney.game_engine.resources.shaders
 import com.pineypiney.game_engine.resources.Resource
 import org.lwjgl.opengl.GL20C
 
-class SubShader(val name: String, val id: Int, val uniforms: Map<String, String>) : Resource {
+class SubShader(val id: String, val handle: Int, val uniforms: Map<String, String>) : Resource {
 
 	override fun delete() {
-		GL20C.glDeleteShader(id)
+		GL20C.glDeleteShader(handle)
 	}
 }

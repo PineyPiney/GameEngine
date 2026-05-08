@@ -47,7 +47,7 @@ class Components {
 			fieldTypes.add(fieldType)
 		}
 
-		fun <T> addFieldType(fieldCreator: (id: String, getter: () -> T, setter: (T) -> Unit) -> ComponentField<T>, default: () -> T, klass: KClass<*> = default()!!::class){
+		fun <T> addFieldType(fieldCreator: (id: String, component: Any, getter: () -> T, setter: (T) -> Unit) -> ComponentField<T>, default: () -> T, klass: KClass<*> = default()!!::class) {
 			fieldTypes.add(FieldType(default, klass, fieldCreator))
 		}
 
@@ -124,10 +124,10 @@ class Components {
 
 			addFieldType(::BoolField, { true })
 			addFieldType(::IntField, {1})
-			addFieldType(FieldType({1}, setOf(IntFieldRange::class)) { i, g, s, a ->
+			addFieldType(FieldType({ 1 }, setOf(IntFieldRange::class)) { i, c, g, s, a ->
 				val rangeA = a.firstOrNull { it is IntFieldRange } as? IntFieldRange
 				val range = rangeA?.let { IntRange(it.min, it.max) } ?: 0..1
-				IntRangeField(i, range, g, s)
+				IntRangeField(i, c, range, g, s)
 			})
 			addFieldType(::UIntField, {1u})
 			addFieldType(::FloatField, {1f})
@@ -147,17 +147,17 @@ class Components {
 		}
 
 		@Suppress("FilterIsInstanceResultIsAlwaysEmpty")
-		fun <C, T> getDefaultField(property: KMutableProperty1<C, T>, component: C, parent: String = ""): ComponentField<*>?{
+		fun <C : Any, T> getDefaultField(property: KMutableProperty1<C, T>, container: C, parent: String = ""): ComponentField<*>? {
 			val fieldsOfType = fieldTypes.filter { fieldType -> property.returnType.withNullability(false) == fieldType.klass.starProjectedType }.filterIsInstance<FieldType<T>>()
 			for(i in fieldsOfType){
 				if(i.annotations.isNotEmpty() && i.annotations.all { property.findAnnotations(it).isNotEmpty() }){
-					return i.fieldCreator(parent + property.name, { property.get(component) }, { property.set(component, it)}, property.annotations.toSet())
+					return i.fieldCreator(parent + property.name, container, { property.get(container) }, { property.set(container, it) }, property.annotations.toSet())
 				}
 			}
 
 			val defaultField = fieldsOfType.firstOrNull { it.annotations.isEmpty() }
 			return if(defaultField == null) null
-			else defaultField.fieldCreator(parent + property.name, {property.get(component)}, { property.set(component, it)}, emptySet())
+			else defaultField.fieldCreator(parent + property.name, container, { property.get(container) }, { property.set(container, it) }, emptySet())
 		}
 
 		inline fun <reified T, C: Any> get(property: KMutableProperty1<C, Any>, component: C): T{

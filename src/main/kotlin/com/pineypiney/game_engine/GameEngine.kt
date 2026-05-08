@@ -43,6 +43,7 @@ abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: Re
 		// Once the accumulator exceeds the interval, the game is updated
 		// and the accumulator reduces by interval amount.
 		// Advantage of doing it this way is that if there is lag, then the game will catch up with itself
+
 		while (accumulator >= interval) {
 			update(interval)
 			accumulator -= interval
@@ -58,6 +59,7 @@ abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: Re
 			GameEngineI.error("Error rendering frame")
 			e.printStackTrace()
 		}
+
 	}
 
 	override fun update(interval: Float) {

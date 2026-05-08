@@ -1,26 +1,33 @@
 package com.pineypiney.game_engine.objects.prefabs
 
+import com.google.gson.JsonElement
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.LateParse
-import com.pineypiney.game_engine.util.ByteData
-import glm_.parseInt
+import com.pineypiney.game_engine.util.serialisation.Codec
+import com.pineypiney.game_engine.util.serialisation.JsonOps
 
-class PrefabFieldEdit(parentLoc: String, val field: String, val value: String, val list: LateParse?) : PrefabEdit(parentLoc) {
-	override fun execute(obj: GameObject) {
-		val c = findDescendant(obj) ?: return
+class PrefabFieldEdit(val field: String, val data: JsonElement) : PrefabEdit() {
+
+	override fun execute(obj: GameObject, parentLoc: String, list: LateParse<JsonElement>) {
+		val c = findDescendant(obj, parentLoc) ?: return
 		if(field.length > 1) {
 			val (component, field) = c.getComponentAndField(field) ?: return
-			if (list == null) field.set(value, component)
-			else list.add(Triple(component, field, value))
+			if (field.isLateParse()) list.add(Triple(component, field, data))
+			else field.set(JsonOps, data)
 		}
 		else when(field[0]){
-			'l' -> c.layer = value.parseInt()
-			'a' -> c.active = value[0].code > 0
+			'l' -> c.layer = data.asInt
+			'a' -> c.active = data.asBoolean
 		}
 	}
 
-	override fun serialise(head: StringBuilder, data: StringBuilder) {
-		head.append("FLED" + ByteData.int2String(field.length, 2) + field + ByteData.int2String(value.length))
-		data.append(value)
+	override fun getID(): String = "fled"
+
+	companion object {
+		val CODEC = Codec.map(
+			Codec.STRING.field("field", PrefabFieldEdit::field),
+			Codec.serial(JsonOps).field("json", PrefabFieldEdit::data),
+			::PrefabFieldEdit
+		)
 	}
 }

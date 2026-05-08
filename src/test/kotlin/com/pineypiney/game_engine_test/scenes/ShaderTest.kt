@@ -35,7 +35,7 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLog
 	val uniformValues = mutableMapOf<String, Any>()
 
 	val obj = GameObject("Shader Object").apply {
-		components.add(object : ShaderRenderedComponent(this, shader){
+		components.add(object : ShaderRenderedComponent(this@apply, shader) {
 			val mesh = Mesh.cornerSquareShape
 			override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 

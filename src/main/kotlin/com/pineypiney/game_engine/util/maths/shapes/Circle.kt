@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.util.extension_functions.getScale
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
 import com.pineypiney.game_engine.util.extension_functions.projectOn
 import com.pineypiney.game_engine.util.raycasting.Ray
+import com.pineypiney.game_engine.util.serialisation.Codec
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -62,5 +63,13 @@ class Circle(val center: Vec2, val radius: Float) : Shape2D() {
 
 	override fun toString(): String {
 		return "Circle[$center, $radius]"
+	}
+
+	companion object {
+		val CODEC = Codec.map(
+			Codec.VEC2.field("center", Circle::center),
+			Codec.FLOAT.field("radius", Circle::radius),
+			::Circle
+		)
 	}
 }

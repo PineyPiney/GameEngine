@@ -91,8 +91,8 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 	}
 
 	fun setProperty(key: String, value: String) {
-		val (component, field) = getComponentAndField(key) ?: return
-		field.set(value, component)
+		val (_, field) = getComponentAndField(key) ?: return
+		field.set(value)
 	}
 
 	infix fun translate(vec: Vec3) = transformComponent translate vec

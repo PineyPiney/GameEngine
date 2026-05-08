@@ -5,19 +5,22 @@ import glm_.d
 
 class Debug {
 
-	val times = mutableListOf<Double>()
+	val times = mutableListOf<Pair<String, Double>>()
 
 	fun start(): Debug {
 		times.clear()
-		times.add(millis())
+		times.add("Start" to millis())
 		return this
 	}
 
-	fun add() {
-		times.add(millis())
+	fun add(label: String = times.size.toString()): Debug {
+		times.add(label to millis())
+		return this
 	}
 
-	fun differences() = (1..<times.size).map { times[it] - times[it - 1] }
+	fun time() = times.last().second - times.first().second
+
+	fun differences() = (1..<times.size).map { times[it].first to times[it].second - times[it - 1].second }
 
 	fun printDiffs() {
 		if (times.size <= 1) return

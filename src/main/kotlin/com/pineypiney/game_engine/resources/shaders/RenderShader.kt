@@ -71,7 +71,7 @@ class RenderShader(
 	fun getSubShader(stage: ShaderStage) = stages[stage]
 
 	override fun toString(): String {
-		return "Shader[${vertex.name}, ${fragment.name}]"
+		return "Shader[${vertex.id}, ${fragment.id}]"
 	}
 
 	companion object {

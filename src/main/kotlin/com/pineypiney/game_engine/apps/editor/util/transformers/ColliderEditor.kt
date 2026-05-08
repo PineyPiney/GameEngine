@@ -385,7 +385,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 	}
 
 	fun saveEdit(collider: Collider2DComponent, newShape: Shape2D) {
-		oldShape?.let { if (oldShape != newShape) screen.setFieldValue(collider, Shape2DField("shape", collider::shape) { collider.shape = it }, it, newShape) }
+		oldShape?.let { if (oldShape != newShape) screen.setFieldValue(collider, Shape2DField("shape", collider, collider::shape) { shape -> collider.shape = shape }, it, newShape) }
 		oldShape = newShape
 	}
 

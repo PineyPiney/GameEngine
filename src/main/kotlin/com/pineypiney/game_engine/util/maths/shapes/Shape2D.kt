@@ -2,10 +2,15 @@ package com.pineypiney.game_engine.util.maths.shapes
 
 import com.pineypiney.game_engine.objects.components.colliders.Collision2D
 import com.pineypiney.game_engine.util.extension_functions.absMinOf
+import com.pineypiney.game_engine.util.extension_functions.string
+import com.pineypiney.game_engine.util.serialisation.Codec
+import com.pineypiney.game_engine.util.serialisation.SerialOps
 import glm_.func.common.abs
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
+import java.io.InputStream
+import java.io.OutputStream
 import kotlin.math.abs
 
 abstract class Shape2D : Shape<Vec2>() {
@@ -174,6 +179,42 @@ abstract class Shape2D : Shape<Vec2>() {
 		val NORMAL = Vec3(0f, 0f, 1f)
 		fun projectAllPoints(normal: Vec2, points: Iterable<Vec2>): Set<Float> {
 			return points.map { it dot normal }.toSet()
+		}
+
+		val codecs by lazy {
+			mutableMapOf(
+				Rect2D::class to ("rect" to Rect2D.CODEC),
+				Circle::class to ("circ" to Circle.CODEC),
+				Polygon::class to ("poly" to Polygon.CODEC),
+				Parallelogram::class to ("para" to Parallelogram.CODEC),
+			)
+		}
+
+		val CODEC = object : Codec<Shape2D> {
+			override fun <E> encode(ops: SerialOps<E>, value: Shape2D): E {
+				val (type, codec) = codecs[value::class] ?: return ops.nul()
+				val e = codec.encodeUnsafe(ops, value)
+				ops.put(e, "type", type)
+				return e
+			}
+
+			override fun <E> decode(ops: SerialOps<E>, value: E): Shape2D {
+				val type = ops.getString(value, "type")
+				val codec = codecs.values.first { it.first == type }.second
+				return codec.decode(ops, value)
+			}
+
+			override fun encode(stream: OutputStream, value: Shape2D) {
+				val (type, codec) = codecs[value::class] ?: return stream.string("null")
+				stream.string(type)
+				codec.encodeUnsafe(stream, value)
+			}
+
+			override fun decode(stream: InputStream): Shape2D {
+				val type = stream.string(4)
+				val codec = codecs.values.first { it.first == type }.second
+				return codec.decode(stream)
+			}
 		}
 	}
 }

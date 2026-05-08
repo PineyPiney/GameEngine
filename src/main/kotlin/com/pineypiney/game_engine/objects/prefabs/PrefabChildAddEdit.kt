@@ -1,17 +1,22 @@
 package com.pineypiney.game_engine.objects.prefabs
 
+import com.google.gson.JsonElement
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.GameObjectSerializer
-import com.pineypiney.game_engine.util.ByteData
+import com.pineypiney.game_engine.objects.LateParse
+import com.pineypiney.game_engine.util.serialisation.Codec
+import com.pineypiney.game_engine.util.serialisation.JsonOps
 
-class PrefabChildAddEdit(parentLoc: String, val child: String) : PrefabEdit(parentLoc) {
-	override fun execute(obj: GameObject) {
-		val c = findDescendant(obj) ?: return
-		c.addChild(GameObjectSerializer.parse(child.byteInputStream(Charsets.ISO_8859_1)))
+class PrefabChildAddEdit(val json: JsonElement) : PrefabEdit() {
+
+	override fun execute(obj: GameObject, parentLoc: String, list: LateParse<JsonElement>) {
+		val c = findDescendant(obj, parentLoc) ?: return
+		c.addChild(GameObjectSerializer.parse(JsonOps, json))
 	}
 
-	override fun serialise(head: StringBuilder, data: StringBuilder) {
-		head.append("CHAD" + ByteData.int2String(child.length))
-		data.append(child)
+	override fun getID(): String = "chad"
+
+	companion object {
+		var CODEC = Codec.serial(JsonOps).map("json", PrefabChildAddEdit::json, ::PrefabChildAddEdit)
 	}
 }

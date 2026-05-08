@@ -49,7 +49,7 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>): Window
 	}
 
 	val obj = GameObject("Shader Object").apply {
-		components.add(object : Component(this), PreRenderComponent{
+		components.add(object : Component(this@apply), PreRenderComponent {
 			override val whenVisible: Boolean = true
 
 			override fun preRender(renderer: RendererI, tickDelta: Double) {

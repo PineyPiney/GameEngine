@@ -68,7 +68,9 @@ class ComponentEditor(
 		addChild(createEditor(GameObject("Field Editor $fieldID", 1),
 			f, editingComponent, Vec2i(0f, ((s * i))), Vec2i(1f, s)
 		){ ov, v ->
-			callback(f.id, f.serialise(editingComponent, ov), f.serialise(editingComponent, v))
+			val oldValue = f.codec.encodeBytes(ov)
+			val newValue = f.codec.encodeBytes(v)
+			callback(f.id, oldValue.toString(Charsets.ISO_8859_1), newValue.toString(Charsets.ISO_8859_1))
 		}.applied().parent)
 	}
 

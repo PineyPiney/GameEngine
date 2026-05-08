@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.util.extension_functions.getScale
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
 import com.pineypiney.game_engine.util.extension_functions.projectOn
 import com.pineypiney.game_engine.util.raycasting.Ray
+import com.pineypiney.game_engine.util.serialisation.Codec
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -107,5 +108,14 @@ data class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val 
 
 	override fun toString(): String {
 		return "Rect2D[$origin, $lengths]"
+	}
+
+	companion object {
+		val CODEC = Codec.map(
+			Codec.VEC2.field("origin", Rect2D::origin),
+			Codec.VEC2.field("size", Rect2D::lengths),
+			Codec.FLOAT.field("angle", Rect2D::angle),
+			::Rect2D
+		)
 	}
 }

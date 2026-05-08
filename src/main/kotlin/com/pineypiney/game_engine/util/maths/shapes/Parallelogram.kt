@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.util.maths.shapes
 import com.pineypiney.game_engine.util.Vectors
 import com.pineypiney.game_engine.util.extension_functions.*
 import com.pineypiney.game_engine.util.raycasting.Ray
+import com.pineypiney.game_engine.util.serialisation.Codec
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -91,5 +92,14 @@ data class Parallelogram(val origin: Vec2, val side1: Vec2, val side2: Vec2) : S
 
 	override fun projectToNormal(normal: Vec2): Set<Float> {
 		return projectAllPoints(normal, points)
+	}
+
+	companion object {
+		val CODEC = Codec.map(
+			Codec.VEC2.field("origin", Parallelogram::origin),
+			Codec.VEC2.field("side1", Parallelogram::side1),
+			Codec.VEC2.field("side2", Parallelogram::side2),
+			::Parallelogram
+		)
 	}
 }

@@ -98,7 +98,7 @@ dependencies {
     implementation("org.bytedeco:ffmpeg-platform-gpl:6.1.1-1.5.10")
 
     // Gson for JSON parsing
-    implementation("org.json:json:20231013")
+    implementation("com.google.code.gson:gson:2.14.0")
 }
 
 publishing{

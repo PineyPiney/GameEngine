@@ -92,7 +92,7 @@ open class DefaultFieldEditor<T, F : ComponentField<T>>(parent: GameObject, f: F
 	val textField = ActionTextFieldComponent.createActionTextFieldAt<ActionTextFieldComponent<*>>("Text Field", Vec2(.27f, 0f), Vec2(.7f, 1f)) { textField, _, _ ->
 		try {
 			val oldSer = field.getter()
-			val value = field.parse(this.component, textField.text)
+			val value = field.parse(textField.text, this.component)
 			if(value != null) {
 				field.setter(value)
 				callback(oldSer, value)
@@ -107,7 +107,7 @@ open class DefaultFieldEditor<T, F : ComponentField<T>>(parent: GameObject, f: F
 	}
 
 	override fun update(scale: Int) {
-		textField.text = field.serialise(this.component, field.getter())
+		textField.text = field.serialise(field.getter(), this.component)
 	}
 }
 
@@ -244,11 +244,11 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 
 	override fun update(scale: Int) {
 		val s = field.getter()
-		vertexField.text = s.vertex.name
-		fragmentField.text = s.fragment.name
-		tessCtrlField.text = s.getSubShader(ShaderStage.TESS_CTRL)?.name ?: ""
-		tessEvalField.text = s.getSubShader(ShaderStage.TESS_EVAL)?.name ?: ""
-		geometryField.text = s.getSubShader(ShaderStage.GEOMETRY)?.name ?: ""
+		vertexField.text = s.vertex.id
+		fragmentField.text = s.fragment.id
+		tessCtrlField.text = s.getSubShader(ShaderStage.TESS_CTRL)?.id ?: ""
+		tessEvalField.text = s.getSubShader(ShaderStage.TESS_EVAL)?.id ?: ""
+		geometryField.text = s.getSubShader(ShaderStage.GEOMETRY)?.id ?: ""
 	}
 
 	override fun onHoverElement(element: Any, cursorPos: Vec2): Boolean {
@@ -308,7 +308,7 @@ open class TextureFieldEditor(parent: GameObject, f: TextureField, component: Co
 	}
 
 	override fun update(scale: Int) {
-		textField.text = field.serialise(component, field.getter())
+		textField.text = field.getter().id
 	}
 
 	fun updateValue(){
@@ -355,7 +355,7 @@ open class ModelFieldEditor(parent: GameObject, f: ModelField, component: Compon
 	}
 
 	override fun update(scale: Int) {
-		textField.text = field.serialise(component, field.getter())
+		textField.text = field.getter().name.substringBefore('.')
 	}
 
 	override fun onHoverElement(element: Any, cursorPos: Vec2): Boolean {

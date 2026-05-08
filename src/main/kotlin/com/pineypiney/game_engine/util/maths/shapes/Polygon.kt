@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.util.extension_functions.angleBetween
 import com.pineypiney.game_engine.util.extension_functions.normal
 import com.pineypiney.game_engine.util.extension_functions.transformedBy
 import com.pineypiney.game_engine.util.raycasting.Ray
+import com.pineypiney.game_engine.util.serialisation.Codec
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -270,5 +271,7 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 			// Removing this line would create a reflex angle, so it must be left
 			return (p0Angle < 0f || p1Angle < 0f || p0Angle + p1Angle > PIF)
 		}
+
+		val CODEC = Codec.VEC2.list().map("vertices", Polygon::vertices, ::Polygon)
 	}
 }

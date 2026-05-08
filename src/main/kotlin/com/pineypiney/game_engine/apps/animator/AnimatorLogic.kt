@@ -18,6 +18,7 @@ import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.util.serialisation.JsonOps
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
@@ -116,11 +117,11 @@ class AnimatorLogic(
 		animationSelector.item?.animation?.save()
 		animationSelector.item?.parent?.let { i ->
 			val n = i.name
-			val s = GameObjectSerializer.serialise(i)
 			val f = File("$n.pfb")
 			f.createNewFile()
-			val bytes = s.toByteArray(Charsets.ISO_8859_1)
-			f.writeBytes(bytes)
+
+			val json = GameObjectSerializer.serialise(i, JsonOps)
+			f.writer(Charsets.ISO_8859_1).write(json.toString())
 		}
 	}
 
@@ -172,11 +173,8 @@ class AnimatorLogic(
 
 	override fun onInput(state: InputState, action: Int): Int {
 		if (action == 1 && state.c == 'P') {
-			val o = GameObjectSerializer.parse(
-				File(
-					(animationSelector.item?.parent?.name ?: "snake") + ".pfb"
-				).inputStream()
-			)
+			val file = File((animationSelector.item?.parent?.name ?: "snake") + ".pfb")
+			val o = GameObjectSerializer.parse(file)
 			o.name
 		}
 		return super.onInput(state, action)

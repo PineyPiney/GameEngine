@@ -2,7 +2,11 @@ package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Initialisable
+import com.pineypiney.game_engine.objects.LateParse
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
+import com.pineypiney.game_engine.util.serialisation.SerialOps
+import java.io.InputStream
+import java.io.OutputStream
 
 interface ComponentI : Initialisable {
 
@@ -24,5 +28,8 @@ interface ComponentI : Initialisable {
 
 	fun <T> getMatchingField(other: Collection<ComponentField<*>>, field: ComponentField<T>): ComponentField<T>?
 
-	fun serialise(head: StringBuilder, data: StringBuilder)
+	fun <E> encode(ops: SerialOps<E>): E
+	fun <E> decode(ops: SerialOps<E>, head: E, lateParse: LateParse<E>)
+	fun encode(stream: OutputStream)
+	fun decode(stream: InputStream, lateParse: LateParse<ByteArray>)
 }

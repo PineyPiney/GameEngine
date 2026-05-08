@@ -1,10 +1,14 @@
 package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.LateParse
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.fields.EditorIgnore
-import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.exceptions.ComponentReflectionException
+import com.pineypiney.game_engine.util.extension_functions.string
+import com.pineypiney.game_engine.util.serialisation.SerialOps
+import java.io.InputStream
+import java.io.OutputStream
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KParameter
@@ -29,7 +33,7 @@ abstract class Component(final override val parent: GameObject) : ComponentI {
 
 	override fun setValue(key: String, value: String) {
 		val field = getAllFieldsExt().firstOrNull { it.id == key } ?: return
-		field.set(value, this)
+		field.set(value)
 	}
 
 	@Suppress("UNCHECKED_CAST")
@@ -139,11 +143,43 @@ abstract class Component(final override val parent: GameObject) : ComponentI {
 		return "Component[${this::class.simpleName}]"
 	}
 
-	override fun serialise(head: StringBuilder, data: StringBuilder) {
+	override fun <E> encode(ops: SerialOps<E>): E {
 		val nameStr = this::class.simpleName ?: "Anon"
 		val properties = getAllFieldsExt()
-		head.append(ByteData.int2String(nameStr.length, 1) + nameStr + ByteData.int2String(properties.size, 1))
-		properties.forEach { it.serialise(head, data, this) }
+		val componentMap = ops.createMap()
+		ops.put(componentMap, "name", nameStr)
+		properties.forEach { ops.appendMap(componentMap, it.id, it.encode(ops)) }
+		return componentMap
+	}
+
+	override fun <E> decode(ops: SerialOps<E>, head: E, lateParse: LateParse<E>) {
+		val fields = getAllFieldsExt()
+		ops.forEachEntry(head) { (k, v) ->
+			if (k != "name") {
+				val field = fields.firstOrNull { it.id == k } ?: return@forEachEntry
+				field.decode(ops, v, this, lateParse)
+			}
+		}
+	}
+
+	override fun encode(stream: OutputStream) {
+		val nameStr = this::class.simpleName ?: "Anon"
+		val fields = getAllFieldsExt()
+		stream.write(nameStr.length)
+		stream.string(nameStr)
+		stream.write(fields.size)
+		fields.forEach { it.serialise(stream) }
+	}
+
+	override fun decode(stream: InputStream, lateParse: LateParse<ByteArray>) {
+		val fields = getAllFieldsExt()
+		val numFields = stream.read()
+		repeat(numFields) {
+			val fieldNameSize = stream.read()
+			val fieldName = stream.string(fieldNameSize)
+			val field = fields.firstOrNull { it.id == fieldName } ?: return@repeat
+			field.parse(stream, this, lateParse)
+		}
 	}
 }
 
@@ -161,12 +197,12 @@ fun <C: Any> C.getAllFieldsExt(parent: String = ""): Set<ComponentField<*>> {
 	return fields
 }
 
-fun <C, T> KMutableProperty1<C, T>.getFieldExt(parent: String, component: C, fields: MutableSet<ComponentField<*>>){
+fun <C : Any, T> KMutableProperty1<C, T>.getFieldExt(parent: String, container: C, fields: MutableSet<ComponentField<*>>) {
 	if(visibility != KVisibility.PUBLIC || setter.visibility != KVisibility.PUBLIC || hasAnnotation<EditorIgnore>()) return
-	val field = Components.getDefaultField(this, component, parent)
+	val field = Components.getDefaultField(this, container, parent)
 	if(field != null) fields.add(field)
 	else {
-		val value = get(component) ?: return
+		val value = get(container) ?: return
 		fields.addAll(value.getAllFieldsExt("$parent$name."))
 	}
 }

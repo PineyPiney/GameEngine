@@ -6,12 +6,14 @@ class NodeTree<T> {
 
 	fun addElement(s: String, e: T, separator: Char = '.'){
 		if(s.contains(separator)){
+			// Follow the tree through s to find the right node, adding nodes if they don't exist yet
 			val parts = s.split(separator)
 			var node = get(parts[0]) ?: Node<T>(parts[0]).apply { nodes.add(this) }
 			for(i in 1..parts.size-2){
 				node = node[parts[i]] ?: Node<T>(parts[i]).apply { node.children.add(this) }
 			}
 			val lastNode = node[parts.last()]
+
 			if(lastNode != null) {
 				if(lastNode is ListNode) {
 					lastNode.items.add(e)
@@ -49,13 +51,24 @@ class NodeTree<T> {
 	}
 	operator fun get(id: String): Node<T>? = nodes.firstOrNull { it.id == id }
 
+	/**
+	 * Node containing no instances of T
+	 */
 	open class Node<T>(val id: String){
 		val children = mutableListOf<Node<T>>()
 		operator fun get(id: String): Node<T>? = children.firstOrNull { it.id == id }
 		operator fun set(id: String, element: T) = children.add(ItemNode(id, element))
 		override fun toString(): String = "Node($id)"
 	}
+
+	/**
+	 * A node that contains one instance of T
+	 */
 	class ItemNode<T>(id: String, val item: T): Node<T>(id)
+
+	/**
+	 * A node containing a list of T
+	 */
 	class ListNode<T>(id: String, val items: MutableList<T>): Node<T>(id)
 
 	companion object {

@@ -1,5 +1,8 @@
 package com.pineypiney.game_engine.apps.editor
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonElement
+import com.google.gson.JsonParser
 import com.pineypiney.game_engine.apps.editor.component_browser.ComponentBrowser
 import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser
 import com.pineypiney.game_engine.apps.editor.file_browser.files.SavableFiles
@@ -21,7 +24,6 @@ import com.pineypiney.game_engine.objects.components.rendering.TextRendererCompo
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.ResourceKey
@@ -31,19 +33,19 @@ import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
+import com.pineypiney.game_engine.util.serialisation.JsonOps
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
-import glm_.int
 import glm_.pow
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW
-import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -231,7 +233,7 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 	fun selectSceneObject() {
 
 		// Select one of the objects in the scene
-		val allObjects = sceneObjects.map.flatMap { it.value.flatMap { it.catchRenderingComponents() } }
+		val allObjects = sceneObjects.map.flatMap { it.value.flatMap(GameObject::catchRenderingComponents) }
 		var closest: GameObject? = null
 		var minDist: Float = Float.MAX_VALUE
 		val sceneCursor = getSceneCursorPosition(input.mouse.lastPos)
@@ -350,7 +352,11 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 		}
 
 		repositionTransformer()
-		editManager.addEdit(ComponentFieldEdit(editingObject ?: return, this, "${component.id}.${field.id}", field.serialise(component, oldValue), field.serialise(component, newValue)))
+		val oldStream = ByteArrayOutputStream()
+		val newStream = ByteArrayOutputStream()
+		field.codec.encode(oldStream, oldValue)
+		field.codec.encode(newStream, newValue)
+		editManager.addEdit(ComponentFieldEdit(editingObject ?: return, this, "${component.id}.${field.id}", oldStream.toByteArray(), newStream.toByteArray()))
 	}
 
 	fun <C: ContextMenu.Context> setContextMenu(context: C, menu: ContextMenu<C>, pos: Vec2){
@@ -390,6 +396,9 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 		sceneObjects.map.flatMap { it.value }.init()
 		objectBrowser.reset()
 		openFile = file
+
+		renderer.camera.setPos(Vec3(0f, 0f, 5f))
+		renderer.camera.height = 10f
 	}
 
 	fun setEditingWorldPos(newPos: Vec3){
@@ -471,45 +480,41 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 		init {
 			SavableFiles.add("Prefab", "pfb", ByteArray(4), { file, screen ->
 				screen.sceneObjects.map.flatMap { it.value }.firstOrNull()?.let{
-					file.writeText(GameObjectSerializer.serialise(it), Charsets.ISO_8859_1)
+					file.writeText(GameObjectSerializer.serialise(it, JsonOps).toString(), Charsets.ISO_8859_1)
 				}
 			}){ file, screen ->
 				screen.renderer.backgroundColour = Colour(0xFF4f4f4fu)
-				screen.sceneObjects.addObject(GameObjectSerializer.parse(file.inputStream()))
+				screen.sceneObjects.addObject(GameObjectSerializer.parse(file))
 			}
 
 			SavableFiles.add("Scene", "scn", ByteArray(4), { file, screen ->
-				defaultSceneSave(file.outputStream(), screen)
+				file.outputStream().use { defaultSceneSave(it, screen) }
 			}){ file, screen ->
 				screen.renderer.backgroundColour = Colour(0xFF4f4f4fu)
-				defaultSceneParse(file.inputStream(), screen)
+				file.inputStream().use { defaultSceneParse(it, screen) }
 			}
 		}
 
 		fun defaultSceneSave(stream: OutputStream, scene: EditorScreen){
 			val objects = scene.sceneObjects.map.flatMap { it.value }
-			stream.write(ByteData.int2Bytes(objects.size))
+			val array = JsonArray()
 			for(o in objects){
-				val s = GameObjectSerializer.serialise(o)
-				val f = ByteData.int2String(s.length) + s
-				val a = f.toByteArray(Charsets.ISO_8859_1)
-				stream.write(a)
+				val s = GameObjectSerializer.serialise(o, JsonOps)
+				array.add(s)
 			}
+			val writer = stream.writer(Charsets.ISO_8859_1)
+			writer.write(array.toString())
+			writer.close()
 		}
 
 		fun defaultSceneParse(stream: InputStream, scene: EditorScreen){
-			val numObjects = stream.int()
-			val list = mutableListOf<Triple<ComponentI, ComponentField<*>, String>>()
-			repeat(numObjects) {
-				try {
-					val objSize = stream.int()
-					val objData = stream.readNBytes(objSize)
-					val o = GameObjectSerializer.parse(ByteArrayInputStream(objData), null, list, true)
-					scene.sceneObjects.addObject(o)
-				} catch (_: Exception) {
-				}
+			val json = JsonParser.parseReader(stream.reader(Charsets.ISO_8859_1))
+			val list = mutableListOf<Triple<Any, ComponentField<*>, JsonElement>>()
+			JsonOps.forEach(json) { objData ->
+				val o = GameObjectSerializer.parse(JsonOps, objData, null, list)
+				scene.sceneObjects.addObject(o)
 			}
-			for((comp, field, str) in list) field.set(str, comp)
+			for ((_, field, data) in list) field.set(JsonOps, data)
 		}
 
 		fun getSceneBox(settings: EditorSettings, window: WindowI): Viewport {

@@ -203,11 +203,11 @@ class ShaderLoader private constructor() : Deletable {
 			openglCode = openglCode.replace("gl_InstanceIndex", "gl_InstanceID")
 
 
-			val id = createShaderFromString(openglCode, stage, name)
+			val handle = createShaderFromString(openglCode, stage, name)
 
 			val uniforms = compileUniforms(code)
 
-			return SubShader(name, id, uniforms.toMap())
+			return SubShader(name, handle, uniforms.toMap())
 
 		}
 
@@ -235,12 +235,12 @@ class ShaderLoader private constructor() : Deletable {
 			val ID = glCreateProgram()
 
 			// Shader Program
-			glAttachShader(ID, vertexShader.id)
-			glAttachShader(ID, fragmentShader.id)
-			val name = StringBuilder("${vertexShader.name} x ${fragmentShader.name}")
+			glAttachShader(ID, vertexShader.handle)
+			glAttachShader(ID, fragmentShader.handle)
+			val name = StringBuilder("${vertexShader.id} x ${fragmentShader.id}")
 			for ((_, subshader) in optionalShaders) {
-				glAttachShader(ID, subshader.id)
-				name.append(" x ${subshader.name}")
+				glAttachShader(ID, subshader.handle)
+				name.append(" x ${subshader.id}")
 			}
 			glLinkProgram(ID)
 
@@ -256,7 +256,7 @@ class ShaderLoader private constructor() : Deletable {
 
 		fun generateComputeShaderOpenGl(name: String, shader: SubShader): ComputeShader {
 			val ID = glCreateProgram()
-			glAttachShader(ID, shader.id)
+			glAttachShader(ID, shader.handle)
 			glLinkProgram(ID)
 			checkCompileErrorsOpenGl(ID, null, name)
 			return ComputeShader(ID, name, shader.uniforms)
