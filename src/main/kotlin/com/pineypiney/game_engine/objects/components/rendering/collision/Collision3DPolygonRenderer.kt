@@ -6,16 +6,14 @@ import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedCom
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
-import com.pineypiney.game_engine.rendering.meshes.opengl.ArrayMesh
+import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlArrayMesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.shapes.Shape3D
 import com.pineypiney.game_engine.util.maths.shapes.Triangle3D
 import com.pineypiney.game_engine.util.maths.shapes.TriangulatedSolid
 import glm_.vec4.Vec4
-import org.lwjgl.opengl.GL11C
 
 class Collision3DPolygonRenderer(parent: GameObject, val obj: GameObject, val width: Float = .05f, val colour: Vec4 = Vec4(1f), shader: RenderShader = defaultShader) :
 	ShaderRenderedComponent(parent, shader) {
@@ -30,19 +28,19 @@ class Collision3DPolygonRenderer(parent: GameObject, val obj: GameObject, val wi
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		GLFunc.lineWidth = width
-		mesh.bindAndDraw(renderer.getRenderingApi(), GL11C.GL_LINE_LOOP)
+		shader.draw("vertexBuffer", mesh, renderer)
+//		mesh.bindAndDraw(renderer.getRenderingApi(), GL11C.GL_LINE_LOOP)
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	companion object {
-		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/collider"))
+		val defaultShader = ShaderLoader.get(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/collider"))
 
 		fun createMesh(shape: Shape3D): Mesh {
 			when(shape){
-				is Triangle3D -> return ArrayMesh(shape.points.flatMap { listOf(it.x, it.y, it.z) }.toFloatArray(), setOf(VertexAttribute.POSITION))
-				is TriangulatedSolid -> return ArrayMesh(shape.triangles.flatMap { tri -> tri.points.flatMap { listOf(it.x, it.y, it.z) } }.toFloatArray(), setOf(VertexAttribute.POSITION))
+				is Triangle3D -> return OpenGlArrayMesh(shape.points.flatMap { listOf(it.x, it.y, it.z) }.toFloatArray(), setOf(VertexAttribute.POSITION))
+				is TriangulatedSolid -> return OpenGlArrayMesh(shape.triangles.flatMap { tri -> tri.points.flatMap { listOf(it.x, it.y, it.z) } }.toFloatArray(), setOf(VertexAttribute.POSITION))
 			}
 			return Mesh.centerSquareShape
 		}

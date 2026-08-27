@@ -1,12 +1,26 @@
 // FRAGMENT SHADER INFORMATION
-#version 400 core
+#version 430 core
 
+#ifdef OPENGL
 in vec2 texCoords;
 
 uniform float green;
 uniform float blue;
 
 out vec4 FragColour;
+#endif
+
+
+#ifdef VULKAN
+layout(location = 1) in vec2 texCoords;
+
+layout(push_constant) uniform Data {
+	layout(offset = 80) float green;
+	float blue;
+};
+
+layout(location = 0) out vec4 FragColour;
+#endif
 
 void main(){
 	FragColour = vec4(texCoords.x, green, blue, 1.0);

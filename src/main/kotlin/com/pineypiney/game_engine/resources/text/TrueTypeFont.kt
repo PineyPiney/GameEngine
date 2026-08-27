@@ -1,13 +1,13 @@
 package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.rendering.TextureCopyFramebuffer
-import com.pineypiney.game_engine.rendering.meshes.TextMesh
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
+import com.pineypiney.game_engine.util.extension_functions.delete
+import com.pineypiney.game_engine.util.text.TextData
 import glm_.c
 import glm_.f
 import glm_.vec2.Vec2
@@ -15,6 +15,7 @@ import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 import glm_.vec4.swizzle.xy
 import glm_.vec4.swizzle.zw
+import org.lwjgl.vulkan.VK10
 import java.awt.Shape
 import java.awt.font.FontRenderContext
 import java.awt.geom.Rectangle2D
@@ -60,8 +61,10 @@ class TrueTypeFont(
 		return 1f + (text.count { it == '\n' } * lineSpacing)
 	}
 
-	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextMesh {
-		val list = mutableListOf<TextMesh.CharacterQuad>()
+	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextData {
+		if (text.isEmpty()) return TextData(null)
+
+		val list = mutableListOf<TextData.CharacterQuad>()
 		val glyph = font.createGlyphVector(ctx, text)
 
 		val (alignX, alignY) = getAlignmentOffset(text, bounds, alignment)
@@ -78,7 +81,7 @@ class TrueTypeFont(
 			list.add(createChar(bounds, Vec2(alignX[line] + xOffset, alignY - line.toFloat()), dimensions[text[i]] ?: continue))
 		}
 
-		return TextMesh(list.toTypedArray(), texture, true)
+		return TextData(ResourceFactory.INSTANCE, text, list.toTypedArray(), texture, true)
 	}
 
 	fun getOutline(string: String): Shape {
@@ -95,12 +98,13 @@ class TrueTypeFont(
 		val height = textures.maxOf { it.value.height }
 		val invWidth = 1f / width
 		val invHeight = 1f / height
-		val texture = factory.createTexture2D("", width, height, TextureFormat.RGB8, TextureFormat.R8, null, TextureParameters())
+		val texture = factory.createTexture2D("$name Font Text", width, height, TextureFormat.R8, TextureFormat.R8, null, TextureParameters(layout = VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
 		var x = 0
 		val dimensions = mutableMapOf<Char, Vec4>()
 
-		val copier = TextureCopyFramebuffer()
+		val copier = texture.createCopier()
 		copier.init()
+		copier.start()
 		copier.setDst(texture)
 		for((c, t) in textures){
 			if(t.width == 0 || t.height == 0) continue
@@ -118,17 +122,17 @@ class TrueTypeFont(
 			dimensions[c] = Vec4(x * invWidth, 0f, (x + charBounds.width.toFloat() * 200f) * invWidth, charBounds.height.toFloat() * 200f * invHeight)
 			x += t.width
 		}
+		copier.execute()
 		copier.delete()
-		texture.unbind()
 
 		return texture to dimensions
 	}
 
-	fun createChar(bounds: Rectangle2D, offset: Vec2, textureDimensions: Vec4): TextMesh.CharacterQuad {
+	fun createChar(bounds: Rectangle2D, offset: Vec2, textureDimensions: Vec4): TextData.CharacterQuad {
 		val width = bounds.width.f.let { if (it == 0f) 0.2f else it }
 		val height = bounds.height.f.let { if (it == 0f) 0.2f else it }
 		val pos = Vec2(bounds.x, -(bounds.y + bounds.height)) + offset
-		return TextMesh.CharacterQuad(pos, Vec2(width, height) + pos, textureDimensions.xy, textureDimensions.zw)
+		return TextData.CharacterQuad(pos, Vec2(width, height) + pos, textureDimensions.xy, textureDimensions.zw)
 	}
 
 	fun getTexture(char: Char): Texture2D {
@@ -144,6 +148,6 @@ class TrueTypeFont(
 	}
 
 	override fun delete() {
-
+		textures.delete()
 	}
 }

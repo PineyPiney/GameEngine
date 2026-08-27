@@ -15,8 +15,6 @@ interface ComponentI : Initialisable {
 
 	fun getAllFields(): Set<ComponentField<*>>
 
-	fun setValue(key: String, value: String)
-
 	fun <F : ComponentField<*>> getField(id: String): F?
 
 	@Throws(InstantiationError::class)

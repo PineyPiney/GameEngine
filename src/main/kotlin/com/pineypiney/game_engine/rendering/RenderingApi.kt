@@ -1,5 +1,7 @@
 package com.pineypiney.game_engine.rendering
 
+import com.pineypiney.game_engine.resources.shaders.StencilOp
+import com.pineypiney.game_engine.resources.shaders.parameters.CompareOp
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipeline
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.window.Viewport
@@ -7,7 +9,7 @@ import com.pineypiney.game_engine.window.Viewport
 interface RenderingApi {
 
 	fun bindShader(handle: Int)
-	fun bindPipeline(handle: Long, bindPoint: Int)
+	fun bindPipeline(pipeline: VulkanPipeline)
 
 	fun bindTextureToPipeline(pipeline: VulkanPipeline, uniformName: String, texture: Texture)
 	fun updateUniforms(pipeline: VulkanPipeline)
@@ -22,5 +24,11 @@ interface RenderingApi {
 	fun drawIndexedInstanced(indexCount: Int, drawMode: Int, instanceCount: Int, firstIndex: Int = 0, firstInstance: Int = 0)
 
 	fun setViewport(viewport: Viewport)
+	fun clearStencil(value: Int)
+	fun disableStencil()
+	fun setStencil(enabled: Boolean, reference: Int, mask: Int, failOp: StencilOp, passOp: StencilOp, depthFailOp: StencilOp, compare: CompareOp)
+	fun setStencilComparison(reference: Int, mask: Int, compare: CompareOp)
+	fun setStencilOperations(failOp: StencilOp, passOp: StencilOp, depthFailOp: StencilOp)
+	fun setStencilWriteMask(mask: Int)
 	fun setScissors(viewport: Viewport)
 }

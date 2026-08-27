@@ -28,7 +28,7 @@ class FPSCounter(parent: GameObject, var period: Double, val callback: (Double) 
 	}
 
 	companion object {
-		fun createCounterWithText(obj: GameObject, period: Double, format: String, params: Text.Params): GameObject{
+		fun createCounterWithText(obj: GameObject, period: Double, format: String = "FPS: $", params: Text.Params = Text.Params()): GameObject {
 			val textChild = Text.makeMenuText("FPS", params)
 			obj.addChild(textChild)
 			obj.components.add(FPSCounter(obj, period){

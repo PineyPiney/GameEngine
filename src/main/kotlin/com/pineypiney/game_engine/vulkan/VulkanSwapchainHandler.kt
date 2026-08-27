@@ -20,7 +20,7 @@ class VulkanSwapchainHandler(val device: VulkanDevice, val buffer: LongBuffer, v
 		if (err == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR || err == KHRSwapchain.VK_SUBOPTIMAL_KHR) {
 			return null
 		}
-		if (VkUtil.isError(err)) {
+		if (VkUtil.isFail(err)) {
 			pImageIndex.put(0, 0)
 		}
 		val image = images[imageIndex]

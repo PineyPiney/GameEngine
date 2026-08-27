@@ -6,7 +6,6 @@ import com.pineypiney.game_engine.objects.components.UpdatingComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
 import com.pineypiney.game_engine.util.CollectionMap
-import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.filterIsInstance
 import com.pineypiney.game_engine.util.extension_functions.forEachInstance
 
@@ -104,7 +103,7 @@ open class ObjectCollection() {
 	}
 
 	fun delete() {
-		getAllObjects().delete()
+		for ((_, layer) in map) layer.delete()
 	}
 
 	fun find(name: String): GameObject?{

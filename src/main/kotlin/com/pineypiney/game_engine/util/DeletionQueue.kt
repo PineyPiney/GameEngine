@@ -63,4 +63,14 @@ open class DeletionQueue {
 			array.deleteArray()
 		}
 	}
+
+	companion object {
+
+		var GLOBAL: DeletionQueue = DeletionQueue(); private set
+
+		fun setGlobalQueue(queue: DeletionQueue) {
+			GLOBAL.flush()
+			GLOBAL = queue
+		}
+	}
 }

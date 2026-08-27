@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.vr
 
-import com.pineypiney.game_engine.rendering.Framebuffer
+import com.pineypiney.game_engine.rendering.opengl.Framebuffer
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import org.lwjgl.opengl.GL11C.GL_RGBA
 import org.lwjgl.opengl.GL12

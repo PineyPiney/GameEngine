@@ -6,19 +6,19 @@ import com.pineypiney.game_engine.objects.components.fields.IntFieldRange
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox2DRenderer
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.models.Bone
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.resources.shaders.parameters.PolygonMode
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.Collider2D
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import org.lwjgl.opengl.GL11C
 
 open class ModelRendererComponent(parent: GameObject, var model: Model = Model.missing, shader: RenderShader = defaultShader) :
 	ShaderRenderedComponent(parent, shader) {
@@ -30,6 +30,9 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 	protected var nextAnimation: String = "Still"
 
 	var erp: String = "lerp"
+
+	val queue = DeletionQueue()
+	val wireframeShader = ShaderLoader[ResourceKey(shader.vertex.getName()), ResourceKey(shader.fragment.getName()), RenderShaderParameters(fillMode = PolygonMode.LINE), queue]
 
 	@IntFieldRange(0, 7)
 	var debug = 0
@@ -45,20 +48,15 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		updateAnimation()
-		val api = renderer.getRenderingApi()
 
 		if(debug and Model.DEBUG_WIREFRAME > 0) {
-			val wireframeShader = ShaderLoader[ResourceKey(shader.vertex.id), ResourceKey("fragment/colour_opaque")]
 			wireframeShader.setUp(uniforms, renderer)
 			wireframeShader.setVec3("colour", Vec3(0f))
-			GLFunc.polygonMode = GL11C.GL_LINE
 			for (mesh in model.meshes) {
 				val newModel = parent.worldModel * mesh.transform
 				wireframeShader.setMat4("model", newModel)
-				mesh.bindAndDraw(api)
+				shader.draw("vertexBuffer", mesh, renderer)
 			}
-			GLFunc.polygonMode = GL11C.GL_FILL
-			wireframeShader.delete()
 		}
 
 
@@ -71,11 +69,10 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 			mesh.setMaterialUniforms(shader)
 			val newModel = parent.worldModel * mesh.transform
 			shader.setMat4("model", newModel)
-
-			mesh.bindAndDraw(api)
+			shader.draw("vertexBuffer", mesh, renderer)
 		}
 
-		if (debug and Model.DEBUG_BONES > 0) renderBones(api, parent, renderer.view, renderer.projection)
+		if (debug and Model.DEBUG_BONES > 0) renderBones(renderer, parent, renderer.view, renderer.projection)
 		val renderer = parent.getChild(parent.name + " Collider Renderer")?.renderer
 		if(debug and Model.DEBUG_COLLIDER > 0){
 			if(renderer == null) {
@@ -94,18 +91,17 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 		shader.setLightUniforms(parent)
 	}
 
-	fun renderBones(renderingApi: RenderingApi, parent: GameObject, view: Mat4, projection: Mat4) {
+	fun renderBones(renderer: RendererI, parent: GameObject, view: Mat4, projection: Mat4) {
 		// Render Bones
-		Mesh.centerSquareShape.bind(renderingApi)
 		val boneShader = Bone.boneShader
 
-		boneShader.use()
+		boneShader.use(renderer.getRenderingApi())
 		boneShader.setMat4("view", view)
 		boneShader.setMat4("projection", projection)
 
 		val bones: List<Bone> = model.rootBone?.getAllChildren() ?: listOf()
 		for (it in bones) {
-			it.render(renderingApi, boneShader, parent.worldModel)
+			it.render(renderer, boneShader, parent.worldModel)
 		}
 	}
 
@@ -152,18 +148,23 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 		}
 	}
 
+	override fun delete() {
+		super.delete()
+		queue.flush()
+	}
+
 	@Suppress("UNUSED")
 	companion object {
-		val bonelessShader = ShaderLoader.getShader(ResourceKey("vertex/model_boneless"), ResourceKey("fragment/model"))
-		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/model"))
-		val defaultLitShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/lit_model"))
+		val bonelessShader = ShaderLoader[ResourceKey("vertex/model_boneless"), ResourceKey("fragment/model")]
+		val defaultShader = ShaderLoader[ResourceKey("vertex/model"), ResourceKey("fragment/model")]
+		val defaultLitShader = ShaderLoader[ResourceKey("vertex/model"), ResourceKey("fragment/lit_model")]
 
-		val bonelessPbrShader = ShaderLoader.getShader(ResourceKey("vertex/model_boneless"), ResourceKey("fragment/pbr_lit_model"))
-		val pbrShader = ShaderLoader.getShader(ResourceKey("vertex/model"), ResourceKey("fragment/pbr_lit_model"))
-		val tangentBonesShader = ShaderLoader.getShader(ResourceKey("vertex/tangent_bones_model"), ResourceKey("fragment/model"))
+		val bonelessPbrShader = ShaderLoader[ResourceKey("vertex/model_boneless"), ResourceKey("fragment/pbr_lit_model")]
+		val pbrShader = ShaderLoader[ResourceKey("vertex/model"), ResourceKey("fragment/pbr_lit_model")]
+		val tangentBonesShader = ShaderLoader[ResourceKey("vertex/tangent_bones_model"), ResourceKey("fragment/model")]
 
 
-        val debugTrisShader = ShaderLoader.getShader(ResourceKey("vertex/tangent_bones_model"), ResourceKey("fragment/colour_primitives"))
-        val debugWeightsShader = ShaderLoader.getShader(ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights"))
+		val debugTrisShader = ShaderLoader[ResourceKey("vertex/tangent_bones_model"), ResourceKey("fragment/colour_primitives")]
+		val debugWeightsShader = ShaderLoader[ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights")]
 	}
 }

@@ -1,9 +1,12 @@
 package com.pineypiney.game_engine.resources.textures.vulkan
 
+import com.pineypiney.game_engine.rendering.TextureCopier
+import com.pineypiney.game_engine.rendering.vulkan.VulkanTextureCopier
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.vulkan.*
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import kool.free
 import org.lwjgl.system.MemoryStack
@@ -22,16 +25,6 @@ interface VulkanImage : Texture {
 
 	val extents: Vec3i get() = Vec3i(width, height, depth)
 
-	override fun getTextureBinding(): Int = 0
-
-	override fun bind() {
-
-	}
-
-	override fun unbind() {
-
-	}
-
 	override fun clear() {
 
 	}
@@ -41,9 +34,21 @@ interface VulkanImage : Texture {
 	}
 
 	override fun getData(format: TextureFormat): ByteBuffer {
-		val submitter = VulkanImmediateSubmitter(device, device.getQueue(0))
-		val data = fetchData(submitter)
-		submitter.delete()
+		val data: ByteBuffer =
+			if (this.format.pixelSize == format.pixelSize) VulkanImmediateSubmitter.submitAndFetch(device, VmaBuffer::getBuffer) { cmd -> fetchData(cmd, VK10.VK_IMAGE_ASPECT_COLOR_BIT) }
+			else {
+				val usage = parameters.usage.vulkan or
+						VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT or
+						VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT
+				val converted = VkUtil.createImage(device, "$id converted", format, usage, VK10.VK_IMAGE_ASPECT_COLOR_BIT, Vec2i(width, height))
+				val d = VulkanImmediateSubmitter.submitAndFetch(device, VmaBuffer::getBuffer) { cmd ->
+					converted.transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+					copyTo(cmd, converted)
+					converted.fetchData(cmd, VK10.VK_IMAGE_ASPECT_COLOR_BIT)
+				}
+				converted.delete()
+				d
+			}
 		return data
 	}
 
@@ -61,8 +66,7 @@ interface VulkanImage : Texture {
 			.memoryTypeIndex(device.physicalDevice.getMemoryType(requirements.memoryTypeBits(), propertyFlags))
 	}
 
-	fun transition(cmd: PoolAndBuffer, newLayout: Int, keepData: Boolean = true) {
-		val aspectMask = if (newLayout == VK12.VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) VK10.VK_IMAGE_ASPECT_DEPTH_BIT else VK10.VK_IMAGE_ASPECT_COLOR_BIT
+	fun transition(cmd: PoolAndBuffer, newLayout: Int, keepData: Boolean = true, aspectMask: Int = getImageAspect(newLayout)) {
 
 		MemoryStack.stackPush().use { stack ->
 			val imageBarrier = VkImageMemoryBarrier2.calloc(1, stack)
@@ -112,7 +116,7 @@ interface VulkanImage : Texture {
 
 	fun uploadData(cmd: PoolAndBuffer, x: Int, y: Int, z: Int, w: Int, h: Int, d: Int, format: TextureFormat, data: ByteBuffer) {
 		val dataSize = w * h * d * 4
-		val uploadBuffer = VmaBuffer.create(device, dataSize.toLong(), VK10.VK_BUFFER_USAGE_TRANSFER_SRC_BIT, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU)
+		val uploadBuffer = VmaBuffer.create(device, dataSize.toLong(), VK10.VK_BUFFER_USAGE_TRANSFER_SRC_BIT, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU, "$id Upload")
 		cmd.deletion.push(uploadBuffer)
 
 		uploadBuffer.getBuffer(dataSize).put(0, data, 0, data.limit())
@@ -134,7 +138,7 @@ interface VulkanImage : Texture {
 			}
 		} else {
 			MemoryStack.stackPush().use { stack ->
-				val blitImage = VkUtil.createImage3D(device, "Blit Image", VK10.VK_IMAGE_TYPE_2D, format, 19, VK10.VK_IMAGE_ASPECT_COLOR_BIT, Vec3i(w, h, d))
+				val blitImage = VkUtil.createImage3D(device, "Blit Image", format, 19, VK10.VK_IMAGE_ASPECT_COLOR_BIT, Vec3i(w, h, d))
 				val regions = VkBufferImageCopy.calloc(1, stack)
 					.bufferOffset(0)
 					.bufferRowLength(0)
@@ -156,33 +160,33 @@ interface VulkanImage : Texture {
 		uploadData(cmd, 0, 0, 0, width, height, depth, format, data)
 	}
 
-	fun fetchData(submitter: VulkanImmediateSubmitter, x: Int, y: Int, z: Int, w: Int, h: Int, d: Int): ByteBuffer {
-		val dataSize = w * h * d * 4
+	fun fetchData(cmd: PoolAndBuffer, x: Int, y: Int, z: Int, w: Int, h: Int, d: Int, aspect: Int): VmaBuffer {
+		val dataSize = w * h * d * format.pixelSize
+		val layout = layout
+
+		transition(cmd, if (format.name[0] == 'D') VK10.VK_IMAGE_LAYOUT_GENERAL else VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, true, getImageAspect(layout))
+
 		MemoryStack.stackPush().use { stack ->
-			val fetchBuffer = VmaBuffer.create(device, stack, dataSize.toLong(), VK10.VK_BUFFER_USAGE_TRANSFER_DST_BIT, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU)
-			submitter.submitImmediate { cmd ->
-				transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+			val fetchBuffer = VmaBuffer.create(device, stack, dataSize.toLong(), VK10.VK_BUFFER_USAGE_TRANSFER_DST_BIT, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU, "$id Data")
 
-				val regions = VkBufferImageCopy.calloc(1, stack)
-					.bufferOffset(0)
-					.bufferRowLength(0)
-					.bufferImageHeight(0)
+			val regions = VkBufferImageCopy.calloc(1, stack)
+				.bufferOffset(0)
+				.bufferRowLength(0)
+				.bufferImageHeight(0)
 
-					.imageSubresource(VkStructs.createImageLayers(stack, VK10.VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1))
-					.imageOffset(VkOffset3D.calloc(stack).set(x, y, z))
-					.imageExtent(VkExtent3D.calloc(stack).set(w, h, d))
-				cmd.copyImageToBuffer(fetchBuffer, this, regions)
+				.imageSubresource(VkStructs.createImageLayers(stack, aspect, 0, 0, 1))
+				.imageOffset(VkOffset3D.calloc(stack).set(x, y, z))
+				.imageExtent(VkExtent3D.calloc(stack).set(w, h, d))
+			cmd.copyImageToBuffer(fetchBuffer, this, regions)
 
-				transition(cmd, VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-			}
-			val buffer = stack.malloc(dataSize).put(fetchBuffer.getBuffer(dataSize)).flip()
-			fetchBuffer.delete()
-			return buffer
+			transition(cmd, layout)
+
+			return fetchBuffer
 		}
 	}
 
-	fun fetchData(submitter: VulkanImmediateSubmitter): ByteBuffer {
-		return fetchData(submitter, 0, 0, 0, width, height, depth)
+	fun fetchData(cmd: PoolAndBuffer, aspect: Int): VmaBuffer {
+		return fetchData(cmd, 0, 0, 0, width, height, depth, aspect)
 	}
 
 	fun getData(pixelSize: Int): ByteBuffer {
@@ -190,13 +194,13 @@ interface VulkanImage : Texture {
 
 		val allocateInfo = getMemoryAllocateInfo(VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
 		val memPointer = MemoryUtil.memAllocLong(1)
-		VkUtil.processError(VK13.vkAllocateMemory(device.device, allocateInfo, null, memPointer), "Failed to allocate image memory")
+		VkUtil.processResult(VK13.vkAllocateMemory(device.device, allocateInfo, null, memPointer), "Failed to allocate image memory")
 		val memory = memPointer[0]
 		memPointer.free()
-		VkUtil.processError(VK13.vkBindImageMemory(device.device, image, memory, 0), "Failed to bind image memory")
+		VkUtil.processResult(VK13.vkBindImageMemory(device.device, image, memory, 0), "Failed to bind image memory")
 
 		val dataPointer = MemoryUtil.memAllocPointer(1)
-		VkUtil.processError(VK13.vkMapMemory(device.device, image, 0, bytes.toLong(), 0, dataPointer), "Failed to map image data")
+		VkUtil.processResult(VK13.vkMapMemory(device.device, image, 0, bytes.toLong(), 0, dataPointer), "Failed to map image data")
 		val data = MemoryUtil.memAlloc(bytes)
 			.put(dataPointer.getByteBuffer(bytes))
 			.flip()
@@ -206,4 +210,21 @@ interface VulkanImage : Texture {
 	}
 
 	fun getSampler() = device.getOrCreateSampler(parameters)
+
+	override fun createCopier(): TextureCopier = VulkanTextureCopier(device)
+
+	companion object {
+		fun getImageAspect(layout: Int) = when (layout) {
+			VK12.VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL -> VK10.VK_IMAGE_ASPECT_DEPTH_BIT
+			VK12.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL -> VK10.VK_IMAGE_ASPECT_DEPTH_BIT or VK10.VK_IMAGE_ASPECT_STENCIL_BIT
+			VK12.VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL -> VK10.VK_IMAGE_ASPECT_STENCIL_BIT
+			else -> VK10.VK_IMAGE_ASPECT_COLOR_BIT
+		}
+
+		fun getImageAspect(format: TextureFormat) = when (format) {
+			TextureFormat.DEPTH24_STENCIL8, TextureFormat.DEPTH32F_STENCIL8U -> VK10.VK_IMAGE_ASPECT_DEPTH_BIT or VK10.VK_IMAGE_ASPECT_STENCIL_BIT
+			TextureFormat.DEPTH16, TextureFormat.DEPTH24, TextureFormat.DEPTH32, TextureFormat.DEPTH32F -> VK10.VK_IMAGE_ASPECT_DEPTH_BIT
+			else -> VK10.VK_IMAGE_ASPECT_COLOR_BIT
+		}
+	}
 }

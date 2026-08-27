@@ -1,12 +1,13 @@
 package com.pineypiney.game_engine.resources.text
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.rendering.meshes.TextMesh
 import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.text.Text
+import com.pineypiney.game_engine.util.text.TextData
 import glm_.vec2.Vec2
 
 abstract class Font : Resource {
@@ -22,7 +23,7 @@ abstract class Font : Resource {
 	abstract fun getHeight(text: String): Float
 	fun getSize(text: String): Vec2 = Vec2(getWidth(text), getHeight(text))
 
-	abstract fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextMesh
+	abstract fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextData
 
 	fun getAlignmentOffset(text: String, bounds: Vec2, alignment: Int): Pair<FloatArray, Float>{
 
@@ -50,7 +51,7 @@ abstract class Font : Resource {
 	}
 
 	companion object {
-		val fontShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/text")]
+		val fontShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/text"), RenderShaderParameters(depthTestOp = null)]
 		val defaultFont: Font; get() = FontLoader[ResourceKey(GameEngineI.defaultFont)]
 	}
 }

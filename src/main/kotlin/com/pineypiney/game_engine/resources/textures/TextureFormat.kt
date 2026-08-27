@@ -1,10 +1,11 @@
 package com.pineypiney.game_engine.resources.textures
 
+import com.pineypiney.game_engine.util.ApiEnum
 import org.lwjgl.opengl.GL41C.*
 import org.lwjgl.vulkan.VK10
 
 // https://gist.github.com/Kos/4739337
-enum class TextureFormat(val opengl: Int, val openglLayout: Int, val pixelType: Int, val vulkan: Int, val pixelSize: Int) {
+enum class TextureFormat(override val opengl: Int, val openglLayout: Int, val pixelType: Int, override val vulkan: Int, val pixelSize: Int) : ApiEnum {
 
 	R_DEFAULT(GL_RED, GL_RED, GL_UNSIGNED_BYTE, VK10.VK_FORMAT_R8_UNORM, 1),
 	R8(GL_R8, GL_RED, GL_UNSIGNED_BYTE, VK10.VK_FORMAT_R8_UNORM, 1),
@@ -65,8 +66,8 @@ enum class TextureFormat(val opengl: Int, val openglLayout: Int, val pixelType: 
 	RGBA12(GL_RGBA12, GL_RGBA, GL_UNSIGNED_SHORT, VK10.VK_FORMAT_R16G16B16A16_UNORM, 8),
 	RGBA16(GL_RGBA16, GL_RGBA, GL_UNSIGNED_SHORT, VK10.VK_FORMAT_R16G16B16A16_UNORM, 8),
 
-	RGBA16F(GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT, VK10.VK_FORMAT_R32G32B32A32_SFLOAT, 16),
-	RGBA32F(GL_RGBA32F, GL_RGBA, GL_FLOAT, VK10.VK_FORMAT_R8G8B8A8_SNORM, 4),
+	RGBA16F(GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT, VK10.VK_FORMAT_R16G16B16A16_SFLOAT, 8),
+	RGBA32F(GL_RGBA32F, GL_RGBA, GL_FLOAT, VK10.VK_FORMAT_R32G32B32A32_SFLOAT, 16),
 	RGBA8_SNORM(GL_RGBA8_SNORM, GL_RGBA, GL_BYTE, VK10.VK_FORMAT_R8G8B8A8_SNORM, 4),
 	BGRA8_SNORM(GL_RGBA8_SNORM, GL_BGRA, GL_BYTE, VK10.VK_FORMAT_B8G8R8A8_SNORM, 4),
 	RGBA16_SNORM(GL_RGBA16_SNORM, GL_RGBA, GL_SHORT, VK10.VK_FORMAT_R16G16B16A16_SNORM, 8),
@@ -96,6 +97,7 @@ enum class TextureFormat(val opengl: Int, val openglLayout: Int, val pixelType: 
 
 	companion object {
 		fun fromGlConst(value: Int): TextureFormat? {
+			GL_DEPTH32F_STENCIL8
 			return TextureFormat.entries.firstOrNull { it.opengl == value }
 		}
 

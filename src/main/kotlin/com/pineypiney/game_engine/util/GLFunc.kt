@@ -9,11 +9,9 @@ import glm_.vec4.Vec4i
 import kool.DoubleBuffer
 import kool.FloatBuffer
 import kool.IntBuffer
+import kool.pos
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11C.GL_FILL
-import org.lwjgl.opengl.GL11C.GL_LINE
-import org.lwjgl.opengl.GL11C.GL_POINT
 import org.lwjgl.opengl.GL43C.*
 import java.nio.ByteBuffer
 import java.nio.DoubleBuffer
@@ -184,7 +182,13 @@ object GLFunc {
 	val maxAtomicCounterBufferSize: Int get() = glGetInteger(GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE)
 
 	/** Maximum amount of work groups per compute shader */
-	val maxComputeWorkGroupSize: Int get() = glGetInteger(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS)
+	val maxComputeWorkGroupInvocations: Int get() = glGetInteger(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS)
+
+	/** Maximum amount of work groups per compute shader */
+	val maxComputeWorkGroupSize: Vec3i get() = Vec3i(getIntsIndexed(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 3))
+
+	/** Maximum amount of work groups per compute shader */
+	val maxComputeWorkGroupCount: Vec3i get() = Vec3i(getIntsIndexed(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 3))
 
 	/** Maximum amount of vertices in each patch in tessellation shaders */
 	val maxPatchVertices: Int get() = glGetInteger(GL_MAX_PATCH_VERTICES)
@@ -199,7 +203,8 @@ object GLFunc {
 		return when (dataType) {
 			GL_BYTE, GL_UNSIGNED_BYTE -> 1
 			GL_SHORT, GL_UNSIGNED_SHORT -> 2
-			GL_INT, GL_UNSIGNED_INT, GL_FLOAT, GL_DOUBLE -> 4
+			GL_INT, GL_UNSIGNED_INT, GL_FLOAT -> 4
+			GL_DOUBLE -> 8
 			else -> 0
 		}
 	}
@@ -223,6 +228,15 @@ object GLFunc {
 		glGetIntegerv(param, array)
 
 		return array
+	}
+
+	fun getIntsIndexed(param: Int, size: Int): IntBuffer {
+		val buffer = BufferUtils.createIntBuffer(size)
+		repeat(size) {
+			glGetIntegeri_v(param, it, buffer)
+			buffer.pos++
+		}
+		return buffer.flip()
 	}
 
 	fun getBools(param: Int, size: Int): BooleanArray {
@@ -270,4 +284,6 @@ object GLFunc {
 		val version = version
 		return version.x > major || (version.x == major && version.y >= minor)
 	}
+
+	fun genFrameBuffer() = if (isLoaded) glGenFramebuffers() else -1
 }

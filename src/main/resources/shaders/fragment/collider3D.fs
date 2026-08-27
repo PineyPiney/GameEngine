@@ -1,12 +1,27 @@
 // FRAGMENT SHADER INFORMATION
-#version 400 core
+#version 430 core
 
+#ifdef OPENGL
 in vec3 pos;
 
 uniform vec4 colour;
 uniform mat4 model;
 
 out vec4 FragColour;
+#endif
+
+
+#ifdef VULKAN
+layout(location = 0) in vec3 pos;
+
+layout(push_constant) uniform Data {
+	layout(offset = 80) mat4 model;
+	vec4 colour;
+};
+
+layout(location = 0) out vec4 FragColour;
+#endif
+
 
 void main(){
 	float sizeX = model[0][0];

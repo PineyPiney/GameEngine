@@ -8,14 +8,14 @@ interface SerialOps<E> {
 	fun missing(): E
 	fun parse(reader: Reader): E
 
-	fun readBool(input: E?): Boolean
-	fun readByte(input: E?): Byte
-	fun readShort(input: E?): Short
-	fun readInt(input: E?): Int
-	fun readLong(input: E?): Long
-	fun readFloat(input: E?): Float
-	fun readDouble(input: E?): Double
-	fun readString(input: E?): String
+	fun readBool(input: E): Boolean
+	fun readByte(input: E): Byte
+	fun readShort(input: E): Short
+	fun readInt(input: E): Int
+	fun readLong(input: E): Long
+	fun readFloat(input: E): Float
+	fun readDouble(input: E): Double
+	fun readString(input: E): String
 
 	fun writeBool(input: Boolean): E
 	fun writeByte(input: Byte): E
@@ -27,8 +27,8 @@ interface SerialOps<E> {
 	fun writeNumber(input: Number): E
 	fun writeString(input: String): E
 
-	fun readInts(input: E?): Iterable<Int>
-	fun readFloats(input: E?): Iterable<Float>
+	fun readInts(input: E): Iterable<Int>
+	fun readFloats(input: E): Iterable<Float>
 
 	fun writeInts(input: Iterable<Int>): E
 	fun writeFloats(input: Iterable<Float>): E

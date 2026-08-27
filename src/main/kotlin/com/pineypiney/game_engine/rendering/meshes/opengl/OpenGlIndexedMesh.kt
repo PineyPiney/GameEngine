@@ -70,8 +70,8 @@ open class OpenGlIndexedMesh protected constructor(override val attributes: Map<
 		return array
 	}
 
-	override fun bind(api: RenderingApi) {
-		super.bind(api)
+	override fun bind() {
+		super.bind()
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
 	}
 

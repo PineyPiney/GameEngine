@@ -2,6 +2,7 @@
 package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.util.DeletionQueue
 import mu.KotlinLogging
 
 interface GameEngineI<E : GameLogicI> : Runnable {
@@ -9,6 +10,8 @@ interface GameEngineI<E : GameLogicI> : Runnable {
 	val resourcesLoader: ResourcesLoader
 
 	val timer: Timer
+
+	val deletionQueue: DeletionQueue
 
 	val activeScreen: E
 

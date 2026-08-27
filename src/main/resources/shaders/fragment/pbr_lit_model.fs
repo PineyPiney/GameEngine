@@ -1,16 +1,10 @@
 // FRAGMENT SHADER INFORMATION
-#version 400 core
+#version 430 core
 #define NR_POINT_LIGHTS 4
 
 struct Material{
-	sampler2D baseColour;
-	sampler2D metallicRoughness;
-	sampler2D normals;
-	sampler2D occlusion;
-	sampler2D emissive;
-
-	uint textureMask;
 	vec4 baseColourFactor;
+	uint textureMask;
 	float metallicFactor;
 	float roughnessFactor;
 	float emissiveFactor;
@@ -31,45 +25,76 @@ struct DirLight{
 };
 struct PointLight{
 	vec3 position;
+	float constant;
 
 	vec3 ambient;
+	float linear;
 	vec3 diffuse;
+	float quadratic;
 	vec3 specular;
 
-	float constant;
-	float linear;
-	float quadratic;
 };
 struct SpotLight{
 	vec3 position;
+	float constant;
 	vec3 direction;
+	float linear;
 
 	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
-
-	float constant;
-	float linear;
 	float quadratic;
-
+	vec3 diffuse;
 	float cutOff;
+	vec3 specular;
 	float outerCutOff;
 };
 
+#ifdef OPENGL
 in vec3 fragPos;
 in vec2 texCoords;
 in vec3 normal;
 
-uniform vec3 viewPos;
+// MANUAL
+uniform Material material;
+uniform sampler2D baseColourTexture;
+uniform sampler2D metallicRoughnessTexture;
+uniform sampler2D normalsTexture;
+uniform sampler2D occlusionTexture;
+uniform sampler2D emissiveTexture;
 
 uniform DirLight dirLight;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotlight;
 
-// MANUAL
-uniform Material material;
+uniform vec3 viewPos;
 
 out vec4 FragColour;
+#endif
+
+
+#ifdef VULKAN
+layout(location = 0) in vec3 fragPos;
+layout(location = 1) in vec2 texCoords;
+layout(location = 2) in vec3 normal;
+
+layout(set = 1, binding = 1) uniform sampler2D baseColourTexture;
+layout(set = 1, binding = 2) uniform sampler2D metallicRoughnessTexture;
+layout(set = 1, binding = 3) uniform sampler2D normalsTexture;
+layout(set = 1, binding = 4) uniform sampler2D occlusionTexture;
+layout(set = 1, binding = 5) uniform sampler2D emissiveTexture;
+
+layout(set = 1, binding = 6) uniform Lights {
+	DirLight dirLight;
+	PointLight pointLights[NR_POINT_LIGHTS];
+	SpotLight spotlight;
+};
+
+layout(push_constant) uniform Data {
+	layout(offset = 80) Material material;
+	vec3 viewPos;
+};
+
+layout(location = 0) out vec4 FragColour;
+#endif
 
 bool hasTexture(uint texture);
 
@@ -89,12 +114,12 @@ void main(){
 	PixelMat pointMaterial;
 
 	// properties
-	vec3 norm = hasTexture(4u) ? texture(material.normals, texCoords).xyz : normal;
+	vec3 norm = hasTexture(4u) ? texture(normalsTexture, texCoords).xyz : normal;
 	vec3 viewDir = normalize(viewPos - fragPos);
 
-	pointMaterial.baseColour = hasTexture(1u) ? texture(material.baseColour, texCoords) * material.baseColourFactor : material.baseColourFactor;
+	pointMaterial.baseColour = hasTexture(1u) ? texture(baseColourTexture, texCoords) * material.baseColourFactor : material.baseColourFactor;
 
-	vec2 mr = hasTexture(2u) ? texture(material.metallicRoughness, texCoords).yz : vec2(1);
+	vec2 mr = hasTexture(2u) ? texture(metallicRoughnessTexture, texCoords).yz : vec2(1);
 	pointMaterial.metallic = mr.y * material.metallicFactor;
 	pointMaterial.roughness = mr.x * material.roughnessFactor;
 

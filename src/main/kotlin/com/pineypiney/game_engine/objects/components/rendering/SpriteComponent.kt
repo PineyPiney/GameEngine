@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.ResourceKey
@@ -31,10 +32,14 @@ open class SpriteComponent(
 
 	constructor(parent: GameObject) : this(parent, Texture2D.missing)
 
+	override fun setUniforms() {
+		super.setUniforms()
+		uniforms.setTextureUniform("tex") { sprite.texture }
+	}
+
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		sprite.texture.bind()
-		sprite.fetchMesh().bindAndDraw(renderer.getRenderingApi())
+		shader.draw("vertexBuffer", sprite.fetchMesh(), renderer)
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(sprite.fetchMesh())
@@ -45,7 +50,7 @@ open class SpriteComponent(
 	}
 
 	companion object {
-		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/2D"), ResourceKey("fragment/texture"))
-		val menuShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/texture")]
+		val defaultShader = ShaderLoader[ResourceKey("vertex/2D"), ResourceKey("fragment/texture")]
+		val menuShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/texture"), RenderShaderParameters(depthTestOp = null)]
 	}
 }

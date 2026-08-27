@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources.models
 
-import com.pineypiney.game_engine.rendering.RenderingApi
+import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
@@ -73,7 +73,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 		rotation = rotation * quat
 	}
 
-	fun render(renderingApi: RenderingApi, shader: RenderShader, model: Mat4) {
+	fun render(renderer: RendererI, shader: RenderShader, model: Mat4) {
 
 		shader.setMat4("model", model * modelTransform * boneMatrix)
 		shader.setVec4(
@@ -81,10 +81,10 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 			calculateColour()
 		)
 
-		Mesh.centerSquareShape.draw(renderingApi)
+		shader.draw("vertexBuffer", Mesh.centerSquareShape, renderer)
 
 		for (it in children) {
-			it.render(renderingApi, shader, model)
+			it.render(renderer, shader, model)
 		}
 	}
 
@@ -109,7 +109,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 
 	companion object {
 		val boneMatrix = I.translate(Vec3(0, 0.33, 0)).scale(Vec3(0.2, 0.6, 1))
-		val boneShader = ShaderLoader.getShader(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/bones"))
+		val boneShader = ShaderLoader.get(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/bones"))
 
 //		fun generateBoneMesh(): IndicesMesh {
 //

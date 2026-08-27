@@ -31,11 +31,6 @@ abstract class Component(final override val parent: GameObject) : ComponentI {
 		return getAllFieldsExt()
 	}
 
-	override fun setValue(key: String, value: String) {
-		val field = getAllFieldsExt().firstOrNull { it.id == key } ?: return
-		field.set(value)
-	}
-
 	@Suppress("UNCHECKED_CAST")
 	override fun <F : ComponentField<*>> getField(id: String): F? {
 		val f = getAllFieldsExt().firstOrNull { it.id == id } ?: return null

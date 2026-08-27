@@ -39,6 +39,8 @@ class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
 		return this
 	}
 
+	fun vertex(vec: Vec2) = vertex(vec.x, vec.y)
+
 	fun texture(u: Float, v: Float): IndexedMeshBuilder {
 		addAttribute(VertexAttribute.TEX_COORD, Vec2(u, v))
 		return this
@@ -136,7 +138,7 @@ class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
 		return vertexBuffer
 	}
 
-	fun build(): Mesh {
+	fun build(name: String): Mesh {
 		addVertex()
 		started = false
 		val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
@@ -144,7 +146,7 @@ class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
 			vertex.putData(vertexBuffer, i * vertexSize)
 		}
 
-		return ResourceFactory.INSTANCE.createIndexedMesh(vertexBuffer, indices.toIntArray(), Mesh.createAttributes(attributes))
+		return ResourceFactory.INSTANCE.createIndexedMesh(name, vertexBuffer, indices.toIntArray(), Mesh.createAttributes(attributes))
 	}
 
 	fun buildModel(id: String, factory: ResourceFactory): ModelMesh {

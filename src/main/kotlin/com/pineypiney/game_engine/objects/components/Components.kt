@@ -139,10 +139,10 @@ class Components {
 			addFieldType(::Vec3Field, {Vec3()})
 			addFieldType(::Vec4Field, {Vec4()})
 			addFieldType(::QuatField, {Quat()})
-			addFieldType(::ShaderField, {RenderShader.brokeShader})
+			addFieldType(::ShaderField, { RenderShader.missing }, RenderShader::class)
 			addFieldType(::TextureField, { Texture2D.missing }, Texture2D::class)
 			addFieldType(::ModelField, { Model.missing })
-			addFieldType(::Shape2DField, {Rect2D(Vec2(0f), 1f, 1f)}, Shape2D::class)
+			addFieldType(::Shape2DField, { Rect2D(Vec2(0f), 1f, 1f) }, Shape2D::class)
 			addFieldType(::GameObjectField, { null }, GameObject::class)
 		}
 

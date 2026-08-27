@@ -14,7 +14,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class TessellatedMesh : ArrayMesh {
+class TessellatedMesh : OpenGlArrayMesh {
 
 	val patchVertices: Int
 
@@ -22,7 +22,7 @@ class TessellatedMesh : ArrayMesh {
 		this.patchVertices = patchVertices
 	}
 
-	constructor(parent: ArrayMesh, patchVertices: Int) : super(parent.VAO, parent.VBO, parent.attributes, parent.count) {
+	constructor(parent: OpenGlArrayMesh, patchVertices: Int) : super(parent.VAO, parent.VBO, parent.attributes, parent.count) {
 		this.patchVertices = patchVertices
 	}
 
@@ -53,7 +53,7 @@ class TessellatedMesh : ArrayMesh {
 					(Vec2(x + 1, y + 1) * texDelta).to(vertices, offset + 18)
 				}
 			}
-			return TessellatedMesh(ArrayMesh(vertices.toFloatArray(), setOf(VertexAttribute.POSITION, VertexAttribute.TEX_COORD)), 4)
+			return TessellatedMesh(OpenGlArrayMesh(vertices.toFloatArray(), setOf(VertexAttribute.POSITION, VertexAttribute.TEX_COORD)), 4)
 		}
 
 		fun generateIcoSphere(radius: Float, res: Int): TessellatedMesh {
@@ -134,7 +134,7 @@ class TessellatedMesh : ArrayMesh {
 				}
 			}
 
-			return TessellatedMesh(ArrayMesh(buffer, setOf(VertexAttribute.POSITION)), 3)
+			return TessellatedMesh(OpenGlArrayMesh(buffer, setOf(VertexAttribute.POSITION)), 3)
 		}
 	}
 }

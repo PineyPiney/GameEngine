@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.components.InteractorComponent
-import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
+import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.init
@@ -17,10 +17,9 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 
-abstract class MultiTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
+abstract class MultiTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<MultiTest>) : WindowGameLogic() {
 
-	override val renderer = DefaultWindowRenderer<MultiTest, OrthographicCamera>(window, OrthographicCamera(window))
-	val camera get() = renderer.camera
+	val camera get() = renderer.camera as OrthographicCamera
 
 	private val pressedKeys = mutableSetOf<Short>()
 

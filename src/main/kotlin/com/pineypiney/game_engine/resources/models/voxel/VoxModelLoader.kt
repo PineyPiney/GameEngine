@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelMesh
 import com.pineypiney.game_engine.util.BitMap3D
-import com.pineypiney.game_engine.util.extension_functions.getOrSet
+import com.pineypiney.game_engine.util.extension_functions.getOrPut
 import com.pineypiney.game_engine.util.extension_functions.string
 import glm_.int
 import glm_.vec3.Vec3i
@@ -166,7 +166,7 @@ class VoxModelLoader {
 			val maps = mutableMapOf<UByte, BitMap3D>()
 			for(voxel in voxels){
 				val (x, y, z, i) = getValues(voxel)
-				val map = maps.getOrSet(i.toUByte()){ BitMap3D(size) }
+				val map = maps.getOrPut(i.toUByte()) { BitMap3D(size) }
 				map.or(x, y, z)
 			}
 			return maps

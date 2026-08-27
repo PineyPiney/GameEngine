@@ -1,9 +1,12 @@
 package com.pineypiney.game_engine.objects.util
 
 import com.pineypiney.game_engine.util.extension_functions.associateIndexed
+import com.pineypiney.game_engine.util.serialisation.Codec
 import glm_.f
 import glm_.i
+import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.InputStream
 
 class Animation(
 	val name: String,
@@ -18,7 +21,10 @@ class Animation(
 
 	constructor(name: String, fps: Float, root: String, textures: List<String>, file: String? = null) : this(
 		name,
-		textures.associateIndexed { i, it -> i to KeyFrame(mutableMapOf("RND.txr" to "$root/$it")) }.toMutableMap(),
+		textures.associateIndexed { i, it ->
+			val stream = ByteArrayInputStream(Codec.STRING.encodeBytes("$root/$it"))
+			i to KeyFrame(mutableMapOf("SpriteComponent.sprite.texture" to stream))
+		}.toMutableMap(),
 		fps,
 		textures.size,
 		file
@@ -33,7 +39,7 @@ class Animation(
 		return frames.keys.lastOrNull { it <= frame } ?: frames.minOf { it.key }
 	}
 
-	fun getProperties(time: Float): Map<String, String> {
+	fun getProperties(time: Float): Map<String, InputStream> {
 		val frameTime = getCurrentFrame(time)
 		if (frameTime == lastFrame) return emptyMap()
 
@@ -41,7 +47,7 @@ class Animation(
 		return frames[frameTime]?.properties!!
 	}
 
-	fun getFrameProperties(): Map<String, String> {
+	fun getFrameProperties(): Map<String, InputStream> {
 		return frames[lastFrame]?.properties!!
 	}
 
@@ -63,7 +69,7 @@ class Animation(
 			text += f.properties.entries.joinToString("&", "\n$t:") { (k, v) ->
 				val p = binaryString.length
 				binaryString.append(v)
-				"$k=$p-${p + v.length}"
+				"$k=$p-${p + v.read()}"
 			}
 		}
 
@@ -98,11 +104,12 @@ class Animation(
 					val line = lines[i]
 					val s = line.indexOf(':')
 					val t = line.substring(0, s).i
-					val m = line.substring(s + 1).split("&").associate {
+					val m: MutableMap<String, InputStream> = line.substring(s + 1).split("&").associate {
 						val e = it.indexOf('=')
 						val k = it.substring(0, e)
 						val (start, end) = it.substring(e + 1).split('-')
-						k to binaryString.substring(start.i, end.i)
+						val stream = ByteArrayInputStream(Codec.STRING.encodeBytes(binaryString.substring(start.i, end.i)))
+						k to stream
 
 					}.toMutableMap()
 					frames[t] = KeyFrame(m)
@@ -113,7 +120,7 @@ class Animation(
 		}
 	}
 
-	class KeyFrame(val properties: MutableMap<String, String>) {
+	class KeyFrame(val properties: MutableMap<String, InputStream>) {
 		override fun toString(): String {
 			return "KeyFrame[" +
 					properties.map { (k, v) ->

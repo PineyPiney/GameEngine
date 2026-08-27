@@ -28,10 +28,9 @@ class ObjectAnimator(
 		override fun loadResources() {
 			super.loadResources()
 
-			GameEngineI.defaultFont = "Large Font"
+			GameEngineI.defaultFont = "Simplified Hans Light"
 
 			// Create all the fonts
-			FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)
 			FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader)
 		}
 

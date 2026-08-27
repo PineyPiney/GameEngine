@@ -9,9 +9,6 @@ import com.pineypiney.game_engine.objects.components.rendering.ColourRendererCom
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.shaders.RenderShader
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
@@ -41,7 +38,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 			caret = max(min(caret, value.length), 0)
 		}
 
-	var textBox = createTextBox(this, startText, textSize)
+	var textBox = createTextBox(startText, textSize)
 	private var caretObject = createCaret(this)
 
 	var caret: Int = startText.length; private set
@@ -193,21 +190,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		forceUpdate = false
 	}
 
-	inner class TextFieldText(parent: GameObject, text: Text, fontSize: Int, shader: RenderShader) :
-		TextRendererComponent(parent, text, fontSize, shader) {
-
-		override fun setUniforms() {
-			super.setUniforms()
-			// Limit is in 0 to Window#width space so must be transformed
-			uniforms.setVec2Uniform("limits", parent.parent?.getComponent<TextFieldComponent>()!!::limits)
-		}
-	}
-
 	companion object {
-		val fieldShader = ShaderLoader.getShader(
-			ResourceKey("vertex/menu"),
-			ResourceKey("fragment/text_field")
-		)
 
 		// A few sets of characters that might be limited in a textField.
 		// Just override or set the 'allowed' variable
@@ -226,10 +209,9 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		val lowerAlphabet = ('a'..'z') + standard
 		val alphabet = (lowerAlphabet + upperAlphabet).toSet()
 
-		fun createTextBox(field: TextFieldComponent, startText: String, textSize: Int): GameObject {
-			val obj = GameObject("${field.parent.name} text", 1)
+		fun createTextBox(startText: String, textSize: Int): GameObject {
+			val obj = Text.makeMenuText(startText, Vec4(0f, 0f, 0f, 1f), textSize)
 			obj.scale = Vec3(1e12f, 1f, 1f)
-			obj.components.add(field.TextFieldText(obj, Text(startText, alignment = Text.ALIGN_CENTER_LEFT), textSize, fieldShader))
 			return obj
 		}
 

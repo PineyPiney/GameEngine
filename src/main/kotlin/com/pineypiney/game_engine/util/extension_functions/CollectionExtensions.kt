@@ -156,6 +156,12 @@ fun <E> MutableCollection<E>.removeAll(vararg elements: E): Boolean {
 	return removeAll(elements.toSet())
 }
 
+fun <E, K, V> Collection<E>.flatMap(transform: (E) -> Map<K, V>): Map<K, V> {
+	val map = mutableMapOf<K, V>()
+	for (element in this) map.putAll(transform(element))
+	return map
+}
+
 /**
  * Expand a list of floats using [entry] until its size is at least [size]
  * @param [size] The minimum size this list should be
@@ -267,7 +273,7 @@ fun <E> MutableIterable<E>.popFirstOrNull(predicate: (E) -> Boolean): E? {
  *
  * @return The value at [key]
  */
-fun <E, T> MutableMap<E, T>.getOrSet(key: E, create: (key: E) -> T): T {
+fun <E, T> MutableMap<E, T>.getOrPut(key: E, create: (key: E) -> T): T {
 	val current = getOrNull(key)
 	return if (current != null) current
 	else {
@@ -286,7 +292,7 @@ fun <E, T> MutableMap<E, T>.getOrSet(key: E, create: (key: E) -> T): T {
  *
  * @return The value at [key]
  */
-fun <E, T> MutableCollection<T>.getOrSet(key: E, getter: T.() -> E, create: (key: E) -> T): T {
+fun <E, T> MutableCollection<T>.getOrPut(key: E, getter: T.() -> E, create: (key: E) -> T): T {
     val current = firstOrNull { it.getter() == key }
     return if (current != null) current
     else {

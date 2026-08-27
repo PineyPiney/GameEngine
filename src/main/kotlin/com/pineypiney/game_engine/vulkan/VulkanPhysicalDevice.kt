@@ -1,11 +1,10 @@
 package com.pineypiney.game_engine.vulkan
 
-import com.pineypiney.game_engine.util.extension_functions.delete
+import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.util.extension_functions.getVec2i
 import com.pineypiney.game_engine.util.extension_functions.getVec3i
-import com.pineypiney.game_engine.vulkan.VkUtil.processError
-import kool.free
-import org.lwjgl.system.MemoryUtil
+import com.pineypiney.game_engine.vulkan.VkUtil.processResult
+import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.*
 
 class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
@@ -13,6 +12,7 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 	constructor(instance: VkInstance, handle: Long) : this(VkPhysicalDevice(handle, instance))
 
 	val properties = getGpuProperties()
+	val name = properties.properties().deviceNameString()
 	val memoryProperties = getGpuMemoryProperties()
 	val features = VkPhysicalDeviceFeatures2.calloc().`sType$Default`()
 
@@ -46,6 +46,12 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 		val memoryProperties = VkPhysicalDeviceMemoryProperties.calloc()
 		VK10.vkGetPhysicalDeviceMemoryProperties(physicalDevice, memoryProperties)
 		return memoryProperties
+	}
+
+	fun getGpuMemoryFormatProperties(format: TextureFormat): VkFormatProperties2 {
+		val properties = VkFormatProperties2.calloc().`sType$Default`()
+		VK14.vkGetPhysicalDeviceFormatProperties2(physicalDevice, format.vulkan, properties)
+		return properties
 	}
 
 	fun getImageFormatProperties(format: Int, type: Int, tiling: Int, usage: Int, flags: Int): VkImageFormatProperties2? {
@@ -89,56 +95,46 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 		return colourFormat to colourSpace
 	}
 
-	fun getQueueFamilies(): Iterable<VulkanQueueFamily> {
-		val properties = VkUtil.getBuffer(physicalDevice, VK10::vkGetPhysicalDeviceQueueFamilyProperties, VkQueueFamilyProperties::calloc)
+	fun getQueueFamilies(stack: MemoryStack): Iterable<VulkanQueueFamily> {
+		val properties = VkUtil.getStackBuffer(stack, physicalDevice, VK10::vkGetPhysicalDeviceQueueFamilyProperties, VkQueueFamilyProperties::calloc)
 		return properties.mapIndexed { index, familyProperties -> VulkanQueueFamily(familyProperties, index, this) }
 	}
 
 	fun createDevice(): VulkanDevice {
 
-		val properties = getQueueFamilies()
-		var index = properties.indexOfFirst { property ->
-			property.supportsGraphics()
+		MemoryStack.stackPush().use { stack ->
+			val properties = getQueueFamilies(stack)
+			var index = properties.indexOfFirst { property ->
+				property.supportsGraphics()
+			}
+			if (index == -1) index = properties.count()
+
+			val priorities = stack.mallocFloat(1).put(0f)
+			priorities.position(0)
+
+			val queueCreateInfo = VkDeviceQueueCreateInfo.calloc(1, stack)
+				.`sType$Default`()
+				.queueFamilyIndex(index)
+				.pQueuePriorities(priorities)
+
+			val swapchainExt = stack.UTF8(KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME)
+			val extensions = stack.mallocPointer(1).put(swapchainExt).flip()
+
+			val deviceFeatures = features.features().geometryShader(true)
+
+			val deviceCreateInfo = VkDeviceCreateInfo.calloc(stack)
+				.`sType$Default`()
+				.pNext(VkPhysicalDeviceBufferDeviceAddressFeatures.calloc(stack).`sType$Default`().bufferDeviceAddress(true))
+				.pNext(VkPhysicalDeviceSynchronization2Features.calloc(stack).`sType$Default`().synchronization2(true))
+				.pNext(VkPhysicalDeviceDynamicRenderingFeatures.calloc(stack).`sType$Default`().dynamicRendering(true))
+				.pQueueCreateInfos(queueCreateInfo)
+				.ppEnabledExtensionNames(extensions)
+				.pEnabledFeatures(deviceFeatures)
+
+			val pointer = stack.mallocPointer(1)
+			processResult(VK10.vkCreateDevice(physicalDevice, deviceCreateInfo, null, pointer), "Failed to create Vulkan device")
+
+			return VulkanDevice(VkDevice(pointer.get(), physicalDevice, deviceCreateInfo), this, index)
 		}
-		if (index == -1) index = properties.count()
-		properties.delete()
-
-		val priorities = MemoryUtil.memAllocFloat(1).put(0f)
-		priorities.position(0)
-
-		val queueCreateInfo = VkDeviceQueueCreateInfo.calloc(1)
-			.`sType$Default`()
-			.queueFamilyIndex(index)
-			.pQueuePriorities(priorities)
-
-		val extensions = MemoryUtil.memAllocPointer(1)
-		val swapchainExt = MemoryUtil.memUTF8(KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME)
-		extensions.put(swapchainExt)
-		extensions.flip()
-
-		val deviceFeatures = features.features()
-			.geometryShader(true)
-
-		val deviceCreateInfo = VkDeviceCreateInfo.calloc()
-			.`sType$Default`()
-			.pNext(VkPhysicalDeviceBufferDeviceAddressFeatures.calloc().`sType$Default`().bufferDeviceAddress(true))
-			.pNext(VkPhysicalDeviceSynchronization2Features.calloc().`sType$Default`().synchronization2(true))
-			.pNext(VkPhysicalDeviceDynamicRenderingFeatures.calloc().`sType$Default`().dynamicRendering(true))
-			.pQueueCreateInfos(queueCreateInfo)
-			.ppEnabledExtensionNames(extensions)
-			.pEnabledFeatures(deviceFeatures)
-
-		val pointer = MemoryUtil.memAllocPointer(1)
-		processError(VK10.vkCreateDevice(physicalDevice, deviceCreateInfo, null, pointer), "Failed to create Vulkan device") {
-			pointer.free()
-		}
-
-		val device = VulkanDevice(VkDevice(pointer.get(), physicalDevice, deviceCreateInfo), this, index)
-		pointer.free()
-		deviceCreateInfo.free()
-		swapchainExt.free()
-		extensions.free()
-		priorities.free()
-		return device
 	}
 }

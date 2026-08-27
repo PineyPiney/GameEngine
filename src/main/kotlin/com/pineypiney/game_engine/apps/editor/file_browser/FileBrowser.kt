@@ -38,7 +38,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 
 	var currentDirectory = root
 	val loadedTextures = mutableMapOf<String, Texture2D>()
-	val prefabRenderer = ObjectRenderer(Vec3(0f, 0f, 0f), screen.renderer, Vec2i(screen.settings.fileBrowserIconSize))
+	val prefabRenderer: ObjectRenderer = ObjectRenderer.create(screen.renderer, Vec3(0f, 0f, 0f), Vec2i(screen.settings.fileBrowserIconSize))
 
 	private val filesContainer = GameObject("Files", 1)
 	private val parentFileButton =

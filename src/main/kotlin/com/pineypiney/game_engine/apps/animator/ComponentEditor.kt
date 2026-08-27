@@ -14,13 +14,15 @@ import com.pineypiney.game_engine.util.extension_functions.init
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 
 class ComponentEditor(
 	var o: GameObject,
 	component: ComponentI,
 	origin: Vec2,
 	size: Vec2,
-	val callback: (String, String, String) -> Unit
+	val callback: (String, InputStream, InputStream) -> Unit
 ) : GameObject("Component Editor", 1) {
 
 	var editingComponent: ComponentI = component
@@ -70,7 +72,7 @@ class ComponentEditor(
 		){ ov, v ->
 			val oldValue = f.codec.encodeBytes(ov)
 			val newValue = f.codec.encodeBytes(v)
-			callback(f.id, oldValue.toString(Charsets.ISO_8859_1), newValue.toString(Charsets.ISO_8859_1))
+			callback(f.id, ByteArrayInputStream(oldValue), ByteArrayInputStream(newValue))
 		}.applied().parent)
 	}
 

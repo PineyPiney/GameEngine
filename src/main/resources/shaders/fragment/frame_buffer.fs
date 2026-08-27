@@ -1,5 +1,5 @@
 // FRAGMENT SHADER INFORMATION
-#version 400 core
+#version 430 core
 
 const float offset = 1.0 / 300.0;
 const vec2 offsets[9] = vec2[](
@@ -18,12 +18,26 @@ const int EDGE_DETECTION = 1;
 const int GREY_SCALE = 2;
 const int INVERT = 4;
 
+#ifdef OPENGL
 in vec2 texCoords;
 
 uniform sampler2D screenTexture;
 uniform int effects;
 
 out vec4 FragColour;
+#endif
+
+
+#ifdef VULKAN
+layout(location = 1) in vec2 texCoords;
+
+layout(set = 1, binding = 0) uniform sampler2D screenTexture;
+layout(push_constant) uniform Data {
+	layout(offset = 72) int effects;
+};
+
+layout(location = 0) out vec4 FragColour;
+#endif
 
 void main(){
 	vec4 c = texture(screenTexture, texCoords);

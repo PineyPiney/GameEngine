@@ -63,6 +63,11 @@ open class AtlasAnimatedSprite(
 		refreshMeshes()
 	}
 
+	override fun setUniforms() {
+		super.setUniforms()
+		uniforms.setTextureUniform("tex", ::texture)
+	}
+
 	fun getFrame(): Int {
 		val f = ((Timer.frameTime - startTime) * fps).toInt()
 		return if(loop) f % numFrames
@@ -82,8 +87,9 @@ open class AtlasAnimatedSprite(
 		}
 
 		shader.setUp(uniforms, renderer)
-		texture.bind()
-		meshes.getOrNull(currentFrame)?.bindAndDraw(renderer.getRenderingApi())
+		meshes.getOrNull(currentFrame)?.let {
+			shader.draw("vertexBuffer", it, renderer)
+		}
 	}
 
 	fun restart(){

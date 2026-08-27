@@ -2,12 +2,14 @@ package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.ObjectCollection
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.input.Inputs
 
 abstract class GameLogic : GameLogicI {
 
 	override val gameObjects: ObjectCollection = ObjectCollection()
+	override val deletionQueue: DeletionQueue = DeletionQueue()
 
 	override fun init() {
 		renderer.init()
@@ -53,5 +55,6 @@ abstract class GameLogic : GameLogicI {
 	override fun cleanUp() {
 		gameObjects.delete()
 		renderer.delete()
+		deletionQueue.flush()
 	}
 }

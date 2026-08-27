@@ -3,8 +3,8 @@ package com.pineypiney.game_engine.vr
 import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
-import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.GameRendererI
+import com.pineypiney.game_engine.rendering.opengl.Framebuffer
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
 import com.pineypiney.game_engine.util.maths.I
@@ -13,6 +13,7 @@ import glm_.L
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import glm_.vec4.Vec4
 import org.lwjgl.opengl.GL30
 import org.lwjgl.openvr.VR
 import org.lwjgl.openvr.VRCompositor
@@ -107,6 +108,10 @@ abstract class VRRenderer<E : GameLogicI>(w: Int, h: Int) : GameRendererI<E> {
 
 	open fun getView(eye: Int) = hmd.eyes[eye] * hmd.hmdPose
 	open fun getProjection(eye: Int) = hmd.projections[eye]
+
+	override fun setClearColour(colour: Vec4) {
+		GLFunc.clearColour = colour
+	}
 
 	fun deleteFrameBuffers() {
 		leftFramebuffer.delete()

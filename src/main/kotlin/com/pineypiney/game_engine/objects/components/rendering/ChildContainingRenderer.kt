@@ -4,17 +4,21 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.TransformComponent
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.GLFunc
-import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.resources.shaders.RenderShader
+import com.pineypiney.game_engine.resources.shaders.StencilOp
+import com.pineypiney.game_engine.resources.shaders.parameters.CompareOp
 import glm_.vec3.Vec3
-import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
-import org.lwjgl.opengl.GL11C
 
-class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Vec4 = Vec4(0f), val sort: GameObject.() -> Float = { transformComponent.worldPosition.z }) : ShaderRenderedComponent(parent, ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/colour")]){
+class ChildContainingRenderer(
+	parent: GameObject,
+	val mesh: Mesh,
+	val colour: Vec4 = Vec4(0f),
+	shader: RenderShader = ColourRendererComponent.menuShader,
+	val sort: GameObject.() -> Float = { transformComponent.worldPosition.z }
+) : ShaderRenderedComponent(parent, shader) {
 
-	constructor(parent: GameObject, mesh: Mesh, colour: Vec3): this(parent, mesh, Vec4(colour, 1f))
+	constructor(parent: GameObject, mesh: Mesh, colour: Vec3, shader: RenderShader = ColourRendererComponent.menuShader) : this(parent, mesh, Vec4(colour, 1f), shader)
 
 	override fun init() {
 		super.init()
@@ -31,26 +35,22 @@ class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Ve
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
-		GL11C.glEnable(GL11C.GL_STENCIL_TEST)
 
-		GL11C.glDisable(GL11C.GL_SCISSOR_TEST)
-		GLFunc.stencilWriteMask = 255
-
-		// Clear the whole stencil to value 0
-		GL11C.glClearStencil(0)
-		GL11C.glClear(GL11C.GL_STENCIL_BUFFER_BIT)
+		val api = renderer.getRenderingApi()
+		api.setStencilWriteMask(255)
+		api.clearStencil(128)
 
 		// If the stencil fails keep the old value, otherwise write 1 to the stencil
-		GLFunc.stencilOp = Vec3i(GL11C.GL_KEEP, GL11C.GL_REPLACE, GL11C.GL_REPLACE)
-		GLFunc.stencilFRM = Vec3i(GL11C.GL_ALWAYS, 1, 255)
+		api.setStencil(true, 8, 255, StencilOp.KEEP, StencilOp.REPLACE, StencilOp.REPLACE, CompareOp.ALWAYS)
+
 
 		// Write to the stencil
 		shader.setUp(uniforms, renderer)
-		mesh.bindAndDraw(renderer.getRenderingApi())
+		shader.draw("vertexBuffer", mesh, renderer)
 
 		// Stencil only passes if the stencil value is 1, and don't write to the stencil
-		GLFunc.stencilFRM = Vec3i(GL11C.GL_EQUAL, 1, 255)
-		GLFunc.stencilWriteMask = 0
+		api.setStencilComparison(8, 255, CompareOp.EQUAL)
+		api.setStencilWriteMask(0)
 
 		val descendants = mutableSetOf<GameObject>()
 		parent.children.forEach { it.catchRenderingComponents(descendants) }
@@ -68,6 +68,6 @@ class ChildContainingRenderer(parent: GameObject, val mesh: Mesh, val colour: Ve
 			}
 		}
 
-		GL11C.glDisable(GL11C.GL_STENCIL_TEST)
+		api.disableStencil()
 	}
 }

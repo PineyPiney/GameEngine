@@ -10,10 +10,10 @@ import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.OutlinedSliderRendererComponent
-import com.pineypiney.game_engine.rendering.Framebuffer
-import com.pineypiney.game_engine.rendering.OpenGlGameRenderer
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
+import com.pineypiney.game_engine.rendering.opengl.Framebuffer
+import com.pineypiney.game_engine.rendering.opengl.OpenGlGameRenderer
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.InputState
@@ -29,6 +29,7 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.opengl.GL11C
 import java.io.File
+import java.io.InputStream
 
 class AnimatorLogic(
 	override val gameEngine: WindowedGameEngineI<AnimatorLogic>,
@@ -127,7 +128,7 @@ class AnimatorLogic(
 
 	private var componentEditor: ComponentEditor? = null
 
-	private val properties = mutableMapOf<String, String>()
+	private val properties = mutableMapOf<String, InputStream>()
 
 	override fun addObjects() {
 		add(o)
@@ -227,7 +228,7 @@ class AnimatorLogic(
 		o.getComponent<AnimatedComponent>()?.let { a -> properties.putAll(a.getProperties()) }
 	}
 
-	private fun updateKeyFrameField(key: String, oldValue: String, value: String) {
+	private fun updateKeyFrameField(key: String, oldValue: InputStream, value: InputStream) {
 		val animation = animationSelector.item?.animation ?: return
 		animation.frames[animation.lastFrame]?.properties?.set(key, value)
 	}

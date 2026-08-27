@@ -15,19 +15,17 @@ import com.pineypiney.game_engine.objects.components.widgets.scrollList.Selectab
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ColourSliderRendererComponent
 import com.pineypiney.game_engine.objects.util.Animation
-import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
-import com.pineypiney.game_engine.rendering.TextureCopyFramebuffer
-import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
+import com.pineypiney.game_engine.rendering.WindowRendererI
+import com.pineypiney.game_engine.rendering.cameras.Camera
+import com.pineypiney.game_engine.rendering.vulkan.VulkanGameRenderer
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
-import com.pineypiney.game_engine.resources.text.Font
-import com.pineypiney.game_engine.resources.text.TrueTypeFont
+import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.CullMode
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.textures.Texture2D
-import com.pineypiney.game_engine.resources.textures.TextureFormat
-import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture2D
 import com.pineypiney.game_engine.util.Cursor
-import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.angle
 import com.pineypiney.game_engine.util.extension_functions.delete
@@ -47,17 +45,13 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec3.swizzle.xy
 import glm_.vec4.Vec4
-import kool.Buffer
-import kool.free
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.openal.AL10
-import org.lwjgl.opengl.GL11C
 import kotlin.math.PI
 import kotlin.math.sign
 
-class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
+class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val renderer: WindowRendererI<Game2D>) : WindowGameLogic() {
 
-	override val renderer = DefaultWindowRenderer<Game2D, OrthographicCamera>(window, OrthographicCamera(window))
 	val camera get() = renderer.camera
 
 	val standardCursors = intArrayOf(GLFW_RESIZE_EW_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).map { Cursor(it) }
@@ -106,11 +100,21 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		Vec2i(240, 40),
 		Vec2(-1f),
 		ColourSliderRendererComponent.redShader,
-		mutableMapOf("green" to 0.5f, "blue" to 0.5f)
-	)
+		mutableMapOf("green" to 1f, "blue" to 1f)
+	) {
+		parent.getComponent<ColourSliderRendererComponent>()?.run {
+			this["green"] = value / 255f
+			this["blue"] = value / 255f
+		}
+	}
 
 	private val texture = GameObject.simpleTextureGameObject("broke texture", Texture2D.missing)
-	private val model1 = GameObject.simpleModelledGameObject("goblin", ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
+	private val model1 = GameObject.simpleModelledGameObject(
+		"goblin",
+		ModelLoader.getModel(ResourceKey("goblin")),
+		ShaderLoader[ResourceKey("vertex/model"), ResourceKey("fragment/model"), RenderShaderParameters(cullMode = CullMode.NONE)],
+		debug = Model.DEBUG_COLLIDER
+	)
 	private val model2 = GameObject.simpleModelledGameObject("goblin", ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
 
 	private val text = Text.makeMenuText(
@@ -140,8 +144,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	private val list = SelectableScrollListComponent.createSelectableScrollList("Selectable List", ::println, .3f, 0.05f, "Hello", "World", "How", "Is", "It", "Going")
 	private val dropdown = DropdownComponent.createDropdownMenu("Dropdown Menu", arrayOf("Apple", "Banana", "Cake", "Dragonfruit", "Egg", "Fly"), 4f,
 		Text.Params().withFontSize(28)){ _, _ -> }
-
-//    val video = VideoPlayer(VideoLoader[ResourceKey("ghost"), gameEngine.resourcesLoader], Vec2(0.5, -0.15), Vec2(0.5, 0.3))
 
 	val snake = GameObject("Snake").apply {
 		val animation = Animation("slither", 7f, "snake", (0..5).map { "snake_$it" })
@@ -182,10 +184,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	override fun init() {
 		super.init()
 
-//        video.init()
-//        video.play()
-//        video.video.loop = true
-
 		model1.getComponent<ModelRendererComponent>()?.setAnimation("Wipe Nose")
 		model2.getComponent<ModelRendererComponent>()?.setAnimation("Magic Trick")
 		model1 translate Vec3(2, -3, 0f)
@@ -193,29 +191,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 		model2 translate Vec3(3, -4, 0f)
 		snake translate Vec3(-2, -5, 0f)
 
-		val font = Font.defaultFont as? TrueTypeFont
-
-		if(font != null) {
-
-			val buffer = Buffer(4 * 640 * 1280) { -1 }
-			val texture = OpenGlTexture2D("Dst", OpenGlTexture2D.createPointer(buffer, TextureFormat.RGBA8, 640, 1280, GL11C.GL_RGBA))
-			buffer.free()
-
-			val copier = TextureCopyFramebuffer()
-			copier.init()
-			copier.setDst(texture)
-
-
-			for (i in 48..111) {
-				val letter = font.getTexture(Char(i))
-
-				val o = Vec2i(80 * (i % 8), 2080 - 160 * (i / 8))
-				copier.copyOntoDst(letter, o, o + letter.size)
-			}
-
-			copier.delete()
-			texture.savePNG("Dst.png")
-		}
+		renderer.setClearColour(Vec4(1f, 0f, 0f, 1f))
 	}
 
 	private fun rotateGoblin() {
@@ -236,12 +212,12 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	override fun render(tickDelta: Double) {
 		renderer.render(this, tickDelta)
 		rotateGoblin()
-		renderer.camera.setPos(Vec3(Vec2(movement.parent.position), 5f))
+		(renderer.camera as Camera).setPos(Vec3(Vec2(movement.parent.position), 5f))
 	}
 
 	override fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
 		super.onCursorMove(cursorPos, cursorDelta)
-		updateText(cursorPos.position)
+		updateText(cursorPos.screenSpace)
 
 		cursorSquare.position = Vec3(cursorPos.position, 0f)
 
@@ -265,6 +241,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 				'F' -> toggleFullscreen()
 				'C' -> input.mouse.setCursorAt(Vec2(0.75))
 				'Z' -> window.size = Vec2i(window.videoMode.width(), window.videoMode.height())
+				' ' -> if (renderer is VulkanGameRenderer<*, *>) renderer.depthImage.savePNG("debug")
 			}
 		}
 
@@ -279,11 +256,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	override fun update(interval: Float, input: Inputs) {
 		super.update(interval, input)
 
-		slider.parent.getComponent<ColourSliderRendererComponent>()?.run {
-			this["green"] = (this["green"] + interval).wrap(0f, 1f)
-			this["blue"] = this["green"]
-		}
-
 		val text = listOf(text, gameText, siGameText).mapNotNull { it.getComponent<TextRendererComponent>() }
 		for (t in text + listOf(*(list.getComponent<ScrollListComponent>()!!.items.mapNotNull { it.children.firstNotNullOfOrNull { it.getComponent<TextRendererComponent>() } }.toTypedArray()))) {
 			t.run {
@@ -296,11 +268,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	fun updateText(cursorPos: Vec2){
 		val wp = camera.screenToWorld(cursorPos)
 		text.getComponent<TextRendererComponent>()?.setTextContent(wp.roundedString(2).let { "X Part: ${it[0]}\nY Part: ${it[1]}" })
-	}
-
-	override fun updateAspectRatio() {
-		super.updateAspectRatio()
-		GLFunc.viewportO = Vec2i(window.width, window.height)
 	}
 
 	override fun cleanUp() {

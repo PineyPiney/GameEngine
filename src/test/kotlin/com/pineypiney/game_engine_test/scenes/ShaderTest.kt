@@ -4,11 +4,11 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
-import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
+import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlRenderShader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniform
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.util.Colour
@@ -27,9 +27,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 
 @Suppress("UNUSED")
-class ShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
-
-	override val renderer = DefaultWindowRenderer<ShaderTest, OrthographicCamera>(window, OrthographicCamera(window))
+class ShaderTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<ShaderTest>) : WindowGameLogic() {
 
 	val shader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/squircle")]
 	val uniformValues = mutableMapOf<String, Any>()
@@ -41,7 +39,7 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLog
 
 			override fun setUniforms() {
 				super.setUniforms()
-				for((name, type) in shader.uniforms){
+				for ((name, type) in (shader as OpenGlRenderShader).uniforms) {
 					if(defaultUniforms.contains(name)) continue
 					val uniform = uniforms[name] ?: continue
 					setUniform(uniform, uniforms)
@@ -55,7 +53,7 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLog
 
 			override fun render(renderer: RendererI, tickDelta: Double) {
 				shader.setUp(uniforms, renderer)
-				mesh.bindAndDraw(renderer.getRenderingApi())
+				shader.draw("vertexBuffer", mesh, renderer)
 			}
 		})
 	}
@@ -72,7 +70,7 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLog
 	fun addUniforms(){
 
 		var y = 0
-		for((name, type) in shader.uniforms){
+		for ((name, type) in (shader as OpenGlRenderShader).uniforms) {
 			if(defaultUniforms.contains(name)) continue
 			when(type){
 				"float" -> {

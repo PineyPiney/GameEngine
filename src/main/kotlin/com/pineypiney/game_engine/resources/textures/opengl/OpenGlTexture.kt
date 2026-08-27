@@ -1,6 +1,8 @@
 package com.pineypiney.game_engine.resources.textures.opengl
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.rendering.TextureCopier
+import com.pineypiney.game_engine.rendering.opengl.TextureCopyFramebuffer
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
@@ -19,14 +21,12 @@ abstract class OpenGlTexture(override val id: String, val texturePointer: Int, v
 	val internalFormat: Int get() = parameter(GL11C.GL_TEXTURE_INTERNAL_FORMAT)
 	override val format: TextureFormat get() = TextureFormat.fromGlConst(internalFormat) ?: TextureFormat.RGBA8
 
-	override fun getTextureBinding(): Int = binding
-
-	override fun bind() {
+	fun bind(binding: Int = this.binding) {
 		GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + binding)
 		GL11C.glBindTexture(target, texturePointer)
 	}
 
-	override fun unbind() {
+	fun unbind() {
 		GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + binding)
 		GL11C.glBindTexture(target, 0)
 	}
@@ -46,6 +46,8 @@ abstract class OpenGlTexture(override val id: String, val texturePointer: Int, v
 		} else 0
 	}
 
+	override fun createCopier(): TextureCopier = TextureCopyFramebuffer()
+
 	override fun delete() {
 		unbind()
 		GL11C.glDeleteTextures(texturePointer)
@@ -56,8 +58,7 @@ abstract class OpenGlTexture(override val id: String, val texturePointer: Int, v
 	}
 
 	override fun equals(other: Any?): Boolean {
-		if (other is OpenGlTexture) return this.texturePointer == other.texturePointer
-		return false
+		return other is OpenGlTexture && this.texturePointer == other.texturePointer
 	}
 
 	override fun hashCode(): Int {

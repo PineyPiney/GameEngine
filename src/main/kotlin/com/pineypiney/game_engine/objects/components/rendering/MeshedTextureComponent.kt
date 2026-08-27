@@ -17,16 +17,20 @@ open class MeshedTextureComponent(
 
 	constructor(parent: GameObject) : this(parent, Texture2D.missing)
 
+	override fun setUniforms() {
+		super.setUniforms()
+		uniforms.setTextureUniform("tex", ::texture)
+	}
+
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		texture.bind()
-		mesh.bindAndDraw(renderer.getRenderingApi())
+		shader.draw("vertexBuffer", mesh, renderer)
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	companion object {
-		val default2DShader = ShaderLoader.getShader(ResourceKey("vertex/2D"), ResourceKey("fragment/texture"))
-		val default3DShader = ShaderLoader.getShader(ResourceKey("vertex/3D"), ResourceKey("fragment/texture"))
+		val default2DShader = ShaderLoader[ResourceKey("vertex/2D"), ResourceKey("fragment/texture")]
+		val default3DShader = ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/texture")]
 	}
 }

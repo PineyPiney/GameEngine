@@ -32,6 +32,7 @@ fun Vec3.manhattan(): Float {
  * Angle of Vec2, in radians, going clockwise starting at (0, 1)
  */
 fun Vec2.angle(): Float {
+
 	return if (y == 0f) (if (x > 0) PIF * .5f else PIF * 1.5f)
 	else (atan(x / y) + (if (y < 0) PIF else 0f)).wrap(0f, PIF * 2)
 }

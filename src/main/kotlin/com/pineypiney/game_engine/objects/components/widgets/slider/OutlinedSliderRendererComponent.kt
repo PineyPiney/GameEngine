@@ -24,8 +24,8 @@ open class OutlinedSliderRendererComponent(parent: GameObject) : ShaderRenderedC
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		val shape = Mesh.cornerSquareShape
-		shape.bindAndDraw(renderer.getRenderingApi())
+		val mesh = Mesh.cornerSquareShape
+		shader.draw("vertexBuffer", mesh, renderer)
 		/*
 		// This only updates the stencil if the pixel passes all tests
 		//GLFunc.stencilTest = true
@@ -50,6 +50,6 @@ open class OutlinedSliderRendererComponent(parent: GameObject) : ShaderRenderedC
 
 	companion object {
 		val sliderShader =
-			ShaderLoader.getShader(ResourceKey("vertex/2D_pass_pos"), ResourceKey("fragment/sliders/outlined_slider"))
+			ShaderLoader.get(ResourceKey("vertex/2D_pass_pos"), ResourceKey("fragment/sliders/outlined_slider"))
 	}
 }

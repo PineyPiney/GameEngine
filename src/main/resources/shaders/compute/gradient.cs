@@ -4,8 +4,16 @@ layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 layout(rgba8ui, binding = 0) uniform uimage2D imgOutput;
 
+#ifdef VULKAN
+layout (push_constant) uniform Data {
+	float time;
+	float speed;
+};
+#endif
+#ifdef OPENGL
 layout (location = 0) uniform float time;
 layout (location = 1) uniform float speed;
+#endif
 
 void main() {
 	uvec4 value = uvec4(0, 0, 0, 255);

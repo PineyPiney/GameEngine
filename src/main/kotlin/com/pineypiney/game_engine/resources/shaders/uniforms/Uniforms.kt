@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.shaders.uniforms
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.uniforms.mats.*
 import com.pineypiney.game_engine.resources.shaders.uniforms.vecs.*
+import com.pineypiney.game_engine.resources.textures.Texture
 import glm_.mat2x2.Mat2
 import glm_.mat2x2.Mat2d
 import glm_.mat2x3.Mat2x3
@@ -24,8 +25,20 @@ import glm_.mat4x4.Mat4d
 import glm_.vec2.Vec2t
 import glm_.vec3.Vec3t
 import glm_.vec4.Vec4t
+import java.nio.DoubleBuffer
+import java.nio.FloatBuffer
+import java.nio.IntBuffer
+import java.nio.LongBuffer
 
 class Uniforms(val uniforms: Array<Uniform<*>>) {
+
+	fun setTextureUniformR(name: String, getter: (RendererI) -> Texture) {
+		set<TextureUniform, Texture>(name, getter)
+	}
+
+	fun setTextureUniform(name: String, getter: () -> Texture) {
+		set<TextureUniform, Texture>(name, getter)
+	}
 
 	fun setBoolUniformR(name: String, getter: (RendererI) -> Boolean) {
 		set<BoolUniform, Boolean>(name, getter)
@@ -51,12 +64,12 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
 		set<IntUniform, Int>(name, getter)
 	}
 
-	fun setIntsUniformR(name: String, getter: (RendererI) -> IntArray) {
-		set<IntsUniform, IntArray>(name, getter)
+	fun setIntsUniformR(name: String, getter: (RendererI) -> IntBuffer) {
+		set<IntsUniform, IntBuffer>(name, getter)
 	}
 
-	fun setIntsUniform(name: String, getter: () -> IntArray) {
-		set<IntsUniform, IntArray>(name, getter)
+	fun setIntsUniform(name: String, getter: () -> IntBuffer) {
+		set<IntsUniform, IntBuffer>(name, getter)
 	}
 
 	fun setUIntUniformR(name: String, getter: (RendererI) -> UInt) {
@@ -67,12 +80,44 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
 		set<UIntUniform, UInt>(name, getter)
 	}
 
-	fun setUIntsUniformR(name: String, getter: (RendererI) -> IntArray) {
-		set<UIntsUniform, IntArray>(name, getter)
+	fun setUIntsUniformR(name: String, getter: (RendererI) -> IntBuffer) {
+		set<UIntsUniform, IntBuffer>(name, getter)
 	}
 
-	fun setUIntsUniform(name: String, getter: () -> IntArray) {
-		set<UIntsUniform, IntArray>(name, getter)
+	fun setUIntsUniform(name: String, getter: () -> IntBuffer) {
+		set<UIntsUniform, IntBuffer>(name, getter)
+	}
+
+	fun setLongUniformR(name: String, getter: (RendererI) -> Long) {
+		set<LongUniform, Long>(name, getter)
+	}
+
+	fun setLongUniform(name: String, getter: () -> Long) {
+		set<LongUniform, Long>(name, getter)
+	}
+
+	fun setLongsUniformR(name: String, getter: (RendererI) -> LongBuffer) {
+		set<LongsUniform, LongBuffer>(name, getter)
+	}
+
+	fun setLongsUniform(name: String, getter: () -> LongBuffer) {
+		set<LongsUniform, LongBuffer>(name, getter)
+	}
+
+	fun setULongUniformR(name: String, getter: (RendererI) -> ULong) {
+		set<ULongUniform, ULong>(name, getter)
+	}
+
+	fun setULongUniform(name: String, getter: () -> ULong) {
+		set<ULongUniform, ULong>(name, getter)
+	}
+
+	fun setULongsUniformR(name: String, getter: (RendererI) -> LongBuffer) {
+		set<ULongsUniform, LongBuffer>(name, getter)
+	}
+
+	fun setULongsUniform(name: String, getter: () -> LongBuffer) {
+		set<ULongsUniform, LongBuffer>(name, getter)
 	}
 
 	fun setFloatUniformR(name: String, getter: (RendererI) -> Float) {
@@ -83,12 +128,12 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
 		set<FloatUniform, Float>(name, getter)
 	}
 
-	fun setFloatsUniformR(name: String, getter: (RendererI) -> FloatArray) {
-		set<FloatsUniform, FloatArray>(name, getter)
+	fun setFloatsUniformR(name: String, getter: (RendererI) -> FloatBuffer) {
+		set<FloatsUniform, FloatBuffer>(name, getter)
 	}
 
-	fun setFloatsUniform(name: String, getter: () -> FloatArray) {
-		set<FloatsUniform, FloatArray>(name, getter)
+	fun setFloatsUniform(name: String, getter: () -> FloatBuffer) {
+		set<FloatsUniform, FloatBuffer>(name, getter)
 	}
 
 	fun setDoubleUniformR(name: String, getter: (RendererI) -> Double) {
@@ -99,12 +144,12 @@ class Uniforms(val uniforms: Array<Uniform<*>>) {
 		set<DoubleUniform, Double>(name, getter)
 	}
 
-	fun setDoublesUniformR(name: String, getter: (RendererI) -> DoubleArray) {
-		set<DoublesUniform, DoubleArray>(name, getter)
+	fun setDoublesUniformR(name: String, getter: (RendererI) -> DoubleBuffer) {
+		set<DoublesUniform, DoubleBuffer>(name, getter)
 	}
 
-	fun setDoublesUniform(name: String, getter: () -> DoubleArray) {
-		set<DoublesUniform, DoubleArray>(name, getter)
+	fun setDoublesUniform(name: String, getter: () -> DoubleBuffer) {
+		set<DoublesUniform, DoubleBuffer>(name, getter)
 	}
 
 

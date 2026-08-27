@@ -21,7 +21,6 @@ class DefaultWindowedEngine<E : WindowGameLogic>(
 		super.loadResources()
 
 		GameEngineI.defaultFont = "Simplified Hans Light"
-		//FontLoader.INSTANCE.loadFontFromTexture("Large Font.png", resourcesLoader, 128, 256, 0.03125f)
 	}
 
 	override fun setLogic() {

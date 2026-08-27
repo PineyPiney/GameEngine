@@ -12,14 +12,14 @@ object JsonOps : SerialOps<JsonElement> {
 	override fun missing(): JsonElement = JsonMissing
 	override fun parse(reader: Reader): JsonElement = JsonParser.parseReader(reader)
 
-	override fun readBool(input: JsonElement?): Boolean = input?.asBoolean ?: false
-	override fun readByte(input: JsonElement?): Byte = input?.asByte ?: 0
-	override fun readShort(input: JsonElement?): Short = input?.asShort ?: 0
-	override fun readInt(input: JsonElement?): Int = input?.asInt ?: 0
-	override fun readLong(input: JsonElement?): Long = input?.asLong ?: 0
-	override fun readFloat(input: JsonElement?): Float = input?.asFloat ?: 0f
-	override fun readDouble(input: JsonElement?): Double = input?.asDouble ?: 0.0
-	override fun readString(input: JsonElement?): String = input?.asString ?: ""
+	override fun readBool(input: JsonElement): Boolean = input.asBoolean
+	override fun readByte(input: JsonElement): Byte = input.asByte
+	override fun readShort(input: JsonElement): Short = input.asShort
+	override fun readInt(input: JsonElement): Int = input.asInt
+	override fun readLong(input: JsonElement): Long = input.asLong
+	override fun readFloat(input: JsonElement): Float = input.asFloat
+	override fun readDouble(input: JsonElement): Double = input.asDouble
+	override fun readString(input: JsonElement): String = input.asString
 
 	override fun writeBool(input: Boolean): JsonElement = JsonPrimitive(input)
 	override fun writeByte(input: Byte): JsonElement = JsonPrimitive(input)
@@ -31,12 +31,12 @@ object JsonOps : SerialOps<JsonElement> {
 	override fun writeNumber(input: Number): JsonElement = JsonPrimitive(input)
 	override fun writeString(input: String): JsonElement = JsonPrimitive(input)
 
-	override fun readInts(input: JsonElement?): Iterable<Int> {
+	override fun readInts(input: JsonElement): Iterable<Int> {
 		return if (input is JsonArray) input.map { it.asInt }
 		else emptyList()
 	}
 
-	override fun readFloats(input: JsonElement?): Iterable<Float> {
+	override fun readFloats(input: JsonElement): Iterable<Float> {
 		return if (input is JsonArray) input.map { it.asFloat }
 		else emptyList()
 	}

@@ -14,7 +14,6 @@ import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.CollectionMap
-import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.transformedBy
@@ -46,11 +45,9 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 	val voxLoader = VoxModelLoader()
 
 	fun loadModelTextures(streams: ResourcesLoader.Streams){
-		if (GLFunc.isLoaded) {
-			streams.useEachStream { fileName, stream ->
-				val texture = streams.engine.resourcesLoader.factory.loadTexture2DFromFile(fileName, stream, TextureParameters())
-				modelTextures[ResourceKey(fileName)] = texture
-			}
+		streams.useEachStream { fileName, stream ->
+			val texture = streams.engine.resourcesLoader.factory.loadTexture2DFromFile(fileName, stream, TextureParameters())
+			modelTextures[ResourceKey(fileName)] = texture
 		}
 	}
 
@@ -208,7 +205,7 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 
 			geo.vertices.indices.forEach { i ->
 				val texMap: Vec2 = geo.texMaps.getOrElse(i) { Vec2() }
-				val normal: Vec3 = geo.normals.getOrElse(i) { Vec3() }
+				val normal: Vec3 = geo.normals.getOrElse(i) { Vec3(0f, 0f, 1f) }
 
 				val pos: Vec3
 				val weights: Array<Controller.BoneWeight> = if (controller != null) {

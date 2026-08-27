@@ -17,14 +17,10 @@ class TextureMapsComponent(parent: GameObject, val textures: Map<String, Texture
 
 	override fun init() {
 		super.init()
-		renderer?.let {
-			for ((name, texture) in textures) it.uniforms.setIntUniform(name, texture::getTextureBinding)
-		}
+		renderer?.let { for ((name, texture) in textures) it.uniforms.setTextureUniform(name) { texture } }
 	}
 
 	override fun preRender(renderer: RendererI, tickDelta: Double) {
-		for ((_, texture) in textures) {
-			texture.bind()
-		}
+
 	}
 }

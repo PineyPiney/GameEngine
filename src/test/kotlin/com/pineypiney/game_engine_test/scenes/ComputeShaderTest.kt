@@ -8,10 +8,10 @@ import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComponent
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
-import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
+import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlShader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniform
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.resources.textures.TextureFormat
@@ -35,9 +35,7 @@ import org.lwjgl.opengl.GL42C
 import org.lwjgl.opengl.GL43C
 
 @Suppress("UNUSED")
-class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
-
-	override val renderer = DefaultWindowRenderer<ComputeShaderTest, OrthographicCamera>(window, OrthographicCamera(window))
+class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<ComputeShaderTest>) : WindowGameLogic() {
 
 	val shader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/texture")]
 	val uniformValues = mutableMapOf<String, Any>()
@@ -53,11 +51,11 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>): Window
 			override val whenVisible: Boolean = true
 
 			override fun preRender(renderer: RendererI, tickDelta: Double) {
-				texture.bind()
-				compute.use()
+				compute.use(renderer.getRenderingApi())
+				compute.setTexture("imgOutput", texture)
 				compute.setFloat("time", Timer.time.toFloat())
 				compute.setFloat("speed", 500f)
-				compute.dispatch(32, 32)
+				compute.dispatch(renderer.getRenderingApi(), 32, 32)
 
 				// make sure writing to image has finished before read
 				GL42C.glMemoryBarrier(GL42C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
@@ -79,7 +77,7 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>): Window
 	fun addUniforms(){
 
 		var y = 0
-		for((name, type) in shader.uniforms){
+		for ((name, type) in (shader as OpenGlShader).uniforms) {
 			if(defaultUniforms.contains(name)) continue
 			when(type){
 				"float" -> {

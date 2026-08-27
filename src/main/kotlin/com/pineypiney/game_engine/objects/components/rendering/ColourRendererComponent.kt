@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -22,13 +23,13 @@ open class ColourRendererComponent(parent: GameObject, var colour: Vec4 = Vec4(1
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		mesh.bindAndDraw(renderer.getRenderingApi())
+		shader.draw("vertexBuffer", mesh, renderer)
 	}
 
 	companion object {
-		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/3D"), ResourceKey("fragment/colour"))
-		val shader2D = ShaderLoader.getShader(ResourceKey("vertex/2D"), ResourceKey("fragment/colour"))
+		val defaultShader = ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/colour")]
+		val shader2D = ShaderLoader[ResourceKey("vertex/2D"), ResourceKey("fragment/colour")]
 		val vertexColours = ShaderLoader[ResourceKey("vertex/colour_floats"), ResourceKey("fragment/colour_in")]
-		val menuShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/colour"))
+		val menuShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/colour"), RenderShaderParameters(depthTestOp = null)]
 	}
 }

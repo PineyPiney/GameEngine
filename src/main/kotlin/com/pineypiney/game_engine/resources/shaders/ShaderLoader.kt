@@ -2,21 +2,29 @@ package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deletable
+import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlComputeShader
+import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlRenderShader
+import com.pineypiney.game_engine.resources.shaders.opengl.SubShader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderBuilder
+import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderData
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderModule
-import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanComputePipeline
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addToMapOr
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.splitAndTrimLineBreak
 import com.pineypiney.game_engine.util.extension_functions.splitAndTrimWhitespace
+import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VulkanManager
 import glm_.bool
 import kool.free
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.util.shaderc.Shaderc
 import org.lwjgl.util.shaderc.ShadercIncludeResolve
@@ -30,8 +38,7 @@ import java.nio.ByteBuffer
 class ShaderLoader private constructor() : Deletable {
 
 	// This map stores the bytebuffer codes of each shader file
-	private val shaderMap: MutableMap<ResourceKey, SubShader> = mutableMapOf()
-	val shaderModules: MutableMap<ResourceKey, VulkanShaderModule> = mutableMapOf()
+	private val shaderMap: MutableMap<ResourceKey, ShaderModule> = mutableMapOf()
 
 	fun loadShaders(streams: ResourcesLoader.Streams) {
 
@@ -52,95 +59,72 @@ class ShaderLoader private constructor() : Deletable {
 			}
 
 			val code = stream.readBytes().toString(Charsets.UTF_8)
-			streams.engine.resourcesLoader.factory.createSubShader(streams.engine.resourcesLoader, fileName, suf, stage, code)
+			streams.engine.resourcesLoader.factory.createShaderModule(streams.engine.resourcesLoader, fileName, suf, stage, code)
 		}
 	}
 
-	fun loadShaderOpenGl(name: String, code: String, stage: ShaderStage) {
-		val shader = generateSubShaderOpenGl(name, code, stage)
-		shaderMap[ResourceKey(name)] = shader
+	fun loadShaderModuleOpenGl(name: String, code: String, stage: ShaderStage): SubShader {
+		val subshader = generateSubShaderOpenGl(name, code, stage)
+		shaderMap[ResourceKey(name)] = subshader
+		return subshader
 	}
 
-	fun loadShaderVulkan(vulkan: VulkanManager, loader: ResourcesLoader, key: ResourceKey, fileName: String, code: String, stage: ShaderStage) {
+	fun loadShaderModuleVulkan(vulkan: VulkanManager, loader: ResourcesLoader, key: ResourceKey, fileName: String, code: String, stage: ShaderStage): ShaderModule {
 
-		if (!fileName.contains("vulkan")) return
+		val buffer = compileGlslAsSpirv(loader, fileName, code, stage) ?: return VulkanShaderModule(VulkanShaderData("Error", emptyList(), emptyList(), null), stage, vulkan.device, 0L)
 
-		val buffer = compileGlslAsSpirv(loader, fileName, code, stage) ?: return
+		MemoryStack.stackPush().use { stack ->
+			val shaderCreateInfo = VkShaderModuleCreateInfo.calloc(stack)
+				.`sType$Default`()
+				.pCode(buffer)
 
-		val shaderCreateInfo = VkShaderModuleCreateInfo.calloc()
-			.`sType$Default`()
-			.pCode(buffer)
+			val pointer = stack.mallocLong(1)
+			VkUtil.processResult(VK10.vkCreateShaderModule(vulkan.device.device, shaderCreateInfo, null, pointer), "Failed to create Shader Module")
+			vulkan.device.nameObject(pointer[0], VK10.VK_OBJECT_TYPE_SHADER_MODULE, key.key)
 
-		val pointer = MemoryUtil.memAllocLong(1)
-		VK10.vkCreateShaderModule(vulkan.device.device, shaderCreateInfo, null, pointer)
+			val shaderBuilder = VulkanShaderBuilder(stage)
+			val shaderData = shaderBuilder.parseUniformsVulkan(key.key, code)
 
-		val shaderBuilder = VulkanShaderBuilder(stage)
-		val shaderData = shaderBuilder.parseUniformsVulkan(key.key, code)
-
-		val shaderModule = VulkanShaderModule(shaderData, stage, vulkan.device, pointer[0])
-		pointer.free()
-		vulkan.deletionQueue.push(shaderModule)
-		shaderModules[key] = shaderModule
+			val shaderModule = VulkanShaderModule(shaderData, stage, vulkan.device, pointer[0])
+			shaderMap.put(key, shaderModule)?.delete()
+			return shaderModule
+		}
 	}
 
-	fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, tessCtrlKey: ResourceKey? = null, tessEvalKey: ResourceKey? = null, geometryKey: ResourceKey? = null): RenderShader {
-		val vertex: SubShader = shaderMap.getOrElse(vertexKey) {
+
+	fun getSubShader(id: ResourceKey) = shaderMap[id]
+
+	fun getRenderShader(
+		vertexKey: ResourceKey,
+		fragmentKey: ResourceKey,
+		optional: Iterable<ResourceKey>,
+		parameters: RenderShaderParameters,
+		deletionQueue: DeletionQueue = DeletionQueue.GLOBAL
+	): RenderShader {
+		val vertex: ShaderModule = shaderMap.getOrElse(vertexKey) {
 			GameEngineI.warn("Could not find vertex shader ${vertexKey.key}")
-			return RenderShader.brokeShader
+			return RenderShader.missing
 		}
-		val fragment: SubShader = shaderMap.getOrElse(fragmentKey) {
+		val fragment: ShaderModule = shaderMap.getOrElse(fragmentKey) {
 			GameEngineI.warn("Could not find fragment shader ${fragmentKey.key}")
-			return RenderShader.brokeShader
+			return RenderShader.missing
 		}
-		val optionalMap = mutableMapOf<ShaderStage, SubShader>()
-		if (tessCtrlKey != null) {
-			optionalMap[ShaderStage.TESS_CTRL] = shaderMap.getOrElse(tessCtrlKey) {
-				GameEngineI.warn("Could not find tessellation control shader ${tessCtrlKey.key}")
-				return RenderShader.brokeShader
-			}
-		}
-		if (tessEvalKey != null) {
-			optionalMap[ShaderStage.TESS_EVAL] = shaderMap.getOrElse(tessEvalKey) {
-				GameEngineI.warn("Could not find tessellation evaluation shader ${tessEvalKey.key}")
-				return RenderShader.brokeShader
-			}
-		}
-		if (geometryKey != null) {
-			optionalMap[ShaderStage.GEOMETRY] = shaderMap.getOrElse(geometryKey) {
-				GameEngineI.warn("Could not find geometry shader ${geometryKey.key}")
-				return RenderShader.brokeShader
-			}
-		}
-
-		return generateGraphicsShaderOpenGl(vertex, fragment, optionalMap)
-	}
-
-	fun getRenderShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, optional: Map<ShaderStage, ResourceKey>): RenderShader {
-		val vertex: SubShader = shaderMap.getOrElse(vertexKey) {
-			GameEngineI.warn("Could not find vertex shader ${vertexKey.key}")
-			return RenderShader.brokeShader
-		}
-		val fragment: SubShader = shaderMap.getOrElse(fragmentKey) {
-			GameEngineI.warn("Could not find fragment shader ${fragmentKey.key}")
-			return RenderShader.brokeShader
-		}
-		val optionalModules = optional.mapValues { (stage, key) ->
+		val optionalModules = optional.map { key ->
 			shaderMap.getOrElse(key) {
-				GameEngineI.warn("Could not find ${stage.name} shader ${key.key}")
-				return RenderShader.brokeShader
+				GameEngineI.warn("Could not find shader ${key.key}")
+				return RenderShader.missing
 			}
 		}
 
-		return generateGraphicsShaderOpenGl(vertex, fragment, optionalModules)
+		return ResourceFactory.INSTANCE.createRenderShader(vertex, fragment, optionalModules, parameters, deletionQueue)
 	}
 
 	fun getComputeShader(computeKey: ResourceKey): ComputeShader {
-		val compute: SubShader = shaderMap.getOrElse(computeKey) {
+		val compute: ShaderModule = shaderMap.getOrElse(computeKey) {
 			GameEngineI.warn("Could not find vertex shader ${computeKey.key}")
-			return ComputeShader.brokeShader
+			return ComputeShader.missingShader
 		}
-
-		return generateComputeShaderOpenGl(computeKey.key, compute)
+		return ResourceFactory.INSTANCE.createComputeShader(compute)
 	}
 
 	override fun delete() {
@@ -156,16 +140,21 @@ class ShaderLoader private constructor() : Deletable {
 
 		val versionRegex = Regex("#version\\s+\\d{3}(\\s+core)?[^\\S\\n]*\\n")
 
-		fun getShader(vertexKey: ResourceKey, fragmentKey: ResourceKey, geometryKey: ResourceKey? = null): RenderShader {
-			return INSTANCE.getShader(vertexKey, fragmentKey, geometryKey)
+		operator fun get(
+			vertexKey: ResourceKey,
+			fragmentKey: ResourceKey,
+			parameters: RenderShaderParameters = RenderShaderParameters(),
+			deletionQueue: DeletionQueue = DeletionQueue.GLOBAL
+		): RenderShader {
+			return INSTANCE.getRenderShader(vertexKey, fragmentKey, emptyList(), parameters, deletionQueue)
 		}
 
-		operator fun get(vertexKey: ResourceKey, fragmentKey: ResourceKey, tessCtrlKey: ResourceKey? = null, tessEvalKey: ResourceKey? = null, geometryKey: ResourceKey? = null): RenderShader {
-			return INSTANCE.getShader(vertexKey, fragmentKey, tessCtrlKey, tessEvalKey, geometryKey)
+		operator fun get(vertexKey: ResourceKey, fragmentKey: ResourceKey, vararg optional: ResourceKey): RenderShader {
+			return INSTANCE.getRenderShader(vertexKey, fragmentKey, optional.toList(), RenderShaderParameters())
 		}
 
-		operator fun get(vertexKey: ResourceKey, fragmentKey: ResourceKey, optional: Map<ShaderStage, ResourceKey>): RenderShader {
-			return INSTANCE.getRenderShader(vertexKey, fragmentKey, optional)
+		operator fun get(vertexKey: ResourceKey, fragmentKey: ResourceKey, optional: List<ResourceKey>, parameters: RenderShaderParameters = RenderShaderParameters()): RenderShader {
+			return INSTANCE.getRenderShader(vertexKey, fragmentKey, optional, parameters)
 		}
 
 		operator fun get(computeKey: ResourceKey): ComputeShader {
@@ -175,7 +164,9 @@ class ShaderLoader private constructor() : Deletable {
 		fun addMacro(code: String, name: String): String {
 			val versionLocation = versionRegex.find(code)
 			return if (versionLocation != null) {
-				code.substring(0, versionLocation.range.last) + "\n#define $name" + code.substring(versionLocation.range.last)
+				val beforeInsert = code.substring(0, versionLocation.range.last)
+				val lineNumber = beforeInsert.count { it == '\n' }
+				beforeInsert + "\n#ifndef $name\n#define $name\n#endif\n#line ${lineNumber + 2}" + code.substring(versionLocation.range.last)
 			} else code
 		}
 
@@ -207,7 +198,7 @@ class ShaderLoader private constructor() : Deletable {
 
 			val uniforms = compileUniforms(code)
 
-			return SubShader(name, handle, uniforms.toMap())
+			return SubShader(name, stage, handle, uniforms.toMap())
 
 		}
 
@@ -227,39 +218,40 @@ class ShaderLoader private constructor() : Deletable {
 			return shader
 		}
 
-		fun generateGraphicsShaderOpenGl(vertexShader: SubShader, fragmentShader: SubShader, optionalShaders: Map<ShaderStage, SubShader> = emptyMap()): RenderShader {
+		fun generateGraphicsShaderOpenGl(vertexShader: SubShader, fragmentShader: SubShader, optionalShaders: Iterable<SubShader>, parameters: RenderShaderParameters): OpenGlRenderShader {
 			if (!GLFunc.isLoaded) {
 				GameEngineI.warn("Could not generate shader because OpenGL has not been loaded")
-				return RenderShader(0, vertexShader, fragmentShader, emptyMap(), uniforms = emptyMap())
+				return OpenGlRenderShader(0, vertexShader, fragmentShader, emptyList(), uniforms = emptyMap(), parameters)
 			}
 			val ID = glCreateProgram()
 
 			// Shader Program
 			glAttachShader(ID, vertexShader.handle)
 			glAttachShader(ID, fragmentShader.handle)
-			val name = StringBuilder("${vertexShader.id} x ${fragmentShader.id}")
-			for ((_, subshader) in optionalShaders) {
+			val name = StringBuilder("${vertexShader.getName()} x ${fragmentShader.getName()}")
+
+			val uniforms = vertexShader.uniforms.toMutableMap()
+			uniforms.putAll(fragmentShader.uniforms)
+			for (subshader in optionalShaders) {
 				glAttachShader(ID, subshader.handle)
-				name.append(" x ${subshader.id}")
+				uniforms.putAll(subshader.uniforms)
+				name.append(" x ${subshader.getName()}")
 			}
 			glLinkProgram(ID)
 
 			// print linking errors if any
 			checkCompileErrorsOpenGl(ID, null, name.toString())
 
-			val uniforms = vertexShader.uniforms.toMutableMap()
-			uniforms.putAll(fragmentShader.uniforms)
-			for ((_, shader) in optionalShaders) uniforms.putAll(shader.uniforms)
 
-			return RenderShader(ID, vertexShader, fragmentShader, optionalShaders, uniforms)
+			return OpenGlRenderShader(ID, vertexShader, fragmentShader, optionalShaders, uniforms, parameters)
 		}
 
-		fun generateComputeShaderOpenGl(name: String, shader: SubShader): ComputeShader {
+		fun generateComputeShaderOpenGl(shader: SubShader): OpenGlComputeShader {
 			val ID = glCreateProgram()
 			glAttachShader(ID, shader.handle)
 			glLinkProgram(ID)
-			checkCompileErrorsOpenGl(ID, null, name)
-			return ComputeShader(ID, name, shader.uniforms)
+			checkCompileErrorsOpenGl(ID, null, shader.getName())
+			return OpenGlComputeShader(ID, shader, shader.uniforms)
 		}
 
 		fun compileUniforms(code: String): Map<String, String> {
@@ -340,24 +332,11 @@ class ShaderLoader private constructor() : Deletable {
 
 		// VULKAN
 
-		fun generateComputePipelineVulkan(vulkan: VulkanManager, module: VulkanShaderModule, constantSize: Int): VulkanComputePipeline {
-
-			val pipelineBuilder = VulkanComputePipeline.Builder()
-			val pipeline = pipelineBuilder
-				.setModule(module)
-				.generateLayout(vulkan.device)
-				.build(vulkan.device)
-
-			pipelineBuilder.delete()
-			vulkan.deletionQueue.push(pipeline)
-			return pipeline
-		}
-
 		fun compileGlslAsSpirv(loader: ResourcesLoader, fileName: String, code: String, stage: ShaderStage): ByteBuffer? {
 
 			// VULKAN is automatically defined I guess?
-//			var vulkanCode = addMacro(code, "VULKAN")
-			var vulkanCode = code.replace("gl_VertexID", "gl_VertexIndex")
+			var vulkanCode = addMacro(code, "VULKAN")
+			vulkanCode = vulkanCode.replace("gl_VertexID", "gl_VertexIndex")
 			vulkanCode = vulkanCode.replace("gl_InstanceID", "gl_InstanceIndex")
 
 			val buffer = MemoryUtil.memUTF8(vulkanCode, false)
@@ -365,7 +344,7 @@ class ShaderLoader private constructor() : Deletable {
 			val compiler = Shaderc.shaderc_compiler_initialize()
 			val options = Shaderc.shaderc_compile_options_initialize()
 
-			val resolver: ShadercIncludeResolve = Resolver(loader, fileName.substringBeforeLast('/') + '/')
+			val resolver: ShadercIncludeResolve = IncludeResolver(loader, fileName.substringBeforeLast('/') + '/')
 			val releaser: ShadercIncludeResultRelease = Releaser()
 			Shaderc.shaderc_compile_options_set_target_env(options, Shaderc.shaderc_target_env_vulkan, Shaderc.shaderc_env_version_vulkan_1_2)
 			Shaderc.shaderc_compile_options_set_target_spirv(options, Shaderc.shaderc_spirv_version_1_4)
@@ -396,7 +375,8 @@ class ShaderLoader private constructor() : Deletable {
 
 	}
 
-	class Resolver(val loader: ResourcesLoader, val fileLocation: String) : ShadercIncludeResolve() {
+	// For resolving #include macros
+	class IncludeResolver(val loader: ResourcesLoader, val fileLocation: String) : ShadercIncludeResolve() {
 		override fun invoke(user_data: Long, requested_source: Long, type: Int, requesting_source: Long, include_depth: Long): Long {
 			val src = fileLocation + MemoryUtil.memUTF8(requested_source)
 			val stream = loader.getStream(src) ?: throw AssertionError("Failed to resolve include $src")

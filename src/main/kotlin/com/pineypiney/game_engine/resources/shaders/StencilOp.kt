@@ -1,0 +1,17 @@
+package com.pineypiney.game_engine.resources.shaders
+
+import com.pineypiney.game_engine.util.ApiEnum
+import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL14C
+import org.lwjgl.vulkan.VK10
+
+enum class StencilOp(override val opengl: Int, override val vulkan: Int) : ApiEnum {
+	KEEP(GL11C.GL_KEEP, VK10.VK_STENCIL_OP_KEEP),
+	ZERO(GL11C.GL_ZERO, VK10.VK_STENCIL_OP_ZERO),
+	REPLACE(GL11C.GL_REPLACE, VK10.VK_STENCIL_OP_REPLACE),
+	INCR_CLAMP(GL11C.GL_INCR, VK10.VK_STENCIL_OP_INCREMENT_AND_CLAMP),
+	DECR_CLAMP(GL11C.GL_DECR, VK10.VK_STENCIL_OP_DECREMENT_AND_CLAMP),
+	INVERT(GL11C.GL_INVERT, VK10.VK_STENCIL_OP_INVERT),
+	INCR_WRAP(GL14C.GL_INCR_WRAP, VK10.VK_STENCIL_OP_INCREMENT_AND_WRAP),
+	DECR_WRAP(GL14C.GL_DECR_WRAP, VK10.VK_STENCIL_OP_DECREMENT_AND_WRAP),
+}

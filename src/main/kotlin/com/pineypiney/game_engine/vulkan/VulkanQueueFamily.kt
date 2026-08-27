@@ -16,7 +16,7 @@ class VulkanQueueFamily(val obj: VkQueueFamilyProperties, val i: Int, val gpu: V
 
 	fun supportsPresentation(surface: VulkanSurface): Boolean {
 		val canPresent = MemoryUtil.memAllocInt(1)
-		VkUtil.processError(KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR(gpu.physicalDevice, i, surface.handle, canPresent), "Failed to get physical device's surface support")
+		VkUtil.processResult(KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR(gpu.physicalDevice, i, surface.handle, canPresent), "Failed to get physical device's surface support")
 		return canPresent[0] == VK10.VK_TRUE
 	}
 

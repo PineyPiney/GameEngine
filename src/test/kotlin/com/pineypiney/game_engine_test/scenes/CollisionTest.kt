@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider2DCompone
 import com.pineypiney.game_engine.objects.components.rendering.Arrow2DRenderer
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox2DRenderer
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionPolygonRenderer
+import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.util.extension_functions.PIF
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.ControlType
@@ -22,7 +23,7 @@ import org.lwjgl.glfw.GLFW
 import kotlin.math.sqrt
 
 @Suppress("UNUSED")
-class CollisionTest(gameEngine: WindowedGameEngineI<*>): MultiTest(gameEngine) {
+class CollisionTest(gameEngine: WindowedGameEngineI<*>, renderer: WindowRendererI<MultiTest>) : MultiTest(gameEngine, renderer) {
 
 	val bases = Array(5){ GameObject("Base$it").apply {
 		position = Vec3(2.8f*it -7f, -5f, 0f)

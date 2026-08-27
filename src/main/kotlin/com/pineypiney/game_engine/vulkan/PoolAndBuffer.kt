@@ -1,12 +1,14 @@
 package com.pineypiney.game_engine.vulkan
 
 import com.pineypiney.game_engine.objects.Deletable
+import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorSet
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipeline
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
 import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.window.Viewport
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
+import glm_.vec4.Vec4i
 import kool.free
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
@@ -15,16 +17,22 @@ import java.nio.ByteBuffer
 
 class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: DeletionQueue) : Deletable {
 
+	val currentOps = Vec4i()
+
 	fun begin(info: VkCommandBufferBeginInfo) {
-		VkUtil.processError(VK10.vkBeginCommandBuffer(buffer, info), "Failed to begin Command Buffer")
+		VkUtil.processResult(VK10.vkBeginCommandBuffer(buffer, info), "Failed to begin Command Buffer")
+
+		// For error https://vulkan.lunarg.com/doc/view/1.3.296.0/windows/1.3-extensions/vkspec.html#VUID-vkCmdDrawIndexed-None-07847
+		setStencil(false)
 	}
 
 	fun begin(flags: Int) {
-		val info = VkCommandBufferBeginInfo.calloc()
-			.`sType$Default`()
-			.flags(flags)
-		begin(info)
-		info.free()
+		MemoryStack.stackPush().use { stack ->
+			val info = VkCommandBufferBeginInfo.calloc(stack)
+				.`sType$Default`()
+				.flags(flags)
+			begin(info)
+		}
 	}
 
 	fun beginRendering(info: VkRenderingInfo) {
@@ -37,6 +45,45 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 
 	fun setViewport(viewport: Viewport) {
 		MemoryStack.stackPush().use { stack -> setViewport(stack, viewport) }
+	}
+
+	fun setStencil(enabled: Boolean) {
+		VK13.vkCmdSetStencilTestEnable(buffer, enabled)
+	}
+
+	/**
+	 * Set up stencilling for render pipelines
+	 *
+	 * @param reference Stencil reference value
+	 * @param mask Stencil compare mask
+	 * @param failOp Stencil Operation performed when the [compare] operation fails
+	 * @param passOp Stencil Operation performed when the [compare] operation and depth check both pass
+	 * @param depthFailOp Stencil Operation performed when the [compare] operation passes but the depth check fails
+	 * @param compare Compare operation performed on current stencil value and [reference]
+	 */
+	fun setStencil(faceMask: Int, reference: Int, mask: Int, failOp: Int, passOp: Int, depthFailOp: Int, compare: Int) {
+		VK13.vkCmdSetStencilReference(buffer, faceMask, reference)
+		VK13.vkCmdSetStencilCompareMask(buffer, faceMask, mask)
+		VK13.vkCmdSetStencilOp(buffer, faceMask, failOp, passOp, depthFailOp, compare)
+		currentOps(failOp, passOp, depthFailOp, compare)
+	}
+
+	fun setStencilComparison(faceMask: Int, reference: Int, mask: Int, compare: Int) {
+		VK13.vkCmdSetStencilReference(buffer, faceMask, reference)
+		VK13.vkCmdSetStencilCompareMask(buffer, faceMask, mask)
+		VK13.vkCmdSetStencilOp(buffer, faceMask, currentOps.x, currentOps.y, currentOps.z, compare)
+		currentOps.w = compare
+	}
+
+	fun setStencilOperations(faceMask: Int, failOp: Int, passOp: Int, depthFailOp: Int) {
+		VK13.vkCmdSetStencilOp(buffer, faceMask, failOp, passOp, depthFailOp, currentOps.w)
+		currentOps.x = failOp
+		currentOps.y = passOp
+		currentOps.z = depthFailOp
+	}
+
+	fun setStencilWriteMask(mask: Int) {
+		VK13.vkCmdSetStencilWriteMask(buffer, 3, mask)
 	}
 
 	fun setScissors(stack: MemoryStack, viewport: Viewport) {
@@ -68,8 +115,8 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 		buf.free()
 	}
 
-	fun pushConstants(pipeline: VulkanPipeline, stage: Int, constants: ByteBuffer) {
-		VK10.vkCmdPushConstants(buffer, pipeline.layout.handle, stage, 0, constants)
+	fun pushConstants(pipeline: VulkanPipeline, stage: Int, offset: Int, constants: ByteBuffer) {
+		VK10.vkCmdPushConstants(buffer, pipeline.layout.handle, stage, offset, constants)
 	}
 
 	fun draw(vertexCount: Int, instanceCount: Int = 1, firstVertex: Int = 0, firstInstance: Int = 0) {
@@ -126,11 +173,19 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 		VK10.vkEndCommandBuffer(buffer)
 	}
 
-	fun immediateSubmit(func: (cmd: PoolAndBuffer) -> Unit) {
+	fun execute(func: (cmd: PoolAndBuffer) -> Unit) {
 		resetBuffer(0)
 		begin(VK10.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)
 		func(this)
 		end()
+	}
+
+	fun <E> execute(func: (cmd: PoolAndBuffer) -> E): E {
+		resetBuffer(0)
+		begin(VK10.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)
+		val ret = func(this)
+		end()
+		return ret
 	}
 
 	fun resetBuffer(flags: Int = 0) {
@@ -144,14 +199,11 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 	}
 
 	companion object {
-		fun create(device: VulkanDevice, stack: MemoryStack): PoolAndBuffer {
-			MemoryStack.stackPush().use { stack ->
-				val pool = device.createCommandPool(stack)
-				val buffer = device.createCommandBuffer(stack, pool)
-				val deletion = DeletionQueue()
-				return PoolAndBuffer(pool, buffer, deletion)
-			}
-
+		fun create(device: VulkanDevice, stack: MemoryStack, name: String): PoolAndBuffer {
+			val pool = device.createCommandPool(stack, name)
+			val buffer = device.createCommandBuffer(stack, pool, name)
+			val deletion = DeletionQueue()
+			return PoolAndBuffer(pool, buffer, deletion)
 		}
 	}
 }

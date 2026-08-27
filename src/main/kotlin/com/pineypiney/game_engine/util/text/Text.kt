@@ -3,7 +3,6 @@ package com.pineypiney.game_engine.util.text
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
-import com.pineypiney.game_engine.rendering.meshes.TextMesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
@@ -24,7 +23,7 @@ open class Text(
 	var lines = arrayOf<String>()
 	var lengths = floatArrayOf()
 
-	var mesh: TextMesh = TextMesh(emptyArray()); private set
+	var data: TextData = TextData(null); private set
 
 	override fun init() {
 
@@ -35,8 +34,8 @@ open class Text(
 
 		lines = generateLines(bounds)
 		lengths = lines.map { getWidth(it) }.toFloatArray()
-		mesh.delete()
-		mesh = font.getShape(lines.joinToString("\n"), false, bounds, alignment)
+		data.delete()
+		data = font.getShape(lines.joinToString("\n"), false, bounds, alignment)
 	}
 
 	fun getWidth(): Float {
@@ -154,7 +153,7 @@ open class Text(
 	}
 
 	override fun delete() {
-		mesh.delete()
+		data.delete()
 	}
 
 	override fun toString(): String {

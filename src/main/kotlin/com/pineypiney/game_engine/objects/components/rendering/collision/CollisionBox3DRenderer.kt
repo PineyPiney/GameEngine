@@ -36,14 +36,14 @@ class CollisionBox3DRenderer(
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		mesh.bindAndDraw(renderer.getRenderingApi())
+		shader.draw("vertexBuffer", mesh, renderer)
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	companion object {
 		val defaultShader =
-			ShaderLoader.getShader(ResourceKey("vertex/pass_pos_3D"), ResourceKey("fragment/collider3D"))
+			ShaderLoader.get(ResourceKey("vertex/pass_pos_3D"), ResourceKey("fragment/collider3D"))
 
 		fun create(obj: GameObject, lineThickness: Float = .05f, colour: Vec4 = Vec4(1f)): GameObject{
 			val par = GameObject(obj.name + " Collider Renderer")

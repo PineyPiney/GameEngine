@@ -13,14 +13,14 @@ abstract class VideoRendererComponent(parent: GameObject) :
 	abstract val video: Video
 	val mesh = shape
 
+	override fun setUniforms() {
+		super.setUniforms()
+		uniforms.setTextureUniform("tex", video::getCurrentTexture)
+	}
+
 	override fun render(renderer: RendererI, tickDelta: Double) {
-
-		val tex = video.getCurrentTexture()
-		tex.bind()
-
 		shader.setUp(uniforms, renderer)
-
-		mesh.bindAndDraw(renderer.getRenderingApi())
+		shader.draw("vertexBuffer", mesh, renderer)
 	}
 
 	fun play() = video.play()
@@ -35,6 +35,6 @@ abstract class VideoRendererComponent(parent: GameObject) :
 
 	companion object {
 		// Image must be flipped vertically
-		val shape = Mesh.textureQuad(ResourceFactory.INSTANCE, Vec2(0f), Vec2(1f), Vec2(0f, 1f), Vec2(1f, 0f))
+		val shape = Mesh.textureQuad(ResourceFactory.INSTANCE, "Video Quad", Vec2(0f), Vec2(1f), Vec2(0f, 1f), Vec2(1f, 0f))
 	}
 }

@@ -1,0 +1,85 @@
+package com.pineypiney.game_engine.rendering.opengl
+
+import com.pineypiney.game_engine.objects.GameObject
+import com.pineypiney.game_engine.objects.ObjectCollection
+import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
+import com.pineypiney.game_engine.objects.components.rendering.RenderedComponentI
+import com.pineypiney.game_engine.rendering.cameras.CameraI
+import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.util.maths.I
+import com.pineypiney.game_engine.window.WindowGameLogic
+import com.pineypiney.game_engine.window.WindowI
+import glm_.glm
+import glm_.vec2.Vec2i
+import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL30C
+
+open class DefaultWindowRenderer<in G : WindowGameLogic, C : CameraI>(override val window: WindowI, override val camera: C) : OpenGlGameRenderer<G>() {
+
+	constructor(window: WindowI, camera: (WindowI) -> C) : this(window, camera(window))
+
+	override val view = I
+	override val projection = I
+	override val guiProjection = I
+
+	override fun init() {
+		super.init()
+
+		GLFunc.blend = true
+		GLFunc.blendFunc = Vec2i(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+		screenUniforms.setIntUniform("effects") { 0 }
+	}
+
+	override fun render(game: G, tickDelta: Double) {
+
+		camera.getView(view)
+		camera.getProjection(projection)
+
+		clearFrameBuffer()
+
+		GLFunc.depthTest = true
+		renderLayer(0, game, tickDelta, framebuffer)
+
+		GLFunc.depthTest = false
+		renderLayer(1, game, tickDelta, framebuffer){ transformComponent.worldPosition.z }
+
+		// This draws the buffer onto the screen
+		Framebuffer.unbind()
+		clear()
+		screenShader.setUp(screenUniforms, this)
+		framebuffer.draw(getRenderingApi())
+		glClear(GL_DEPTH_BUFFER_BIT)
+	}
+
+	fun renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: Framebuffer? = null) = renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0){ -(transformComponent.worldPosition - camera.cameraPos).length2() }
+
+	fun <C: Comparable<C>> renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: Framebuffer? = null, sort: GameObject.() -> C) = renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0, sort)
+
+	fun renderLayer(layer: Collection<GameObject>, tickDelta: Double, framebuffer: Int = 0) = renderLayer(layer, tickDelta, framebuffer){ -(transformComponent.worldPosition - camera.cameraPos).length2() }
+
+	open fun <C: Comparable<C>> renderLayer(layer: Collection<GameObject>, tickDelta: Double, framebuffer: Int = 0, sort: GameObject.() -> C){
+		val sortedObjects = layer.flatMap { it.catchRenderingComponents() }.sortedBy(sort)
+		for (o in sortedObjects) {
+			renderObject(o, tickDelta, framebuffer)
+		}
+	}
+
+	open fun renderObject(obj: GameObject, tickDelta: Double, framebuffer: Int = 0){
+		val renderedComponents = obj.components.filterIsInstance<RenderedComponentI>().filter { it.visible }
+		if(renderedComponents.isNotEmpty()){
+			for(c in obj.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
+			GL30C.glBindFramebuffer(GL30C.GL_FRAMEBUFFER, framebuffer)
+			for(c in renderedComponents) c.render(this, tickDelta)
+		}
+		else for(c in obj.components.filterIsInstance<PreRenderComponent>()){
+			if(!c.whenVisible) c.preRender(this, tickDelta)
+		}
+	}
+
+	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
+		super.updateAspectRatio(window, objects)
+		val w = window.aspectRatio
+		glm.ortho(-w, w, -1f, 1f, guiProjection)
+	}
+}

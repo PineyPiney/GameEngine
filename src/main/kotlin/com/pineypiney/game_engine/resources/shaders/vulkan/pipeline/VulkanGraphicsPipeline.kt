@@ -1,11 +1,17 @@
 package com.pineypiney.game_engine.resources.shaders.vulkan.pipeline
 
+import com.pineypiney.game_engine.rendering.RenderingApi
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.DataType
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderStage
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderModule
+import com.pineypiney.game_engine.util.RandomHelper
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addAll
+import com.pineypiney.game_engine.util.extension_functions.popFirst
 import com.pineypiney.game_engine.vulkan.VkStructs
 import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VulkanDevice
@@ -13,19 +19,49 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
 
-class VulkanGraphicsPipeline(pipeline: Long, layout: VulkanPipelineLayout) : VulkanPipeline(pipeline, layout) {
+class VulkanGraphicsPipeline(
+	pipeline: Long,
+	override val vertex: VulkanShaderModule,
+	override val fragment: VulkanShaderModule,
+	override val stages: Iterable<VulkanShaderModule>,
+	override val parameters: RenderShaderParameters,
+	layout: VulkanPipelineLayout
+) : VulkanPipeline(pipeline, layout), RenderShader {
+
+	override val screenMask: Byte = RandomHelper.createMask(layout::containsBinding, "view", "projection", "guiProjection", "viewport", "viewPos").toByte()
+
+	override val lightMask: Byte = RandomHelper.createMask(
+		layout::containsBinding,
+		"dirLight.ambient",
+		"pointLight.ambient",
+		"spotLight.ambient"
+	).toByte()
+
+	override fun draw(meshName: String, mesh: Mesh, api: RenderingApi) {
+		setMesh(meshName, mesh)
+		endUniforms(api)
+		mesh.draw(api)
+	}
 
 	override fun getBindPoint(): Int = VK10.VK_PIPELINE_BIND_POINT_GRAPHICS
+
+	override fun getAllModules(): Iterable<VulkanShaderModule> {
+		val list = mutableListOf(vertex, fragment)
+		list.addAll(stages)
+		return list
+	}
 
 	class Builder : VulkanPipeline.Builder<VulkanGraphicsPipeline>() {
 
 		val modules = mutableListOf<VulkanShaderModule>()
+		var parameters = RenderShaderParameters()
 		val inputAssembly = VkPipelineInputAssemblyStateCreateInfo.calloc().`sType$Default`()
 		val rasterization = VkPipelineRasterizationStateCreateInfo.calloc().`sType$Default`()
 		val colourBlendAttachment = VkPipelineColorBlendAttachmentState.calloc(1)
 		val multisample = VkPipelineMultisampleStateCreateInfo.calloc().`sType$Default`()
 		val depthStencil = VkPipelineDepthStencilStateCreateInfo.calloc().`sType$Default`()
 		val renderInfo = VkPipelineRenderingCreateInfo.calloc().`sType$Default`()
+		val dynamic = VkPipelineDynamicStateCreateInfo.calloc()
 
 		fun shaders(vertex: VulkanShaderModule, fragment: VulkanShaderModule): Builder {
 			modules.clear()
@@ -34,8 +70,8 @@ class VulkanGraphicsPipeline(pipeline: Long, layout: VulkanPipelineLayout) : Vul
 		}
 
 		fun shaders(vertexName: String, fragmentName: String): Builder {
-			val vertex = ShaderLoader.INSTANCE.shaderModules[ResourceKey(vertexName)]!!
-			val fragment = ShaderLoader.INSTANCE.shaderModules[ResourceKey(fragmentName)]!!
+			val vertex = ShaderLoader.INSTANCE.getSubShader(ResourceKey(vertexName)) as VulkanShaderModule
+			val fragment = ShaderLoader.INSTANCE.getSubShader(ResourceKey(fragmentName)) as VulkanShaderModule
 			return shaders(vertex, fragment)
 		}
 
@@ -46,20 +82,33 @@ class VulkanGraphicsPipeline(pipeline: Long, layout: VulkanPipelineLayout) : Vul
 
 		fun generateLayout(device: VulkanDevice): Builder {
 			MemoryStack.stackPush().use { stack ->
-				val descriptorLayouts = compileDescriptorLayouts(device, modules.associate { it.stage to it.data })
+				val descriptorLayouts = compileDescriptorLayouts(device, modules.associate { it.getStage() to it.data })
 				val pushConstantsList = mutableSetOf<VkPushConstantRange>()
-				val pushConstantsMap = mutableMapOf<ShaderStage, DataType.PushConstants>()
+				val pushConstantsMap = mutableMapOf<ShaderStage, Pair<String, DataType.PushConstants>>()
 				for ((_, module) in modules.withIndex()) {
 					val pushConstants = module.data.pushConstants
 					if (pushConstants != null) {
-						pushConstantsList.add(VkPushConstantRange.calloc(stack).set(module.stage.vulkan, 0, pushConstants.second.size))
-						pushConstantsMap[module.stage] = pushConstants.second
+						pushConstantsList.add(VkPushConstantRange.calloc(stack).set(module.getStage().vulkan, pushConstants.second.min, pushConstants.second.size))
+						pushConstantsMap[module.getStage()] = pushConstants
 					}
 				}
 				val pushConstantsBuffer = VkPushConstantRange.calloc(pushConstantsList.size, stack)
 				for (range in pushConstantsList) pushConstantsBuffer.put(range)
 				this.layout = VkUtil.createPipelineLayout(device, stack, descriptorLayouts, pushConstantsBuffer.flip(), pushConstantsMap)
 			}
+			return this
+		}
+
+		fun parameters(parameters: RenderShaderParameters): Builder {
+			this.parameters = parameters
+			inputTopology(parameters.topology.vulkan)
+				.polygonMode(parameters.fillMode.vulkan)
+				.cullMode(parameters.cullMode.vulkan, VK10.VK_FRONT_FACE_COUNTER_CLOCKWISE)
+
+			parameters.depthTestOp?.let { enableDepthTest(true, it.vulkan) } ?: disableDepthTest()
+			parameters.blending?.let { (src, dst, op) -> enableBlending(src.vulkan, dst.vulkan, op.vulkan) } ?: disableBlending()
+			if (parameters.multisampling == 1) disableMultisampling() else enableMultisampling(parameters.multisampling)
+
 			return this
 		}
 
@@ -101,6 +150,16 @@ class VulkanGraphicsPipeline(pipeline: Long, layout: VulkanPipelineLayout) : Vul
 			return this
 		}
 
+		fun enableMultisampling(samples: Int): Builder {
+			multisample.sampleShadingEnable(true)
+				.rasterizationSamples(samples)
+				.minSampleShading(1f)
+				.pSampleMask(null)
+				.alphaToCoverageEnable(false)
+				.alphaToOneEnable(false)
+			return this
+		}
+
 		fun disableMultisampling(): Builder {
 			multisample.sampleShadingEnable(false)
 				.rasterizationSamples(1)
@@ -116,7 +175,6 @@ class VulkanGraphicsPipeline(pipeline: Long, layout: VulkanPipelineLayout) : Vul
 				.depthWriteEnable(write)
 				.depthCompareOp(op)
 				.depthBoundsTestEnable(false)
-				.stencilTestEnable(false)
 				.front(VkStencilOpState::clear)
 				.back(VkStencilOpState::clear)
 				.minDepthBounds(0f)
@@ -130,11 +188,20 @@ class VulkanGraphicsPipeline(pipeline: Long, layout: VulkanPipelineLayout) : Vul
 				.depthWriteEnable(false)
 				.depthCompareOp(VK10.VK_COMPARE_OP_NEVER)
 				.depthBoundsTestEnable(false)
-				.stencilTestEnable(false)
 				.front(VkStencilOpState::clear)
 				.back(VkStencilOpState::clear)
 				.minDepthBounds(0f)
 				.maxDepthBounds(1f)
+			return this
+		}
+
+		fun enableStencilTest(): Builder {
+			depthStencil.stencilTestEnable(true)
+			return this
+		}
+
+		fun disableStencilTest(): Builder {
+			depthStencil.stencilTestEnable(false)
 			return this
 		}
 
@@ -170,11 +237,16 @@ class VulkanGraphicsPipeline(pipeline: Long, layout: VulkanPipelineLayout) : Vul
 
 				val vertexInput = VkPipelineVertexInputStateCreateInfo.calloc(stack).`sType$Default`()
 
-
-				val dynamicStates = stack.mallocInt(2)
-					.put(VK10.VK_DYNAMIC_STATE_VIEWPORT)
-					.put(VK10.VK_DYNAMIC_STATE_SCISSOR)
-					.flip()
+				val dynamicStatesArray = intArrayOf(
+					VK10.VK_DYNAMIC_STATE_VIEWPORT,
+					VK10.VK_DYNAMIC_STATE_SCISSOR,
+					VK10.VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
+					VK10.VK_DYNAMIC_STATE_STENCIL_WRITE_MASK,
+					VK10.VK_DYNAMIC_STATE_STENCIL_REFERENCE,
+					VK13.VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE,
+					VK13.VK_DYNAMIC_STATE_STENCIL_OP,
+				)
+				val dynamicStates = stack.mallocInt(dynamicStatesArray.size).put(dynamicStatesArray).flip()
 				val dynamicState = VkPipelineDynamicStateCreateInfo.calloc(stack)
 					.`sType$Default`()
 					.pDynamicStates(dynamicStates)
@@ -199,8 +271,16 @@ class VulkanGraphicsPipeline(pipeline: Long, layout: VulkanPipelineLayout) : Vul
 
 				val pPipeline = stack.mallocLong(1)
 
-				VkUtil.processError(VK10.vkCreateGraphicsPipelines(layout!!.device.device, 0L, pipelineInfo, null, pPipeline), "Failed to create Graphics Pipeline")
-				return VulkanGraphicsPipeline(pPipeline[0], layout!!)
+				VkUtil.processResult(VK10.vkCreateGraphicsPipelines(layout!!.device.device, 0L, pipelineInfo, null, pPipeline), "Failed to create Graphics Pipeline")
+				val optionalModules = modules.toMutableList()
+				val vertex = optionalModules.popFirst { it.getStage() == ShaderStage.VERTEX }
+				val fragment = optionalModules.popFirst { it.getStage() == ShaderStage.FRAGMENT }
+
+				val name = "Render Shader(${vertex.getName()}, ${vertex.getName()}, ${optionalModules.joinToString(transform = VulkanShaderModule::getName)})"
+				device.nameObject(pPipeline[0], VK10.VK_OBJECT_TYPE_PIPELINE, name)
+				device.nameObject(layout!!.handle, VK10.VK_OBJECT_TYPE_PIPELINE_LAYOUT, "$name Layout")
+
+				return VulkanGraphicsPipeline(pPipeline[0], vertex, fragment, optionalModules, parameters, layout!!)
 			}
 		}
 

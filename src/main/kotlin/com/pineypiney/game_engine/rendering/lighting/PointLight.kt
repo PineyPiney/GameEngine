@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.rendering.lighting
 
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import glm_.vec3.Vec3
+import kool.toFloatBuffer
 
 class PointLight(
 	override var ambient: Vec3 = Vec3(0.1f),
@@ -23,9 +24,9 @@ class PointLight(
 	companion object {
 		fun setShaderUniforms(shader: RenderShader, name: String, lights: Map<Vec3, PointLight>) {
 			Light.setShaderUniforms(shader, name, lights)
-			shader.setFloats("$name.constant", lights.values.map { it.constant }.toFloatArray())
-			shader.setFloats("$name.linear", lights.values.map { it.linear }.toFloatArray())
-			shader.setFloats("$name.quadratic", lights.values.map { it.quadratic }.toFloatArray())
+			shader.setFloats("$name.constant", lights.values.map { it.constant }.toFloatArray().toFloatBuffer())
+			shader.setFloats("$name.linear", lights.values.map { it.linear }.toFloatArray().toFloatBuffer())
+			shader.setFloats("$name.quadratic", lights.values.map { it.quadratic }.toFloatArray().toFloatBuffer())
 		}
 	}
 }

@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.apps.editor.util.transformers
 
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.apps.editor.EditorScreen
+import com.pineypiney.game_engine.apps.editor.util.edits.ComponentFieldEdit
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.fields.Shape2DField
@@ -113,6 +114,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 
+		// Time since last press, used for double clicks
 		val clickDelta: Double
 		if (action == 1) {
 			clickDelta = Timer.frameTime - lastClick
@@ -129,9 +131,11 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 			val point = points[hovered]
 			when (action) {
 				1 -> {
+					// When clicking a point grab it
 					grabPoint = cursorPos.screenSpace - getScreenPos(point)
 				}
 				0 -> {
+					// When dropping a point save the change
 					saveEdit(collider, collider.shape)
 				}
 			}
@@ -158,9 +162,6 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 						grabPoint = cursorPos.screenSpace - getScreenPos(point)
 					}
 				}
-//				0 -> if (oldPos.x != Float.MAX_VALUE) screen.editManager.addEdit(ComponentFieldEdit.moveEdit(
-//					obj, screen, oldPos, obj.position
-//				))
 			}
 			return INTERRUPT
 		} else {
@@ -170,9 +171,6 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 					1 -> {
 						grabPoint = cursorPos.screenSpace
 					}
-//					0 -> if (oldPos.x != Float.MAX_VALUE) screen.editManager.addEdit(ComponentFieldEdit.moveEdit(
-//						obj, screen, oldPos, obj.position
-//					))
 				}
 				return INTERRUPT
 			}
@@ -385,7 +383,10 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 	}
 
 	fun saveEdit(collider: Collider2DComponent, newShape: Shape2D) {
-		oldShape?.let { if (oldShape != newShape) screen.setFieldValue(collider, Shape2DField("shape", collider, collider::shape) { shape -> collider.shape = shape }, it, newShape) }
+		oldShape?.let {
+			if (oldShape != newShape) screen.setFieldValue(collider, Shape2DField("shape", collider, collider::shape) { shape -> collider.shape = shape }, it, newShape)
+			screen.editManager.addEdit(ComponentFieldEdit(collider.parent, screen, "Collider2DComponent.shape", Shape2D.CODEC.encodeBytes(it), Shape2D.CODEC.encodeBytes(newShape)))
+		}
 		oldShape = newShape
 	}
 

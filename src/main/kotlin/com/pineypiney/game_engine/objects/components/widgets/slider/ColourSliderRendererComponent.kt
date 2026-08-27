@@ -26,7 +26,7 @@ open class ColourSliderRendererComponent(parent: GameObject, shader: RenderShade
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		mesh.bindAndDraw(renderer.getRenderingApi())
+		shader.draw("vertexBuffer", mesh, renderer)
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
@@ -37,10 +37,10 @@ open class ColourSliderRendererComponent(parent: GameObject, shader: RenderShade
 	}
 
 	companion object {
-		val redShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/red_slider")))
+		val redShader = ShaderLoader.get(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/red_slider")))
 		val greenShader =
-			ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/green_slider")))
+			ShaderLoader.get(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/green_slider")))
 		val blueShader =
-			ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/blue_slider")))
+			ShaderLoader.get(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/blue_slider")))
 	}
 }

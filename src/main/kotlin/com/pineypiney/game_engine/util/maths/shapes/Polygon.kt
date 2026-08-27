@@ -140,8 +140,8 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 
 			triangles.add(Triple(prevIndex, vertIndex, nextIndex))
 			points.removeAt(pointIndex)
-			lastResolvedVertex = pointIndex
 			if (pointIndex == points.size) pointIndex = 0
+			lastResolvedVertex = pointIndex
 		}
 		triangles.add(Triple(points[0], points[1], points[2]))
 		return triangles
@@ -247,6 +247,14 @@ class Polygon(val vertices: List<Vec2>) : Shape2D() {
 		}
 
 		return polygons.filter { it.size >= 3 }
+	}
+
+	override fun equals(other: Any?): Boolean {
+		return other is Polygon && other.vertices.size == vertices.size && vertices.withIndex().all { (i, v) -> v == other.vertices[i] }
+	}
+
+	override fun hashCode(): Int {
+		return vertices.hashCode()
 	}
 
 	override fun toString(): String {

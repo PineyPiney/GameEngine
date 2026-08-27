@@ -10,20 +10,25 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider2DCompone
 import com.pineypiney.game_engine.objects.components.rendering.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.util.Animation
+import com.pineypiney.game_engine.rendering.cameras.CameraI
+import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
+import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
+import com.pineypiney.game_engine.rendering.opengl.DefaultWindowRenderer
+import com.pineypiney.game_engine.rendering.vulkan.VulkanGameRenderer
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.BitMap3D
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.extension_functions.normal
+import com.pineypiney.game_engine.util.input.DefaultInput
+import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Circle
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.window.DefaultGLWindow
-import com.pineypiney.game_engine.window.DefaultWindowedEngine
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.*
 import com.pineypiney.game_engine_test.scenes.*
 import com.pineypiney.game_engine_test.testVR.TestVREngine
 import com.pineypiney.game_engine_test.testVR.TestVRGame
@@ -33,6 +38,7 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.junit.Test
+import org.lwjgl.glfw.GLFW
 import kotlin.math.PI
 import kotlin.math.sign
 import kotlin.random.Random
@@ -46,16 +52,16 @@ class EngineTest{
 
 	@Test
 	fun test2D() {
-		runWindowEngine(::TestEngine, ::Game2D)
+		runVulkanEngine(::Game2D, ::OrthographicCamera)
 	}
 
 	@Test
 	fun test3D(){
-		runWindowEngine(::TestEngine, ::Game3D)
+		runOpenGlEngine(::Game3D, ::PerspectiveCamera)
 	}
 	@Test
 	fun testLighting(){
-		runWindowEngine(::TestEngine, ::LightingTest)
+		runOpenGlEngine(::LightingTest, ::PerspectiveCamera)
 	}
 
 	@Test
@@ -65,41 +71,83 @@ class EngineTest{
 
 	@Test
 	fun testCollisionVisual(){
-		runWindowEngine(::TestEngine, ::CollisionTest, 100)
+		runOpenGlEngine(::CollisionTest, ::OrthographicCamera, 100)
 	}
 
 	@Test
 	fun testCollision3DVisual(){
-		runWindowEngine(::TestEngine, ::Collision3DTest, 100)
+		runOpenGlEngine(::Collision3DTest, ::OrthographicCamera, 100)
 	}
 
 	@Test
 	fun testText(){
-		runWindowEngine(::TestEngine, ::TextTest)
+		runOpenGlEngine(::TextTest, ::OrthographicCamera)
 	}
 
 	@Test
 	fun testShader(){
-		runWindowEngine(::TestEngine, ::ShaderTest)
+		runOpenGlEngine(::ShaderTest, ::OrthographicCamera)
+	}
+
+	@Test
+	fun testStencil() {
+		runVulkanEngine(::StencilTest, ::OrthographicCamera)
 	}
 
 	@Test
 	fun testComputeShader(){
-		runWindowEngine(::TestEngine, ::ComputeShaderTest, version = Vec2i(4, 3))
+		runOpenGlEngine(::ComputeShaderTest, ::OrthographicCamera, version = Vec2i(4, 3))
 	}
 
 	@Test
 	fun testTesselationShader(){
-		runWindowEngine(::TestEngine, ::TesselationShaderTest, version = Vec2i(4, 1))
+		runOpenGlEngine(::TesselationShaderTest, ::PerspectiveCamera, version = Vec2i(4, 1))
 	}
 
 	companion object {
+
 		fun <G : GameLogicI, E : GameEngineI<G>> runWindowEngine(engine: (WindowI, (E) -> G, Int, Int) -> E, screen: (E) -> G, ups: Int = 20, fps: Int = 2000, version: Vec2i = Vec2i(3)) {
 			LibrarySetUp.initGLFW()
 
 			val window = TestWindow(version = version)
 			window.init()
 			engine(window, screen, ups, fps).run()
+		}
+
+		fun <G : WindowGameLogic, C : CameraI> runOpenGlEngine(
+			screen: (TestOpenGlEngine<G, C>, DefaultWindowRenderer<G, C>) -> G,
+			camera: (WindowI) -> C,
+			ups: Int = 20,
+			fps: Int = 2000,
+			version: Vec2i = Vec2i(3)
+		) {
+			LibrarySetUp.initGLFW()
+
+			val window = TestWindow(version = version)
+			window.init()
+			TestOpenGlEngine(window, screen, camera, ups, fps).run()
+		}
+
+		fun <G : WindowGameLogic, C : CameraI> runVulkanEngine(
+			screen: (TestVulkanEngine<G, C>, VulkanGameRenderer<G, C>) -> G,
+			camera: (WindowI) -> C,
+			ups: Int = 20,
+			fps: Int = 2000,
+			version: Vec2i = Vec2i(3)
+		) {
+			LibrarySetUp.initGLFW()
+
+			val window = object : Window("Vulkan Window", 960, 540, false, false, defaultHints + (GLFW.GLFW_CLIENT_API to GLFW.GLFW_NO_API)) {
+				override val input: Inputs = DefaultInput(this)
+
+				override fun init() {
+					// Make the window visible
+					GLFW.glfwShowWindow(windowHandle)
+					super.init()
+				}
+			}
+			window.init()
+			TestVulkanEngine(window, screen, camera, ups, fps).run()
 		}
 	}
 
@@ -113,11 +161,11 @@ class EngineTest{
 	fun testEditor(){
 		LibrarySetUp.initGLFW()
 		val window = DefaultGLWindow("Editor").apply { init() }
-		DefaultWindowedEngine(window, { EditorScreen(it) }).run()
+		DefaultWindowedEngine(window, ::EditorScreen).run()
 	}
 
 	@Test
-	fun quaternions(){
+	fun quaternions() {
 		//val q = Quaternion(Vec3(0, PI, 0))
 		//val e = q.toEulerAngles()
 		//val q1 = Quaternion(e)
@@ -132,15 +180,13 @@ class EngineTest{
 
 		val q3 = (I.translate(2f, -3f, 0f) * model.scale(3f)).getRotation()
 
-		println("q2 is $q2\nq3 is $q3")
 	}
 
 	@Test
-	fun cuboid(){
+	fun cuboid() {
 		val box = Cuboid(Vec3(0f), Quat(Vec3(0f, PI.f * .25f, 0f)), Vec3(6f, 8f, 6f))
 		val point = Vec3(3.3f, -3.9f, 1.0f)
 		val c = box containsPoint point
-		println(c)
 	}
 
 	@Test
@@ -152,7 +198,7 @@ class EngineTest{
 	}
 
 	@Test
-	fun testCollision(){
+	fun testCollision() {
 		val rect1 = Rect2D(0f, 0f, 1f, 1f)
 		val rect2 = Rect2D(.5f, 1.5f, 1f, 1f)
 		val c = rect2.calculateCollision(rect1, Vec2(-1f, -2f))
@@ -164,16 +210,12 @@ class EngineTest{
 		val outsidePoint = Vec2(-.2f, 1.91f)
 		val right = parallelogram.containsPoint(insidePoint)
 		val wrong = parallelogram.containsPoint(outsidePoint)
-		println("Should be true: $right")
-		println("Should be false: $wrong")
 
 		val secondPara = Parallelogram(Vec2(1f, 1.49f), Vec2(-1f, .5f), Vec2(1f, .5f))
 		val intersects = secondPara intersects parallelogram
 		val eject = secondPara.calculateCollision(parallelogram, Vec2(0f, -.01f))
 
-		println("Intersects: $intersects")
-		if(eject != null) {
-			println("Ejection: ${eject.removeShape1FromShape2}")
+		if (eject != null) {
 			println("New Movement: ${eject.collisionNormal.normal().let { it * (it dot eject.shape1Movement).sign }}")
 		}
 	}
@@ -192,16 +234,16 @@ class EngineTest{
 
 	@Test
 	@Suppress("UNUSED_VARIABLE")
-	fun testIntersections(){
+	fun testIntersections() {
 		val random = Random(2934875623498652L)
 		val iters = 3e2.toInt()
 		val combos = (iters * iters + iters) / 2
-		val circles = MutableList(iters){ Circle(Vec2(random.nextFloat() * 5f, random.nextFloat() * 5f), random.nextFloat() * 2f) }
+		val circles = MutableList(iters) { Circle(Vec2(random.nextFloat() * 5f, random.nextFloat() * 5f), random.nextFloat() * 2f) }
 
 		val circleTime = ResourcesLoader.timeAction {
-			for(i in 0..<iters - 1){
+			for (i in 0..<iters - 1) {
 				val circle1 = circles[i]
-				for(j in (i+1)..<iters) {
+				for (j in (i + 1)..<iters) {
 					val circle2 = circles[j]
 					val touching = (circle1.center - circle2.center).length() <= (circle1.radius + circle2.radius)
 					//if(circle1.intersects(circle2) != touching){
@@ -211,9 +253,9 @@ class EngineTest{
 			}
 		}
 		val circlesSquaredTime = ResourcesLoader.timeAction {
-			for(i in 0..<iters - 1){
+			for (i in 0..<iters - 1) {
 				val circle1 = circles[i]
-				for(j in (i+1)..<iters) {
+				for (j in (i + 1)..<iters) {
 					val circle2 = circles[j]
 					val touching = (circle1.center - circle2.center).length2() < (circle1.radius + circle2.radius).let { it * it }
 					//if(circle1.intersects(circle2) != touching){
@@ -226,9 +268,9 @@ class EngineTest{
 
 		val rects = Array(iters) { Rect2D(Vec2(random.nextFloat() * 5f, random.nextFloat() * 5f), random.nextFloat() * 2f, random.nextFloat() * 2) }
 		val rectTime = ResourcesLoader.timeAction {
-			for(i in 0..<iters - 1){
+			for (i in 0..<iters - 1) {
 				val rect1 = rects[i]
-				for(j in (i+1)..<iters) {
+				for (j in (i + 1)..<iters) {
 					val rect2 = rects[j]
 					val touching =
 						(if (rect1.origin.x > rect2.origin.x) rect2.origin.x + rect2.length1 > rect1.origin.x else rect1.origin.x + rect1.length1 > rect2.origin.x) &&
@@ -240,18 +282,13 @@ class EngineTest{
 			}
 		}
 
-		println("Calculated $combos Combinations")
-		println("Circle time is $circleTime ns, average ${circleTime / combos} ns")
-		println("CircleSquared time is $circlesSquaredTime ns, average ${circlesSquaredTime / combos} ns")
 		println("Rect time is $rectTime ns, average ${rectTime / combos} ns")
 	}
 
 	@Test
-	fun testRegex(){
+	fun testRegex() {
 		val s = "textures\\\\snake\\snake"
 		val r = Regex("[^\\\\]\\\\[^\\\\]")
-		println("S is $s")
-		println("New String is ${s.replace(r, "T")}")
 	}
 }
 

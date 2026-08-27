@@ -5,8 +5,7 @@ import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
-import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
-import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
+import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.util.GLFunc
@@ -22,16 +21,14 @@ import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import kotlin.math.pow
 
-class TextTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
-
-	override val renderer = DefaultWindowRenderer<TextTest, OrthographicCamera>(window, OrthographicCamera(window))
+class TextTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<TextTest>) : WindowGameLogic() {
 
 	val ttfTextObject = Text.makeMenuText("TTF Text\nTest", Vec4(0f, 0f, 0f, 1f), 40).apply {
 		components.add(ColourRendererComponent(this, Vec4(.6f), ColourRendererComponent.menuShader, Mesh.cornerSquareShape))
 	}
 	val ttfText by lazy{ ttfTextObject.getComponent<TextRendererComponent>()!! }
 
-	val bitmapTextObject = Text.makeMenuText("Bitmap Text\nTest", Vec4(0f, 0f, 0f, 1f), 40, font = FontLoader[ResourceKey("Large Font")]).apply {
+	val bitmapTextObject = Text.makeMenuText("Bitmap Text\nTest", Vec4(0f, 0f, 0f, 1f), 40, font = FontLoader[ResourceKey("Simplified Hans Light")]).apply {
 		components.add(ColourRendererComponent(this, Vec4(.6f), ColourRendererComponent.menuShader, Mesh.cornerSquareShape))
 	}
 	val bitmapText by lazy{ bitmapTextObject.getComponent<TextRendererComponent>()!! }

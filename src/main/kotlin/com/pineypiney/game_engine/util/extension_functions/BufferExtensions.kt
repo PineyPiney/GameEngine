@@ -28,55 +28,27 @@ fun ByteBuffer.getUshort(i: Int): Ushort {
     return l or s
 }
 
-fun ByteBuffer.getVec2(offset: Int): Vec2{
-	return Vec2(getFloat(offset), getFloat(offset + 4))
-}
+fun ByteBuffer.getVec2(offset: Int = 0): Vec2 = Vec2(getFloat(offset), getFloat(offset + 4))
+fun ByteBuffer.getVec2i(offset: Int = 0): Vec2i = Vec2i(getInt(offset), getInt(offset + 4))
 
-fun ByteBuffer.putVec2(offset: Int, vec: Vec2): ByteBuffer{
-	putFloat(offset, vec.x).putFloat(offset + 4, vec.y)
-	return this
-}
+fun ByteBuffer.getVec3(offset: Int): Vec3 = Vec3(getFloat(offset), getFloat(offset + 4), getFloat(offset + 8))
+fun ByteBuffer.getVec3i(offset: Int = 0): Vec3i = Vec3i(getInt(offset), getInt(offset + 4), getInt(offset + 8))
 
-fun ByteBuffer.getVec3(offset: Int): Vec3{
-	return Vec3(getFloat(offset), getFloat(offset + 4), getFloat(offset + 8))
-}
+fun ByteBuffer.getVec4(offset: Int): Vec4 = Vec4(getFloat(offset), getFloat(offset + 4), getFloat(offset + 8), getFloat(offset + 8))
+fun ByteBuffer.getVec4i(offset: Int): Vec4i = Vec4i(getInt(offset), getInt(offset + 4), getInt(offset + 8), getInt(offset + 8))
+fun ByteBuffer.getVec4ub(offset: Int): Vec4ub = Vec4ub(get(offset), get(offset + 1), get(offset + 2), get(offset + 3))
 
-fun ByteBuffer.putVec3(offset: Int, vec: Vec3): ByteBuffer{
-	putFloat(offset, vec.x).putFloat(offset + 4, vec.y).putFloat(offset + 8, vec.z)
-	return this
-}
-
-fun ByteBuffer.getVec4(offset: Int): Vec4{
-	return Vec4(getFloat(offset), getFloat(offset + 4), getFloat(offset + 8), getFloat(offset + 8))
-}
-
-fun ByteBuffer.putVec4(offset: Int, vec: Vec4): ByteBuffer{
-	putFloat(offset, vec.x).putFloat(offset + 4, vec.y).putFloat(offset + 8, vec.z).putFloat(offset + 12, vec.w)
-	return this
-}
-
-fun ByteBuffer.getVec4i(offset: Int): Vec4i{
-	return Vec4i(getInt(offset), getInt(offset + 4), getInt(offset + 8), getInt(offset + 8))
-}
-
-fun ByteBuffer.putVec4i(offset: Int, vec: Vec4i): ByteBuffer{
-	putInt(offset, vec.x).putInt(offset + 4, vec.y).putInt(offset + 8, vec.z).putInt(offset + 12, vec.w)
-	return this
-}
-
-fun ByteBuffer.getVec4ub(offset: Int): Vec4ub {
-    return Vec4ub(get(offset), get(offset + 1), get(offset + 2), get(offset + 3))
-}
-
-fun ByteBuffer.putVec4ub(offset: Int, vec: Vec4ub): ByteBuffer{
-    put(offset, vec.x.b).put(offset + 1, vec.y.b).put(offset + 2, vec.z.b).put(offset + 3, vec.w.b)
-    return this
-}
 
 fun ByteBuffer.put(v: ToBuffer): ByteBuffer {
 	if (remaining() < v.size()) throw BufferOverflowException()
 	v to this
 	position(position() + v.size())
+	return this
+}
+
+fun ByteBuffer.put(offset: Int, v: ToBuffer): ByteBuffer {
+	if (capacity() - offset < v.size()) throw BufferOverflowException()
+	v.to(this, offset)
 	return this
 }
 

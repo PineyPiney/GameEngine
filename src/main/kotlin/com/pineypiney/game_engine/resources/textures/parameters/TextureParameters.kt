@@ -2,11 +2,13 @@ package com.pineypiney.game_engine.resources.textures.parameters
 
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL12C
+import org.lwjgl.vulkan.VK10
 
 data class TextureParameters(
 	var target: Int = GL11C.GL_TEXTURE_2D, var flip: Boolean = true, var numChannels: Int = 0,
 	var wrapS: TextureWrap = TextureWrap.CLAMP_TO_EDGE, var wrapT: TextureWrap = wrapS, var wrapR: TextureWrap = wrapS,
-	var minFilter: TextureFilter = TextureFilter.LINEAR, var magFilter: TextureFilter = minFilter, var usage: TextureUsage = TextureUsage.SAMPLER
+	var minFilter: TextureFilter = TextureFilter.LINEAR, var magFilter: TextureFilter = minFilter, var usage: TextureUsage = TextureUsage.SAMPLER,
+	val layout: Int = VK10.VK_IMAGE_LAYOUT_GENERAL
 ) {
 
 	fun target(target: Int): TextureParameters {

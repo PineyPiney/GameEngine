@@ -1,6 +1,7 @@
 // FRAGMENT SHADER INFORMATION
-#version 400 core
+#version 430 core
 
+#ifdef OPENGL
 in vec2 texCoords;
 
 uniform vec3 topColour;
@@ -10,6 +11,21 @@ uniform float delta;
 uniform mat4 model;
 
 out vec4 FragColour;
+#endif
+
+
+#ifdef VULKAN
+layout(location = 1) in vec2 texCoords;
+
+layout(push_constant) uniform Data {
+	mat4 model;
+	vec3 topColour;
+	float delta;
+	vec3 bottomColour;
+};
+
+layout(location = 0) out vec4 FragColour;
+#endif
 
 void main(){
 

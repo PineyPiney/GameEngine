@@ -1,8 +1,9 @@
-#version 410 core
+#version 430 core
 #define Z_FACTOR 0.006292406963139062
 
 layout(quads, fractional_even_spacing, ccw) in;
 
+#ifdef OPENGL
 in vec2 TextureCoord[];
 in float ctrlColour[];
 
@@ -15,6 +16,26 @@ uniform sampler2D heightMap;
 
 out vec2 texCoords;
 out vec4 colour;
+#endif
+
+#ifdef VULKAN
+layout(location = 1) in vec2 TextureCoord[];
+layout(location = 2) in float ctrlColour[];
+
+layout(binding = 0, set = 0) uniform Matrices {
+	mat4 view;
+	mat4 projection;
+};
+layout(set = 0, binding = 1) uniform sampler2D heightMap;
+
+layout(push_constant) uniform Data {
+	mat4 model;
+	float scale;
+};
+
+layout(location = 1) out vec2 texCoords;
+layout(location = 2) out vec4 colour;
+#endif
 
 void main(){
 

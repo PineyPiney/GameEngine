@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.objects.components.Component
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.rendering.RendererI
 import glm_.f
+import java.io.InputStream
 
 class AnimatedComponent(
 	parent: GameObject,
@@ -23,14 +24,17 @@ class AnimatedComponent(
 		// For animated items the texture must be set to the animations current frame
 		if (playing) updateAnimationTime()
 		val p = getProperties()
-		for ((key, value) in p) parent.setProperty(key, value)
+		for ((key, value) in p) {
+			value.reset()
+			parent.setProperty(key, value)
+		}
 	}
 
 	fun setAnimation(name: String) {
 		animations.firstOrNull { it.name == name }?.let { animation = it }
 	}
 
-	fun getProperties(): Map<String, String> {
+	fun getProperties(): Map<String, InputStream> {
 		return animation.getProperties(animationTime)
 	}
 

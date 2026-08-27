@@ -3,8 +3,11 @@ package com.pineypiney.game_engine.resources.textures.vulkan
 import com.pineypiney.game_engine.resources.textures.Texture3D
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
+import com.pineypiney.game_engine.vulkan.VkUtil
+import com.pineypiney.game_engine.vulkan.VmaBuffer
 import com.pineypiney.game_engine.vulkan.VulkanDevice
 import com.pineypiney.game_engine.vulkan.VulkanImmediateSubmitter
+import glm_.vec2.Vec2i
 import org.lwjgl.util.vma.Vma
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK13
@@ -42,9 +45,21 @@ open class VulkanImage3D(
 	}
 
 	override fun getSubData(x: Int, y: Int, z: Int, width: Int, height: Int, depth: Int, format: TextureFormat): ByteBuffer {
-		val submitter = VulkanImmediateSubmitter(device, device.getQueue(0))
-		val data = fetchData(submitter, x, y, z, width, height, depth)
-		submitter.delete()
+		val data: ByteBuffer =
+			if (this.format.pixelSize == format.pixelSize) VulkanImmediateSubmitter.submitAndFetch(device, VmaBuffer::getBuffer) { cmd -> fetchData(cmd, VK10.VK_IMAGE_ASPECT_COLOR_BIT) }
+			else {
+				val usage = parameters.usage.vulkan or
+						VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT or
+						VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT
+				val converted = VkUtil.createImage(device, "$id converted", format, usage, VK10.VK_IMAGE_ASPECT_COLOR_BIT, Vec2i(width, height))
+				val d = VulkanImmediateSubmitter.submitAndFetch(device, VmaBuffer::getBuffer) { cmd ->
+					converted.transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+					copyTo(cmd, converted)
+					converted.fetchData(cmd, x, y, z, width, height, depth, VK10.VK_IMAGE_ASPECT_COLOR_BIT)
+				}
+				converted.delete()
+				d
+			}
 		return data
 	}
 

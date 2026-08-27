@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.window.WindowI
 
-interface WindowRendererI<E : GameLogicI> : GameRendererI<E> {
+interface WindowRendererI<in E : GameLogicI> : GameRendererI<E> {
 
 	val window: WindowI
 

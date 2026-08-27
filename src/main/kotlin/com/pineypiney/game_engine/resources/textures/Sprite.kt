@@ -92,7 +92,7 @@ class Sprite(texture: Texture2D, ppu: Float, spriteCenter: Vec2 = Vec2(.5f), ori
 			s.y = -s.y
 		}
 		val tr = bl + renderSize
-		return Mesh.textureQuad(ResourceFactory.INSTANCE, bl, tr, o, o + s)
+		return Mesh.textureQuad(ResourceFactory.INSTANCE, "Sprite", bl, tr, o, o + s)
 	}
 	
 	fun recalculateMesh(){

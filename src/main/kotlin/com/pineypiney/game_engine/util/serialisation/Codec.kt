@@ -4,9 +4,6 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.fields.GameObjectField
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
-import com.pineypiney.game_engine.resources.shaders.RenderShader
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.shaders.ShaderStage
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -285,6 +282,58 @@ interface Codec<A> {
 			}
 		}
 
+		fun <A, C1, C2, C3, C4, C5, C6> map(
+			f1: Field<A, C1>,
+			f2: Field<A, C2>,
+			f3: Field<A, C3>,
+			f4: Field<A, C4>,
+			f5: Field<A, C5>,
+			f6: Field<A, C6>,
+			factory: (C1, C2, C3, C4, C5, C6) -> A
+		): Codec<A> = object : Codec<A> {
+			override fun <E> encode(ops: SerialOps<E>, value: A): E {
+				val map = ops.createMap(f1.key, f1.encode(ops, value))
+				ops.appendMap(map, f2.key, f2.encode(ops, value))
+				ops.appendMap(map, f3.key, f3.encode(ops, value))
+				ops.appendMap(map, f4.key, f4.encode(ops, value))
+				ops.appendMap(map, f5.key, f5.encode(ops, value))
+				ops.appendMap(map, f6.key, f6.encode(ops, value))
+				return map
+			}
+
+			override fun <E> decode(ops: SerialOps<E>, value: E): A {
+				if (value == null) throw CodecException()
+				val p1 = f1.decode(ops, value)
+				val p2 = f2.decode(ops, value)
+				val p3 = f3.decode(ops, value)
+				val p4 = f4.decode(ops, value)
+				val p5 = f5.decode(ops, value)
+				val p6 = f6.decode(ops, value)
+				return factory(p1, p2, p3, p4, p5, p6)
+			}
+
+			override fun encode(stream: OutputStream, value: A) {
+				f1.encode(stream, value)
+				f2.encode(stream, value)
+				f3.encode(stream, value)
+				f4.encode(stream, value)
+				f5.encode(stream, value)
+				f6.encode(stream, value)
+			}
+
+			override fun decode(stream: InputStream): A {
+				val p1 = f1.decode(stream)
+				val p2 = f2.decode(stream)
+				val p3 = f3.decode(stream)
+				val p4 = f4.decode(stream)
+				val p5 = f5.decode(stream)
+				val p6 = f6.decode(stream)
+				return factory(p1, p2, p3, p4, p5, p6)
+			}
+		}
+
+		fun <E : Enum<E>> enum(fromString: (String) -> E): Codec<E> = STRING.map(Enum<E>::name, fromString)
+
 		val BOOL = object : Codec<Boolean> {
 			override fun <E> encode(ops: SerialOps<E>, value: Boolean): E = ops.writeBool(value)
 			override fun <E> decode(ops: SerialOps<E>, value: E): Boolean = ops.readBool(value)
@@ -424,14 +473,6 @@ interface Codec<A> {
 			val z = iter.next()
 			Quat(iter.next(), x, y, z)
 		}
-
-		val SHADER = map(
-			KEY.field("v") { it: RenderShader -> ResourceKey(it.vertex.id) },
-			KEY.field("f") { it: RenderShader -> ResourceKey(it.fragment.id) },
-			KEY.opnull().field("tc") { it: RenderShader -> it.getSubShader(ShaderStage.TESS_CTRL)?.let { ResourceKey(it.id) } },
-			KEY.opnull().field("te") { it: RenderShader -> it.getSubShader(ShaderStage.TESS_EVAL)?.let { ResourceKey(it.id) } },
-			KEY.opnull().field("g") { it: RenderShader -> it.getSubShader(ShaderStage.GEOMETRY)?.let { ResourceKey(it.id) } },
-		) { v, f, tc, te, g -> ShaderLoader[v, f, tc, te, g] }
 
 		val TEXTURE = STRING.map(Texture2D::id) { TextureLoader[ResourceKey(it)] }
 		val MODEL = STRING.map(Model::name) { ModelLoader[ResourceKey(it)] }

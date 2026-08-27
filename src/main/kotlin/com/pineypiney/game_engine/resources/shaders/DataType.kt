@@ -4,31 +4,36 @@ import com.pineypiney.game_engine.resources.shaders.vulkan.Variable
 import com.pineypiney.game_engine.resources.shaders.vulkan.Variables
 import glm_.and
 import glm_.or
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import kotlin.math.max
+import kotlin.math.min
 
 abstract class DataType {
 
 	abstract val size: Int
+	abstract val manual: Boolean
+
+	abstract fun getUniformMap(name: String, dst: MutableMap<String, String>)
 
 	abstract fun align430(current: Int): Int
 
-	class Primitive(val type: GLSLType) : DataType() {
+	class Primitive(val type: GLSLType, override val manual: Boolean) : DataType() {
 		override val size: Int get() = type.bytes
+		override fun getUniformMap(name: String, dst: MutableMap<String, String>) {
+			dst[name] = type.varName()
+		}
 		override fun align430(current: Int): Int = current
 	}
 
-	class Vec(val type: GLSLType, val length: Int) : DataType() {
+	class Vec(val type: GLSLType, val length: Int, override val manual: Boolean) : DataType() {
 
 		override val size: Int get() = type.bytes * length
-		override fun align430(current: Int): Int {
-			val i = current % 16
-			return when (length) {
-				4 -> if (i == 0) current else current + 16 - i
-				3 -> if (i == 0 || i == 4) current else current + 16 - i
-				2 -> if (i != 12) current else current + 4
-				else -> current
-			}
+		override fun getUniformMap(name: String, dst: MutableMap<String, String>) {
+			dst[name] = type.symbol + "vec" + length.toString()
 		}
 
+		override fun align430(current: Int): Int = getAlignment(current, length)
 		override fun toString(): String = "Vec[$type, $length]"
 
 		companion object {
@@ -36,27 +41,38 @@ abstract class DataType {
 		}
 	}
 
-	class Matrix(val type: GLSLType, val rows: Int, columns: Int) : DataType() {
+	class Matrix(val type: GLSLType, val rows: Int, val columns: Int, override val manual: Boolean) : DataType() {
 
 		override val size: Int = type.bytes * if (rows == 3) 4 else rows * columns
-		override fun align430(current: Int): Int {
-			val i = current % 16
-			return when (rows) {
-				4 -> if (i == 0) current else current + 16 - i
-				3 -> if (i == 0 || i == 4) current else current + 16 - i
-				2 -> if (i != 12) current else current + 4
-				else -> current
-			}
+		override fun getUniformMap(name: String, dst: MutableMap<String, String>) {
+			dst[name] = type.symbol + "mat" + if (rows == columns) rows.toString() else "${columns}x$rows"
 		}
+
+		override fun align430(current: Int): Int = getAlignment(current, rows)
 
 		companion object {
 			val regex = Regex("d?mat[234](x[234])?")
 		}
 	}
 
-	class Sampler(val type: GLSLType) : DataType() {
+	class Array(val type: DataType, val typeString: String, val length: Int, override val manual: Boolean) : DataType() {
+
+		override val size: Int = type.align430(type.size) * (length - 1) + type.size
+
+		override fun getUniformMap(name: String, dst: MutableMap<String, String>) {
+			dst[name] = typeString
+		}
+
+		override fun align430(current: Int): Int = type.align430(current)
+
+	}
+
+	class Sampler(val type: GLSLType, override val manual: Boolean) : DataType() {
 
 		override val size: Int get() = 4
+		override fun getUniformMap(name: String, dst: MutableMap<String, String>) {
+			dst[name] = type.symbol + "sampler2D"
+		}
 		override fun align430(current: Int): Int = current
 
 		companion object {
@@ -70,14 +86,16 @@ abstract class DataType {
 		val type: GLSLType
 		val qualifiers: Byte
 		val format: String
+		override val manual: Boolean
 
-		constructor(type: GLSLType, qualifiers: Byte, format: String) : super() {
+		constructor(type: GLSLType, qualifiers: Byte, format: String, manual: Boolean) : super() {
 			this.type = type
 			this.qualifiers = qualifiers
 			this.format = format
+			this.manual = manual
 		}
 
-		constructor(type: GLSLType, params: Map<String, String>) : super() {
+		constructor(type: GLSLType, params: Map<String, String>, manual: Boolean) : super() {
 			this.type = type
 			var qualifiers: Byte = 0
 			var format = ""
@@ -93,6 +111,7 @@ abstract class DataType {
 			}
 			this.qualifiers = qualifiers
 			this.format = format
+			this.manual = manual
 		}
 
 		fun isCoherent() = (qualifiers and 1) > 0
@@ -102,6 +121,9 @@ abstract class DataType {
 		fun isWriteonly() = (qualifiers and 16) > 0
 
 		override val size: Int get() = 4
+		override fun getUniformMap(name: String, dst: MutableMap<String, String>) {
+			dst[name] = type.symbol + "image2D"
+		}
 		override fun align430(current: Int): Int = current
 
 		companion object {
@@ -111,9 +133,13 @@ abstract class DataType {
 
 	abstract class CustomType(val name: String) : DataType()
 
-	class BufferReference(name: String, val variable: Variable) : CustomType(name) {
+	class BufferReference(name: String, val variable: Variable, override val manual: Boolean) : CustomType(name) {
 
 		override val size: Int get() = 8
+
+		override fun getUniformMap(name: String, dst: MutableMap<String, String>) {
+			dst[name] = "int64_t"
+		}
 		override fun align430(current: Int): Int {
 			val i = current % 16
 			return when (i) {
@@ -123,35 +149,56 @@ abstract class DataType {
 		}
 	}
 
-	open class Struct(name: String, val variables: Variables) : CustomType(name) {
+	open class Struct(name: String, val variables: Variables, override val manual: Boolean) : CustomType(name) {
 
-		val structure: Map<String, Pair<Int, Int>>
-		final override val size: Int
+		val min: Int
+		val max: Int
+		final override val size: Int get() = max - min
 
 		init {
-			var i = 0
-			var s = 0
-			val offsetsMap = mutableMapOf<String, Pair<Int, Int>>()
+			var min = 255
+			var max = 0
 			for ((name, type) in variables) {
-				i = type.align430(i)
-				offsetsMap[name] = i to type.size
-				i += type.size
-				s = i + type.size
+				min = min(min, type.second)
+				max = max(max, type.second + type.first.size)
 			}
-			structure = offsetsMap
-			this.size = s
+			this.min = min
+			this.max = max
+		}
+
+		override fun getUniformMap(name: String, dst: MutableMap<String, String>) {
+			for ((varName, variable) in variables) variable.first.getUniformMap(if (name.isEmpty()) varName else "$name.$varName", dst)
 		}
 
 		override fun align430(current: Int): Int {
-			return variables.values.first().align430(current)
+			return variables.values.first().first.align430(current)
 		}
 
 		fun getOffsets(): Map<String, Int> {
-			return structure.mapValues { it.value.first }
+			return variables.mapValues { (_, v) -> v.second }
+		}
+
+		fun getBuffer(buffer: ByteBuffer, offset: Int, name: String): ByteBuffer? {
+			val dotI = name.indexOf('.')
+			val (dataType, subOffset) = variables[if (dotI == -1) name else name.substring(0, dotI)] ?: return null
+			return if (dataType is Struct && dotI != -1) dataType.getBuffer(buffer, offset + subOffset, name.substring(dotI + 1))
+			else buffer.slice(offset + subOffset, dataType.size).order(ByteOrder.nativeOrder())
 		}
 	}
 
-	class PushConstants(name: String, variables: Variables) : Struct(name, variables)
+	class PushConstants(name: String, variables: Variables, manual: Boolean) : Struct(name, variables, manual)
 
-	class InterfaceBlock(name: String, variables: Variables) : Struct(name, variables)
+	class InterfaceBlock(name: String, variables: Variables, manual: Boolean) : Struct(name, variables, manual)
+
+	companion object {
+		fun getAlignment(current: Int, size: Int): Int {
+			val i = current % 16
+			return when (size) {
+				4 -> if (i == 0) current else current + 16 - i
+				3 -> if (i == 0 || i == 4) current else current + 16 - i
+				2 -> if (i != 12) current else current + 4
+				else -> current
+			}
+		}
+	}
 }

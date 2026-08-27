@@ -1,5 +1,7 @@
 package com.pineypiney.game_engine.vulkan
 
+import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorAllocator
+import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorLayout
 import kool.free
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.VK10
@@ -25,7 +27,7 @@ class StaticVulkanDescriptorAllocator(device: VulkanDevice) : VulkanDescriptorAl
 		allocateInfo.free()
 		val descriptorSet = buffer[0]
 		buffer.free()
-		VkUtil.processError(err, "Failed to allocate descriptor set")
+		VkUtil.processResult(err, "Failed to allocate descriptor set")
 		return descriptorSet
 	}
 

@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider3DCompone
 import com.pineypiney.game_engine.objects.components.rendering.Arrow2DRenderer
 import com.pineypiney.game_engine.objects.components.rendering.collision.Collision3DPolygonRenderer
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
+import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
@@ -17,7 +18,7 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW
 
-class Collision3DTest(gameEngine: WindowedGameEngineI<*>): MultiTest(gameEngine) {
+class Collision3DTest(gameEngine: WindowedGameEngineI<*>, renderer: WindowRendererI<MultiTest>) : MultiTest(gameEngine, renderer) {
 
 
 	val base = GameObject("Base").apply {

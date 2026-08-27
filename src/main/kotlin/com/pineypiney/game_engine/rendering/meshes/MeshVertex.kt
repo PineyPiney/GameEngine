@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.resources.models.pgm.Controller
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import glm_.vec4.Vec4ub
+import glm_.vec4.Vec4i
 import kool.emptyByteBuffer
 import org.lwjgl.BufferUtils
 import java.nio.ByteBuffer
@@ -32,10 +32,13 @@ class MeshVertex(val map: Set<VertexAttribute.Pair<*, *>>) {
 		return map.all { (a, v) -> v == (array.firstOrNull { it.id == a }?.value ?: return false) }
 	}
 
+	@Suppress("UNCHECKED_CAST")
 	fun <T, P> convertAttribute(attrib: VertexAttribute<T, P>): VertexAttribute.Pair<*, P> {
+		val existing = map.firstOrNull { it.id == attrib }
+		if (existing != null) return (existing as VertexAttribute.Pair<*, P>)
+		
 		var rawValue = attrib.parent.defaultValue()
 		for (previousAttrib in map.filter { it.id.parent == attrib.parent }) {
-			@Suppress("UNCHECKED_CAST")
 			val previousValue = (previousAttrib as? VertexAttribute.Pair<*, P>) ?: continue
 			rawValue = previousValue.convert(rawValue)
 		}
@@ -110,7 +113,7 @@ class MeshVertex(val map: Set<VertexAttribute.Pair<*, *>>) {
 			return this
 		}
 		fun weights(bones: Array<Controller.BoneWeight>): Builder{
-			val ids = Vec4ub()
+			val ids = Vec4i()
 			val weights = Vec4()
 			for(i in 0..3){
 				val bone = bones.getOrNull(i)

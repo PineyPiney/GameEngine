@@ -1,6 +1,7 @@
 // FRAGMENT SHADER INFORMATION
-#version 400 core
+#version 430 core
 
+#ifdef OPENGL
 uniform vec2 points[3];
 
 uniform ivec2 viewport;
@@ -8,6 +9,18 @@ uniform vec4 colour;
 uniform float width;
 
 out vec4 FragColour;
+#endif
+
+#ifdef VULKAN
+layout(push_constant) uniform Origin {
+	layout(offset = 80) vec4 colour;
+	vec2 points[3];
+	ivec2 viewport;
+	float width;
+};
+
+layout(location = 0) out vec4 FragColour;
+#endif
 
 bool drawPoints();
 vec3 solveQuad(float p0, float p1, float p2, float pos);

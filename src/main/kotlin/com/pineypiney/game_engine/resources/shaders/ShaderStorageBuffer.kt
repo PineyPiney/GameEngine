@@ -6,16 +6,15 @@ import org.lwjgl.opengl.GL43C
 import java.nio.ByteBuffer
 
 // https://wikis.khronos.org/opengl/Shader_Storage_Buffer_Object
-class ShaderStorageBuffer(val size: Int, val binding: Int, val usage: Int) : Deletable {
+class ShaderStorageBuffer(var size: Int, val binding: Int, val usage: Int) : Deletable {
 
 	val SSBO = GL43C.glGenBuffers()
 
 	init {
-		bind()
-		GL43C.glBufferData(GL43C.GL_SHADER_STORAGE_BUFFER, size.toLong(), usage)
+		resize(size)
 	}
 
-	fun bind() {
+	fun bind(binding: Int = this.binding) {
 		GL43C.glBindBuffer(GL43C.GL_SHADER_STORAGE_BUFFER, SSBO)
 		GL43C.glBindBufferBase(GL43C.GL_SHADER_STORAGE_BUFFER, binding, SSBO)
 	}
@@ -27,11 +26,21 @@ class ShaderStorageBuffer(val size: Int, val binding: Int, val usage: Int) : Del
 		return data
 	}
 
-	fun setData(data: ByteBuffer, offset: Long = 0L) {
+	fun setData(data: ByteBuffer) {
 		bind()
-		if (data.capacity() == size && offset == 0L) {
-			GL43C.glBufferData(GL43C.GL_SHADER_STORAGE_BUFFER, data, usage)
-		} else GL43C.glBufferSubData(GL43C.GL_SHADER_STORAGE_BUFFER, offset, data)
+		GL43C.glBufferData(GL43C.GL_SHADER_STORAGE_BUFFER, data, usage)
+		size = data.capacity()
+	}
+
+	fun setSubData(data: ByteBuffer, offset: Long = 0L) {
+		bind()
+		GL43C.glBufferSubData(GL43C.GL_SHADER_STORAGE_BUFFER, offset, data)
+	}
+
+	fun resize(size: Int) {
+		bind()
+		GL43C.glBufferData(GL43C.GL_SHADER_STORAGE_BUFFER, size.toLong(), usage)
+		this.size = size
 	}
 
 	override fun delete() {

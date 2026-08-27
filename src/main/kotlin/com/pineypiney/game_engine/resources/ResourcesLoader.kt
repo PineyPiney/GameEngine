@@ -5,6 +5,8 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.models.ModelMesh
+import com.pineypiney.game_engine.resources.shaders.ComputeShader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
 import com.pineypiney.game_engine.resources.textures.Texture2D
@@ -36,6 +38,8 @@ abstract class ResourcesLoader(val location: String) {
 	abstract fun getStream(name: String): InputStream?
 
 	fun loadInitialResources() {
+		RenderShader.initDefaultShader(this)
+		ComputeShader.initDefaultShader(this)
 		Mesh.initDefaultMeshes(factory)
 		Texture2D.initDefaultTextures(factory)
 		Texture3D.initDefaultTextures(factory)
@@ -69,6 +73,11 @@ abstract class ResourcesLoader(val location: String) {
 		VideoLoader.INSTANCE.delete()
 		ModelLoader.INSTANCE.delete()
 		FontLoader.INSTANCE.delete()
+		Mesh.cornerSquareShape.delete()
+		Mesh.centerSquareShape.delete()
+		Mesh.screenQuadShape.delete()
+		Mesh.cornerCubeShape.delete()
+		Mesh.centerCubeShape.delete()
 	}
 
 	companion object {

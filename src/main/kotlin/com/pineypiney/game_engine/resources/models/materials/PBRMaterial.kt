@@ -2,11 +2,8 @@ package com.pineypiney.game_engine.resources.models.materials
 
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture2D
-import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture
 import com.pineypiney.game_engine.util.extension_functions.delete
 import glm_.vec4.Vec4
-import org.lwjgl.opengl.GL11C.glBindTexture
-import org.lwjgl.opengl.GL13C.glActiveTexture
 
 class PBRMaterial(
 	override val name: String, val textures: Map<String, Texture2D>, val baseColour: Vec4 = Vec4(1f),
@@ -20,9 +17,10 @@ class PBRMaterial(
 	override fun apply(shader: RenderShader, material: String, target: Int) {
 
 		textures.onEachIndexed { i, (type, texture) ->
-			shader.setInt("$material.$type", i)
-			glActiveTexture(0x84C0 + i)
-			if (texture is OpenGlTexture) glBindTexture(target, texture.texturePointer)
+			shader.setTexture(type, texture)
+//			shader.setInt("$material.$type", i)
+//			glActiveTexture(0x84C0 + i)
+//			if (texture is OpenGlTexture) glBindTexture(target, texture.texturePointer)
 		}
 
 		shader.setUInt("$material.textureMask", mask.toUInt())

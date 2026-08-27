@@ -11,8 +11,8 @@ import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComp
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
-import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
-import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
+import com.pineypiney.game_engine.rendering.WindowRendererI
+import com.pineypiney.game_engine.rendering.cameras.Camera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
@@ -41,10 +41,9 @@ import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.PI
 
-class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
+class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<Game3D>) : WindowGameLogic() {
 
-	override val renderer = DefaultWindowRenderer<Game3D, PerspectiveCamera>(window, PerspectiveCamera(window))
-	private val camera get() = renderer.camera
+	private val camera get() = renderer.camera as Camera
 
 	private val pressedKeys = mutableSetOf<Short>()
 
@@ -88,7 +87,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 	override fun init() {
 		super.init()
 		//GLFunc.cullFace = true
-		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+		window.setCursorMode(GLFW_CURSOR_DISABLED)
 		gltf.addChild(CollisionBox3DRenderer.create(gltf).apply { init() })
 	}
 
@@ -157,7 +156,11 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 			else when(state.c){
 				'F' -> toggleFullscreen()
 				'Z' -> window.size = Vec2i(window.videoMode.width(), window.videoMode.height())
-				'X' -> glfwSetInputMode(window.windowHandle, GLFW_CURSOR, when(glfwGetInputMode(window.windowHandle, GLFW_CURSOR)){ GLFW_CURSOR_NORMAL -> GLFW_CURSOR_DISABLED; else -> GLFW_CURSOR_NORMAL })
+				'X' -> window.setCursorMode(
+					when (glfwGetInputMode(window.windowHandle, GLFW_CURSOR)) {
+						GLFW_CURSOR_NORMAL -> GLFW_CURSOR_DISABLED; else -> GLFW_CURSOR_NORMAL
+					}
+				)
 				'C' -> input.mouse.setCursorAt(Vec2(0.75))
 				'V' -> window.vSync = !window.vSync
 				'M' -> toggleMouse()
@@ -193,6 +196,6 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic()
 
 	private fun toggleMouse(){
 		movementController.look = !movementController.look
-		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, if (movementController.look) GLFW_CURSOR_DISABLED else GLFW_CURSOR_CAPTURED)
+		window.setCursorMode(if (movementController.look) GLFW_CURSOR_DISABLED else GLFW_CURSOR_CAPTURED)
 	}
 }

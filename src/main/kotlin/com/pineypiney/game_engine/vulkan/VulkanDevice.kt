@@ -27,7 +27,7 @@ class VulkanDevice(val device: VkDevice, val physicalDevice: VulkanPhysicalDevic
 				.flags(Vma.VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT)
 
 			val buffer = stack.mallocPointer(1)
-			VkUtil.processError(Vma.vmaCreateAllocator(allocatorInfo, buffer), "Failed to create Vulkan Memory Allocator")
+			VkUtil.processResult(Vma.vmaCreateAllocator(allocatorInfo, buffer), "Failed to create Vulkan Memory Allocator")
 			allocator = buffer[0]
 		}
 	}
@@ -43,37 +43,54 @@ class VulkanDevice(val device: VkDevice, val physicalDevice: VulkanPhysicalDevic
 		MemoryStack.stackPush().use { stack ->
 			val pointer = stack.mallocPointer(1)
 			VK10.vkGetDeviceQueue(device, queueFamilyIndex, index, pointer)
+			nameObject(pointer[0], VK10.VK_OBJECT_TYPE_QUEUE, "Device Queue($index)")
 			return VkQueue(pointer[0], device)
 		}
 	}
 
-	fun createCommandPool(stack: MemoryStack, familyIndex: Int = queueFamilyIndex, flags: Int = VK10.VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT): Long {
+	fun createCommandPool(stack: MemoryStack, name: String, familyIndex: Int = queueFamilyIndex, flags: Int = VK10.VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT): Long {
 		val createInfo = VkStructs.createCommandPoolInfo(stack, familyIndex, flags)
-		return VkUtil.getLong("Command Pool", this, stack, createInfo, VK10::vkCreateCommandPool)
+		val handle = VkUtil.getLong("Command Pool", this, stack, createInfo, VK10::vkCreateCommandPool)
+		nameObject(handle, VK10.VK_OBJECT_TYPE_COMMAND_POOL, name)
+		return handle
 	}
 
-	fun createCommandBuffer(stack: MemoryStack, commandPool: Long): VkCommandBuffer {
+	fun createCommandBuffer(stack: MemoryStack, commandPool: Long, name: String): VkCommandBuffer {
 		val allocateInfo = VkStructs.createCommandBufferInfo(stack, commandPool)
 		val handle = VkUtil.allocatePointer("", this, stack, allocateInfo, VK10::vkAllocateCommandBuffers)
+		nameObject(handle, VK10.VK_OBJECT_TYPE_COMMAND_BUFFER, name)
 		return VkCommandBuffer(handle, device)
 	}
 
-	fun createFence(stack: MemoryStack, flags: Int): VulkanFence {
+	fun createFence(stack: MemoryStack, flags: Int, name: String): VulkanFence {
 		val fenceInfo = VkStructs.createFenceInfo(stack, flags)
-		return VulkanFence(this, VkUtil.getLong("Vulkan Fence", this, stack, fenceInfo, VK10::vkCreateFence))
+		val handle = VkUtil.getLong("Vulkan Fence", this, stack, fenceInfo, VK10::vkCreateFence)
+		nameObject(handle, VK10.VK_OBJECT_TYPE_FENCE, name)
+		return VulkanFence(this, handle)
 	}
 
-	fun createSemaphore(stack: MemoryStack, flags: Int): VulkanSemaphoreHandler {
+	fun createSemaphore(stack: MemoryStack, flags: Int, name: String): VulkanSemaphoreHandler {
 		val semaphoreInfo = VkStructs.createSemaphoreInfo(stack, flags)
 		val buffer = MemoryUtil.memAllocLong(1)
 		VK10.vkCreateSemaphore(device, semaphoreInfo, null, buffer)
-		val handler = VulkanSemaphoreHandler(this, buffer, flags)
+		val handler = VulkanSemaphoreHandler(this, buffer, name, flags)
 		return handler
 	}
 
 	fun createSampler(stack: MemoryStack, magFilter: Int, minFilter: Int): Long {
 		val createInfo = VkStructs.createSamplerInfo(stack, magFilter, minFilter)
 		return VkUtil.getLong("Sampler", this, stack, createInfo, VK10::vkCreateSampler)
+	}
+
+	fun nameObject(ptr: Long, type: Int, name: String) {
+		val name = MemoryUtil.memUTF8(name)
+		MemoryStack.stackPush().use { stack ->
+			val info = VkDebugUtilsObjectNameInfoEXT.calloc(stack).`sType$Default`()
+				.objectHandle(ptr)
+				.objectType(type)
+				.pObjectName(name)
+			EXTDebugUtils.vkSetDebugUtilsObjectNameEXT(device, info)
+		}
 	}
 
 	fun waitIdle() = VK10.vkDeviceWaitIdle(device)

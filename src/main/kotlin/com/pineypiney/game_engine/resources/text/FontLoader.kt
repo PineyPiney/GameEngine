@@ -10,7 +10,6 @@ import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
-import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.length
 import glm_.*
@@ -33,11 +32,9 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 	override val missing: Font = BitMapFont("broke", Texture2D.missing, null, mapOf(), null)
 
 	fun loadFonts(streams: ResourcesLoader.Streams){
-		if (GLFunc.isLoaded) {
-			streams.useEachStream { fileName, stream ->
-				if (fileName.substringAfter('.') == "bff") {
-					loadFontOpenGlFromBFF(streams.engine.resourcesLoader.factory, fileName, stream)
-				}
+		streams.useEachStream { fileName, stream ->
+			if (fileName.substringAfter('.') == "bff") {
+				loadFontFromBFF(streams.engine.resourcesLoader.factory, fileName, stream)
 			}
 		}
 	}
@@ -165,7 +162,7 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 		return charMap.toMap()
 	}
 
-	fun loadFontOpenGlFromBFF(factory: ResourceFactory, fontName: String, stream: InputStream) {
+	fun loadFontFromBFF(factory: ResourceFactory, fontName: String, stream: InputStream) {
 		val header = stream.readNBytes(2)
 		if(header[0] != 0xBF.toByte() || header[1] != 0xF2.toByte()) {
 			GameEngineI.logger.warn("Could not load BBF File $fontName, invalid header")
@@ -224,8 +221,11 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 		val map = chars.associateWith { char ->
 			val glyph = font.createGlyphVector(ctx, char.toString())
 			val shape = glyph.outline
-			val offset = shape.bounds2D.let { Vec2d(it.x, it.y) }
-			val size = shape.bounds2D.let { Vec2i(it.width * res, it.height * res) }
+			val bounds = shape.bounds2D
+			if (bounds.x == 0.0 || bounds.y == 0.0) return@associateWith Texture2D.none
+
+			val offset = bounds.let { Vec2d(it.x, it.y) }
+			val size = bounds.let { Vec2i(it.width * res, it.height * res) }
 
 			// Round the texture dimensions up to the nearest multiple of 8
 			// To avoid texture loading issues
@@ -294,8 +294,7 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 					// The position of the new pixel in the BoldBuffer
 					val i = nx + boldBuffer.cap - ((ny + 1) * boldTextureWidth)
 					val shouldSet =
-						if ((lx + vec.x) in 0..<letterWidth && (ly + vec.y) in 0..<letterHeight) imageArray[bx + (by * image.width)] and 0xffffff == 0
-						else true
+						!((lx + vec.x) in 0..<letterWidth && (ly + vec.y) in 0..<letterHeight) || imageArray[bx + (by * image.width)] and 0xffffff == 0
 
 					if (shouldSet && s > (boldBuffer[i] and 255)) {
 						boldBuffer[i] = (255 shl 24) or (s shl 16) or (s shl 8) or s

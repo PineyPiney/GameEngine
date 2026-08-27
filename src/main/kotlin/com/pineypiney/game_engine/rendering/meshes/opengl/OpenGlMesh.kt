@@ -15,8 +15,13 @@ abstract class OpenGlMesh(val VAO: Int, val VBO: Int) : Mesh {
 	abstract val count: Int
 	override val stride by lazy { attributes.keys.sumOf { it.bytes } }
 
-	override fun bind(api: RenderingApi) {
+	open fun bind() {
 		glBindVertexArray(this.VAO)
+	}
+
+	fun bindAndDraw(api: RenderingApi, mode: Int = GL_TRIANGLES) {
+		bind()
+		draw(api, mode)
 	}
 
 	fun setAttributes() {
@@ -28,8 +33,7 @@ abstract class OpenGlMesh(val VAO: Int, val VBO: Int) : Mesh {
 			glEnableVertexAttribArray(index)
 			when (attrib.type) {
 				GL_FLOAT -> glVertexAttribPointer(index, attrib.size, GL_FLOAT, false, stride, step)
-				GL_INT -> glVertexAttribIPointer(index, attrib.size, GL_INT, stride, step)
-				GL_UNSIGNED_BYTE -> glVertexAttribIPointer(index, attrib.size, GL_UNSIGNED_BYTE, stride, step)
+				GL_INT, GL_UNSIGNED_INT, GL_UNSIGNED_BYTE -> glVertexAttribIPointer(index, attrib.size, attrib.type, stride, step)
 			}
 
 			index++

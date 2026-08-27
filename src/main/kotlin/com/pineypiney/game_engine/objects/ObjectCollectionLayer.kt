@@ -4,7 +4,6 @@ import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.colliders.Collider3DComponent
-import com.pineypiney.game_engine.util.extension_functions.delete
 
 open class ObjectCollectionLayer(val layer: Int, initialObjects: Set<GameObject>) : LinkedHashSet<GameObject>(initialObjects) {
 
@@ -41,7 +40,7 @@ open class ObjectCollectionLayer(val layer: Int, initialObjects: Set<GameObject>
 	operator fun get(name: String) = find(name)
 
 	fun delete() {
-		getAllObjects().delete()
+		while (isNotEmpty()) first().delete()
 	}
 
 	fun find(name: String): GameObject?{

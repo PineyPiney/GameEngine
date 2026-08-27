@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.components.widgets
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
+import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.InputState
@@ -9,7 +9,6 @@ import glm_.i
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
-import glm_.vec4.Vec4
 import kotlin.math.roundToInt
 
 open class ActionTextFieldComponent<E : TextFieldComponent>(
@@ -92,12 +91,7 @@ open class ActionTextFieldComponent<E : TextFieldComponent>(
 			val comp = ActionTextFieldComponent(obj, startText, textSize, updateType, action)
 			obj.components.addAll(
 				comp,
-				ColourRendererComponent(
-					obj,
-					Vec4(0.5f, .5f, .5f, 1f),
-					ColourRendererComponent.menuShader,
-					Mesh.cornerSquareShape
-				)
+				ChildContainingRenderer(obj, Mesh.cornerSquareShape, Vec3(.5f, .5f, .5f))
 			)
 			return comp
 		}

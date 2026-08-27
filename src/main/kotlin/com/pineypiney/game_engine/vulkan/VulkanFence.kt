@@ -5,13 +5,11 @@ import org.lwjgl.vulkan.VK10
 
 class VulkanFence(val device: VulkanDevice, val handle: Long) : Deletable {
 
-	fun wait(timeout: Long): Int {
-		return VK10.vkWaitForFences(device.device, handle, true, timeout)
+	fun wait(timeout: Number) {
+		VkUtil.processResult(VK10.vkWaitForFences(device.device, handle, true, timeout.toLong()), "Failed to wait for Vulkan Fence")
 	}
 
-	fun wait(timeout: Double): Int {
-		return VK10.vkWaitForFences(device.device, handle, true, timeout.toLong())
-	}
+	fun wait(timeout: Double) = wait(timeout.toLong())
 
 	fun reset(): Int {
 		return VK10.vkResetFences(device.device, handle)

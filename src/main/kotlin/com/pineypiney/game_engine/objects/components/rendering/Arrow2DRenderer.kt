@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
-import com.pineypiney.game_engine.rendering.meshes.opengl.ArrayMesh
+import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlArrayMesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.normal
@@ -44,7 +44,7 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		mesh.bindAndDraw(renderer.getRenderingApi())
+		shader.draw("vertexBuffer", mesh, renderer)
 	}
 
 	fun setOriginAndPoint(origin: Vec2, point: Vec2){
@@ -71,12 +71,12 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 				headBase - (perp * 2), point, headBase + (perp * 2)
 			)
 		}
-		return ArrayMesh(array.flatMap { it.array.toList() }.toFloatArray(), setOf(VertexAttribute.POSITION2D))
+		return OpenGlArrayMesh(array.flatMap { it.array.toList() }.toFloatArray(), setOf(VertexAttribute.POSITION2D))
 	}
 
 	companion object {
-		val defaultShader = ShaderLoader.getShader(ResourceKey("vertex/2D"), ResourceKey("fragment/colour"))
-		val shader3D = ShaderLoader.getShader(ResourceKey("vertex/3D"), ResourceKey("fragment/colour"))
-		val menuShader = ShaderLoader.getShader(ResourceKey("vertex/menu"), ResourceKey("fragment/colour"))
+		val defaultShader = ShaderLoader.get(ResourceKey("vertex/2D"), ResourceKey("fragment/colour"))
+		val shader3D = ShaderLoader.get(ResourceKey("vertex/3D"), ResourceKey("fragment/colour"))
+		val menuShader = ShaderLoader.get(ResourceKey("vertex/menu"), ResourceKey("fragment/colour"))
 	}
 }

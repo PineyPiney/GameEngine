@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.resources.textures
 
-import com.pineypiney.game_engine.rendering.TextureCopyFramebuffer
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.extension_functions.repeat
@@ -24,12 +23,13 @@ interface Texture2D : Texture {
 	fun setSubData(data: ByteBuffer, origin: Vec2i, size: Vec2i, format: TextureFormat = this.format) =
 		setSubData(data, origin.x, origin.y, size.x, size.y, format)
 
-	fun savePNG(file: String, numChannels: Int = 4): Boolean {
-		val d = getData(TextureLoader.channelsToStbiFormat(numChannels))
+	fun savePNG(file: String, format: TextureFormat = this.format): Boolean {
+		format.pixelType
+		val d = getData(format)
 		d.limit(d.capacity())
 		val fileName = if (file.endsWith(".png")) file else "$file.png"
 		STBImageWrite.stbi_flip_vertically_on_write(true)
-		return STBImageWrite.stbi_write_png(fileName, width, height, numChannels, d, numChannels * width)
+		return STBImageWrite.stbi_write_png(fileName, width, height, format.pixelSize, d, format.pixelSize * width)
 	}
 
 	fun savePNG(file: String, x: Int, y: Int, width: Int, height: Int, format: TextureFormat = TextureFormat.RGBA8): Boolean {
@@ -54,11 +54,13 @@ interface Texture2D : Texture {
 
 		val texture = ResourceFactory.INSTANCE.createTexture2D("Cropping of $id", size.x, size.y, format, format, null, TextureParameters())
 
-		val copier = TextureCopyFramebuffer()
+		val copier = createCopier()
 		copier.init()
+		copier.start()
 		copier.setDst(texture)
 		copier.setSrc(this)
 		copier.copyTexture(origin, tr, Vec2i(0), size)
+		copier.execute()
 		copier.delete()
 		return texture
 	}

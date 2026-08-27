@@ -57,7 +57,7 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 
 				override fun render(renderer: RendererI, tickDelta: Double) {
 					shader.setUp(uniforms, renderer)
-					Mesh.centerSquareShape.bindAndDraw(renderer.getRenderingApi())
+					shader.draw("vertexBuffer", Mesh.centerSquareShape, renderer)
 				}
 
 				override fun getMeshes(): Collection<Mesh> = listOf(Mesh.centerSquareShape)

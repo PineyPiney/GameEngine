@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.resources.textures
 
-import com.pineypiney.game_engine.rendering.TextureCopyFramebuffer
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import glm_.vec2.Vec2i
@@ -37,8 +36,9 @@ interface Texture3D : Texture {
 	fun saveAtlasPNG(file: String, width: Int): Boolean {
 		val height = Math.ceilDiv(depth, width)
 		val atlas = Texture2D.create("$id Texture Atlas", this.width * width, this.height * height, format)
-		val copier = TextureCopyFramebuffer()
+		val copier = createCopier()
 		copier.init()
+		copier.start()
 		copier.setDst(atlas)
 		for (layer in 0 until depth) {
 			copier.setSrc(this, layer)
@@ -47,6 +47,7 @@ interface Texture3D : Texture {
 			val o = Vec2i(x, y)
 			copier.copyOntoDst(this, layer, o, o + Vec2i(size))
 		}
+		copier.execute()
 		copier.delete()
 		return atlas.savePNG(file)
 	}
@@ -63,8 +64,9 @@ interface Texture3D : Texture {
 		val size = tr - origin
 		val texture = ResourceFactory.INSTANCE.createTexture3D("Cropping of $id", size.x, size.y, size.z, format, format, null, TextureParameters())
 
-		val copier = TextureCopyFramebuffer()
+		val copier = createCopier()
 		copier.init()
+		copier.start()
 		val cropOrigin = Vec2i(origin)
 		val cropTR = Vec2i(tr)
 		val cropSize = Vec2i(size)
@@ -73,6 +75,7 @@ interface Texture3D : Texture {
 			copier.setSrc(this, z)
 			copier.copyTexture(cropOrigin, cropTR, Vec2i(0), cropSize)
 		}
+		copier.execute()
 		copier.delete()
 		return texture
 	}

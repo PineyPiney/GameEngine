@@ -225,11 +225,12 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 
 	fun updateValue(){
 		try {
-			val tcKey = if (tessCtrlField.text.isEmpty()) null else ResourceKey(tessCtrlField.text)
-			val teKey = if (tessEvalField.text.isEmpty()) null else ResourceKey(tessEvalField.text)
-			val geKey = if (geometryField.text.isEmpty()) null else ResourceKey(geometryField.text)
+			val optional = mutableListOf<ResourceKey>()
+			if (tessCtrlField.text.isEmpty()) optional.add(ResourceKey(tessCtrlField.text))
+			if (tessEvalField.text.isEmpty()) optional.add(ResourceKey(tessEvalField.text))
+			if (geometryField.text.isEmpty()) optional.add(ResourceKey(geometryField.text))
 
-			val newS = ShaderLoader[ResourceKey(vertexField.text), ResourceKey(fragmentField.text), tcKey, teKey, geKey]
+			val newS = ShaderLoader[ResourceKey(vertexField.text), ResourceKey(fragmentField.text), optional]
 			val oldVal = field.getter()
 			field.setter(newS)
 			callback(oldVal, newS)
@@ -244,11 +245,11 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 
 	override fun update(scale: Int) {
 		val s = field.getter()
-		vertexField.text = s.vertex.id
-		fragmentField.text = s.fragment.id
-		tessCtrlField.text = s.getSubShader(ShaderStage.TESS_CTRL)?.id ?: ""
-		tessEvalField.text = s.getSubShader(ShaderStage.TESS_EVAL)?.id ?: ""
-		geometryField.text = s.getSubShader(ShaderStage.GEOMETRY)?.id ?: ""
+		vertexField.text = s.vertex.getName()
+		fragmentField.text = s.fragment.getName()
+		tessCtrlField.text = s.getModule(ShaderStage.TESS_CTRL)?.getName() ?: ""
+		tessEvalField.text = s.getModule(ShaderStage.TESS_EVAL)?.getName() ?: ""
+		geometryField.text = s.getModule(ShaderStage.GEOMETRY)?.getName() ?: ""
 	}
 
 	override fun onHoverElement(element: Any, cursorPos: Vec2): Boolean {

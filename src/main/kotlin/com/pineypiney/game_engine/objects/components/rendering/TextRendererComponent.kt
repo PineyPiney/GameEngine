@@ -24,6 +24,11 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 
 	var size: Int = 12
 
+	override fun init() {
+		super.init()
+		text.init()
+	}
+
 	override fun setUniforms() {
 		super.setUniforms()
 		uniforms.setMat4UniformR("model"){ renderer ->
@@ -32,11 +37,7 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		}
 		uniforms.setVec4Uniform("colour", text::colour)
 		uniforms.setFloatUniform("italic", text::italic)
-	}
-
-	override fun init() {
-		super.init()
-		text.init()
+		uniforms.setTextureUniform("tex") { text.data.texture }
 	}
 
 	override fun preRender(renderer: RendererI, tickDelta: Double) {
@@ -50,10 +51,8 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		if (text.lines.isEmpty()) return
 
 
-		shader.use()
-		shader.setUniforms(uniforms, renderer)
-		text.mesh.texture.bind()
-		text.mesh.bindAndDraw(renderer.getRenderingApi())
+		shader.setUp(uniforms, renderer)
+		shader.draw("vertexBuffer", text.data.mesh!!, renderer)
 	}
 
 	fun renderUnderline(
@@ -66,11 +65,11 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		val newModel = model.scale(text.font.getWidth(line) * amount, text.underlineThickness, 0f)
 			.translate(0f, text.underlineOffset, 0f)
 
-		shader.use()
+		shader.use(renderer.getRenderingApi())
 		if (shader.hasView) shader.setVP(renderer)
 		shader.setMat4("model", newModel)
 		shader.setVec4("colour", text.colour)
-		Mesh.cornerSquareShape.bindAndDraw(renderer.getRenderingApi())
+		shader.draw("vertexBuffer", Mesh.cornerSquareShape, renderer)
 	}
 
 	fun getScreenScale(renderer: RendererI) = size * 2f / renderer.viewportSize.y
@@ -80,7 +79,7 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		return Vec2(text.getWidth() * scale, text.getHeight() * scale)
 	}
 
-	override fun getMeshes(): Collection<Mesh> = listOf(text.mesh)
+	override fun getMeshes(): Collection<Mesh> = listOfNotNull(text.data.mesh)
 
 	fun getTextContent() = text.text
 

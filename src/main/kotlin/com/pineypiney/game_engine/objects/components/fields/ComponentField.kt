@@ -7,7 +7,6 @@ import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.RenderShader
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ByteData
@@ -26,6 +25,7 @@ import glm_.vec3.Vec3
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4i
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -50,14 +50,6 @@ abstract class ComponentField<T>(
 				{ t, _ -> serialise(t) }, { s, _ -> parse(s) }, copy
 			)
 
-
-	fun set(value: String) {
-		try {
-			setter(codec.decodeBytes(value.toByteArray(Charsets.ISO_8859_1)) ?: return)
-		} catch (_: Exception) {
-			GameEngineI.logger.warn("Could not set $this value to $value")
-		}
-	}
 
 	fun <E> set(ops: SerialOps<E>, head: E) {
 		try {
@@ -95,7 +87,7 @@ abstract class ComponentField<T>(
 		val value = stream.readNBytes(fieldSize)
 
 		if (isLateParse()) lateParse.add(Triple(container, this, value))
-		else set(value.toString(Charsets.ISO_8859_1))
+		else set(ByteArrayInputStream(value))
 	}
 
 	open fun <E> encode(ops: SerialOps<E>): E {
@@ -211,47 +203,8 @@ class QuatField(id: String, container: Any, getter: () -> Quat, setter: (Quat) -
 	getter, setter, { q -> q.toString("", ByteData::float2String) }, ByteData::string2Quat, { Quat(it.w, it.x, it.y, it.z) })
 
 class ShaderField(id: String, container: Any, getter: () -> RenderShader, setter: (RenderShader) -> Unit) : ComponentField<RenderShader>(
-	id, container, Codec.SHADER,
-	getter, setter, ::serialise, ::parse){
-
-	companion object {
-		fun serialise(shader: RenderShader): String {
-			val sb = StringBuilder()
-			sb.append(smallString(shader.vertex.id))
-			sb.append(smallString(shader.fragment.id))
-			for (stage in RenderShader.OPTIONAL_STAGES) {
-				val module = shader.getSubShader(stage)
-				if (module == null) sb.append(Char(0))
-				else sb.append(smallString(module.id))
-			}
-			return sb.toString()
-		}
-
-		fun parse(s: String): RenderShader{
-			var p = 0
-			val vl = s[p++].code
-			val v = s.substring(p, 1 + vl)
-			p += vl
-
-			val fl = s[p++].code
-			val f = s.substring(p, p + fl)
-			p += fl
-
-			val tcl = s[p++].code
-			val tc = if (tcl == 0) null else ResourceKey(s.substring(p, p + tcl))
-			p += tcl
-
-			val tel = s[p++].code
-			val te = if (tel == 0) null else ResourceKey(s.substring(p, p + tel))
-			p += tel
-
-			val gl = s[p++].code
-			val g = if (gl == 0) null else ResourceKey(s.substring(p, p + gl))
-
-			return ShaderLoader[ResourceKey(v), ResourceKey(f), tc, te, g]
-		}
-	}
-}
+	id, container, RenderShader.CODEC,
+	getter, setter, RenderShader::toString, { RenderShader.missing })
 
 class TextureField(id: String, container: Any, getter: () -> Texture2D, setter: (Texture2D) -> Unit) : ComponentField<Texture2D>(
 	id, container,

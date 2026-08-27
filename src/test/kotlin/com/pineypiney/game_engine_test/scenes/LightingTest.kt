@@ -10,8 +10,8 @@ import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComp
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
-import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
-import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
+import com.pineypiney.game_engine.rendering.WindowRendererI
+import com.pineypiney.game_engine.rendering.cameras.Camera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
@@ -52,10 +52,9 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("UNUSED")
-class LightingTest(override val gameEngine: WindowedGameEngineI<*>): WindowGameLogic() {
+class LightingTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<LightingTest>) : WindowGameLogic() {
 
-	override val renderer = DefaultWindowRenderer<LightingTest, PerspectiveCamera>(window, PerspectiveCamera(window))
-	private val camera get() = renderer.camera
+	private val camera get() = renderer.camera as Camera
 	val vel = Vec3(0f)
 
 	private val pressedKeys = mutableSetOf<Short>()

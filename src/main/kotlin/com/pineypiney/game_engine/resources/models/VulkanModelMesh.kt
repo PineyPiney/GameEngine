@@ -17,7 +17,7 @@ class VulkanModelMesh(
 	indices: ByteBuffer,
 	override val material: ModelMaterial = PhongMaterial(id, emptyMap())
 ) :
-	VulkanIndexedMesh(vulkan, MeshVertex.compile(vertices), indices, Mesh.createAttributes(vertices.firstOrNull()?.attributes?.toList() ?: emptyList())), ModelMesh {
+	VulkanIndexedMesh(vulkan, id, MeshVertex.compile(vertices), indices, Mesh.createAttributes(vertices.firstOrNull()?.attributes?.toList() ?: emptyList())), ModelMesh {
 
 	override var translation: Vec3 = Vec3()
 	override var rotation: Quat = Quat()

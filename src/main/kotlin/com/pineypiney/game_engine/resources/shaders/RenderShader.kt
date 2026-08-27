@@ -3,43 +3,53 @@ package com.pineypiney.game_engine.resources.shaders
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.LightComponent
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
+import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
-import com.pineypiney.game_engine.util.RandomHelper
-import glm_.b
+import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.serialisation.Codec
+import com.pineypiney.game_engine.util.serialisation.Codec.Companion.KEY
 import kotlin.experimental.and
 
 @Suppress("UNUSED")
-class RenderShader(
-	ID: Int,
-	val vertex: SubShader,
-	val fragment: SubShader,
-	val stages: Map<ShaderStage, SubShader>,
-	uniforms: Map<String, String>
-) : OpenGlShader(ID, uniforms) {
+interface RenderShader : Shader {
 
-	val screenMask: Byte =
-		RandomHelper.createMask(uniforms::containsKey, "view", "projection", "guiProjection", "viewport", "viewPos").b
+	val vertex: ShaderModule
+	val fragment: ShaderModule
+	val stages: Iterable<ShaderModule>
+	val parameters: RenderShaderParameters
 
+	val screenMask: Byte
 	val hasView get() = (screenMask and 1) > 0
 	val hasProj get() = (screenMask and 2) > 0
 	val hasGUI get() = (screenMask and 4) > 0
 	val hasPort get() = (screenMask and 8) > 0
 	val hasPos get() = (screenMask and 0x10) > 0
 
-	val lightMask: Byte = RandomHelper.createMask(
-		uniforms::containsKey,
-		"dirLight.ambient",
-		"pointLight.ambient",
-		"spotLight.ambient"
-	).b
-
+	val lightMask: Byte
 	val hasDirL get() = (lightMask and 1) > 0
 	val hasPointL get() = (lightMask and 2) > 0
 	val hasSpotL get() = (lightMask and 4) > 0
+
+	fun draw(meshName: String, mesh: Mesh, renderer: RendererI) =
+		draw(meshName, mesh, renderer.getRenderingApi())
+
+	fun draw(meshName: String, mesh: Mesh, api: RenderingApi)
+
+	override fun getModule(stage: ShaderStage): ShaderModule? {
+		return when (stage) {
+			ShaderStage.VERTEX -> vertex
+			ShaderStage.FRAGMENT -> fragment
+			else -> getSubShader(stage)
+		}
+	}
 
 	fun setRendererDefaults(uniforms: Uniforms){
 		if (hasView) uniforms.setMat4UniformR("view", RendererI::view)
@@ -68,40 +78,83 @@ class RenderShader(
 		else spotLight.setShaderUniforms(this, "spotlight")
 	}
 
-	fun getSubShader(stage: ShaderStage) = stages[stage]
-
-	override fun toString(): String {
-		return "Shader[${vertex.id}, ${fragment.id}]"
-	}
+	fun getSubShader(stage: ShaderStage) = stages.firstOrNull { it.getStage() == stage }
 
 	companion object {
 
 		val OPTIONAL_STAGES = setOf(ShaderStage.TESS_CTRL, ShaderStage.TESS_EVAL, ShaderStage.GEOMETRY)
 
-		val vS: String
-		val fS: String
+		lateinit var missing: RenderShader
 
-		init {
-			vS =
-				"#version 330 core\n" +
-						"layout (location = 0) in vec2 aPos;\n" +
-						"\n" +
-						"void main(){\n" +
-						"\tgl_Position = vec4(aPos, 0.0, 1.0);\n" +
-						"}"
-			fS =
-				"#version 330 core\n" +
-						"\n" +
-						"out vec4 FragColour;\n" +
-						"\n" +
-						"void main(){\n" +
-						"\tFragColour = vec4(1.0, 1.0, 1.0, 1.0);\n" +
-						"}"
+		val CODEC = Codec.map(
+			KEY.field("v") { it: RenderShader -> ResourceKey(it.vertex.getName()) },
+			KEY.field("f") { it: RenderShader -> ResourceKey(it.fragment.getName()) },
+			KEY.opnull().field("tc") { it: RenderShader -> it.getSubShader(ShaderStage.TESS_CTRL)?.let { ResourceKey(it.getName()) } },
+			KEY.opnull().field("te") { it: RenderShader -> it.getSubShader(ShaderStage.TESS_EVAL)?.let { ResourceKey(it.getName()) } },
+			KEY.opnull().field("g") { it: RenderShader -> it.getSubShader(ShaderStage.GEOMETRY)?.let { ResourceKey(it.getName()) } },
+			RenderShaderParameters.CODEC.optional(RenderShaderParameters()).field(RenderShader::parameters, "params")
+		) { v, f, tc, te, g, p -> ShaderLoader[v, f, listOfNotNull(tc, te, g), p] }
+
+		fun initDefaultShader(loader: ResourcesLoader) {
+
+			val version = if (GLFunc.isLoaded) "330"
+			else "430"
+
+			val vS = """
+				#version $version core
+				
+				#ifdef OPENGL
+				layout (location = 0) in vec2 aPos;
+				#endif
+				
+				#ifdef VULKAN
+				#extension GL_EXT_buffer_reference : require
+				struct Vertex {
+					vec2 position;
+				};
+
+				layout(buffer_reference, std430) readonly buffer VertexBuffer{
+					Vertex vertices[];
+				};
+
+				//push constants block
+				layout(push_constant) uniform constants
+				{
+					mat4 model;
+					VertexBuffer vertexBuffer;
+				};
+				#endif
+				
+				layout (location = 0) out vec3 outColor;
+		 
+				void main(){
+					#ifdef VULKAN
+					vec2 aPos = vertexBuffer.vertices[gl_VertexID].position;
+					#endif
+					gl_Position = vec4(aPos, 0.0, 1.0);
+				}
+			""".trimIndent()
+
+			val fS = """
+				#version 330 core
+				
+				#ifdef OPENGL
+				out vec4 FragColour;
+				#endif
+				
+				#ifdef VULKAN
+				layout (location = 0) out vec4 FragColour;
+				#endif
+				
+				void main(){
+					FragColour = vec4(1.0, 1.0, 1.0, 1.0);
+				}
+			""".trimIndent()
+
+
+			val vertex = loader.factory.createShaderModule(loader, "missing_vertex", "", ShaderStage.VERTEX, vS)
+			val fragment = loader.factory.createShaderModule(loader, "missing_fragment", "", ShaderStage.FRAGMENT, fS)
+			missing = loader.factory.createRenderShader(vertex, fragment, emptyList(), RenderShaderParameters())
 		}
-
-		val brokeShader: RenderShader = ShaderLoader.generateGraphicsShaderOpenGl(
-			ShaderLoader.generateSubShaderOpenGl("broke", vS, ShaderStage.VERTEX),
-			ShaderLoader.generateSubShaderOpenGl("broke", fS, ShaderStage.FRAGMENT)
-		)
 	}
 }

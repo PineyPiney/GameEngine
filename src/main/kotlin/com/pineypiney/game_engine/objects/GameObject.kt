@@ -20,6 +20,7 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
+import java.io.InputStream
 
 open class GameObject(open var name: String = "GameObject", layer: Int = 0) : Initialisable {
 
@@ -90,7 +91,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 		}
 	}
 
-	fun setProperty(key: String, value: String) {
+	fun setProperty(key: String, value: InputStream) {
 		val (_, field) = getComponentAndField(key) ?: return
 		field.set(value)
 	}
@@ -369,7 +370,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 				override fun render(renderer: RendererI, tickDelta: Double) {
 					shader.setUp(uniforms, renderer)
 					setManualUniforms()
-					mesh.bindAndDraw(renderer.getRenderingApi())
+					shader.draw("vertexBuffer", mesh, renderer)
 				}
 
 				override fun getMeshes(): Collection<Mesh> = listOf(mesh)

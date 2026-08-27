@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.Cursor
+import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.GLFunc.getVec2
 import com.pineypiney.game_engine.util.GLFunc.getVec2d
 import com.pineypiney.game_engine.util.GLFunc.getVec2i
@@ -21,6 +22,8 @@ import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
 import kool.free
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.glfw.GLFW.GLFW_CURSOR
+import org.lwjgl.glfw.GLFW.glfwSetInputMode
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.glfw.GLFWVidMode
 import org.lwjgl.openal.AL
@@ -40,7 +43,7 @@ abstract class Window(
 	override var vSync: Boolean = vSync
 		set(value) {
 			field = value
-			GLFW.glfwSwapInterval(field.i)
+			if (GLFunc.isLoaded) GLFW.glfwSwapInterval(field.i)
 		}
 
 	final override val windowHandle: Long = createWindow(title, width, height, fullScreen, hints)
@@ -178,6 +181,8 @@ abstract class Window(
 		GLFW.glfwIconifyWindow(windowHandle)
 	}
 
+	override fun getKey(key: Int) = GLFW.glfwGetKey(windowHandle, key)
+
 	fun center() {
 		videoMode.let {
 			pos = Vec2i(it.width() - width, it.height() - height) / 2
@@ -200,6 +205,10 @@ abstract class Window(
 	 */
 	override fun setCursor(cursor: Cursor) {
 		setCursor(cursor.handle)
+	}
+
+	override fun setCursorMode(mode: Int) {
+		glfwSetInputMode(windowHandle, GLFW_CURSOR, mode)
 	}
 
 	/**

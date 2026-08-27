@@ -1,5 +1,5 @@
 // FRAGMENT SHADER INFORMATION
-#version 400 core
+#version 430 core
 #define NR_POINT_LIGHTS 4
 
 #define PI 3.14159265359
@@ -17,11 +17,6 @@ vec3(.5, .5, .5), 	vec3(1, 1, 1)
 );
 
 struct Material{
-	sampler2D baseColour;
-	sampler2D metallicRoughness;
-	sampler2D normals;
-	sampler2D occlusion;
-	sampler2D emissive;
 
 	uint textureMask;
 	vec4 baseColourFactor;
@@ -46,34 +41,39 @@ struct OutputPowers {
 };
 
 struct DirLight{
-
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
 };
 struct PointLight{
-
 	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
-
 	float constant;
+	vec3 diffuse;
 	float linear;
+	vec3 specular;
 	float quadratic;
 };
 struct SpotLight{
 	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
-
 	float constant;
+	vec3 diffuse;
 	float linear;
+	vec3 specular;
 	float quadratic;
 
 	float cutOff;
 	float outerCutOff;
 };
 
+struct Debug {
+	mat3 normalMat;
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	vec3 fragPos;
+};
+
+#ifdef OPENGL
 in vec2 texCoords;
 
 in vec3 tangentViewPos;
@@ -84,24 +84,61 @@ in vec3 tangentPointLightsPositions[NR_POINT_LIGHTS];
 in vec3 tangentSpotlightPosition;
 in vec3 tangentSpotlightDirection;
 
+in Debug debug;
+
+// MANUAL
+uniform Material material;
+uniform sampler2D baseColourTexture;
+uniform sampler2D metallicRoughnessTexture;
+uniform sampler2D normalsTexture;
+uniform sampler2D occlusionTexture;
+uniform sampler2D emissiveTexture;
+
 uniform DirLight dirLight;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
 
-// MANUAL
-uniform Material material;
-
 uniform bool doFresnel;
 
 out vec4 FragColour;
+#endif
 
-in Debug {
-	mat3 debugNormalMat;
-	vec3 debugNormal;
-	vec3 debugTangent;
-	vec3 debugBitangent;
-	vec3 debugFragPos;
+
+#ifdef VULKAN
+
+#extension GL_EXT_shader_io_blocks : require
+
+layout(location = 1) in vec2 texCoords;
+
+layout(location = 2) in vec3 tangentViewPos;
+layout(location = 3) in vec3 tangentFragPos;
+
+layout(location = 4) in vec3 tangentDirLightDirection;
+layout(location = 5) in vec3 tangentPointLightsPositions[NR_POINT_LIGHTS];
+layout(location = 9) in vec3 tangentSpotlightPosition;
+layout(location = 10) in vec3 tangentSpotlightDirection;
+
+layout(location = 11) in Debug debug;
+
+layout(set = 1, binding = 0) uniform Lights {
+	DirLight dirLight;
+	PointLight pointLights[NR_POINT_LIGHTS];
+	SpotLight spotlight;
 };
+
+layout(set = 1, binding = 1) uniform sampler2D baseColourTexture;
+layout(set = 1, binding = 2) uniform sampler2D metallicRoughnessTexture;
+layout(set = 1, binding = 3) uniform sampler2D normalsTexture;
+layout(set = 1, binding = 4) uniform sampler2D occlusionTexture;
+layout(set = 1, binding = 5) uniform sampler2D emissiveTexture;
+
+layout(push_constant) uniform Data {
+	layout(offset = 80) Material material;
+	bool doFresnel;
+};
+
+layout(location = 0) out vec4 FragColour;
+#endif
 
 void calculateTangents(vec3 mappedNormal);
 
@@ -132,9 +169,9 @@ vec3 sheenColour, specColour;
 
 void main(){
 
-	pm.baseColour = hasTexture(1u) ? texture(material.baseColour, texCoords) * material.baseColourFactor : material.baseColourFactor;
+	pm.baseColour = hasTexture(1u) ? texture(baseColourTexture, texCoords) * material.baseColourFactor : material.baseColourFactor;
 
-	vec2 mr = hasTexture(2u) ? texture(material.metallicRoughness, texCoords).yz : vec2(1);
+	vec2 mr = hasTexture(2u) ? texture(metallicRoughnessTexture, texCoords).yz : vec2(1);
 	pm.metallic = mr.y * material.metallicFactor;
 	pm.roughness = mr.x * material.roughnessFactor;
 
@@ -144,7 +181,7 @@ void main(){
 	sheenColour = mix(vec3(1.0), tintColour, material.sheenTint);
 	specColour = mix(material.specular * .16 * mix(vec3(1.0), tintColour, material.specTint), pm.baseColour.xyz, pm.metallic);
 
-	normal = hasTexture(4u) ? normalize(texture(material.normals, texCoords).xyz * 2  - vec3(1)) : vec3(0, 0, 1);
+	normal = hasTexture(4u) ? normalize(texture(normalsTexture, texCoords).xyz * 2 - vec3(1)) : vec3(0, 0, 1);
 	calculateTangents(normal);
 
 	//FragColour = vec4((debugTangent * .5) + vec3(.5), 1.0);

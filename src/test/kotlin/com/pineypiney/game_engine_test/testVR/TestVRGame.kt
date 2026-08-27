@@ -13,7 +13,7 @@ import com.pineypiney.game_engine.vr.VRGameEngine
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
-class TestVRGame(override val gameEngine: TestVREngine) : GameLogic() {
+class TestVRGame(override val gameEngine: TestVREngine<TestVRGame>) : GameLogic() {
 
 	override val renderer = TestVRRenderer(gameEngine.rtWidth, gameEngine.rtHeight, gameEngine.hmd)
 

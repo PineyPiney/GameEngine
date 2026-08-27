@@ -1,10 +1,11 @@
-#version 410 core
+#version 430 core
 
 #define MIN_DIST 2
 #define MAX_DIST 32
 
 layout(vertices=4) out;
 
+#ifdef OPENGL
 in vec2 texCoords[];
 
 uniform mat4 model;
@@ -15,6 +16,24 @@ uniform int maxTess;
 
 out vec2 TextureCoord[];
 out float ctrlColour[];
+#endif
+
+#ifdef VULKAN
+layout(location = 1) in vec2 texCoords[];
+
+layout(binding = 0, set = 0) uniform Matrices {
+	mat4 view;
+};
+
+layout(push_constant) uniform Data {
+	mat4 model;
+	int minTess;
+	int maxTess;
+};
+
+layout(location = 1) out vec2 TextureCoord[];
+layout(location = 2) out float ctrlColour[];
+#endif
 
 void main() {
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
@@ -50,7 +69,7 @@ void main() {
 		gl_TessLevelOuter[2] = tessLevel2;
 		gl_TessLevelOuter[3] = tessLevel3;
 
-		ctrlColour[0] = min(distance01, distance00);
+		ctrlColour[gl_InvocationID] = min(distance01, distance00);
 
 		// ----------------------------------------------------------------------
 		// Step 6: set the inner tessellation levels to the max of the two parallel edges

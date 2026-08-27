@@ -175,30 +175,21 @@ fun Double.cerp(): Double = eerp(3)
  * Returns the position [this] would be on a circle that starts at [min] and ends at [max]
  */
 fun Double.wrap(min: Double, max: Double): Double {
-	val range = abs(max - min)
-	var rem = (this - min) % range
-	if (rem < 0) rem += range
-	return min + rem
+	return min + (this - min).mod(abs(max - min))
 }
 
 /**
  * Returns the position [this] would be on a circle that starts at [min] and ends at [max]
  */
 fun Float.wrap(min: Float, max: Float): Float {
-	val range = abs(max - min)
-	var rem = (this - min) % range
-	if (rem < 0) rem += range
-	return min + rem
+	return min + (this - min).mod(abs(max - min))
 }
 
 /**
  * Returns the position [this] would be on a circle that starts at [min] and ends at [max]
  */
 fun Int.wrap(min: Int, max: Int): Int {
-	val ran = abs(max - min) + 1
-	var rem = (this - min) % ran
-	if (rem < 0) rem += ran
-	return min + rem
+	return min + (this - min).mod(abs(max - min) + 1)
 }
 
 infix fun Int.getRGBAValue(shift: Int) = ((this shr (shift * 8)) and 255) * 0.003921569f

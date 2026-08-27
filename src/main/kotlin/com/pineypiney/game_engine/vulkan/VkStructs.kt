@@ -124,9 +124,10 @@ object VkStructs {
 		return res
 	}
 
-	fun createAttachmentInfo(stack: MemoryStack, image: VulkanImage, colour: Vec4, depth: Float = 0f, stencil: Int = 0) {
-		val clearValue = clear(stack, colour, depth, stencil)
-		createAttachmentInfo(stack, image, clearValue)
+	fun createDepthStencilAttachmentInfo(stack: MemoryStack, image: VulkanImage, depth: Float = 0f, stencil: Int = 0): VkRenderingAttachmentInfo {
+		val clearValue = VkClearValue.calloc(stack)
+		clearValue.depthStencil().set(depth, stencil)
+		return createAttachmentInfo(stack, image, clearValue)
 	}
 
 	fun createAttachmentInfos(stack: MemoryStack, image: VulkanImage, clear: VkClearValue?): VkRenderingAttachmentInfo.Buffer {
@@ -142,18 +143,16 @@ object VkStructs {
 		return res
 	}
 
-	fun createAttachmentInfos(stack: MemoryStack, image: VulkanImage, colour: Vec4, depth: Float, stencil: Int = 0): VkRenderingAttachmentInfo.Buffer {
+	fun createColourAttachmentInfos(stack: MemoryStack, image: VulkanImage, colour: Vec4): VkRenderingAttachmentInfo.Buffer {
 		val clearValue = VkClearValue.calloc(stack)
 			.color(clearColour(stack, colour))
-		clearValue.depthStencil().set(depth, stencil)
-
 		return createAttachmentInfos(stack, image, clearValue)
 	}
 
 	fun createStageInfo(stack: MemoryStack, module: VulkanShaderModule): VkPipelineShaderStageCreateInfo {
 		return VkPipelineShaderStageCreateInfo.calloc(stack)
 			.`sType$Default`()
-			.stage(module.stage.vulkan)
+			.stage(module.getStage().vulkan)
 			.module(module.handle)
 			.pName(stack.UTF8("main"))
 	}

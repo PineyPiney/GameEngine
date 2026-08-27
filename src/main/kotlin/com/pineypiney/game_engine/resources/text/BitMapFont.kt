@@ -1,9 +1,10 @@
 package com.pineypiney.game_engine.resources.text
 
-import com.pineypiney.game_engine.rendering.meshes.TextMesh
+import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.extension_functions.sumOf
+import com.pineypiney.game_engine.util.text.TextData
 import glm_.f
 import glm_.i
 import glm_.vec2.Vec2
@@ -49,11 +50,11 @@ class BitMapFont(
 		return 1f + lineSpacing * (text.count { it == '\n' })
 	}
 
-	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextMesh{
+	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextData {
 		val dimensions = getPixelSize(text)
 		var letterX = characterSpacing
 		var letterY = 0f
-		val quads = mutableSetOf<TextMesh.CharacterQuad>()
+		val quads = mutableSetOf<TextData.CharacterQuad>()
 
 		val (alignX, alignY) = getAlignmentOffset(text, bounds, alignment)
 		var line = 0
@@ -70,10 +71,10 @@ class BitMapFont(
 			letterX += getCharWidth(char) + characterSpacing
 			quads.add(quad)
 		}
-		return TextMesh(quads.toTypedArray(), if(bold) boldTexture?:texture else texture)
+		return TextData(ResourceFactory.INSTANCE, text, quads.toTypedArray(), if (bold) boldTexture ?: texture else texture)
 	}
 
-	fun createTextVertices(char: Char, top: Float, bottom: Float, offset: Vec2): TextMesh.CharacterQuad {
+	fun createTextVertices(char: Char, top: Float, bottom: Float, offset: Vec2): TextData.CharacterQuad {
 		val pixelHeight = top - bottom
 
 		// Index of letter within bitmap, where 0 is the letter in the top left, counting along the rows
@@ -87,7 +88,7 @@ class BitMapFont(
 		val texturePos = Vec2(letterPoint.x.f / texture.width, (letterPoint.y - top) / texture.height)
 
 		val height = pixelHeight / letterWidth
-		return TextMesh.CharacterQuad(offset, Vec2(getCharWidth(char), height) + offset, texturePos, texturePos + letterSize)
+		return TextData.CharacterQuad(offset, Vec2(getCharWidth(char), height) + offset, texturePos, texturePos + letterSize)
 	}
 
 	private fun getPixelSize(text: String): Vec4 {
@@ -108,8 +109,11 @@ class BitMapFont(
 		return (getWidth(text) * letterWidth).i
 	}
 
+	var debug = 0
+
 	override fun delete() {
 		texture.delete()
 		boldTexture?.delete()
+		debug++
 	}
 }

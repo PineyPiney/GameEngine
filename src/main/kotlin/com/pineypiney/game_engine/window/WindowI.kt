@@ -83,6 +83,8 @@ interface WindowI {
 
 	fun iconify()
 
+	fun getKey(key: Int): Int
+
 	/**
 	 * Set the cursor for the window
 	 *
@@ -96,6 +98,13 @@ interface WindowI {
 	 * @param cursor The cursor to be set
 	 */
 	fun setCursor(cursor: Cursor)
+
+	/**
+	 * Set the cursor mode
+	 *
+	 * @param mode One of [GLFW.GLFW_CURSOR_NORMAL], [GLFW.GLFW_CURSOR_HIDDEN], [GLFW.GLFW_CURSOR_DISABLED] or [GLFW.GLFW_CURSOR_CAPTURED]
+	 */
+	fun setCursorMode(mode: Int)
 
 	/**
 	 * Set the window icon

@@ -169,8 +169,8 @@ class GLTFModelLoader {
 				val path = target.getString("path")
 
 				for ((t, v) in sampler) {
-                    val frameStates = states.getOrSet(t){ mutableListOf() }
-                    val nodeState = frameStates.getOrSet(mesh, BoneState::parentId){ BoneState(mesh, Vec3(), Quat()) }
+					val frameStates = states.getOrPut(t) { mutableListOf() }
+					val nodeState = frameStates.getOrPut(mesh, BoneState::parentId) { BoneState(mesh, Vec3(), Quat()) }
                     when(path) {
                         "translation" -> nodeState.translation = v as Vec3
                         "rotation" -> nodeState.rotation = Quat(v as Vec4)

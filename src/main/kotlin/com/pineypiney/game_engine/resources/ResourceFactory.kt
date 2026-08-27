@@ -7,12 +7,17 @@ import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.models.ModelMesh
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.materials.PhongMaterial
+import com.pineypiney.game_engine.resources.shaders.ComputeShader
+import com.pineypiney.game_engine.resources.shaders.RenderShader
+import com.pineypiney.game_engine.resources.shaders.ShaderModule
 import com.pineypiney.game_engine.resources.shaders.ShaderStage
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.Texture3D
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
+import com.pineypiney.game_engine.util.DeletionQueue
 import kool.free
 import org.lwjgl.stb.STBImage
 import java.io.InputStream
@@ -25,16 +30,26 @@ abstract class ResourceFactory {
 		INSTANCE = this
 	}
 
+
+	abstract fun createShaderModule(loader: ResourcesLoader, fileName: String, suf: String, stage: ShaderStage, code: String): ShaderModule
+	abstract fun createRenderShader(
+		vertex: ShaderModule,
+		fragment: ShaderModule,
+		stages: List<ShaderModule>,
+		parameters: RenderShaderParameters,
+		deletionQueue: DeletionQueue = DeletionQueue.GLOBAL
+	): RenderShader
+
+	abstract fun createComputeShader(compute: ShaderModule): ComputeShader
+
 	abstract fun nullTexture2D(): Texture2D
 	abstract fun nullTexture3D(): Texture3D
-
-	abstract fun createSubShader(loader: ResourcesLoader, fileName: String, suf: String, stage: ShaderStage, code: String)
-	abstract fun createShader()
 	abstract fun createTexture2D(name: String, width: Int, height: Int, format: TextureFormat, dataFormat: TextureFormat, data: ByteBuffer?, params: TextureParameters): Texture2D
 	abstract fun createTexture3D(name: String, width: Int, height: Int, depth: Int, format: TextureFormat, dataFormat: TextureFormat, data: ByteBuffer?, params: TextureParameters): Texture3D
-	abstract fun createArrayMesh(vertices: FloatArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh
-	abstract fun createIndexedMesh(vertices: ByteBuffer, indices: IntArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh
-	abstract fun createIndexedMesh(vertices: FloatArray, indices: IntArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh
+
+	abstract fun createArrayMesh(name: String, vertices: FloatArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh
+	abstract fun createIndexedMesh(name: String, vertices: ByteBuffer, indices: IntArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh
+	abstract fun createIndexedMesh(name: String, vertices: FloatArray, indices: IntArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh
 	abstract fun createModelMesh(id: String, vertices: Array<out MeshVertex>, indices: IntArray, alpha: Float = 1f, order: Int = 0, material: ModelMaterial = PhongMaterial(id, emptyMap())): ModelMesh
 
 	fun loadTexture2DFromFile(fileName: String, stream: InputStream, parameters: TextureParameters = TextureParameters()): Texture2D {
@@ -45,7 +60,6 @@ abstract class ResourceFactory {
 			return Texture2D.missing
 		}
 
-		GameEngineI.info("Loading texture $fileName")
 		val (data, vec) = TextureLoader.loadTextureData(buffer, parameters.flip, 0)
 		buffer.free()
 

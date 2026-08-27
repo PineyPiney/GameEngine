@@ -4,9 +4,11 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.PixelTransformComponent
 import com.pineypiney.game_engine.objects.components.applied
+import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
 import com.pineypiney.game_engine.objects.components.rendering.ColouredSpriteComponent
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -51,7 +53,11 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 
 		closeButton.getComponent<ColouredSpriteComponent>()?.uniforms?.setVec4Uniform("backgroundColour"){ if(closeButton.getComponent<ButtonComponent>()?.hover == true) Vec4(1f, 0f, 0f, 1f) else Vec4(0f)}
 
-		componentList.parent.apply { position = Vec3(0f, 0f, .01f); scale = Vec3(1f, .8f, 1f) }
+		componentList.parent.apply {
+			position = Vec3(0f, 0f, .01f)
+			scale = Vec3(1f, .8f, 1f)
+			components.add(ChildContainingRenderer(this, Mesh.cornerSquareShape, Vec4(0.8f, 0.8f, 0.8f, 1f)))
+		}
 		parent.addChild(closeButton, searchBar.parent, componentList.parent)
 	}
 

@@ -3,11 +3,11 @@ package com.pineypiney.game_engine.apps.editor
 import com.pineypiney.game_engine.apps.editor.util.EditorSettings
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.rendering.DefaultWindowRenderer
-import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlIndexedMesh
+import com.pineypiney.game_engine.rendering.opengl.DefaultWindowRenderer
+import com.pineypiney.game_engine.rendering.opengl.Framebuffer
 import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.util.Colour
@@ -25,14 +25,13 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 	override val projection = I
 	override val guiProjection = I
 
-	var backgroundColour = Colour(0, 0, 0)
+	var backgroundColour = Colour(0, 255, 0)
 	val sceneFramebuffer = Framebuffer(0, 0)
 
 	var sceneMesh: Mesh = OpenGlIndexedMesh.empty()
 	override fun init() {
 		framebuffer.internalFormat = TextureFormat.RGBA8
 		super.init()
-		GLFunc.multiSample = true
 	}
 
 	override fun render(game: EditorScreen, tickDelta: Double) {
@@ -69,6 +68,7 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 		// This draws the buffer onto the screen
 		Framebuffer.unbind()
 		clear()
+		GLFunc.clearColour = Vec4(1f, 0f, 0f, 1f)
 		screenShader.setUp(screenUniforms, this)
 		sceneFramebuffer.draw(getRenderingApi(), sceneMesh)
 		framebuffer.draw(getRenderingApi())
@@ -78,7 +78,7 @@ class EditorRenderer(window: WindowI, val settings: EditorSettings, val sort: Ga
 	fun createSceneBufferMesh(): Mesh {
 		val factory = OpenGlResourceFactory()
 		return Mesh.textureQuad(
-			factory,
+			factory, "Scene Buffer",
 			Vec2((settings.objectBrowserWidth * 2f / viewportSize.x) - 1f, (settings.fileBrowserHeight * 2f / viewportSize.y) - 1f),
 			Vec2(1f - (settings.componentBrowserWidth * 2f / viewportSize.x), 1f)
 		)
