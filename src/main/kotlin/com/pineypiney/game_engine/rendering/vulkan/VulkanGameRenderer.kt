@@ -28,7 +28,7 @@ import org.lwjgl.vulkan.*
 
 open class VulkanGameRenderer<in G : WindowGameLogic, C : CameraI>(override val window: WindowI, val vulkan: VulkanManager, override val camera: C) : WindowRendererI<G> {
 
-	override val viewPos: Vec3 = Vec3(0f)
+	override val viewPos: Vec3 get() = camera.cameraPos
 	override val view: Mat4 = Mat4()
 	override val projection: Mat4 = Mat4()
 	override val guiProjection: Mat4 = Mat4()

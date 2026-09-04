@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.resources.shaders.vulkan.pipeline
 
 import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.shaders.DataType
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderStage
@@ -23,7 +22,7 @@ class VulkanGraphicsPipeline(
 	pipeline: Long,
 	override val vertex: VulkanShaderModule,
 	override val fragment: VulkanShaderModule,
-	override val stages: Iterable<VulkanShaderModule>,
+	override val stages: List<VulkanShaderModule>,
 	override val parameters: RenderShaderParameters,
 	layout: VulkanPipelineLayout
 ) : VulkanPipeline(pipeline, layout), RenderShader {
@@ -49,6 +48,10 @@ class VulkanGraphicsPipeline(
 		val list = mutableListOf(vertex, fragment)
 		list.addAll(stages)
 		return list
+	}
+
+	override fun toString(): String {
+		return "Graphics Pipeline('${vertex.getName()}, ${fragment.getName()}, ${stages.joinToString(transform = VulkanShaderModule::getName)}')"
 	}
 
 	class Builder : VulkanPipeline.Builder<VulkanGraphicsPipeline>() {
@@ -83,18 +86,8 @@ class VulkanGraphicsPipeline(
 		fun generateLayout(device: VulkanDevice): Builder {
 			MemoryStack.stackPush().use { stack ->
 				val descriptorLayouts = compileDescriptorLayouts(device, modules.associate { it.getStage() to it.data })
-				val pushConstantsList = mutableSetOf<VkPushConstantRange>()
-				val pushConstantsMap = mutableMapOf<ShaderStage, Pair<String, DataType.PushConstants>>()
-				for ((_, module) in modules.withIndex()) {
-					val pushConstants = module.data.pushConstants
-					if (pushConstants != null) {
-						pushConstantsList.add(VkPushConstantRange.calloc(stack).set(module.getStage().vulkan, pushConstants.second.min, pushConstants.second.size))
-						pushConstantsMap[module.getStage()] = pushConstants
-					}
-				}
-				val pushConstantsBuffer = VkPushConstantRange.calloc(pushConstantsList.size, stack)
-				for (range in pushConstantsList) pushConstantsBuffer.put(range)
-				this.layout = VkUtil.createPipelineLayout(device, stack, descriptorLayouts, pushConstantsBuffer.flip(), pushConstantsMap)
+				val pushConstants = compilePushConstants(modules)
+				this.layout = VkUtil.createPipelineLayout(device, stack, descriptorLayouts, pushConstants)
 			}
 			return this
 		}
@@ -276,7 +269,7 @@ class VulkanGraphicsPipeline(
 				val vertex = optionalModules.popFirst { it.getStage() == ShaderStage.VERTEX }
 				val fragment = optionalModules.popFirst { it.getStage() == ShaderStage.FRAGMENT }
 
-				val name = "Render Shader(${vertex.getName()}, ${vertex.getName()}, ${optionalModules.joinToString(transform = VulkanShaderModule::getName)})"
+				val name = "Render Shader(${vertex.getName()}, ${fragment.getName()}, ${optionalModules.joinToString(transform = VulkanShaderModule::getName)})"
 				device.nameObject(pPipeline[0], VK10.VK_OBJECT_TYPE_PIPELINE, name)
 				device.nameObject(layout!!.handle, VK10.VK_OBJECT_TYPE_PIPELINE_LAYOUT, "$name Layout")
 

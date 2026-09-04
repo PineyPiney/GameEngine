@@ -123,6 +123,7 @@ void main(){
 	pointMaterial.metallic = mr.y * material.metallicFactor;
 	pointMaterial.roughness = mr.x * material.roughnessFactor;
 
+
 	vec3 diffuse = vec3(0.0);
 	vec3 specular = vec3(0.0);
 
@@ -134,7 +135,7 @@ void main(){
 	// == =====================================================
 
 	// phase 1: directional lighting
-	//CalcDirLight(dirLight, norm, viewDir, diffuse, specular);
+	CalcDirLight(dirLight, norm, viewDir, diffuse, specular);
 
 
 	// phase 2: point lights

@@ -21,7 +21,6 @@ import com.pineypiney.game_engine.rendering.vulkan.VulkanGameRenderer
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.parameters.CullMode
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.textures.Texture2D
@@ -109,13 +108,9 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 	}
 
 	private val texture = GameObject.simpleTextureGameObject("broke texture", Texture2D.missing)
-	private val model1 = GameObject.simpleModelledGameObject(
-		"goblin",
-		ModelLoader.getModel(ResourceKey("goblin")),
-		ShaderLoader[ResourceKey("vertex/model"), ResourceKey("fragment/model"), RenderShaderParameters(cullMode = CullMode.NONE)],
-		debug = Model.DEBUG_COLLIDER
-	)
-	private val model2 = GameObject.simpleModelledGameObject("goblin", ModelLoader.getModel(ResourceKey("goblin")), debug = Model.DEBUG_COLLIDER)
+	val modelShader = ModelRendererComponent.defaultShader.withParameters(RenderShaderParameters(cullMode = CullMode.NONE))
+	private val model1 = GameObject.simpleModelledGameObject("goblin", ModelLoader.getModel(ResourceKey("goblin")), modelShader, debug = Model.DEBUG_COLLIDER)
+	private val model2 = GameObject.simpleModelledGameObject("goblin", ModelLoader.getModel(ResourceKey("goblin")), modelShader, debug = Model.DEBUG_COLLIDER)
 
 	private val text = Text.makeMenuText(
 		"X Part: 0.00 \nY Part: 0.00",

@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.models
 import com.pineypiney.game_engine.rendering.meshes.IndexedMeshBuilder
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
+import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.shaders.RenderShader
@@ -37,7 +38,7 @@ interface ModelMesh : Mesh {
 		lateinit var missing: ModelMesh; private set
 
 		fun initDefault(factory: ResourceFactory) {
-			val builder = IndexedMeshBuilder().startQuad()
+			val builder = IndexedMeshBuilder(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEX_COORD).startQuad()
 				.vertex(0f, 0f, 0f).texture(0f, 0f)
 				.vertex(1f, 0f, 0f).texture(1f, 0f)
 				.vertex(1f, 1f, 0f).texture(1f, 1f)

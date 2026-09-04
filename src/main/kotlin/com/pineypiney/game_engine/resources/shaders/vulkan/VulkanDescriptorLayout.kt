@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.resources.shaders.vulkan
 
 import com.pineypiney.game_engine.objects.Deletable
+import com.pineypiney.game_engine.resources.shaders.DataType
 import com.pineypiney.game_engine.resources.shaders.ShaderStage
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.vulkan.VkUtil
@@ -36,8 +37,8 @@ class VulkanDescriptorLayout(val device: VulkanDevice, val pointer: LongBuffer, 
 
 		fun addStorageImage(binding: Int, name: String) = addBinding(VulkanDescriptorBinding.StorageImage(binding, name))
 		fun addCombinedImage(binding: Int, name: String) = addBinding(VulkanDescriptorBinding.CombinedSampler(binding, name))
-		fun addStorageBuffer(device: VulkanDevice, binding: Int, name: String, size: Int, offsets: Map<String, Int>) =
-			addBinding(VulkanDescriptorBinding.UniformBuffer(device, binding, name, size, offsets))
+		fun addStorageBuffer(device: VulkanDevice, binding: Int, name: String, offsets: DataType.Struct) =
+			addBinding(VulkanDescriptorBinding.UniformBuffer(device, binding, name, offsets))
 
 		fun clear() = bindings.clear()
 

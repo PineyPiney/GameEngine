@@ -14,7 +14,7 @@ class OpenGlRenderShader(
 	ID: Int,
 	override val vertex: SubShader,
 	override val fragment: SubShader,
-	override val stages: Iterable<ShaderModule>,
+	override val stages: List<ShaderModule>,
 	uniforms: Map<String, String>,
 	override val parameters: RenderShaderParameters
 ) : OpenGlShader(ID, uniforms), RenderShader {

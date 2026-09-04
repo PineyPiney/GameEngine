@@ -58,7 +58,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 	}
 
 	private fun updateModel() {
-		relativeTransform = I.translate(translation) * rotation.toMat4()
+		relativeTransform = defaultRelativeTransform.translate(translation) * rotation.toMat4()
 		modelTransform = parentTransform * relativeTransform
 		for (it in children) {
 			it.updateModel()

@@ -32,7 +32,7 @@ layout(set = 1, binding = 3) uniform sampler2D specularTexture;
 layout(set = 1, binding = 4) uniform sampler2D normalsTexture;
 
 layout(push_constant) uniform MaterialBlock{
-	Material material;
+	layout(offset = 72) Material material;
 };
 
 layout(location = 0) out vec4 FragColour;

@@ -16,6 +16,7 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 	val memoryProperties = getGpuMemoryProperties()
 	val features = VkPhysicalDeviceFeatures2.calloc().`sType$Default`()
 
+	// Supports Buffer Device Address
 	val supportsBDA: Boolean
 
 	init {

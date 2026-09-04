@@ -1,9 +1,10 @@
 package com.pineypiney.game_engine.resources.shaders.vulkan.pipeline
 
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanIndexedMesh
+import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanMesh
 import com.pineypiney.game_engine.resources.shaders.DataType
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderStage
@@ -14,6 +15,7 @@ import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
 import com.pineypiney.game_engine.util.extension_functions.getOrPut
 import com.pineypiney.game_engine.util.extension_functions.put
+import com.pineypiney.game_engine.util.vulkanMask
 import com.pineypiney.game_engine.vulkan.PoolAndBuffer
 import com.pineypiney.game_engine.vulkan.VulkanDevice
 import glm_.ToBuffer
@@ -80,13 +82,8 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 	}
 
 	fun setBuffer(name: String, buffer: ByteBuffer) {
-		for ((_, pushConstant) in layout.pushConstants) {
-			val partName = VulkanDescriptorBinding.getOffsetName(pushConstant.first, name) ?: continue
-			if (pushConstant.second.variables.contains(partName)) {
-				val offset = pushConstant.second.variables[partName] ?: continue
-				layout.pushConstantBuffer.put(offset.second, buffer, 0, buffer.remaining())
-			}
-		}
+		layout.pushConstants.getBufferSlice(name)?.put(buffer)
+
 		for (layout in descriptorLayouts) {
 			for (binding in layout.bindings) {
 				if (binding.contains(name) && binding is VulkanDescriptorBinding.Buffer) {
@@ -98,24 +95,16 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 	}
 
 	fun getBuffer(name: String): ByteBuffer? {
-		for ((_, pushConstant) in layout.pushConstants) {
-			val partName = VulkanDescriptorBinding.getOffsetName(pushConstant.first, name) ?: continue
-			if (pushConstant.second.variables.contains(partName)) {
-				return pushConstant.second.getBuffer(layout.pushConstantBuffer, 0, name) ?: continue
-			}
-		}
+		layout.pushConstants.getBufferSlice(name)?.let { return it }
+
 		for (layout in descriptorLayouts) {
 			for (binding in layout.bindings) {
-				if (binding.contains(name) && binding is VulkanDescriptorBinding.Buffer) {
-					return binding.get(name)
+				if (binding is VulkanDescriptorBinding.Buffer) {
+					binding.get(name)?.let { return it }
 				}
 			}
 		}
 		return null
-	}
-
-	fun getPushConstants(constants: DataType.PushConstants): ByteBuffer {
-		return layout.pushConstantBuffer.slice(constants.min, constants.size).order(ByteOrder.nativeOrder())
 	}
 
 	fun updateDescriptors(commands: PoolAndBuffer, descriptorAllocator: VulkanDescriptorAllocator) {
@@ -134,9 +123,7 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 	}
 
 	fun updatePushConstants(commands: PoolAndBuffer) {
-		for ((stage, pushConstants) in layout.pushConstants) {
-			commands.pushConstants(this, stage.vulkan, pushConstants.second.min, getPushConstants(pushConstants.second))
-		}
+		layout.pushConstants.push(commands, this)
 	}
 
 	override fun setTexture(name: String, texture: Texture) {
@@ -148,7 +135,7 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 	}
 
 	override fun setMesh(name: String, mesh: Mesh) {
-		setLong(name, (mesh as VulkanIndexedMesh).vertexBufferAddress)
+		setLong(name, (mesh as VulkanMesh).vertexBufferAddress)
 	}
 
 	override fun setBool(name: String, value: Boolean) {
@@ -456,11 +443,18 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 	abstract fun getAllModules(): Iterable<VulkanShaderModule>
 
 	override fun compileUniforms(): Uniforms {
-		val uniforms = mutableSetOf<Uniform<*>>()
+		val map = mutableMapOf<String, String>()
 		for (module in getAllModules()) {
-			val map = module.data.getUniformMap()
-			for ((name, type) in map) uniforms.add(Uniform.parse(name, type) ?: continue)
+			val moduleMap = module.data.getUniformMap()
+			for ((name, type) in moduleMap) {
+				val currentType = map[name]
+				if (currentType == null) map[name] = type
+				else if (type != currentType) {
+					GameEngineI.logger.warn("Shader $this contains 2 uniforms called $name, one of type $type and the other of type $currentType")
+				}
+			}
 		}
+		val uniforms = map.mapNotNull { (name, type) -> Uniform.parse(name, type) }
 		return Uniforms(uniforms.toTypedArray())
 	}
 
@@ -479,11 +473,47 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 					when (val data = uniformBuffer.data) {
 						is DataType.Sampler -> builder.addCombinedImage(uniformBuffer.binding, uniformBuffer.name)
 						is DataType.Image -> builder.addStorageImage(uniformBuffer.binding, uniformBuffer.name)
-						is DataType.Struct -> builder.addStorageBuffer(device, uniformBuffer.binding, uniformBuffer.name, data.size, data.getOffsets())
+						is DataType.Struct -> builder.addStorageBuffer(device, uniformBuffer.binding, uniformBuffer.name, data)
 					}
 				}
 			}
 			return builders.map { it.build(device) }
+		}
+
+		fun compilePushConstants(modules: List<VulkanShaderModule>): VulkanPushConstantManager {
+			val ranges = mutableMapOf<ShaderStage, Pair<Int, Int>>()
+			val pushConstantVariables = mutableListOf<Triple<String, DataType, Int>>()
+			for ((_, module) in modules.withIndex()) {
+				val (_, pushConstants) = module.data.pushConstants ?: continue
+				ranges[module.getStage()] = pushConstants.min to pushConstants.max
+				for ((vn, v) in pushConstants.variables) pushConstantVariables.add(Triple(vn, v.first, v.second))
+			}
+			if (ranges.isEmpty()) return VulkanPushConstantManager(emptyMap(), emptyMap())
+
+			val sections = mutableMapOf<Int, Pair<Int, Int>>()
+			var start = 0
+			var end = 0
+			var stageMask = 0
+
+			val indexOrdered = pushConstantVariables.sortedBy { it.third }
+			for ((_, type, i) in indexOrdered) {
+				val stages = ranges.filter { (_, v) -> i >= v.first && i < v.second }.keys
+				val mask = stages.vulkanMask()
+				if (stageMask == 0) stageMask = mask
+				else if (mask and stageMask == 0) {
+					sections[stageMask] = start to end - start
+					stageMask = mask
+					start = i
+				} else {
+					stageMask = mask or stageMask
+				}
+				end = i + type.size
+			}
+			sections[stageMask] = start to end - start
+
+			pushConstantVariables.clear()
+			val constants = indexOrdered.associate { it.first to (it.second to it.third) }
+			return VulkanPushConstantManager(constants, sections)
 		}
 
 		fun toFloats(buffer: ByteBuffer, size: Int, i: Int): FloatArray {

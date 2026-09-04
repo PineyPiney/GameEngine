@@ -1,10 +1,9 @@
 package com.pineypiney.game_engine.vulkan
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.resources.shaders.DataType
-import com.pineypiney.game_engine.resources.shaders.ShaderStage
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorLayout
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipelineLayout
+import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPushConstantManager
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage2D
@@ -361,7 +360,7 @@ object VkUtil {
 		stack: MemoryStack,
 		descriptorLayouts: List<VulkanDescriptorLayout>,
 		createInfo: VkPipelineLayoutCreateInfo,
-		pushConstants: Map<ShaderStage, Pair<String, DataType.PushConstants>>
+		pushConstants: VulkanPushConstantManager
 	): VulkanPipelineLayout {
 		val buf = stack.mallocLong(1)
 		processResult(VK10.vkCreatePipelineLayout(device.device, createInfo, null, buf), "Failed to create Pipeline Layout")
@@ -372,13 +371,12 @@ object VkUtil {
 		device: VulkanDevice,
 		stack: MemoryStack,
 		descriptorLayout: VulkanDescriptorLayout?,
-		constants: VkPushConstantRange.Buffer? = null,
-		pushConstants: Map<ShaderStage, Pair<String, DataType.PushConstants>>
+		pushConstants: VulkanPushConstantManager
 	): VulkanPipelineLayout {
 		val pipelineLayoutCreateInfo = VkPipelineLayoutCreateInfo.calloc(stack)
 			.`sType$Default`()
 			.pSetLayouts(descriptorLayout?.pointer)
-			.pPushConstantRanges(constants)
+			.pPushConstantRanges(pushConstants.createRanges(stack))
 		return createPipelineLayout(device, stack, if (descriptorLayout == null) emptyList() else listOf(descriptorLayout), pipelineLayoutCreateInfo, pushConstants)
 	}
 
@@ -386,8 +384,7 @@ object VkUtil {
 		device: VulkanDevice,
 		stack: MemoryStack,
 		descriptorLayouts: List<VulkanDescriptorLayout>,
-		constants: VkPushConstantRange.Buffer? = null,
-		pushConstants: Map<ShaderStage, Pair<String, DataType.PushConstants>>
+		pushConstants: VulkanPushConstantManager
 	): VulkanPipelineLayout {
 
 		val maxSet = descriptorLayouts.maxOfOrNull(VulkanDescriptorLayout::set) ?: -1
@@ -397,7 +394,7 @@ object VkUtil {
 		val pipelineLayoutCreateInfo = VkPipelineLayoutCreateInfo.calloc(stack)
 			.`sType$Default`()
 			.pSetLayouts(buffer)
-			.pPushConstantRanges(constants)
+			.pPushConstantRanges(pushConstants.createRanges(stack))
 
 		return createPipelineLayout(device, stack, descriptorLayouts, pipelineLayoutCreateInfo, pushConstants)
 	}

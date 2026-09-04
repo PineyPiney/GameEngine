@@ -21,9 +21,9 @@ out vec2 texCoords;
 
 struct Vertex {
 	vec3 posIn;
-	float uvX;
-	vec3 normalIn;
-	float uvY;
+	float normalX;
+	vec2 normalYZ;
+	vec2 uv;
 };
 
 layout(buffer_reference, std430) readonly buffer VertexBuffer{
@@ -50,9 +50,10 @@ layout (location = 2) out vec3 normal;
 void main(){
 
 	#ifdef VULKAN
-	vec3 posIn = vertexBuffer.vertices[gl_VertexID].posIn;
-	vec3 normalIn = vertexBuffer.vertices[gl_VertexID].normalIn;
-	vec2 texIn = vec2(vertexBuffer.vertices[gl_VertexID].uvX, vertexBuffer.vertices[gl_VertexID].uvY);
+	Vertex v = vertexBuffer.vertices[gl_VertexID];
+	vec3 posIn = v.posIn;
+	vec3 normalIn = vec3(v.normalX, v.normalYZ);
+	vec2 texIn = v.uv;
 	#endif
 
 	gl_Position = projection * view * model * vec4(posIn, 1.0);

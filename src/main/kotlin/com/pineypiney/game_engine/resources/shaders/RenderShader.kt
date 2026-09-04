@@ -9,9 +9,11 @@ import com.pineypiney.game_engine.rendering.lighting.Light
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.serialisation.Codec
@@ -23,7 +25,7 @@ interface RenderShader : Shader {
 
 	val vertex: ShaderModule
 	val fragment: ShaderModule
-	val stages: Iterable<ShaderModule>
+	val stages: List<ShaderModule>
 	val parameters: RenderShaderParameters
 
 	val screenMask: Byte
@@ -66,10 +68,10 @@ interface RenderShader : Shader {
 		if(dirLight == null) Light.setShaderUniformsOff(this, "dirLight")
 		else dirLight.setShaderUniforms(this, "dirLight")
 
-		val pointLights = lights.associateWith { it.parent.position }.filter{ it.key.light is PointLight }.entries.sortedByDescending { (it.value - obj.position).length() / (it.key.light as PointLight).linear }
+		val pointLights = lights.filter { it.light is PointLight }.sortedByDescending { (it.parent.position - obj.position).length() / (it.light as PointLight).linear }
 		for (l in 0..<4) {
 			val name = "pointLights[$l]"
-			if(l < pointLights.size) pointLights[l].key.setShaderUniforms(this, name)
+			if (l < pointLights.size) pointLights[l].setShaderUniforms(this, name)
 			else Light.setShaderUniformsOff(this, name)
 		}
 
@@ -79,6 +81,9 @@ interface RenderShader : Shader {
 	}
 
 	fun getSubShader(stage: ShaderStage) = stages.firstOrNull { it.getStage() == stage }
+
+	fun withParameters(parameters: RenderShaderParameters, deletionQueue: DeletionQueue = DeletionQueue.GLOBAL) =
+		ResourceFactory.INSTANCE.createRenderShader(vertex, fragment, stages, parameters, deletionQueue)
 
 	companion object {
 

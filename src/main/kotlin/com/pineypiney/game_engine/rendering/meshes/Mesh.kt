@@ -121,12 +121,12 @@ interface Mesh : Deletable {
 				blf.x, blf.y, trb.z, 0.0, 0.0, 1.0, tbl.x, tbl.y,
 
 				// Left
-				blf.x, blf.y, blf.z, 1.0, 0.0, 0.0, tbl.x, tbl.y,
-				blf.x, blf.y, trb.z, 1.0, 0.0, 0.0, tbl.x, ttr.y,
-				blf.x, trb.y, trb.z, 1.0, 0.0, 0.0, ttr.x, ttr.y,
-				blf.x, trb.y, trb.z, 1.0, 0.0, 0.0, ttr.x, ttr.y,
-				blf.x, trb.y, blf.z, 1.0, 0.0, 0.0, ttr.x, tbl.y,
-				blf.x, blf.y, blf.z, 1.0, 0.0, 0.0, tbl.x, tbl.y,
+				blf.x, blf.y, blf.z, -1.0, 0.0, 0.0, tbl.x, tbl.y,
+				blf.x, blf.y, trb.z, -1.0, 0.0, 0.0, tbl.x, ttr.y,
+				blf.x, trb.y, trb.z, -1.0, 0.0, 0.0, ttr.x, ttr.y,
+				blf.x, trb.y, trb.z, -1.0, 0.0, 0.0, ttr.x, ttr.y,
+				blf.x, trb.y, blf.z, -1.0, 0.0, 0.0, ttr.x, tbl.y,
+				blf.x, blf.y, blf.z, -1.0, 0.0, 0.0, tbl.x, tbl.y,
 
 				// Right
 				trb.x, blf.y, trb.z, 1.0, 0.0, 1.0, tbl.x, tbl.y,

@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.resources.shaders.vulkan
 
 import com.pineypiney.game_engine.objects.Deletable
+import com.pineypiney.game_engine.resources.shaders.DataType
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
 import com.pineypiney.game_engine.vulkan.VmaBuffer
 import com.pineypiney.game_engine.vulkan.VulkanDevice
@@ -47,29 +48,28 @@ abstract class VulkanDescriptorBinding(val binding: Int, val type: Int, val name
 		}
 	}
 
-	abstract class Buffer(val device: VulkanDevice, binding: Int, bufferUsage: Int, type: Int, name: String, val size: Long, val offsets: Map<String, Int>) :
+	abstract class Buffer(val device: VulkanDevice, binding: Int, bufferUsage: Int, type: Int, name: String, val variables: DataType.Struct) :
 		VulkanDescriptorBinding(binding, type, name) {
 
-		val buffer = VmaBuffer.create(device, size, bufferUsage, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU, "$name Descriptor Binding")
+		val buffer = VmaBuffer.create(device, variables.size.toLong(), bufferUsage, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU, "$name Descriptor Binding")
 
-		override fun contains(uniform: String): Boolean = offsets.containsKey(getOffsetName(uniform))
+		override fun contains(uniform: String): Boolean = variables.variables.containsKey(getOffsetName(uniform))
 
 		fun set(name: String, data: ByteBuffer, offset: Int, length: Int) {
-			val index = offsets[getOffsetName(name) ?: return] ?: return
-			val dst = this.buffer.getBuffer(size.toInt())
+			val (_, index) = variables.variables[getOffsetName(name) ?: return] ?: return
+			val dst = this.buffer.getBuffer(variables.size)
 			dst.put(index, data, offset, length)
 		}
 
 		fun set(name: String, data: ByteBuffer) {
-			val index = offsets[getOffsetName(name) ?: return] ?: return
-			val dst = this.buffer.getBuffer(size.toInt())
+			val (_, index) = variables.variables[getOffsetName(name) ?: return] ?: return
+			val dst = this.buffer.getBuffer(variables.size)
 			dst.put(index, data, 0, data.capacity())
 		}
 
 		fun get(name: String): ByteBuffer? {
-			val index = offsets[getOffsetName(name) ?: return null] ?: return null
-			val dst = this.buffer.getBuffer(index.toLong(), size.toInt() - index)
-			return dst
+			val (o, s) = variables.getRange(name, -1) ?: return null
+			return buffer.getBuffer(o.toLong(), s)
 		}
 
 		fun getOffsetName(uniform: String): String? {
@@ -85,10 +85,10 @@ abstract class VulkanDescriptorBinding(val binding: Int, val type: Int, val name
 		}
 	}
 
-	class UniformBuffer(device: VulkanDevice, binding: Int, name: String, size: Int, offsets: Map<String, Int>) :
-		Buffer(device, binding, VK10.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK10.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, name, size.toLong(), offsets) {
+	class UniformBuffer(device: VulkanDevice, binding: Int, name: String, variables: DataType.Struct) :
+		Buffer(device, binding, VK10.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK10.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, name, variables) {
 		override fun bind(writer: VulkanDescriptorWriter) {
-			writer.writeUniformBuffer(binding, buffer, size)
+			writer.writeUniformBuffer(binding, buffer, variables.size.toLong())
 		}
 	}
 

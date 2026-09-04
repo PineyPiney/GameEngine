@@ -28,9 +28,9 @@ out vec3 normal;
 
 struct Vertex {
 	vec3 posIn;
-	float uvX;
-	vec3 normalIn;
-	float uvY;
+	float normalX;
+	vec2 normalYZ;
+	vec2 uv;
 	ivec4 boneIndices;
 	vec4 boneWeights;
 };
@@ -61,11 +61,12 @@ layout (location = 2) out vec3 normal;
 void main(){
 
 	#ifdef VULKAN
-	vec3 posIn = vertexBuffer.vertices[gl_VertexID].posIn;
-	vec3 normalIn = vertexBuffer.vertices[gl_VertexID].normalIn;
-	vec2 texIn = vec2(vertexBuffer.vertices[gl_VertexID].uvX, vertexBuffer.vertices[gl_VertexID].uvY);
-	ivec4 boneIndices = vertexBuffer.vertices[gl_VertexID].boneIndices;
-	vec4 boneWeights = vertexBuffer.vertices[gl_VertexID].boneWeights;
+	Vertex v = vertexBuffer.vertices[gl_VertexID];
+	vec3 posIn = v.posIn;
+	vec3 normalIn = vec3(v.normalX, v.normalYZ);
+	vec2 texIn = v.uv;
+	ivec4 boneIndices = v.boneIndices;
+	vec4 boneWeights = v.boneWeights;
 	#endif
 
 	vec4 pos4 = vec4(posIn, 1.0);

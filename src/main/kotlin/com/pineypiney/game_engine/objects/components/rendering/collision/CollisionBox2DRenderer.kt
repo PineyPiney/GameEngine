@@ -39,7 +39,7 @@ class CollisionBox2DRenderer(parent: GameObject, val obj: GameObject, val width:
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	companion object {
-		val defaultShader = ShaderLoader.get(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/collider"))
+		val defaultShader = ShaderLoader[ResourceKey("vertex/pass_pos"), ResourceKey("fragment/collider")]
 
 		fun create(obj: GameObject, lineThickness: Float = .05f, colour: Vec4 = Vec4(1f)): GameObject{
 			val par = GameObject(obj.name + " Collider Renderer")

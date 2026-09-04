@@ -57,7 +57,7 @@ class EngineTest{
 
 	@Test
 	fun test3D(){
-		runOpenGlEngine(::Game3D, ::PerspectiveCamera)
+		runVulkanEngine(::Game3D, ::PerspectiveCamera)
 	}
 	@Test
 	fun testLighting(){

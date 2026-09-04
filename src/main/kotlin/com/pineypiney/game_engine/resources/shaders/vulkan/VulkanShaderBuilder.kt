@@ -220,7 +220,7 @@ class VulkanShaderBuilder(val stage: ShaderStage) {
 			i++
 		}
 
-		return VulkanShaderData(moduleName, data, uniforms, pushConstants)
+		return VulkanShaderData(moduleName, uniforms, pushConstants)
 	}
 
 	companion object {

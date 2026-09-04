@@ -21,7 +21,6 @@ import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.fromAngle
 import com.pineypiney.game_engine.util.input.CursorPosition
@@ -58,7 +57,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 
 	private val crosshair = GameObject.simpleRenderedGameObject("Crosshair", ShaderLoader[ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")], Vec3(0f), Vec3(Vec2(.2f), 1f)) {}
 
-	private val cursorRay = GameObject.simpleModelledGameObject("Cursor Ray", ModelLoader[ResourceKey("gltf/Arrow")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/plain")])
+	private val cursorRay = GameObject.simpleModelledGameObject("Cursor Ray", ModelLoader[ResourceKey("gltf/Arrow")], ModelRendererComponent.bonelessPbrShader)
 
 	private val object3D = GameObject.simpleTextureGameObject("Broke Cube", TextureLoader[ResourceKey("broke")], Mesh.centerCubeShape, MeshedTextureComponent.default3DShader)
 		.apply { rotation = Quat(Vec3(0.4, PI / 4, 1.2)) }
@@ -71,9 +70,9 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 		shader.setFloat("material.metallicFactor", .5f)
 	}
 
-	private val doughnut = GameObject.simpleModelledGameObject("Broke Model", ModelLoader[ResourceKey("broke")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")])
+	private val doughnut = GameObject.simpleModelledGameObject("Broke Model", ModelLoader[ResourceKey("broke")], ModelRendererComponent.bonelessPbrShader)
 		.apply { translate(Vec3(0f, 2f, 0f)) }
-	private val gltf = GameObject.simpleModelledGameObject("Heart", ModelLoader[ResourceKey("gltf/SketchUp")], ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")])
+	private val gltf = GameObject.simpleModelledGameObject("Heart", ModelLoader[ResourceKey("gltf/SketchUp")], ModelRendererComponent.bonelessPbrShader)
 		.apply { translate(Vec3(2f, 2f, 0f)); resize(Vec3(.002f)) }
 	private val voxel =
 		GameObject.simpleModelledGameObject("Voxel", ModelLoader[ResourceKey("voxel/Mecha01")], ColourRendererComponent.vertexColours).apply { translate(Vec3(0f, -4f, 0f)); scale(Vec3(.1f)) }
@@ -86,9 +85,9 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 
 	override fun init() {
 		super.init()
-		//GLFunc.cullFace = true
 		window.setCursorMode(GLFW_CURSOR_DISABLED)
 		gltf.addChild(CollisionBox3DRenderer.create(gltf).apply { init() })
+		renderer.setClearColour(Vec4(1f, 0f, 0f, 1f))
 	}
 
 	override fun addObjects() {
@@ -187,11 +186,6 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 
 		val ray = camera.getRay(cursorPos.screenSpace)
 		blockHover = (Cuboid(Vec3(0f), Quat.identity, Vec3(1f)) transformedBy block.worldModel).intersectedBy(ray).isNotEmpty()
-	}
-
-	override fun updateAspectRatio() {
-		super.updateAspectRatio()
-		GLFunc.viewportO = Vec2i(window.width, window.height)
 	}
 
 	private fun toggleMouse(){

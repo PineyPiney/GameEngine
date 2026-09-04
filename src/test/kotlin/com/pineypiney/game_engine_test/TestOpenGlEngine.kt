@@ -10,7 +10,6 @@ import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngine
-import glm_.vec4.Vec4
 
 class TestOpenGlEngine<E : WindowGameLogic, C : CameraI>(
 	override val window: WindowI,
@@ -43,6 +42,5 @@ class TestOpenGlEngine<E : WindowGameLogic, C : CameraI>(
 	override fun init() {
 		super.init()
 		GLFunc.multiSample = true
-		GLFunc.clearColour = Vec4(1.0f, 0.0f, 0.0f, 1.0f)
 	}
 }

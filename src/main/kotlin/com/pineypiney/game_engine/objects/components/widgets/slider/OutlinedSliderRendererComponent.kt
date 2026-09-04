@@ -50,6 +50,6 @@ open class OutlinedSliderRendererComponent(parent: GameObject) : ShaderRenderedC
 
 	companion object {
 		val sliderShader =
-			ShaderLoader.get(ResourceKey("vertex/2D_pass_pos"), ResourceKey("fragment/sliders/outlined_slider"))
+			ShaderLoader[ResourceKey("vertex/2D_pass_pos"), ResourceKey("fragment/sliders/outlined_slider")]
 	}
 }

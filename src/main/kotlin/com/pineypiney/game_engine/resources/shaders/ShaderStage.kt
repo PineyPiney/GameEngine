@@ -1,11 +1,12 @@
 package com.pineypiney.game_engine.resources.shaders
 
+import com.pineypiney.game_engine.util.ApiEnum
 import org.lwjgl.opengl.GL43C
 import org.lwjgl.util.shaderc.Shaderc
 import org.lwjgl.vulkan.NVRayTracing
 import org.lwjgl.vulkan.VK10
 
-enum class ShaderStage(val isGraphics: Boolean, val isCompute: Boolean, val opengl: Int, val vulkan: Int, val shaderc: Int) {
+enum class ShaderStage(val isGraphics: Boolean, val isCompute: Boolean, override val opengl: Int, override val vulkan: Int, val shaderc: Int) : ApiEnum {
 	VERTEX(true, false, GL43C.GL_VERTEX_SHADER, VK10.VK_SHADER_STAGE_VERTEX_BIT, Shaderc.shaderc_vertex_shader),
 	FRAGMENT(true, false, GL43C.GL_FRAGMENT_SHADER, VK10.VK_SHADER_STAGE_FRAGMENT_BIT, Shaderc.shaderc_fragment_shader),
 	TESS_CTRL(true, false, GL43C.GL_TESS_CONTROL_SHADER, VK10.VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, Shaderc.shaderc_tess_control_shader),

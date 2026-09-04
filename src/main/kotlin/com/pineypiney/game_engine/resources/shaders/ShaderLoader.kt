@@ -71,7 +71,7 @@ class ShaderLoader private constructor() : Deletable {
 
 	fun loadShaderModuleVulkan(vulkan: VulkanManager, loader: ResourcesLoader, key: ResourceKey, fileName: String, code: String, stage: ShaderStage): ShaderModule {
 
-		val buffer = compileGlslAsSpirv(loader, fileName, code, stage) ?: return VulkanShaderModule(VulkanShaderData("Error", emptyList(), emptyList(), null), stage, vulkan.device, 0L)
+		val buffer = compileGlslAsSpirv(loader, fileName, code, stage) ?: return VulkanShaderModule(VulkanShaderData("Error", emptyList(), null), stage, vulkan.device, 0L)
 
 		MemoryStack.stackPush().use { stack ->
 			val shaderCreateInfo = VkShaderModuleCreateInfo.calloc(stack)
@@ -218,7 +218,7 @@ class ShaderLoader private constructor() : Deletable {
 			return shader
 		}
 
-		fun generateGraphicsShaderOpenGl(vertexShader: SubShader, fragmentShader: SubShader, optionalShaders: Iterable<SubShader>, parameters: RenderShaderParameters): OpenGlRenderShader {
+		fun generateGraphicsShaderOpenGl(vertexShader: SubShader, fragmentShader: SubShader, optionalShaders: List<SubShader>, parameters: RenderShaderParameters): OpenGlRenderShader {
 			if (!GLFunc.isLoaded) {
 				GameEngineI.warn("Could not generate shader because OpenGL has not been loaded")
 				return OpenGlRenderShader(0, vertexShader, fragmentShader, emptyList(), uniforms = emptyMap(), parameters)

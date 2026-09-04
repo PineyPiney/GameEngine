@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
+import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanArrayMesh
 import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanIndexedMesh
 import com.pineypiney.game_engine.resources.models.ModelMesh
 import com.pineypiney.game_engine.resources.models.VulkanModelMesh
@@ -25,7 +26,6 @@ import com.pineypiney.game_engine.vulkan.VulkanManager
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import kool.toBuffer
-import org.lwjgl.BufferUtils
 import org.lwjgl.vulkan.VK10
 import java.nio.ByteBuffer
 
@@ -89,10 +89,7 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 	}
 
 	override fun createArrayMesh(name: String, vertices: FloatArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh {
-		val stride = attributes.entries.last().run { value + key.bytes }.toInt()
-		val indices = BufferUtils.createByteBuffer(4 * vertices.size / stride)
-		repeat(indices.capacity() / 4) { indices.putInt(it) }
-		val mesh = VulkanIndexedMesh(vulkan, name, vertices.toBuffer(), indices.flip(), attributes)
+		val mesh = VulkanArrayMesh(vulkan, name, vertices.toBuffer(), attributes)
 		return mesh
 	}
 
@@ -106,9 +103,7 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 	}
 
 	override fun createModelMesh(id: String, vertices: Array<out MeshVertex>, indices: IntArray, alpha: Float, order: Int, material: ModelMaterial): ModelMesh {
-		val newLayout = setOf(VertexAttribute.POSITION, VertexAttribute.TEX_U, VertexAttribute.NORMAL, VertexAttribute.TEX_V, VertexAttribute.BONE_IDS, VertexAttribute.BONE_WEIGHTS)
-		val newVertices = vertices.map { it.convert(newLayout) }.toTypedArray()
-		val mesh = VulkanModelMesh(vulkan, id, newVertices, indices.toBuffer(), material)
+		val mesh = VulkanModelMesh(vulkan, id, vertices, indices.toBuffer(), material)
 		vulkan.deletionQueue.push(mesh)
 		return mesh
 	}

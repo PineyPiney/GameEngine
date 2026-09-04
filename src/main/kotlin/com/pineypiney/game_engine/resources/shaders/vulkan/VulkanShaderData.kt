@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.resources.shaders.vulkan
 
 import com.pineypiney.game_engine.resources.shaders.DataType
 
-class VulkanShaderData(val name: String, val structs: List<DataType.CustomType>, val uniforms: List<VulkanUBO>, val pushConstants: Pair<String, DataType.PushConstants>?) {
+class VulkanShaderData(val name: String, val uniforms: List<VulkanUBO>, val pushConstants: Pair<String, DataType.PushConstants>?) {
 
 	fun forAllUniforms(action: (String, DataType) -> Unit) {
 		for (uniformBuffer in uniforms) action(uniformBuffer.name, uniformBuffer.data)

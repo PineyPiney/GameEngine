@@ -18,6 +18,33 @@ abstract class DataType {
 
 	abstract fun align430(current: Int): Int
 
+	fun getRange(name: String, index: Int): Pair<Int, Int>? {
+		val dotI = name.indexOf('.')
+		val name0 = if (dotI == -1) name else name.substring(0, dotI)
+		val braI = name0.indexOf('[')
+		val arrayIndex = if (braI == -1) -1 else name0.substring(braI + 1, name0.lastIndexOf(']')).toIntOrNull() ?: return null
+
+		when (this) {
+			is Struct -> {
+				val (dataType, offset) = variables[name0] ?: return null
+				if (dotI != -1) {
+					val (o, s) = dataType.getRange(name.substring(dotI + 1), arrayIndex) ?: return null
+					return o + offset to s
+				} else {
+					return offset to dataType.size
+				}
+			}
+
+			is Array if index >= 0 -> {
+				val arrayOffset = getOffset(index) ?: return null
+				val (o, s) = type.getRange(name.substring(dotI + 1), arrayIndex) ?: return null
+				return arrayOffset + o to s
+			}
+
+			else -> return 0 to size
+		}
+	}
+
 	class Primitive(val type: GLSLType, override val manual: Boolean) : DataType() {
 		override val size: Int get() = type.bytes
 		override fun getUniformMap(name: String, dst: MutableMap<String, String>) {
@@ -57,7 +84,8 @@ abstract class DataType {
 
 	class Array(val type: DataType, val typeString: String, val length: Int, override val manual: Boolean) : DataType() {
 
-		override val size: Int = type.align430(type.size) * (length - 1) + type.size
+		val elementSize = type.align430(type.size)
+		override val size: Int = elementSize * (length - 1) + type.size
 
 		override fun getUniformMap(name: String, dst: MutableMap<String, String>) {
 			dst[name] = typeString
@@ -65,6 +93,10 @@ abstract class DataType {
 
 		override fun align430(current: Int): Int = type.align430(current)
 
+		fun getOffset(index: Int): Int? {
+			return if (index !in 0..<length) null
+			else elementSize * index
+		}
 	}
 
 	class Sampler(val type: GLSLType, override val manual: Boolean) : DataType() {

@@ -16,8 +16,8 @@ out vec4 FragColour;
 layout(location = 0) in vec2 pos;
 
 layout(push_constant) uniform Data {
-	layout(offset = 80) mat4 model;
-	vec4 colour;
+	mat4 model;
+	layout(offset = 80) vec4 colour;
 	float width;
 };
 

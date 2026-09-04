@@ -96,16 +96,16 @@ class GLTFModelLoader {
 			if(materialJson.has("pbrMetallicRoughness")) {
 				val pbrJson = materialJson.getAsJsonObject("pbrMetallicRoughness")
 				val baseColour = pbrJson.getVec4("baseColourFactor") ?: Vec4(1f)
-				textures.getOrNull(getTextureIndex(pbrJson, "baseColorTexture"))?.let { materialTextures["baseColour"] = it }
+				textures.getOrNull(getTextureIndex(pbrJson, "baseColorTexture"))?.let { materialTextures["baseColourTexture"] = it }
 
 				val metallicFactor = pbrJson.getFloatOrNull("metallicFactor") ?: 1f
 				val roughnessFactor = pbrJson.getFloatOrNull("roughnessFactor") ?: 1f
-				textures.getOrNull(getTextureIndex(pbrJson, "metallicRoughnessTexture"))?.let { materialTextures["metallicRoughness"] = it }
+				textures.getOrNull(getTextureIndex(pbrJson, "metallicRoughnessTexture"))?.let { materialTextures["metallicRoughnessTexture"] = it }
 
-				textures.getOrNull(getTextureIndex(materialJson, "normalTexture"))?.let { materialTextures["normals"] = it }
-				textures.getOrNull(getTextureIndex(materialJson, "occlusionTexture"))?.let { materialTextures["occlusion"] = it }
+				textures.getOrNull(getTextureIndex(materialJson, "normalTexture"))?.let { materialTextures["normalsTexture"] = it }
+				textures.getOrNull(getTextureIndex(materialJson, "occlusionTexture"))?.let { materialTextures["occlusionTexture"] = it }
 				val emissiveFactor = materialJson.getFloatOrNull("emissiveFactor") ?: 1f
-				textures.getOrNull(getTextureIndex(materialJson, "emissiveTexture"))?.let { materialTextures["emissive"] = it }
+				textures.getOrNull(getTextureIndex(materialJson, "emissiveTexture"))?.let { materialTextures["emissiveTexture"] = it }
 
 
 

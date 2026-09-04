@@ -3,13 +3,16 @@
 
 #ifdef OPENGL
 layout (location = 0) in vec3 posIn;
-layout (location = 1) in vec4 colourIn;
+layout (location = 1) in vec3 normalIn;
+layout (location = 2) in vec2 texIn;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-out vec4 colour;
+out vec3 fragPos;
+out vec2 texCoords;
+out vec3 normal;
 #endif
 
 #ifdef VULKAN
@@ -17,13 +20,10 @@ out vec4 colour;
 #extension GL_EXT_buffer_reference : require
 
 struct Vertex {
-	float x;
-	float y;
-	float z;
-	float r;
-	float g;
-	float b;
-	float a;
+	vec3 posIn;
+	float normalX;
+	vec2 normalYZ;
+	vec2 uv;
 };
 
 layout(buffer_reference, std430) readonly buffer VertexBuffer{
@@ -42,19 +42,26 @@ layout(push_constant) uniform constants
 	VertexBuffer vertexBuffer;
 };
 
-layout (location = 0) out vec4 colour;
+layout (location = 0) out vec3 fragPos;
+layout (location = 1) out vec2 texCoords;
+layout (location = 2) out vec3 normal;
 #endif
 
-const float _255 = 0.00392156862;
 
 void main(){
 
 	#ifdef VULKAN
 	Vertex v = vertexBuffer.vertices[gl_VertexID];
-	vec3 posIn = vec3(v.x, v.y, v.z);
-	vec4 colourIn = vec4(v.r, v.g, v.b, v.a);
+	vec3 posIn = v.posIn;
+	vec3 normalIn = vec3(v.normalX, v.normalYZ);
+	vec2 texIn = v.uv;
 	#endif
 
-	gl_Position = projection * view * model * vec4(posIn, 1.0);
-	colour = colourIn;
+	vec4 worldPos = model * vec4(posIn, 1.0);
+
+	gl_Position = projection * view * worldPos;
+
+	fragPos = vec3(worldPos);
+	texCoords = texIn;
+	normal = normalize(mat3(transpose(inverse(model))) * normalIn);
 }

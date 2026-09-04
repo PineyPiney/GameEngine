@@ -40,11 +40,11 @@ class PBRMaterial(
 	}
 
 	fun createTextureMask(): Byte{
-		var i = if(textures.containsKey("baseColour")) 1 else 0
-		if(textures.containsKey("metallicRoughness")) i += 2
-		if(textures.containsKey("normals")) i += 4
-		if(textures.containsKey("occlusion")) i += 8
-		if(textures.containsKey("emissive")) i += 16
+		var i = if (textures.containsKey("baseColourTexture")) 1 else 0
+		if (textures.containsKey("metallicRoughnessTexture")) i += 2
+		if (textures.containsKey("normalsTexture")) i += 4
+		if (textures.containsKey("occlusionTexture")) i += 8
+		if (textures.containsKey("emissiveTexture")) i += 16
 		return i.toByte()
 	}
 
