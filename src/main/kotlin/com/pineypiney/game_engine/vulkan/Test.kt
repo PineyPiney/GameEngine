@@ -15,11 +15,9 @@ import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.input.DefaultInput
 import com.pineypiney.game_engine.util.input.InputState
-import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.text.Text
-import com.pineypiney.game_engine.window.Window
+import com.pineypiney.game_engine.window.VulkanWindow
 import com.pineypiney.game_engine.window.WindowGameLogic
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -73,15 +71,7 @@ class Logic(override val gameEngine: VulkanGameEngine<Logic>) : WindowGameLogic(
 fun main() {
 	LibrarySetUp.initGLFW()
 
-	val hints = Window.defaultHints + (GLFW.GLFW_CLIENT_API to GLFW.GLFW_NO_API)
-	val window = object : Window("Vulkan Window", 1280, 720, false, false, hints) {
-		override val input: Inputs = DefaultInput(this)
-		override fun init() {
-			// Make the window visible
-			GLFW.glfwShowWindow(windowHandle)
-			super.init()
-		}
-	}
+	val window = VulkanWindow("Vulkan Window", 1280, 720)
 	window.init()
 
 	val engine = object : VulkanGameEngine<Logic>(window, VulkanManager()) {

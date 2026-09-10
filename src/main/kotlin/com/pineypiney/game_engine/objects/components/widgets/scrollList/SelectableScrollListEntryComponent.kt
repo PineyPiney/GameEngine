@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.components.widgets.scrollList
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.InteractorComponent
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.window.WindowI
 import org.lwjgl.glfw.GLFW
 

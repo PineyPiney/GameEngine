@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.apps.editor.util.edits.ComponentFieldEdit
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.util.extension_functions.angle
 import com.pineypiney.game_engine.util.extension_functions.rotationComponent
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.quat.Quat

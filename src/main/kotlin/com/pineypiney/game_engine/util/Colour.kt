@@ -87,7 +87,7 @@ class Colour {
 
 	companion object {
 
-		const val b2f = 0.00392156862f
+		const val b2f = 0.003921569f
 
 		val rgb2lmsMatrix = Mat3(
 			0.4122214708f, 0.2119034982f, 0.0883024619f,

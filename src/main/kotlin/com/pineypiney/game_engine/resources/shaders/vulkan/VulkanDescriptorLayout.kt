@@ -12,7 +12,7 @@ import org.lwjgl.vulkan.VkDescriptorSetLayoutBinding
 import org.lwjgl.vulkan.VkDescriptorSetLayoutCreateInfo
 import java.nio.LongBuffer
 
-class VulkanDescriptorLayout(val device: VulkanDevice, val pointer: LongBuffer, val stages: Int, val set: Int, val bindings: List<VulkanDescriptorBinding>) : Deletable {
+class VulkanDescriptorLayout(val device: VulkanDevice, val pointer: LongBuffer, val stages: Int, val bindings: List<VulkanDescriptorBinding>) : Deletable {
 
 	val handle get() = pointer[0]
 
@@ -21,7 +21,7 @@ class VulkanDescriptorLayout(val device: VulkanDevice, val pointer: LongBuffer, 
 		VK10.vkDestroyDescriptorSetLayout(device.device, handle, null)
 	}
 
-	class Builder(val set: Int) {
+	class Builder {
 
 		var stages = 0
 		val bindings = mutableSetOf<VulkanDescriptorBinding>()
@@ -62,7 +62,7 @@ class VulkanDescriptorLayout(val device: VulkanDevice, val pointer: LongBuffer, 
 			val err = VK10.vkCreateDescriptorSetLayout(device.device, layoutInfo, null, buf)
 			VkUtil.processResult(err, "Failed to create Descriptor Set Layout")
 //			device.nameObject(buf[0], VK10.VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, name)
-			return VulkanDescriptorLayout(device, buf, stages, set, bindings.toList())
+			return VulkanDescriptorLayout(device, buf, stages, bindings.toList())
 		}
 	}
 }

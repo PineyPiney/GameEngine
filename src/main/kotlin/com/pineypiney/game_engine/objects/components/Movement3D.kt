@@ -5,7 +5,9 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.cameras.Camera
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.maths.eulerToVector
 import com.pineypiney.game_engine.util.maths.up
 import com.pineypiney.game_engine.util.maths.vectorToEuler
@@ -27,32 +29,58 @@ class Movement3D(parent: GameObject, val camera: Camera, val window: WindowI, va
 	var yaw = defaultYawPitch.x
 	var pitch = defaultYawPitch.y
 
+	var gamepadID = -1
+
 	override fun shouldInteract(): Boolean {
 		return move || look
 	}
 
 	override fun preRender(renderer: RendererI, tickDelta: Double) {
+		val pad = window.input.getInputOrNull<GamepadInput>()?.getController(gamepadID)
 		if(move) {
 			val travel = Vec3()
 
+			// Horizontal component of camera.front
 			val forward = camera.cameraUp cross camera.cameraRight
-			if (GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_W) == 1) travel += forward
-			if (GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_S) == 1) travel -= forward
-			if (GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_A) == 1) travel -= camera.cameraRight
-			if (GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_D) == 1) travel += camera.cameraRight
-			if (GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_SPACE) == 1) travel += camera.cameraUp
-			if (GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_LEFT_CONTROL) == 1) travel -= camera.cameraUp
-			if (GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_LEFT_SHIFT) == 1) travel *= boost
+
+			val x: Float
+			val y: Float
+			val z: Float
+			val sprint: Float
+
+			if (pad == null) {
+				x = (window.getKey(GLFW.GLFW_KEY_D) - window.getKey(GLFW.GLFW_KEY_A)).toFloat()
+				y = (window.getKey(GLFW.GLFW_KEY_SPACE) - window.getKey(GLFW.GLFW_KEY_LEFT_CONTROL)).toFloat()
+				z = (window.getKey(GLFW.GLFW_KEY_W) - window.getKey(GLFW.GLFW_KEY_S)).toFloat()
+
+				sprint = window.getKey(GLFW.GLFW_KEY_LEFT_SHIFT).toFloat()
+			} else {
+				x = pad.axesStates[GLFW.GLFW_GAMEPAD_AXIS_LEFT_X]
+				y = (pad.buttonStates[GLFW.GLFW_GAMEPAD_BUTTON_A] - pad.buttonStates[GLFW.GLFW_GAMEPAD_BUTTON_B]).toFloat()
+				z = -pad.axesStates[GLFW.GLFW_GAMEPAD_AXIS_LEFT_Y]
+
+				sprint = .5f * (1f + pad.axesStates[GLFW.GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER])
+			}
+
+			travel += camera.cameraRight * x
+			travel += camera.cameraUp * y
+			travel += forward * z
+			travel *= (1f + boost * sprint)
 
 			if (travel != Vec3(0)) {
 				camera.translate(travel * speed * Timer.frameDelta)
 			}
 		}
+		if (look && pad != null) {
+			yaw += pad.rightJoystick.x * 100 * Timer.frameDelta
+			pitch = (pitch + pad.rightJoystick.y * 100 * Timer.frameDelta).coerceIn(-89.99, 89.99)
+			updateVectors()
+		}
 	}
 
 	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
-		if(look) {
-			window.input.mouse.setCursorAt(Vec2(0))
+		if (look && gamepadID == -1) {
+			window.input.getInput<MouseInput>().setCursorAt(Vec2(0))
 			yaw += cursorDelta.position.x * 20
 			pitch = (pitch + cursorDelta.position.y * 20).coerceIn(-89.99, 89.99)
 			updateVectors()
@@ -62,9 +90,9 @@ class Movement3D(parent: GameObject, val camera: Camera, val window: WindowI, va
 	fun updateAngles() {
 		val rotation = Quat(camera.cameraUp, up)
 		val relativeForward = (rotation * camera.cameraFront).normalize()
-		val angles = vectorToEuler(relativeForward)
-		pitch = Math.toDegrees(angles.first.toDouble())
-		yaw = Math.toDegrees(angles.second.toDouble())
+		val (p, y) = vectorToEuler(relativeForward)
+		pitch = Math.toDegrees(p.toDouble())
+		yaw = Math.toDegrees(y.toDouble())
 		camera.updateCameraRight()
 	}
 

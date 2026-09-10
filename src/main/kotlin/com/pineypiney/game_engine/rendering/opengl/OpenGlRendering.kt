@@ -64,6 +64,14 @@ object OpenGlRendering : RenderingApi {
 		GLFunc.viewport = Vec4i(viewport.bl, viewport.size)
 	}
 
+	override fun setDepthTest(compare: CompareOp?) {
+		if (compare == null) GLFunc.depthTest = false
+		else {
+			GLFunc.depthTest = true
+			GLFunc.depthFunc - compare.opengl
+		}
+	}
+
 	override fun clearStencil(value: Int) {
 		GLFunc.stencilClear = value
 		GL11C.glClear(GL11C.GL_STENCIL_BUFFER_BIT)

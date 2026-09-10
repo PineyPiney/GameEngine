@@ -24,6 +24,7 @@ interface RenderingApi {
 	fun drawIndexedInstanced(indexCount: Int, drawMode: Int, instanceCount: Int, firstIndex: Int = 0, firstInstance: Int = 0)
 
 	fun setViewport(viewport: Viewport)
+	fun setDepthTest(compare: CompareOp?)
 	fun clearStencil(value: Int)
 	fun disableStencil()
 	fun setStencil(enabled: Boolean, reference: Int, mask: Int, failOp: StencilOp, passOp: StencilOp, depthFailOp: StencilOp, compare: CompareOp)

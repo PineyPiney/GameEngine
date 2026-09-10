@@ -31,15 +31,9 @@ abstract class Camera(
 		updateCameraRight()
 	}
 
-	open fun setPos(pos: Vec3) {
+	override fun setPos(pos: Vec3) {
 		cameraPos = pos.coerceIn(cameraMinPos, cameraMaxPos)
 	}
-
-	open fun translate(vec: Vec3) {
-		cameraPos = (cameraPos + vec).coerceIn(cameraMinPos, cameraMaxPos)
-	}
-
-	open fun translate(vec: Vec2) = translate(Vec3(vec))
 
 	override fun updateAspectRatio(aspectRatio: Float) {
 		this.aspectRatio = aspectRatio

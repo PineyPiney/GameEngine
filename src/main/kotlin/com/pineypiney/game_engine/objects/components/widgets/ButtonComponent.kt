@@ -10,8 +10,8 @@ import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.fromHex
 import com.pineypiney.game_engine.util.input.ControlType
-import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowI

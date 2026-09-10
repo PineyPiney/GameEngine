@@ -6,19 +6,17 @@ import com.pineypiney.game_engine.resources.shaders.parameters.CompareOp
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipeline
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
-import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage2D
 import com.pineypiney.game_engine.vulkan.GrowableVulkanDescriptorAllocator
 import com.pineypiney.game_engine.vulkan.PoolAndBuffer
 import com.pineypiney.game_engine.vulkan.VkStructs
 import com.pineypiney.game_engine.window.Viewport
-import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.VK13
 import org.lwjgl.vulkan.VkClearAttachment
 import org.lwjgl.vulkan.VkClearRect
 
-open class VulkanRendering(val cmd: PoolAndBuffer, val descriptorAllocator: GrowableVulkanDescriptorAllocator, val drawImage: () -> VulkanImage2D, val depthImage: () -> VulkanImage2D) : RenderingApi {
+open class VulkanRendering(val cmd: PoolAndBuffer, val descriptorAllocator: GrowableVulkanDescriptorAllocator, val viewport: () -> Viewport) : RenderingApi {
 
 	val device get() = descriptorAllocator.device
 
@@ -71,12 +69,19 @@ open class VulkanRendering(val cmd: PoolAndBuffer, val descriptorAllocator: Grow
 		cmd.setViewport(viewport)
 	}
 
+	override fun setDepthTest(compare: CompareOp?) {
+		if (compare == null) cmd.setDepthTest(false)
+		else {
+			cmd.setDepthTest(true)
+			cmd.setDepthFunc(compare.vulkan)
+		}
+	}
+
 	override fun clearStencil(value: Int) {
 		MemoryStack.stackPush().use { stack ->
-			val img = depthImage()
 			val clearValue = VkStructs.clear(stack, Vec4(0f), 0f, value)
 			val attachments = VkClearAttachment.calloc(1, stack).aspectMask(VK13.VK_IMAGE_ASPECT_STENCIL_BIT).clearValue(clearValue)
-			val rects = VkClearRect.calloc(1, stack).rect(VkStructs.rect(stack, Vec2i(), img.size)).layerCount(1)
+			val rects = VkClearRect.calloc(1, stack).rect(VkStructs.rect(stack, viewport())).layerCount(1)
 			VK13.vkCmdClearAttachments(cmd.buffer, attachments, rects)
 		}
 	}

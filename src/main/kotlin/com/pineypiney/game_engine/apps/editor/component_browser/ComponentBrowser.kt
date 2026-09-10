@@ -17,7 +17,7 @@ import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.fromHex
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.serialisation.Codec
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport

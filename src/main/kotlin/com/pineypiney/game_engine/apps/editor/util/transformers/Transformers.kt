@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -19,6 +20,9 @@ import glm_.vec3.Vec3
 class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 
 	companion object {
+
+		val shader = ColouredSpriteComponent.colouredMenuShader.withParameters(RenderShaderParameters(depthTestOp = null))
+
 		val TRANSLATE2D = Transformers{ o, s ->
 			val head = Translator2D(o, s)
 			o.components.add(head)
@@ -27,15 +31,15 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 
 			val xArrow = GameObject("X Arrow", 1)
 			xArrow.translate(Vec3(-2 * ip, 0f, .02f))
-			xArrow.components.add(ColouredSpriteComponent(xArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 64f, Vec2(0f, .5f)), head.red))
+			xArrow.components.add(ColouredSpriteComponent(xArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 64f, Vec2(0f, .5f)), head.red, shader))
 
 			val yArrow = GameObject("Y Arrow", 1)
 			yArrow.translate(Vec3(0f, -2 * ip, .01f))
 			yArrow.rotate(Vec3(0f, 0f, PIF * .5f))
-			yArrow.components.add(ColouredSpriteComponent(yArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 64f, Vec2(0f, .5f)), head.green))
+			yArrow.components.add(ColouredSpriteComponent(yArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 64f, Vec2(0f, .5f)), head.green, shader))
 
 			val box = GameObject("Box", 1)
-			box.components.add(ColouredSpriteComponent(box, Sprite(TextureLoader[ResourceKey("editor/box")], 32f, Vec2(0f)), head.blue))
+			box.components.add(ColouredSpriteComponent(box, Sprite(TextureLoader[ResourceKey("editor/box")], 32f, Vec2(0f)), head.blue, shader))
 
 			o.addChild(xArrow, yArrow, box)
 		}
@@ -46,7 +50,8 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 
 			val rings = GameObject("Rotator Rings", 1)
 			rings.scale = Vec3(1.2f, 1.2f, 1f)
-			rings.components.add(object : ShaderRenderedComponent(rings, ShaderLoader[ResourceKey("vertex/2D_pass_pos"), ResourceKey("fragment/editor/rotate2D")]){
+			rings.components.add(object :
+				ShaderRenderedComponent(rings, ShaderLoader[ResourceKey("vertex/2D_pass_pos"), ResourceKey("fragment/editor/rotate2D"), RenderShaderParameters(depthTestOp = null)]) {
 
 				override fun setUniforms() {
 					super.setUniforms()
@@ -73,16 +78,16 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 
 			val xArrow = GameObject("X Arrow", 1)
 			xArrow.translate(Vec3(-2 * ip, 0f, .02f))
-			xArrow.components.add(ColouredSpriteComponent(xArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 64f, Vec2(0f, .5f)), head.red))
+			xArrow.components.add(ColouredSpriteComponent(xArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 64f, Vec2(0f, .5f)), head.red, shader))
 
 			val yArrow = GameObject("Y Arrow", 1)
 			yArrow.translate(Vec3(0f, -2 * ip, .01f))
 			yArrow.rotate(Vec3(0f, 0f, PIF * .5f))
-			yArrow.components.add(ColouredSpriteComponent(yArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 64f, Vec2(0f, .5f)), head.green))
+			yArrow.components.add(ColouredSpriteComponent(yArrow, Sprite(TextureLoader[ResourceKey("editor/arrow")], 64f, Vec2(0f, .5f)), head.green, shader))
 
 			val box = GameObject("Box", 1)
 			box.position = Vec3(.5f, .5f, 0f)
-			box.components.add(ColouredSpriteComponent(box, Sprite(TextureLoader[ResourceKey("editor/box")], 32f, Vec2(0f)), head.blue))
+			box.components.add(ColouredSpriteComponent(box, Sprite(TextureLoader[ResourceKey("editor/box")], 32f, Vec2(0f)), head.blue, shader))
 
 			o.addChild(xArrow, yArrow, box)
 		}

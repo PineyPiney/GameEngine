@@ -16,7 +16,7 @@ out vec4 FragColour;
 layout(location = 0) in vec2 pos;
 
 layout(push_constant) uniform Data {
-	vec4 xColour;
+	layout(offset = 80) vec4 xColour;
 	vec4 yColour;
 	vec4 zColour;
 };

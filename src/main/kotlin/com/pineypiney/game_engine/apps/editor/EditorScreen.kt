@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.apps.editor.component_browser.ComponentBrowser
 import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser
 import com.pineypiney.game_engine.apps.editor.file_browser.files.SavableFiles
 import com.pineypiney.game_engine.apps.editor.object_browser.ObjectBrowser
+import com.pineypiney.game_engine.apps.editor.renderer.VulkanEditorRenderer
 import com.pineypiney.game_engine.apps.editor.util.*
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenu
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenuComponent
@@ -24,21 +25,20 @@ import com.pineypiney.game_engine.objects.components.rendering.TextRendererCompo
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.extension_functions.isBetween
 import com.pineypiney.game_engine.util.input.ControlType
-import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.serialisation.JsonOps
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
+import com.pineypiney.game_engine.window.VulkanWindowedEngine
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
-import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.pow
 import glm_.quat.Quat
 import glm_.vec2.Vec2
@@ -50,12 +50,11 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
-class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, depth: Boolean = true, sort: GameObject.() -> Float = { transformComponent.worldPosition.z }) : WindowGameLogic() {
+class EditorScreen(override val gameEngine: VulkanWindowedEngine<EditorScreen>, depth: Boolean = true, sort: GameObject.() -> Float = { transformComponent.worldPosition.z }) : WindowGameLogic() {
 
 	val settings = EditorSettings()
-	var sceneSize = window.size - Vec2i(settings.objectBrowserWidth + settings.componentBrowserWidth, settings.fileBrowserHeight)
 
-	override val renderer = EditorRenderer(window, settings, sort, depth)
+	override val renderer = VulkanEditorRenderer(window, gameEngine.vulkan, settings, sort, depth)
 
 	private val fileBrowser = FileBrowser(GameObject("File Browser", 1), this).applied()
 	val objectBrowser = ObjectBrowser(GameObject("Object Browser", 1), this).applied()
@@ -483,14 +482,14 @@ class EditorScreen(override val gameEngine: WindowedGameEngineI<EditorScreen>, d
 					file.writeText(GameObjectSerializer.serialise(it, JsonOps).toString(), Charsets.ISO_8859_1)
 				}
 			}){ file, screen ->
-				screen.renderer.backgroundColour = Colour(0xFF4f4f4fu)
+//				screen.renderer.backgroundColour = Colour(0xFF4f4f4fu)
 				screen.sceneObjects.addObject(GameObjectSerializer.parse(file))
 			}
 
 			SavableFiles.add("Scene", "scn", ByteArray(4), { file, screen ->
 				file.outputStream().use { defaultSceneSave(it, screen) }
 			}){ file, screen ->
-				screen.renderer.backgroundColour = Colour(0xFF4f4f4fu)
+//				screen.renderer.backgroundColour = Colour(0xFF4f4f4fu)
 				file.inputStream().use { defaultSceneParse(it, screen) }
 			}
 		}

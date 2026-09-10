@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.text.FontLoader
-import com.pineypiney.game_engine.window.DefaultGLWindow
+import com.pineypiney.game_engine.window.OpenGlWindow
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngine
 import java.io.File
@@ -65,7 +65,7 @@ class ObjectAnimator(
 			window.init()
 		}
 
-		val window = DefaultGLWindow("Animator", 960, 540)
+		val window = OpenGlWindow("Animator", 960, 540)
 
 		fun run(creator: () -> GameObject, tweaker: (GameObject) -> Unit = {}) {
 			init()

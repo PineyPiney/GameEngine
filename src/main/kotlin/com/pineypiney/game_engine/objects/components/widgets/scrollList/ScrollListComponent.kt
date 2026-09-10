@@ -3,16 +3,14 @@ package com.pineypiney.game_engine.objects.components.widgets.scrollList
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.InteractorComponent
-import com.pineypiney.game_engine.objects.components.PostChildrenInit
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
-import com.pineypiney.game_engine.util.extension_functions.getScale
-import com.pineypiney.game_engine.util.extension_functions.getTranslation
+import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
-abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorComponent(parent), PostChildrenInit {
+abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorComponent(parent) {
 
 	abstract val entryHeight: Float
 	abstract val scrollerWidth: Float
@@ -41,12 +39,10 @@ abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorCompon
 			field = value.coerceIn(0f, (1f - ratio).coerceIn(0f, 1f))
 			scrollBar.position = Vec3(1f - scrollerWidth, (1f - ratio) - scroll, 0f)
 
-			var i = 0
-			for (item in items) {
+			for ((i, item) in items.withIndex()) {
 				item.position = Vec3(0f, 1f + (scroll * totalHeight) - ((i + 1) * entryHeight), 0f)
 				val renderer = item.getComponent<RenderedComponent>()
 				renderer?.visible == item.position.y > 1f || (item.position.y + entryHeight) < 0f
-				i++
 			}
 		}
 
@@ -56,15 +52,12 @@ abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorCompon
 
 		parent.addChild(scrollBar, entryContainer)
 		entryContainer.addChildren(createEntries())
-	}
-
-	override fun postChildrenInit() {
-		updateEntries()
+		updateEntries(entryContainer.children)
 	}
 
 	abstract fun createEntries(): List<GameObject>
 
-	open fun updateEntries() {
+	open fun updateEntries(items: Collection<GameObject> = this.items) {
 
 		totalHeight =
 			if (items.isNotEmpty()) entryHeight * items.size
@@ -77,10 +70,8 @@ abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorCompon
 		// Put the scroll bar back to the top in case limits have changed
 		scroll = 0f
 
-		var i = 0
-		for (entry in items) {
+		for ((i, entry) in items.withIndex()) {
 			entry.position = Vec3(0f, 1f - ((i + 1) * entryHeight), .01f)
-			i++
 		}
 	}
 
@@ -92,7 +83,7 @@ abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorCompon
 		if (hover) scroll += (scrollDelta.y * -0.05f)
 		for (i in items) {
 			val entry = i.getComponent<InteractorComponent>() ?: continue
-			entry.hover = entry.checkHover(Ray(Vec3(0f, 0f, 1f), Vec3()), window.input.mouse.lastPos) >= 0f
+			entry.hover = entry.checkHover(Ray(Vec3(0f, 0f, 1f), Vec3()), window.input.getInput<MouseInput>().lastPos) >= 0f
 		}
 		return if(hover) -1 else 0
 	}
@@ -103,13 +94,7 @@ abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorCompon
 		scroll -= (cursorDelta / (parent.transformComponent.worldScale.y))
 		for (i in items) {
 			val entry = i.getComponent<InteractorComponent>() ?: continue
-			entry.hover = entry.checkHover(ray, window.input.mouse.lastPos) >= 0f
+			entry.hover = entry.checkHover(ray, window.input.getInput<MouseInput>().lastPos) >= 0f
 		}
-	}
-
-	fun getLimits(): Vec2{
-		val model = parent.worldModel
-		val posY = model.getTranslation(1)
-		return Vec2(posY, posY + model.getScale(1))
 	}
 }

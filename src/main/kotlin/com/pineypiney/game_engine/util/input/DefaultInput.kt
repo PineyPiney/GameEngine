@@ -1,11 +1,17 @@
 package com.pineypiney.game_engine.util.input
 
+import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
+import com.pineypiney.game_engine.util.input.knm.KeyboardInput
+import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.window.WindowI
 
-class DefaultInput(window: WindowI) : Inputs(window) {
+class DefaultInput(window: WindowI) : Inputs() {
 
-	override val keyboard: KeyboardInput = KeyboardInput(this)
-	override val mouse: MouseInput = MouseInput(this)
-	override val gamepad: GamepadInput = GamepadInput(this)
+	val keyboard: KeyboardInput = KeyboardInput(this, window)
+	val mouse: MouseInput = MouseInput(this, window)
+	val gamepad: GamepadInput = GamepadInput(this)
 
+	override val inputs: Collection<Input> = setOf(
+		keyboard, mouse, gamepad
+	)
 }

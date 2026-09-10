@@ -89,15 +89,15 @@ interface VulkanImage : Texture {
 		}
 	}
 
-	fun copyTo(cmd: PoolAndBuffer, dst: VulkanImage, srcOff: Vec3i = Vec3i(0), srcSize: Vec3i = extents, dstOff: Vec3i = Vec3i(0), dstSize: Vec3i = dst.extents) {
+	fun copyTo(cmd: PoolAndBuffer, dst: VulkanImage, srcOff: Vec3i = Vec3i(0), srcTR: Vec3i = extents, dstOff: Vec3i = Vec3i(0), dstTR: Vec3i = dst.extents) {
 
 		MemoryStack.stackPush().use { stack ->
 			val blitRegion = VkImageBlit2.calloc(1, stack)
 				.`sType$Default`()
 				.srcOffsets(0) { it.set(srcOff) }
-				.srcOffsets(1) { it.set(srcSize) }
+				.srcOffsets(1) { it.set(srcTR) }
 				.dstOffsets(0) { it.set(dstOff) }
-				.dstOffsets(1) { it.set(dstSize) }
+				.dstOffsets(1) { it.set(dstTR) }
 				.srcSubresource(VkStructs.createImageLayers(stack, VK13.VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1))
 				.dstSubresource(VkStructs.createImageLayers(stack, VK13.VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1))
 
@@ -148,7 +148,7 @@ interface VulkanImage : Texture {
 					.imageOffset(VkOffset3D.calloc(stack).set(0, 0, 0))
 					.imageExtent(VkExtent3D.calloc(stack).set(w, h, d))
 				cmd.copyBufferToImage(uploadBuffer, blitImage, regions)
-				blitImage.copyTo(cmd, this, Vec3i(), Vec3i(w, h, d), Vec3i(x, y, z), Vec3i(w, h, d))
+				blitImage.copyTo(cmd, this, Vec3i(), Vec3i(w, h, d), Vec3i(x, y, z), Vec3i(x + w, y + h, z + d))
 				cmd.deletion.push(blitImage)
 			}
 		}

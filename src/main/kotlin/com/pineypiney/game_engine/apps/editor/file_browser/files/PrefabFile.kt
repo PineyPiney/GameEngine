@@ -8,8 +8,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponentI
 import com.pineypiney.game_engine.objects.prefabs.Prefab
 import com.pineypiney.game_engine.resources.textures.Sprite
-import com.pineypiney.game_engine.util.GLFunc
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -30,8 +29,7 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		super.addRenderer(parent, cursor)
 		val sceneRenderer = GameObject("Scene Renderer", 1)
 
-		val prefab = Prefab(file)
-		prefab.parseAndEdit()
+		val prefab = Prefab(file).parseAndEdit()
 
 		sceneRenderer.addChild(prefab)
 		parent.addChild(sceneRenderer)
@@ -63,13 +61,14 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		val offset = Vec3((minPos.x+maxPos.x) * .5f * scale, (minPos.y+maxPos.y) * .5f * scale, maxPos.z + .01f)
 		prefab translate -offset
 
-		GLFunc.clearColour = Vec4(0f)
-		if(browser.prefabRenderer.viewportSize != Vec2(size)){
+		browser.prefabRenderer.setClearColour(Vec4(0f))
+		if (browser.prefabRenderer.viewportSize != Vec2i(size)) {
 			browser.prefabRenderer.setSize(Vec2i(size))
 		}
 		browser.prefabRenderer.render(prefab)
 
 		val texture = browser.prefabRenderer.getTexture(prefab.name)
+		prefab.delete()
 		browser.loadedTextures[file.path] = texture
 		return Sprite(texture, size.toFloat(), center)
 	}
@@ -77,8 +76,7 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if(action == 0 && Timer.time - fileSelect > .5){
-			val obj = Prefab(file)
-			obj.parseAndEdit()
+			val obj = Prefab(file).parseAndEdit()
 			obj.init()
 
 			val placingComponent = obj.getComponent<EditorPositioningComponent>()

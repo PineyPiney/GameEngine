@@ -44,7 +44,7 @@ class VulkanManager {
 				GameEngineI.logger.error("Vulkan Error Occurred: " + data.pMessageString())
 			}
 			EXTDebugUtils.VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT -> {
-				GameEngineI.logger.error("Vulkan Warning Occurred: " + data.pMessageString())
+				GameEngineI.logger.warn("Vulkan Warning Occurred: " + data.pMessageString())
 			}
 		}
 		return 0

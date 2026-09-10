@@ -21,14 +21,16 @@ import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.extension_functions.normal
-import com.pineypiney.game_engine.util.input.DefaultInput
-import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Circle
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
-import com.pineypiney.game_engine.window.*
+import com.pineypiney.game_engine.vulkan.VulkanManager
+import com.pineypiney.game_engine.window.VulkanWindow
+import com.pineypiney.game_engine.window.VulkanWindowedEngine
+import com.pineypiney.game_engine.window.WindowGameLogic
+import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine_test.scenes.*
 import com.pineypiney.game_engine_test.testVR.TestVREngine
 import com.pineypiney.game_engine_test.testVR.TestVRGame
@@ -38,7 +40,6 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.junit.Test
-import org.lwjgl.glfw.GLFW
 import kotlin.math.PI
 import kotlin.math.sign
 import kotlin.random.Random
@@ -136,16 +137,7 @@ class EngineTest{
 			version: Vec2i = Vec2i(3)
 		) {
 			LibrarySetUp.initGLFW()
-
-			val window = object : Window("Vulkan Window", 960, 540, false, false, defaultHints + (GLFW.GLFW_CLIENT_API to GLFW.GLFW_NO_API)) {
-				override val input: Inputs = DefaultInput(this)
-
-				override fun init() {
-					// Make the window visible
-					GLFW.glfwShowWindow(windowHandle)
-					super.init()
-				}
-			}
+			val window = VulkanWindow("Vulkan Window", 960, 540)
 			window.init()
 			TestVulkanEngine(window, screen, camera, ups, fps).run()
 		}
@@ -160,8 +152,8 @@ class EngineTest{
 	@Test
 	fun testEditor(){
 		LibrarySetUp.initGLFW()
-		val window = DefaultGLWindow("Editor").apply { init() }
-		DefaultWindowedEngine(window, ::EditorScreen).run()
+		val window = VulkanWindow("Editor").apply { init() }
+		VulkanWindowedEngine(window, VulkanManager(), ::EditorScreen).run()
 	}
 
 	@Test

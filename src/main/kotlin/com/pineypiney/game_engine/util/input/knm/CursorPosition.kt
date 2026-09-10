@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.util.input
+package com.pineypiney.game_engine.util.input.knm
 
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2

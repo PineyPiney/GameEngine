@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.components.widgets.slider
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec3.Vec3
 import kotlin.math.min

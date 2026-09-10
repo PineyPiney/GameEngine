@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.apps.editor.util
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 

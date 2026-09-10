@@ -29,11 +29,11 @@ out vec4 FragColour;
 
 
 #ifdef VULKAN
-layout(location = 1) in vec2 texCoords;
+layout(location = 0) in vec2 texCoords;
 
 layout(set = 1, binding = 0) uniform sampler2D screenTexture;
 layout(push_constant) uniform Data {
-	layout(offset = 72) int effects;
+	layout(offset = 8) int effects;
 };
 
 layout(location = 0) out vec4 FragColour;

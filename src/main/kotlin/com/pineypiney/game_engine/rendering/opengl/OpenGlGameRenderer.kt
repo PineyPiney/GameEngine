@@ -56,8 +56,7 @@ abstract class OpenGlGameRenderer<in E : GameLogicI> : WindowRendererI<E> {
 	}
 
 	companion object {
-		val screenShader =
-			ShaderLoader.get(ResourceKey("vertex/frame_buffer"), ResourceKey("fragment/frame_buffer"))
+		val screenShader = ShaderLoader[ResourceKey("vertex/frame_buffer"), ResourceKey("fragment/frame_buffer")]
 		val screenUniforms = screenShader.compileUniforms()
 	}
 }

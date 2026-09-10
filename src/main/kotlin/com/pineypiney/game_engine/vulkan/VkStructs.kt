@@ -17,6 +17,13 @@ object VkStructs {
 		return res
 	}
 
+	fun rect(stack: MemoryStack, viewport: Viewport): VkRect2D {
+		val res = VkRect2D.calloc(stack)
+		res.offset().set(viewport.bl)
+		res.extent().set(viewport.size)
+		return res
+	}
+
 	fun clearColour(stack: MemoryStack, colour: Vec4): VkClearColorValue {
 		return VkClearColorValue.calloc(stack)
 			.float32(0, colour.x)

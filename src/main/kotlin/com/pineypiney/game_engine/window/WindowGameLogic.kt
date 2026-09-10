@@ -7,8 +7,10 @@ import com.pineypiney.game_engine.objects.components.TransformComponent
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
 import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.util.input.ControlType
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.DefaultInput
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.raycasting.Ray
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -19,18 +21,18 @@ abstract class WindowGameLogic : GameLogic() {
 
 	abstract override val gameEngine: WindowedGameEngineI<*>
 	open val window get() = gameEngine.window
-	open val input get() = gameEngine.window.input
+	open val input get() = gameEngine.window.input as DefaultInput
 	abstract override val renderer: WindowRendererI<*>
 
 	override fun open() {
 		super.open()
 
 		updateAspectRatio()
-		onCursorMove(gameEngine.input.mouse.lastPos, CursorPosition(Vec2(0f), Vec2(0f), Vec2i(0)))
+		onCursorMove(window.getCursorPos(), CursorPosition(Vec2(0f), Vec2(0f), Vec2i(0)))
 	}
 
 	open fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
-		val ray = renderer.camera.getRay(input.mouse.lastPos.screenSpace)
+		val ray = renderer.camera.getRay(input.getInput<MouseInput>().lastPos.screenSpace)
 		checkHovers(gameObjects.getAllInteractables(), ray, cursorPos, cursorDelta)
 	}
 
@@ -110,7 +112,7 @@ abstract class WindowGameLogic : GameLogic() {
 
 		var interrupted = false
 		for (component in gameObjects.getAllInteractables()) {
-			interrupted = componentInput(component, state, action, input.mouse.lastPos, interrupted) || interrupted
+			interrupted = componentInput(component, state, action, window.getCursorPos(), interrupted) || interrupted
 		}
 		if(interrupted) return InteractorComponent.INTERRUPT
 
@@ -156,13 +158,13 @@ abstract class WindowGameLogic : GameLogic() {
 	open fun onPrimary(window: WindowI, action: Int, mods: Byte) {}
 	open fun onSecondary(window: WindowI, action: Int, mods: Byte) {}
 
-	open fun setFullscreen(monitor: Monitor?) {
+	open fun setFullscreen(monitor: GLFWMonitor?) {
 		window.monitor = monitor
 		updateAspectRatio()
 	}
 
 	open fun toggleFullscreen() {
-		setFullscreen(if (window.fullScreen) null else Monitor.primary)
+		setFullscreen(if (window.fullScreen) null else GLFWMonitor.primary)
 	}
 
 	open fun updateAspectRatio() {

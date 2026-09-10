@@ -9,7 +9,7 @@ import com.pineypiney.game_engine.objects.components.fields.Shape2DField
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionPolygonRenderer
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.extension_functions.*
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.*
 import com.pineypiney.game_engine.util.raycasting.Ray
@@ -74,7 +74,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 			if ((screenPos - cursorPos.screenSpace).length2() < .0025f) {
 				hovered = i
 				hoveredLine = -1
-				setResizeCursor(window, p - Vec2(obj.position))
+				setResizeCursor(window, p - shape.center)
 				return
 			}
 		}
@@ -106,7 +106,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 		if (vector.length2() == 0f) {
 			window.setCursor(moveCursor)
 		} else if (vector.length2() < rotateDist2) {
-			val angle = ((cursorWorldSpace - Vec2(obj.position)).angle() * 2f / PIF).toInt() % 4
+			val angle = ((cursorWorldSpace - shape.center).angle() * 2f / PIF).toInt() % 4
 			window.setCursor(rotateCursors[angle])
 		} else window.setCursor(screen.cursor)
 	}

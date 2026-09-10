@@ -23,8 +23,10 @@ import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.fromAngle
-import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.vectorToEuler
 import com.pineypiney.game_engine.util.text.Text
@@ -32,7 +34,6 @@ import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.quat.Quat
-import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -48,7 +49,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 
 	private var updateRay = true
 
-	private val movementController = Movement3D.default(window, camera, 10f)
+	private val movement = Movement3D.default(window, camera, 10f)
 
 	var indicesMult = 1f
 	private val indexSlider = ActionSliderComponent.createFloatSliderAt("Index Slider", Vec2(-1f), Vec2(1f, .3f), .98f, 1f, 1f) {
@@ -88,10 +89,14 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 		window.setCursorMode(GLFW_CURSOR_DISABLED)
 		gltf.addChild(CollisionBox3DRenderer.create(gltf).apply { init() })
 		renderer.setClearColour(Vec4(1f, 0f, 0f, 1f))
+
+		input.getInput<GamepadInput>().setDefaultController {
+			movement.gamepadID = it.id
+		}
 	}
 
 	override fun addObjects() {
-		add(movementController.parent)
+		add(movement.parent)
 		add(object3D.apply { translate(Vec3(-2, 0, 0)) })
 		add(block)
 		add(crosshair)
@@ -108,26 +113,11 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 
 		renderer.render(this, tickDelta)
 
-		val speed = 10 * Timer.frameDelta
-		val travel = Vec3()
-
-		val forward = camera.cameraUp cross camera.cameraRight
-		if(pressedKeys.contains('W'.s)) travel += forward
-		if(pressedKeys.contains('S'.s)) travel -= forward
-		if(pressedKeys.contains('A'.s)) travel -= camera.cameraRight
-		if(pressedKeys.contains('D'.s)) travel += camera.cameraRight
-		if(pressedKeys.contains(' '.s)) travel += camera.cameraUp
-		if(pressedKeys.contains(GLFW_KEY_LEFT_CONTROL.s)) travel -= camera.cameraUp
-
-		if(travel != Vec3(0)){
-			camera.translate(travel * speed)
-			torch.position = camera.cameraPos
-		}
-
+		torch.position = camera.cameraPos
 		light.position = Vec2.fromAngle(Timer.frameTime.mod(PI * 2).toFloat() * 2f, 10f).run { Vec3(x, 2f, y) }
 
 		object3D.rotate(Vec3(0.5, 1, 1.5) * Timer.frameDelta)
-		val ray = camera.getRay(input.mouse.lastPos.screenSpace)
+		val ray = camera.getRay(input.getInput<MouseInput>().lastPos.screenSpace)
 
 		val shape = Cuboid(Vec3(0f), Quat.identity, Vec3(1f)) transformedBy object3D.worldModel
 		val hit = shape.intersectedBy(ray).isEmpty()
@@ -160,13 +150,13 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 						GLFW_CURSOR_NORMAL -> GLFW_CURSOR_DISABLED; else -> GLFW_CURSOR_NORMAL
 					}
 				)
-				'C' -> input.mouse.setCursorAt(Vec2(0.75))
+				'C' -> input.getInput<MouseInput>().setCursorAt(Vec2(0.75))
 				'V' -> window.vSync = !window.vSync
 				'M' -> toggleMouse()
 				'T' -> torch.getComponent<LightComponent>()?.toggle()
 				'L' -> {
 					camera.setPos(Vec3(0f, 0f, -5f))
-					movementController.resetLook()
+					movement.resetLook()
 					torch.position = camera.cameraPos
 					(torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
 				}
@@ -182,14 +172,14 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 	override fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
 		super.onCursorMove(cursorPos, cursorDelta)
 
-		if (movementController.look) (torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
+		if (movement.look) (torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
 
 		val ray = camera.getRay(cursorPos.screenSpace)
 		blockHover = (Cuboid(Vec3(0f), Quat.identity, Vec3(1f)) transformedBy block.worldModel).intersectedBy(ray).isNotEmpty()
 	}
 
 	private fun toggleMouse(){
-		movementController.look = !movementController.look
-		window.setCursorMode(if (movementController.look) GLFW_CURSOR_DISABLED else GLFW_CURSOR_CAPTURED)
+		movement.look = !movement.look
+		window.setCursorMode(if (movement.look) GLFW_CURSOR_DISABLED else GLFW_CURSOR_CAPTURED)
 	}
 }

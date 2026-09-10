@@ -29,8 +29,6 @@ data class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val 
 
 	val points: Set<Vec2> get() = setOf(origin, origin + side2, origin + side1 + side2, origin + side1)
 
-	val center: Vec2 get() = origin + (side1 + side2) * .5f
-
 	override val min: Vec2
 	override val max: Vec2
 

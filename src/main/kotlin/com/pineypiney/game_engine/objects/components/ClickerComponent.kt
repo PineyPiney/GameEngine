@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.components
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.window.WindowI
 
 class ClickerComponent(parent: GameObject, val primaryClick: () -> Unit = {}, val secondaryClick: () -> Unit = {}) :

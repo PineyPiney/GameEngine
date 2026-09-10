@@ -16,7 +16,6 @@ import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSlider
 import com.pineypiney.game_engine.objects.components.widgets.slider.ColourSliderRendererComponent
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.rendering.WindowRendererI
-import com.pineypiney.game_engine.rendering.cameras.Camera
 import com.pineypiney.game_engine.rendering.vulkan.VulkanGameRenderer
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
@@ -30,9 +29,11 @@ import com.pineypiney.game_engine.util.extension_functions.angle
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.roundedString
 import com.pineypiney.game_engine.util.extension_functions.wrap
-import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
+import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowGameLogic
@@ -59,7 +60,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 	private val audio get() = AudioLoader[(ResourceKey("clair_de_lune"))]
 
 
-	val movement = CharacterController2D(GameObject("Controller"), window, 10f).applied()
+	val movement = Movement2D(GameObject("Controller"), window, 10f) { v -> camera.translate(Vec3(v, 0f)) }.applied()
 
 	private val b = ButtonComponent.createTextButton("Button", Vec2i(-150, -200), Vec2i(300, 100), Vec2(0f, 1f)) {
 		val device = AudioEngine.getAllOutputDevices().random()
@@ -149,7 +150,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 	}
 
 	override fun addObjects() {
-		movement.parent.components.add(Rigidbody2DComponent(movement.parent, 1f, 0f, 0f).apply { gravity = Vec2(0f) })
 		add(movement.parent)
 
 		add(texture)
@@ -187,11 +187,15 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 		snake translate Vec3(-2, -5, 0f)
 
 		renderer.setClearColour(Vec4(1f, 0f, 0f, 1f))
+
+		input.getInput<GamepadInput>().setDefaultController {
+			movement.gamepadID = it.id
+		}
 	}
 
 	private fun rotateGoblin() {
 
-		val ray = camera.getRay(input.mouse.lastPos.screenSpace)
+		val ray = camera.getRay(input.getInput<MouseInput>().lastPos.screenSpace)
 		val model = model1.getShape() as Rect2D
 		val point = model.intersectedBy(ray).getOrNull(0)
 
@@ -207,7 +211,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 	override fun render(tickDelta: Double) {
 		renderer.render(this, tickDelta)
 		rotateGoblin()
-		(renderer.camera as Camera).setPos(Vec3(Vec2(movement.parent.position), 5f))
 	}
 
 	override fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
@@ -234,7 +237,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 			}
 			else when(state.c){
 				'F' -> toggleFullscreen()
-				'C' -> input.mouse.setCursorAt(Vec2(0.75))
+				'C' -> input.getInput<MouseInput>().setCursorAt(Vec2(0.75))
 				'Z' -> window.size = Vec2i(window.videoMode.width(), window.videoMode.height())
 				' ' -> if (renderer is VulkanGameRenderer<*, *>) renderer.depthImage.savePNG("debug")
 			}
@@ -252,7 +255,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 		super.update(interval, input)
 
 		val text = listOf(text, gameText, siGameText).mapNotNull { it.getComponent<TextRendererComponent>() }
-		for (t in text + listOf(*(list.getComponent<ScrollListComponent>()!!.items.mapNotNull { it.children.firstNotNullOfOrNull { it.getComponent<TextRendererComponent>() } }.toTypedArray()))) {
+		for (t in text + listOf(*(list.getComponent<ScrollListComponent>()!!.items.mapNotNull { entry -> entry.children.firstNotNullOfOrNull { it.getComponent<TextRendererComponent>() } }.toTypedArray()))) {
 			t.run {
 				setUnderlineThickness(0.06f)
 				setUnderlineAmount((getUnderlineAmount() + 0.3f * Timer.delta.f).mod(1f))

@@ -52,7 +52,7 @@ object VkUtil {
 			VK10.VK_ERROR_INCOMPATIBLE_DRIVER -> "The requested version of Vulkan is not supported by the driver or is otherwise incompatible for implementation-specific reasons."
 			VK10.VK_ERROR_TOO_MANY_OBJECTS -> "Too many objects of the type have already been created."
 			VK10.VK_ERROR_FORMAT_NOT_SUPPORTED -> "A requested format is not supported on this device."
-			VK11.VK_ERROR_OUT_OF_POOL_MEMORY -> ""
+			VK11.VK_ERROR_OUT_OF_POOL_MEMORY -> "The Descriptor Pool is out of memory"
 			KHRSurface.VK_ERROR_SURFACE_LOST_KHR -> "A surface is no longer available."
 			KHRSurface.VK_ERROR_NATIVE_WINDOW_IN_USE_KHR -> "The requested window is already connected to a VkSurfaceKHR, or to some other non-Vulkan API."
 			KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR -> ("A surface has changed in such a way that it is no longer compatible with the swapchain, and further presentation requests using the "
@@ -387,13 +387,12 @@ object VkUtil {
 		pushConstants: VulkanPushConstantManager
 	): VulkanPipelineLayout {
 
-		val maxSet = descriptorLayouts.maxOfOrNull(VulkanDescriptorLayout::set) ?: -1
-		val buffer = stack.mallocLong(maxSet + 1)
-		for (layout in descriptorLayouts) buffer.put(layout.set, layout.handle)
+		val buffer = stack.mallocLong(descriptorLayouts.size)
+		for (layout in descriptorLayouts) buffer.put(layout.handle)
 
 		val pipelineLayoutCreateInfo = VkPipelineLayoutCreateInfo.calloc(stack)
 			.`sType$Default`()
-			.pSetLayouts(buffer)
+			.pSetLayouts(buffer.flip())
 			.pPushConstantRanges(pushConstants.createRanges(stack))
 
 		return createPipelineLayout(device, stack, descriptorLayouts, pipelineLayoutCreateInfo, pushConstants)

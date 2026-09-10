@@ -13,6 +13,7 @@ import com.pineypiney.game_engine.util.GLFunc.getVec2i
 import com.pineypiney.game_engine.util.GLFunc.getVec4i
 import com.pineypiney.game_engine.util.GLFunc.setVec2d
 import com.pineypiney.game_engine.util.GLFunc.setVec2i
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import glm_.bool
 import glm_.f
 import glm_.i
@@ -29,9 +30,10 @@ import org.lwjgl.glfw.GLFWVidMode
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
 import org.lwjgl.stb.STBImage
+import org.lwjgl.system.MemoryStack
 import java.io.InputStream
 
-abstract class Window(
+abstract class GLFWWindow(
 	title: String,
 	width: Int,
 	height: Int,
@@ -120,14 +122,14 @@ abstract class Window(
 		get() = GLFW.glfwWindowShouldClose(windowHandle)
 		set(value) = GLFW.glfwSetWindowShouldClose(windowHandle, value)
 
-	override var monitor: Monitor?
-		get() = GLFW.glfwGetWindowMonitor(windowHandle).let { if (it == 0L) null else Monitor(it) }
+	override var monitor: GLFWMonitor?
+		get() = GLFW.glfwGetWindowMonitor(windowHandle).let { if (it == 0L) null else GLFWMonitor(it) }
 		set(value) {
 			val mode = value?.videoMode
 			GLFW.glfwSetWindowMonitor(windowHandle, value?.handle ?: 0L, 0, 0, mode?.width() ?: width, mode?.height() ?: height, GLFW.GLFW_DONT_CARE)
 			center()
 		}
-	override val videoMode: GLFWVidMode get() = (monitor ?: Monitor.primary).videoMode
+	override val videoMode: GLFWVidMode get() = (monitor ?: GLFWMonitor.primary).videoMode
 
 	init {
 		GLFW.glfwSetWindowCloseCallback(windowHandle, ::close)
@@ -182,6 +184,21 @@ abstract class Window(
 	}
 
 	override fun getKey(key: Int) = GLFW.glfwGetKey(windowHandle, key)
+
+	override fun getCursorPos(): CursorPosition {
+		MemoryStack.stackPush().use { stack ->
+			val x = stack.mallocDouble(1)
+			val y = stack.mallocDouble(1)
+			GLFW.glfwGetCursorPos(windowHandle, x, y)
+
+			val xf = x[0].toFloat()
+			val yf = y[0].toFloat()
+
+			val screenSpace = Vec2(xf * 2f / size.x - 1f, 1f - yf * 2f / size.y)
+			val newPos = CursorPosition(Vec2(screenSpace.x * aspectRatio, screenSpace.y), screenSpace, Vec2i(xf, size.y - yf))
+			return newPos
+		}
+	}
 
 	fun center() {
 		videoMode.let {
@@ -305,5 +322,13 @@ abstract class Window(
 			GLFW.GLFW_RESIZABLE to 1, // the window will be resizable
 			GLFW.GLFW_SAMPLES to 4
 		)
+
+		fun getSize(handle: Long): Vec2i {
+			val widths = IntArray(1)
+			val heights = IntArray(1)
+			GLFW.glfwGetWindowSize(handle, widths, heights)
+
+			return Vec2i(widths[0], heights[0])
+		}
 	}
 }

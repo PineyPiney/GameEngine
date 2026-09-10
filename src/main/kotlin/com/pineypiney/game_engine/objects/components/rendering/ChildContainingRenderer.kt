@@ -38,10 +38,10 @@ class ChildContainingRenderer(
 
 		val api = renderer.getRenderingApi()
 		api.setStencilWriteMask(255)
-		api.clearStencil(128)
+		api.clearStencil(0)
 
 		// If the stencil fails keep the old value, otherwise write 1 to the stencil
-		api.setStencil(true, 8, 255, StencilOp.KEEP, StencilOp.REPLACE, StencilOp.REPLACE, CompareOp.ALWAYS)
+		api.setStencil(true, 1, 255, StencilOp.KEEP, StencilOp.REPLACE, StencilOp.REPLACE, CompareOp.ALWAYS)
 
 
 		// Write to the stencil
@@ -49,7 +49,7 @@ class ChildContainingRenderer(
 		shader.draw("vertexBuffer", mesh, renderer)
 
 		// Stencil only passes if the stencil value is 1, and don't write to the stencil
-		api.setStencilComparison(8, 255, CompareOp.EQUAL)
+		api.setStencilComparison(1, 255, CompareOp.EQUAL)
 		api.setStencilWriteMask(0)
 
 		val descendants = mutableSetOf<GameObject>()

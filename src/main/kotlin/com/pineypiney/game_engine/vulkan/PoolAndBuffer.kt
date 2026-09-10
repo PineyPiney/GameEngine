@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorSet
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipeline
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
 import com.pineypiney.game_engine.util.DeletionQueue
+import com.pineypiney.game_engine.util.VulkanDeletionQueue
 import com.pineypiney.game_engine.window.Viewport
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
@@ -45,6 +46,14 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 
 	fun setViewport(viewport: Viewport) {
 		MemoryStack.stackPush().use { stack -> setViewport(stack, viewport) }
+	}
+
+	fun setDepthTest(enabled: Boolean) {
+		VK13.vkCmdSetDepthTestEnable(buffer, enabled)
+	}
+
+	fun setDepthFunc(op: Int) {
+		VK13.vkCmdSetDepthCompareOp(buffer, op)
 	}
 
 	fun setStencil(enabled: Boolean) {
@@ -202,7 +211,7 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 		fun create(device: VulkanDevice, stack: MemoryStack, name: String): PoolAndBuffer {
 			val pool = device.createCommandPool(stack, name)
 			val buffer = device.createCommandBuffer(stack, pool, name)
-			val deletion = DeletionQueue()
+			val deletion = VulkanDeletionQueue(device)
 			return PoolAndBuffer(pool, buffer, deletion)
 		}
 	}

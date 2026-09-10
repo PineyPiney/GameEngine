@@ -8,7 +8,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWGammaRamp
 import org.lwjgl.glfw.GLFWVidMode
 
-class Monitor(handle: Long) : MonitorI {
+class GLFWMonitor(handle: Long) : MonitorI {
 
 	override val handle = if (handle == 0L) GLFW.glfwGetPrimaryMonitor() else handle
 
@@ -29,7 +29,7 @@ class Monitor(handle: Long) : MonitorI {
 		set(value) = GLFW.glfwSetGammaRamp(handle, value)
 
 	companion object {
-		val primary get() = Monitor(GLFW.glfwGetPrimaryMonitor())
+		val primary get() = GLFWMonitor(GLFW.glfwGetPrimaryMonitor())
 		fun getAllMonitors(): LongArray = GLFW.glfwGetMonitors()?.toArray() ?: longArrayOf()
 	}
 }

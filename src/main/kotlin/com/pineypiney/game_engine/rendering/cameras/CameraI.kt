@@ -21,6 +21,14 @@ interface CameraI : Initialisable {
 
 	val range: Vec2
 
+	fun setPos(pos: Vec3)
+
+	fun translate(vec: Vec3) {
+		setPos(cameraPos + vec)
+	}
+
+	fun translate(vec: Vec2) = translate(Vec3(vec))
+
 	fun getView(mat: Mat4 = Mat4()): Mat4
 	fun getProjection(mat: Mat4 = Mat4()): Mat4
 	fun getRay(point: Vec2): Ray

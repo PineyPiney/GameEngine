@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.util.input.Inputs
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL
 
-open class DefaultGLWindow(title: String, width: Int = 960, height: Int = 540, hints: Map<Int, Int> = defaultGLHints) : Window(title, width, height, false, false, hints) {
+open class OpenGlWindow(title: String, width: Int = 960, height: Int = 540, hints: Map<Int, Int> = defaultGLHints) : GLFWWindow(title, width, height, false, false, hints) {
 	override val input: Inputs = DefaultInput(this)
 
 	override fun init() {

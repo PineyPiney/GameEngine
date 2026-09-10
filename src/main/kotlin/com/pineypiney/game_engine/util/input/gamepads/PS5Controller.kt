@@ -1,6 +1,6 @@
-package com.pineypiney.game_engine.util.input
+package com.pineypiney.game_engine.util.input.gamepads
 
-class PS5Controller(id: Int, inputs: Inputs) : GamePad(id, inputs) {
+class PS5Controller(id: Int, inputs: GamepadInput) : GamePad(id, inputs) {
 
 	override fun updateBonusButtons(buttons: ByteArray) {
 		super.updateBonusButtons(buttons)

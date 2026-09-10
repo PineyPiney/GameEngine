@@ -2,6 +2,9 @@ package com.pineypiney.game_engine.window
 
 import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
+import com.pineypiney.game_engine.util.input.knm.KeyboardInput
+import com.pineypiney.game_engine.util.input.knm.MouseInput
 import glm_.c
 import org.lwjgl.glfw.GLFW
 
@@ -29,17 +32,23 @@ abstract class WindowedGameEngine<E : WindowGameLogic>(resourcesLoader: Resource
 	}
 
 	override fun setInputCallbacks() {
-		input.cursorMoveCallback = { screenPos, cursorOffset ->
+		input.getInput<MouseInput>().cursorMoveCallback = { screenPos, cursorOffset ->
 			activeScreen.onCursorMove(screenPos, cursorOffset)
 		}
-		input.mouseScrollCallback = { scrollOffset ->
+		input.getInput<MouseInput>().mouseScrollCallback = { scrollOffset ->
 			activeScreen.onScroll(scrollOffset)
 		}
-		input.keyPressCallback = { bind, action ->
+		input.getInput<MouseInput>().mouseButtonCallback = { bind, action ->
 			activeScreen.onInput(bind, action)
 		}
-		input.keyboardCharCallback = { codepoint ->
+		input.getInput<KeyboardInput>().keyCallback = { bind, action ->
+			activeScreen.onInput(bind, action)
+		}
+		input.getInput<KeyboardInput>().charCallback = { codepoint ->
 			activeScreen.onType(codepoint.c)
+		}
+		input.getInputOrNull<GamepadInput>()?.gamepadButtonCallback = { input, action ->
+			activeScreen.onInput(input, action)
 		}
 	}
 

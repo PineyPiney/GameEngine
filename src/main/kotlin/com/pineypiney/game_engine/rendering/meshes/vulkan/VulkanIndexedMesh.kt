@@ -29,12 +29,12 @@ open class VulkanIndexedMesh(vulkan: VulkanManager, name: String, verticesData: 
 						VK12.VK_BUFFER_USAGE_TRANSFER_SRC_BIT or
 						VK12.VK_BUFFER_USAGE_TRANSFER_DST_BIT or
 						VK12.VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-				Vma.VMA_MEMORY_USAGE_GPU_ONLY, "$name Vertices"
+				Vma.VMA_MEMORY_USAGE_GPU_ONLY, "$name Mesh Vertices"
 			)
 			indexBuffer = VmaBuffer.create(
 				vulkan.device, stack, indicesData.capacity().toLong(),
 				VK12.VK_BUFFER_USAGE_INDEX_BUFFER_BIT or VK12.VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-				Vma.VMA_MEMORY_USAGE_GPU_ONLY, "$name Indices"
+				Vma.VMA_MEMORY_USAGE_GPU_ONLY, "$name Mesh Indices"
 			)
 			vertexBufferAddress = vulkan.device.getBufferAddress(stack, vertexBuffer)
 

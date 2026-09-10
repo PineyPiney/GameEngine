@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.applied
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListComponent
 import com.pineypiney.game_engine.objects.components.widgets.scrollList.ScrollListEntryComponent
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowI

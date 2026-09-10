@@ -2,13 +2,13 @@ package com.pineypiney.game_engine_test
 
 import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.util.input.DefaultInput
-import com.pineypiney.game_engine.window.DefaultGLWindow
+import com.pineypiney.game_engine.window.OpenGlWindow
 import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.openal.AL10
 import java.io.File
 
-class TestWindow(width: Int = 960, height: Int = 540, version: Vec2i) : DefaultGLWindow(
+class TestWindow(width: Int = 960, height: Int = 540, version: Vec2i) : OpenGlWindow(
 	"Example Window", width, height, defaultGLHints + mapOf(
 	GLFW.GLFW_CONTEXT_VERSION_MAJOR to version.x,
 	GLFW.GLFW_CONTEXT_VERSION_MINOR to version.y,

@@ -13,7 +13,7 @@ import com.pineypiney.game_engine.apps.editor.util.edits.RemoveObjectEdit
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.util.input.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowI

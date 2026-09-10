@@ -15,6 +15,7 @@ import kotlin.math.abs
 
 abstract class Shape2D : Shape<Vec2>() {
 
+	open val center: Vec2 get() = (min + max) * .5f
 	override val size: Vec2 get() = max - min
 
 	abstract override fun transformedBy(model: Mat4): Shape2D

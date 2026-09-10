@@ -13,7 +13,6 @@ import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.resources.shaders.vulkan.*
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
-import com.pineypiney.game_engine.util.extension_functions.getOrPut
 import com.pineypiney.game_engine.util.extension_functions.put
 import com.pineypiney.game_engine.util.vulkanMask
 import com.pineypiney.game_engine.vulkan.PoolAndBuffer
@@ -108,6 +107,7 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 	}
 
 	fun updateDescriptors(commands: PoolAndBuffer, descriptorAllocator: VulkanDescriptorAllocator) {
+		if (descriptorLayouts.isEmpty()) return
 
 		val sets = descriptorLayouts.map(descriptorAllocator::allocateDescriptorSet)
 
@@ -468,7 +468,8 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 			val builders = mutableListOf<VulkanDescriptorLayout.Builder>()
 			for ((stage, stageData) in data) {
 				for (uniformBuffer in stageData.uniforms) {
-					val builder = builders.getOrPut(uniformBuffer.set, VulkanDescriptorLayout.Builder::set, VulkanDescriptorLayout::Builder)
+					while (builders.size <= uniformBuffer.set) builders.add(VulkanDescriptorLayout.Builder())
+					val builder = builders[uniformBuffer.set]
 					builder.addStage(stage)
 					when (val data = uniformBuffer.data) {
 						is DataType.Sampler -> builder.addCombinedImage(uniformBuffer.binding, uniformBuffer.name)

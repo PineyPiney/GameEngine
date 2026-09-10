@@ -51,6 +51,8 @@ class BitMapFont(
 	}
 
 	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextData {
+		if (text.isEmpty()) return TextData(null)
+
 		val dimensions = getPixelSize(text)
 		var letterX = characterSpacing
 		var letterY = 0f

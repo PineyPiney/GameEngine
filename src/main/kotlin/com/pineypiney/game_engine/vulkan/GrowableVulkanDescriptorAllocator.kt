@@ -75,6 +75,9 @@ class GrowableVulkanDescriptorAllocator(device: VulkanDevice) : VulkanDescriptor
 		if (readyPools.isNotEmpty()) return readyPools.removeLast()
 
 		val newPool = createPool(setsPerPool, ratios)
+		// Everytime a new pool is needed increase the size of the new pool by 1.5 times, up to a limit of 4092.
+		// 4092 is an arbitrary number chose in the following guide. It can be changed if a different number works better.
+		// https://vkguide.dev/docs/new_chapter_4/descriptor_abstractions/
 		setsPerPool = min((setsPerPool * 1.5f).toInt(), 4092)
 		return newPool
 	}

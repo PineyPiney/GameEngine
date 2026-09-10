@@ -96,7 +96,7 @@ class VulkanGraphicsPipeline(
 			this.parameters = parameters
 			inputTopology(parameters.topology.vulkan)
 				.polygonMode(parameters.fillMode.vulkan)
-				.cullMode(parameters.cullMode.vulkan, VK10.VK_FRONT_FACE_COUNTER_CLOCKWISE)
+				.cullMode(parameters.cullMode.vulkan, VK10.VK_FRONT_FACE_CLOCKWISE)
 
 			parameters.depthTestOp?.let { enableDepthTest(true, it.vulkan) } ?: disableDepthTest()
 			parameters.blending?.let { (src, dst, op) -> enableBlending(src.vulkan, dst.vulkan, op.vulkan) } ?: disableBlending()

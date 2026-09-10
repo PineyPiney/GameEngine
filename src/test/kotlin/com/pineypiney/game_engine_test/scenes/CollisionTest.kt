@@ -10,8 +10,8 @@ import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.util.extension_functions.PIF
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.ControlType
-import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
 import com.pineypiney.game_engine.util.maths.shapes.Triangle3D
 import com.pineypiney.game_engine.window.WindowedGameEngineI

@@ -13,6 +13,7 @@ import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage2D
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanSwapchainImage
 import com.pineypiney.game_engine.util.extension_functions.deleteArray
 import com.pineypiney.game_engine.vulkan.*
+import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import glm_.detail.GLM_DEPTH_CLIP_SPACE
@@ -22,6 +23,7 @@ import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.*
@@ -31,7 +33,7 @@ open class VulkanGameRenderer<in G : WindowGameLogic, C : CameraI>(override val 
 	override val viewPos: Vec3 get() = camera.cameraPos
 	override val view: Mat4 = Mat4()
 	override val projection: Mat4 = Mat4()
-	override val guiProjection: Mat4 = Mat4()
+	override var guiProjection: Mat4 = Mat4()
 	override var viewportSize: Vec2i = window.framebufferSize
 	override var aspectRatio: Float = window.aspectRatio
 
@@ -44,17 +46,14 @@ open class VulkanGameRenderer<in G : WindowGameLogic, C : CameraI>(override val 
 	lateinit var depthImage: VulkanImage2D
 
 	var frameIndex = 0
-	val frameObjects = Array(swapchain.images.size) { VulkanFrameObjects(vulkan.device, ::drawImage, ::depthImage) }
+	val frameObjects = Array(swapchain.images.size) { VulkanFrameObjects(vulkan.device, ::getViewport) }
 
 	var clearColour = Vec4(0f); private set
-
-	init {
-		updateFrameImages()
-	}
 
 	override fun init() {
 		(camera as Camera).range = Vec2(1000f, 0.1f)
 		camera.init()
+		updateFrameImages()
 	}
 
 	override fun render(game: G, tickDelta: Double) {
@@ -66,16 +65,11 @@ open class VulkanGameRenderer<in G : WindowGameLogic, C : CameraI>(override val 
 		camera.getView(view)
 		camera.getProjection(projection)
 		// Vulkan's y-axis is inverted
-		projection[1, 1] = projection[1, 1] * -1
+//		projection[1, 1] = projection[1, 1] * -1
 
 		val frameObjects = frameObjects[frameIndex]
 		// Clear old frame data
-		frameObjects.deletionQueue.flush()
-		frameObjects.frameDescriptorAllocator.clearPools()
-
-		frameObjects.swapchainSemaphore.recreate()
-		frameObjects.renderSemaphore.recreate()
-
+		frameObjects.refresh()
 		// Wait until the fence is ready, it will be signalled by the previous render cycle
 		frameObjects.renderFence.wait(1000000000L)
 
@@ -88,78 +82,62 @@ open class VulkanGameRenderer<in G : WindowGameLogic, C : CameraI>(override val 
 
 		frameObjects.renderFence.reset()
 
-		val commandBuffer = frameObjects.commands
-		commandBuffer.resetBuffer()
-		commandBuffer.begin(VK10.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)
+		val cmd = frameObjects.begin()
+		renderWithFramebuffer(cmd, game, tickDelta, swapchainImage)
+		cmd.end()
 
-		renderWithFramebuffer(commandBuffer, game, tickDelta, swapchainImage)
-
-		commandBuffer.end()
-
-		submit()
-		present()
-		VK10.vkQueueWaitIdle(vulkan.queue)
-
-		frameIndex = (frameIndex + 1) % this.frameObjects.size
+		end()
 	}
 
-	fun renderWithFramebuffer(commandBuffer: PoolAndBuffer, game: G, tickDelta: Double, swapchainImage: VulkanSwapchainImage) {
+	open fun renderWithFramebuffer(cmd: PoolAndBuffer, game: G, tickDelta: Double, swapchainImage: VulkanSwapchainImage) {
 
 		// Execute Graphics Shader
-		drawImage.transition(commandBuffer, VK10.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, false)
-		depthImage.transition(commandBuffer, VK12.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, false)
-		renderGeometry(commandBuffer, game, tickDelta)
-
-
-		// Copy the Draw Image to the Swapchain Image
-		drawImage.transition(commandBuffer, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
-		swapchainImage.transition(commandBuffer, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, false)
-		drawImage.copyTo(commandBuffer, swapchainImage)
-
-		// Prepare the Swapchain Image for presentation
-		swapchainImage.transition(commandBuffer, KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-	}
-
-	fun renderGeometry(cmd: PoolAndBuffer, game: G, tickDelta: Double) {
+		drawImage.transition(cmd, VK10.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, false)
+		depthImage.transition(cmd, VK12.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, false)
 
 		MemoryStack.stackPush().use { stack ->
-
-			val colourAttachments = VkStructs.createColourAttachmentInfos(stack, drawImage, clearColour)
-			val depthAttachment = VkStructs.createDepthStencilAttachmentInfo(stack, depthImage, 0f, 0)
-			val renderInfo = VkStructs.createRenderingInfo(stack, glm.min(window.size, drawImage.size), colourAttachments, depthAttachment)
-			cmd.beginRendering(renderInfo)
-
-			val api = getRenderingApi()
-
-			val viewport = getViewport()
-			api.setViewport(viewport)
-			api.setScissors(viewport)
-
-
-			renderLayer(0, game, tickDelta, null) { transformComponent.worldPosition.z }
-			renderLayer(1, game, tickDelta, null) { transformComponent.worldPosition.z }
-
+			beginRendering(stack, cmd, drawImage, depthImage)
+			renderLayer(0, game, tickDelta) { transformComponent.worldPosition.z }
+			renderLayer(1, game, tickDelta) { transformComponent.worldPosition.z }
 			cmd.endRendering()
 		}
+
+		// Copy the Draw Image to the Swapchain Image
+		drawImage.transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+		swapchainImage.transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, false)
+		drawImage.copyTo(cmd, swapchainImage, Vec3i(0, drawImage.height, 0), Vec3i(drawImage.width, 0, 1))
+
+		// Prepare the Swapchain Image for presentation
+		swapchainImage.transition(cmd, KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+	}
+
+	fun beginRendering(stack: MemoryStack, cmd: PoolAndBuffer, drawImage: VulkanImage2D, depthImage: VulkanImage2D, viewport: Viewport = getViewport(), clearColour: Vec4 = this.clearColour) {
+		val renderInfo = getRenderInfo(stack, drawImage, depthImage, clearColour)
+		cmd.beginRendering(renderInfo)
+
+		val api = getRenderingApi()
+
+		api.setViewport(viewport)
+		api.setScissors(viewport)
 	}
 
 	fun renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: Framebuffer? = null) =
-		renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0) { -(transformComponent.worldPosition - camera.cameraPos).length2() }
+		renderLayer(game.gameObjects[layer], tickDelta) { -(transformComponent.worldPosition - camera.cameraPos).length2() }
 
-	fun <C : Comparable<C>> renderLayer(layer: Int, game: G, tickDelta: Double, framebuffer: Framebuffer? = null, sort: GameObject.() -> C) =
-		renderLayer(game.gameObjects[layer], tickDelta, framebuffer?.FBO ?: 0, sort)
+	fun <C : Comparable<C>> renderLayer(layer: Int, game: G, tickDelta: Double, sort: GameObject.() -> C) =
+		renderLayer(game.gameObjects[layer], tickDelta, sort)
 
-	fun renderLayer(layer: Collection<GameObject>, tickDelta: Double, framebuffer: Int = 0) =
-		renderLayer(layer, tickDelta, framebuffer) { -(transformComponent.worldPosition - camera.cameraPos).length2() }
+	fun renderLayer(layer: Collection<GameObject>, tickDelta: Double) =
+		renderLayer(layer, tickDelta) { -(transformComponent.worldPosition - camera.cameraPos).length2() }
 
-	open fun <C : Comparable<C>> renderLayer(layer: Collection<GameObject>, tickDelta: Double, framebuffer: Int = 0, sort: GameObject.() -> C) {
+	open fun <C : Comparable<C>> renderLayer(layer: Collection<GameObject>, tickDelta: Double, sort: GameObject.() -> C) {
 		val sorted = layer.flatMap { it.catchRenderingComponents() }.sortedBy(sort)
 		for (o in sorted) {
-			renderObject(o, tickDelta, framebuffer)
+			renderObject(o, tickDelta)
 		}
 	}
 
-	open fun renderObject(obj: GameObject, tickDelta: Double, framebuffer: Int = 0) {
+	open fun renderObject(obj: GameObject, tickDelta: Double) {
 		val renderedComponents = obj.components.filterIsInstance<RenderedComponentI>().filter { it.visible }
 		if (renderedComponents.isNotEmpty()) {
 			for (c in obj.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
@@ -193,12 +171,19 @@ open class VulkanGameRenderer<in G : WindowGameLogic, C : CameraI>(override val 
 		}
 	}
 
+	fun end() {
+		submit()
+		present()
+		VK10.vkQueueWaitIdle(vulkan.queue)
+		frameIndex = (frameIndex + 1) % this.frameObjects.size
+	}
+
 	fun updateSwapchain(size: Vec2i) {
 		vulkan.device.waitIdle()
 		swapchain = VkUtil.createSwapchain(vulkan.device, surface, swapchain, size.x, size.y, colourFormatSpace.first, colourFormatSpace.second)
 	}
 
-	fun updateFrameImages() {
+	open fun updateFrameImages() {
 		val usage = VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT or
 				VK10.VK_IMAGE_USAGE_STORAGE_BIT or
 				VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
@@ -224,9 +209,7 @@ open class VulkanGameRenderer<in G : WindowGameLogic, C : CameraI>(override val 
 		viewportSize = window.size
 		aspectRatio = window.aspectRatio
 
-		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, guiProjection)
-		guiProjection[1, 1] = guiProjection[1, 1] * -1f
-		guiProjection *= Mat4(1f).translateAssign(0f, 0f, -1f)
+		updateGui()
 
 		drawImage.delete()
 		depthImage.delete()
@@ -238,8 +221,19 @@ open class VulkanGameRenderer<in G : WindowGameLogic, C : CameraI>(override val 
 //		}
 	}
 
+	fun updateGui() {
+		guiProjection = glm.ortho(-aspectRatio, aspectRatio, -1f, 1f)
+		guiProjection.translateAssign(0f, 0f, -1f)
+	}
+
 	override fun setClearColour(colour: Vec4) {
 		clearColour = colour
+	}
+
+	fun getRenderInfo(stack: MemoryStack, drawImage: VulkanImage2D, depthImage: VulkanImage2D, clearColour: Vec4 = this.clearColour): VkRenderingInfo {
+		val colourAttachments = VkStructs.createColourAttachmentInfos(stack, drawImage, clearColour)
+		val depthAttachment = VkStructs.createDepthStencilAttachmentInfo(stack, depthImage, 0f, 0)
+		return VkStructs.createRenderingInfo(stack, glm.min(window.size, drawImage.size), colourAttachments, depthAttachment)
 	}
 
 	override fun delete() {

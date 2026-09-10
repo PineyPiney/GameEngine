@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.audio.AudioInputDevice
 import com.pineypiney.game_engine.audio.AudioOutputDevice
 import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.input.Inputs
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
@@ -68,7 +69,7 @@ interface WindowI {
 	val fullScreen: Boolean
 	var shouldClose: Boolean
 	var vSync: Boolean
-	var monitor: Monitor?
+	var monitor: GLFWMonitor?
 	val videoMode: GLFWVidMode
 
 	fun setAudioOutput(name: String? = null)
@@ -84,6 +85,11 @@ interface WindowI {
 	fun iconify()
 
 	fun getKey(key: Int): Int
+
+	/**
+	 * Get the pixel position of the cursor on this window from the bottom left
+	 */
+	fun getCursorPos(): CursorPosition
 
 	/**
 	 * Set the cursor for the window
@@ -128,15 +134,4 @@ interface WindowI {
 	fun setContentScaleCallback(callback: WindowI.() -> Unit)
 	fun update()
 	fun close(handle: Long = windowHandle)
-
-	companion object {
-
-		fun getSize(handle: Long): Vec2i {
-			val widths = IntArray(1)
-			val heights = IntArray(1)
-			GLFW.glfwGetWindowSize(handle, widths, heights)
-
-			return Vec2i(widths[0], heights[0])
-		}
-	}
 }

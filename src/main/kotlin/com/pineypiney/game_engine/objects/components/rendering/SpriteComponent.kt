@@ -39,6 +39,7 @@ open class SpriteComponent(
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
+
 		shader.draw("vertexBuffer", sprite.fetchMesh(), renderer)
 	}
 

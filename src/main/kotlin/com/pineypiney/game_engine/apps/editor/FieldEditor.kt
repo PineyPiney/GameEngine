@@ -226,9 +226,9 @@ open class ShaderFieldEditor(parent: GameObject, f: ShaderField, component: Comp
 	fun updateValue(){
 		try {
 			val optional = mutableListOf<ResourceKey>()
-			if (tessCtrlField.text.isEmpty()) optional.add(ResourceKey(tessCtrlField.text))
-			if (tessEvalField.text.isEmpty()) optional.add(ResourceKey(tessEvalField.text))
-			if (geometryField.text.isEmpty()) optional.add(ResourceKey(geometryField.text))
+			if (tessCtrlField.text.isNotEmpty()) optional.add(ResourceKey(tessCtrlField.text))
+			if (tessEvalField.text.isNotEmpty()) optional.add(ResourceKey(tessEvalField.text))
+			if (geometryField.text.isNotEmpty()) optional.add(ResourceKey(geometryField.text))
 
 			val newS = ShaderLoader[ResourceKey(vertexField.text), ResourceKey(fragmentField.text), optional]
 			val oldVal = field.getter()

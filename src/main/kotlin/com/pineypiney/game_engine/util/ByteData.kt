@@ -84,7 +84,7 @@ object ByteData {
 	}
 
 	fun bytes2Int(bytes: ByteArray, offset: Int = 0, length: Int = minOf(4, bytes.size - offset), bigEndian: Boolean = true): Int {
-		return bytesToNum(bytes, offset, length, bigEndian, { toUByte().toInt() }, Int::shl, Iterable<Int>::orOfInt)
+		return bytesToNum(bytes, offset, length, bigEndian, UByte::toInt, Int::shl, Iterable<Int>::orOfInt)
 	}
 
 	fun string2Int(s: String, length: Int = minOf(4, s.length), bigEndian: Boolean = true): Int {

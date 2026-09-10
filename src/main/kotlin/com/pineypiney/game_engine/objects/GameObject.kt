@@ -28,8 +28,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 	var parent: GameObject? = null
 	var active = true
 
-	// Every GameObject has a list of all object collections it is stored in.
-	// This makes it easier to delete objects and make sure they are not being stored in random places
+
 	var objects: ObjectCollection? = null
 
 	var transformComponent: TransformComponent = TransformComponent(this)
@@ -71,7 +70,6 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 		components.add(transformComponent)
 		for (c in components) c.init()
 		for (c in children) c.init()
-		for (c in components.filterIsInstance<PostChildrenInit>()) c.postChildrenInit()
 	}
 
 	fun getComponentAndField(key: String): Pair<ComponentI, ComponentField<*>>? {
@@ -339,13 +337,6 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 	}
 
 	companion object {
-
-		fun cube(pos: Vec3 = Vec3(0f)): GameObject {
-			val obj = GameObject("Cube")
-			obj.position = pos
-			obj.components.add(ColourRendererComponent(obj, Vec3(0f, 1f, 1f), mesh = Mesh.centerCubeShape))
-			return obj
-		}
 
 		fun simpleRenderedGameObject(
 			name: String,

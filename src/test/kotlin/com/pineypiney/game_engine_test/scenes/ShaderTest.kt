@@ -14,8 +14,9 @@ import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.input.CursorPosition
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
@@ -150,7 +151,7 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>, override val r
 		when(action){
 			GLFW.GLFW_RELEASE -> grabPoint = null
 			GLFW.GLFW_PRESS -> {
-				grabPoint = window.input.mouse.lastPos.position
+				grabPoint = window.input.getInput<MouseInput>().lastPos.position
 				when(grabState){
 					ResizeState.N -> oppositePoint.y = obj.position.y
 					ResizeState.S -> oppositePoint.y = obj.position.y + obj.scale.y
