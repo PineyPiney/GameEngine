@@ -11,7 +11,6 @@ import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedCom
 import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
 import com.pineypiney.game_engine.rendering.WindowRendererI
-import com.pineypiney.game_engine.rendering.cameras.Camera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
@@ -54,7 +53,7 @@ import kotlin.math.sqrt
 @Suppress("UNUSED")
 class LightingTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<LightingTest>) : WindowGameLogic() {
 
-	private val camera get() = renderer.camera as Camera
+	private val camera get() = renderer.camera
 	val vel = Vec3(0f)
 
 	private val pressedKeys = mutableSetOf<Short>()
@@ -613,7 +612,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>, override val
 		val texDivs = Vec2(1f / 11f, 1f / 3f)
 		val pixSize = Vec2(1f/2048f, 1f/1024f)
 
-		val icoPoints = arrayOf<PointData>(
+		val icoPoints = arrayOf(
 			// Bottom Point
 			PointData(Vec3(0f, -ngr, -m), Vec2(379f, 7f) * pixSize),
 			PointData(Vec3(0f, -ngr, -m), Vec2(749f, 10f) * pixSize),
@@ -655,7 +654,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>, override val
 		val c144 = d * cos(.2 * PIF)
 		val s144 = d * sin(.8f * PIF)
 
-		val orientatedIcoPoints = arrayOf<PointData>(
+		val orientatedIcoPoints = arrayOf(
 			// Bottom Point
 			PointData(Vec3(0f, -1f, 0f), Vec2(1860f, 19f) * pixSize),
 			PointData(Vec3(0f, -1f, 0f), Vec2(1490f, 16f) * pixSize),

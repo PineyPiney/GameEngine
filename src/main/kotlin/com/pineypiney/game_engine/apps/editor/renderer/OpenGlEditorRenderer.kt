@@ -4,75 +4,86 @@ import com.pineypiney.game_engine.apps.editor.EditorScreen
 import com.pineypiney.game_engine.apps.editor.util.EditorSettings
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.ObjectCollection
+import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
+import com.pineypiney.game_engine.rendering.Framebuffer
+import com.pineypiney.game_engine.rendering.GameRenderer
+import com.pineypiney.game_engine.rendering.PresentingApi
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlIndexedMesh
-import com.pineypiney.game_engine.rendering.opengl.DefaultWindowRenderer
-import com.pineypiney.game_engine.rendering.opengl.Framebuffer
+import com.pineypiney.game_engine.rendering.opengl.OpenGlFramebuffer
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.GLFunc
-import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.window.WindowI
 import glm_.Java.Companion.glm
-import glm_.vec4.Vec4
-import org.lwjgl.opengl.GL11C
 
-class OpenGlEditorRenderer(window: WindowI, override val settings: EditorSettings, override val sort: GameObject.() -> Float, override val depth: Boolean) :
-	DefaultWindowRenderer<EditorScreen, OrthographicCamera>(window, OrthographicCamera(window)), EditorRenderer {
-
-	override val view = I
-	override val projection = I
-	override val guiProjection = I
+class OpenGlEditorRenderer(
+	window: WindowI,
+	api: (GameRenderer<EditorScreen>) -> PresentingApi,
+	override val settings: EditorSettings,
+	override val sort: GameObject.() -> Float,
+	override val depth: Boolean
+) :
+	DefaultWindowGameRenderer<EditorScreen, OrthographicCamera>(window, OrthographicCamera(window), api), EditorRenderer {
 
 	override var backgroundColour = Colour(0, 255, 0)
-	val sceneFramebuffer = Framebuffer(0, 0)
+
+	override val framebuffer: Framebuffer = getRenderingApi().createFramebuffer(window.width, window.height, TextureFormat.RGBA8)
+	val sceneFramebuffer = OpenGlFramebuffer(0, 0)
 
 	var sceneMesh: Mesh = OpenGlIndexedMesh.empty()
-	override fun init() {
-		framebuffer.internalFormat = TextureFormat.RGBA8
-		super.init()
-	}
 
 	override fun render(game: EditorScreen, tickDelta: Double) {
-		val sceneBox = game.getSceneBox()
+
+		// Prepare Scene Render
 		camera.getView(view)
 		camera.getProjection(projection)
 
 		GLFunc.clearColour = backgroundColour.rgbaVec
 		GLFunc.depthTest = depth
 
+		val api = getRenderingApi()
+		val sceneBox = game.getSceneBox()
+
+		// Prepare Scene Render
+
 		viewportSize = sceneBox.size
 		aspectRatio = sceneBox.aspectRatio
 		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, guiProjection)
-		clearFrameBuffer(sceneFramebuffer)
 
-		for ((_, layer) in game.sceneObjects.map) renderLayer(layer, tickDelta, sceneFramebuffer.FBO, sort)
+		api.bindFramebuffer(sceneFramebuffer, backgroundColour.rgbaVec)
 
-		GLFunc.depthTest = false
+		// Render Scene
+
+		for ((_, layer) in game.sceneObjects.map) renderLayer(layer, tickDelta, sort)
 		game.transformer?.let {
-			for (obj in it.catchRenderingComponents()) renderObject(obj, tickDelta, sceneFramebuffer.FBO)
+			for (obj in it.catchRenderingComponents()) renderObject(obj, tickDelta)
 		}
 
-		GLFunc.clearColour = Vec4(0f)
+		api.endFramebuffer(sceneFramebuffer)
+
+
+		// Prepare GUI Render
 
 		viewportSize = window.framebufferSize
 		aspectRatio = window.aspectRatio
-//		camera.updateAspectRatio(aspectRatio)
-//		camera.getProjection(projection)
 		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, guiProjection)
-		clearFrameBuffer()
 
-		renderLayer(1, game, tickDelta, framebuffer) { transformComponent.worldPosition.z }
+		api.bindFramebuffer(framebuffer)
 
-		// This draws the buffer onto the screen
-		Framebuffer.unbind()
-		clear()
-		GLFunc.clearColour = Vec4(1f, 0f, 0f, 1f)
-		screenShader.setUp(screenUniforms, this)
-		sceneFramebuffer.draw(getRenderingApi(), sceneMesh)
-		framebuffer.draw(getRenderingApi())
-		GL11C.glClear(GL11C.GL_DEPTH_BUFFER_BIT)
+		// Render GUI
+		VulkanEditorRenderer.screenShader.setUp(VulkanEditorRenderer.screenUniforms, this)
+		VulkanEditorRenderer.screenShader.setTexture("screenTexture", sceneFramebuffer.colour)
+		VulkanEditorRenderer.screenShader.draw("vertexBuffer", sceneMesh, getRenderingApi())
+
+		renderLayer(1, game, tickDelta, sort)
+
+		api.endFramebuffer(framebuffer)
+
+		// Finish Render
+		api.copyFramebuffer(framebuffer, this)
+		api.present()
 	}
 
 	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {

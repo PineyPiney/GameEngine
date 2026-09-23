@@ -131,6 +131,34 @@ interface Codec<A> {
 
 	companion object {
 
+		fun <A> ifContainsKeyElse(
+			key: String,
+			c1: Codec<A>,
+			c2: Codec<A>,
+			hasKey: (A) -> Boolean
+		): Codec<A> = object : Codec<A> {
+			override fun <E> encode(ops: SerialOps<E>, value: A): E {
+				return (if (hasKey(value)) c1 else c2).encode(ops, value)
+			}
+
+			override fun <E> decode(ops: SerialOps<E>, value: E): A {
+				return if (ops.getChild(value, key) == ops.missing()) c2.decode(ops, value)
+				else c1.decode(ops, value)
+			}
+
+			override fun encode(stream: OutputStream, value: A) {
+				val has = hasKey(value)
+				BOOL.encode(stream, has)
+				(if (has) c1 else c2).encode(stream, value)
+			}
+
+			override fun decode(stream: InputStream): A {
+				val has = BOOL.decode(stream)
+				return if (has) c1.decode(stream)
+				else c1.decode(stream)
+			}
+		}
+
 		fun <A, C1, C2> map(
 			f1: Field<A, C1>,
 			f2: Field<A, C2>,
@@ -330,6 +358,85 @@ interface Codec<A> {
 				val p6 = f6.decode(stream)
 				return factory(p1, p2, p3, p4, p5, p6)
 			}
+		}
+
+		fun <A, C1, C2, C3, C4, C5, C6, C7> map(
+			f1: Field<A, C1>,
+			f2: Field<A, C2>,
+			f3: Field<A, C3>,
+			f4: Field<A, C4>,
+			f5: Field<A, C5>,
+			f6: Field<A, C6>,
+			f7: Field<A, C7>,
+			factory: (C1, C2, C3, C4, C5, C6, C7) -> A
+		): Codec<A> = object : Codec<A> {
+			override fun <E> encode(ops: SerialOps<E>, value: A): E {
+				val map = ops.createMap(f1.key, f1.encode(ops, value))
+				ops.appendMap(map, f2.key, f2.encode(ops, value))
+				ops.appendMap(map, f3.key, f3.encode(ops, value))
+				ops.appendMap(map, f4.key, f4.encode(ops, value))
+				ops.appendMap(map, f5.key, f5.encode(ops, value))
+				ops.appendMap(map, f6.key, f6.encode(ops, value))
+				ops.appendMap(map, f7.key, f7.encode(ops, value))
+				return map
+			}
+
+			override fun <E> decode(ops: SerialOps<E>, value: E): A {
+				if (value == null) throw CodecException()
+				val p1 = f1.decode(ops, value)
+				val p2 = f2.decode(ops, value)
+				val p3 = f3.decode(ops, value)
+				val p4 = f4.decode(ops, value)
+				val p5 = f5.decode(ops, value)
+				val p6 = f6.decode(ops, value)
+				val p7 = f7.decode(ops, value)
+				return factory(p1, p2, p3, p4, p5, p6, p7)
+			}
+
+			override fun encode(stream: OutputStream, value: A) {
+				f1.encode(stream, value)
+				f2.encode(stream, value)
+				f3.encode(stream, value)
+				f4.encode(stream, value)
+				f5.encode(stream, value)
+				f6.encode(stream, value)
+				f7.encode(stream, value)
+			}
+
+			override fun decode(stream: InputStream): A {
+				val p1 = f1.decode(stream)
+				val p2 = f2.decode(stream)
+				val p3 = f3.decode(stream)
+				val p4 = f4.decode(stream)
+				val p5 = f5.decode(stream)
+				val p6 = f6.decode(stream)
+				val p7 = f7.decode(stream)
+				return factory(p1, p2, p3, p4, p5, p6, p7)
+			}
+		}
+
+		fun <C1, C2> pair(
+			c1: Codec<C1>, n1: String,
+			c2: Codec<C2>, n2: String,
+		): Codec<Pair<C1, C2>> {
+			return map(
+				c1.field(Pair<C1, C2>::first, n1),
+				c2.field(Pair<C1, C2>::second, n2),
+				::Pair
+			)
+		}
+
+		fun <C1, C2, C3> triple(
+			c1: Codec<C1>, n1: String,
+			c2: Codec<C2>, n2: String,
+			c3: Codec<C3>, n3: String
+		): Codec<Triple<C1, C2, C3>> {
+			return map(
+				c1.field(Triple<C1, C2, C3>::first, n1),
+				c2.field(Triple<C1, C2, C3>::second, n2),
+				c3.field(Triple<C1, C2, C3>::third, n3),
+				::Triple
+			)
 		}
 
 		fun <E : Enum<E>> enum(fromString: (String) -> E): Codec<E> = STRING.map(Enum<E>::name, fromString)

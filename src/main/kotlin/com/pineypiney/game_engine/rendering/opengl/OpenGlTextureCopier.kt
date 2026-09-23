@@ -14,17 +14,24 @@ import glm_.vec3.Vec3i
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL30C
 
-class TextureCopyFramebuffer : TextureCopier() {
+class OpenGlTextureCopier : TextureCopier() {
 
 	val FBO = GLFunc.genFrameBuffer()
 
+	var oldDraw: Int = 0
+	var oldRead: Int = 0
+
 	override fun init() {
+		oldDraw = GLFunc.drawFramebuffer
+		oldRead = GLFunc.readFramebuffer
 		bind()
 		GL11C.glReadBuffer(GL30C.GL_COLOR_ATTACHMENT0)
 		GL11C.glDrawBuffer(GL30C.GL_COLOR_ATTACHMENT1)
 	}
 
-	override fun start() {}
+	override fun start() {
+		bind()
+	}
 
 	fun bind() = GL30C.glBindFramebuffer(GL30C.GL_FRAMEBUFFER, FBO)
 
@@ -67,7 +74,11 @@ class TextureCopyFramebuffer : TextureCopier() {
 	override fun execute() {}
 
 	override fun delete() {
-		Framebuffer.unbind()
 		GL30C.glDeleteFramebuffers(FBO)
+		GL30C.glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, oldDraw)
+		GL30C.glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, oldRead)
+		GL11C.glReadBuffer(GL30C.GL_COLOR_ATTACHMENT0)
+		GL11C.glDrawBuffer(GL30C.GL_COLOR_ATTACHMENT0)
+
 	}
 }

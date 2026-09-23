@@ -48,11 +48,10 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 	}
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
-		if (text.lines.isEmpty()) return
-
+		val mesh = text.data.mesh ?: return
 
 		shader.setUp(uniforms, renderer)
-		shader.draw("vertexBuffer", text.data.mesh!!, renderer)
+		shader.draw("vertexBuffer", mesh, renderer)
 	}
 
 	fun renderUnderline(

@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedCom
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec4.Vec4
 
@@ -50,6 +51,6 @@ open class OutlinedSliderRendererComponent(parent: GameObject) : ShaderRenderedC
 
 	companion object {
 		val sliderShader =
-			ShaderLoader[ResourceKey("vertex/2D_pass_pos"), ResourceKey("fragment/sliders/outlined_slider")]
+			ShaderLoader[ResourceKey("vertex/2D_pass_pos"), ResourceKey("fragment/sliders/outlined_slider"), RenderShaderParameters(depthTestOp = null)]
 	}
 }

@@ -25,6 +25,8 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 		VK13.vkGetPhysicalDeviceFeatures2(physicalDevice, features)
 		supportsBDA = bdaFeatures.bufferDeviceAddress()
 		features.features().geometryShader(true)
+
+		getLimits()
 	}
 
 	@Throws(RuntimeException::class)

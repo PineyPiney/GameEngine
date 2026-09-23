@@ -8,7 +8,9 @@ import com.pineypiney.game_engine.window.WindowI
 interface WindowRendererI<in E : GameLogicI> : GameRendererI<E> {
 
 	val window: WindowI
-
 	val camera: CameraI
+
 	fun updateAspectRatio(window: WindowI, objects: ObjectCollection)
+
+	override fun getRenderingApi(): PresentingApi
 }

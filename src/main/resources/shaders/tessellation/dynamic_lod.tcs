@@ -19,15 +19,16 @@ out float ctrlColour[];
 #endif
 
 #ifdef VULKAN
-layout(location = 1) in vec2 texCoords[];
+layout(location = 0) in vec2 texCoords[];
 
 layout(binding = 0, set = 0) uniform Matrices {
 	mat4 view;
+	mat4 projection;
 };
 
 layout(push_constant) uniform Data {
 	mat4 model;
-	int minTess;
+	layout(offset = 72) int minTess;
 	int maxTess;
 };
 

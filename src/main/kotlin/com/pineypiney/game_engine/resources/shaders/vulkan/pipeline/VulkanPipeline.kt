@@ -471,10 +471,14 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 					while (builders.size <= uniformBuffer.set) builders.add(VulkanDescriptorLayout.Builder())
 					val builder = builders[uniformBuffer.set]
 					builder.addStage(stage)
-					when (val data = uniformBuffer.data) {
-						is DataType.Sampler -> builder.addCombinedImage(uniformBuffer.binding, uniformBuffer.name)
-						is DataType.Image -> builder.addStorageImage(uniformBuffer.binding, uniformBuffer.name)
-						is DataType.Struct -> builder.addStorageBuffer(device, uniformBuffer.binding, uniformBuffer.name, data)
+					try {
+						when (val data = uniformBuffer.data) {
+							is DataType.Sampler -> builder.addCombinedImage(uniformBuffer.binding, uniformBuffer.name)
+							is DataType.Image -> builder.addStorageImage(uniformBuffer.binding, uniformBuffer.name)
+							is DataType.Struct -> builder.addStorageBuffer(device, uniformBuffer.binding, uniformBuffer.name, data)
+						}
+					} catch (e: PipelineException) {
+						GameEngineI.logger.error("Error adding binding to uniform set ${uniformBuffer.set} in pipeline ${data.values.joinToString(transform = VulkanShaderData::name)}:\n${e.message}")
 					}
 				}
 			}

@@ -60,8 +60,11 @@ open class GamepadInput(val input: Inputs, key: ((Int, Int) -> Unit)? = null) : 
 
 	fun getController(id: Int): GamePad? = connectedGamepads.firstOrNull { it.id == id }
 
-	fun setDefaultController(set: (GamePad) -> Unit) {
-		gamepadConnectCallback = set
+	inline fun setDefaultController(crossinline current: () -> Int, crossinline set: (GamePad?) -> Unit) {
+
+		gamepadConnectCallback = { if (current.invoke() == -1) set(it) }
+		gamepadDisconnectCallback = { if (current.invoke() == it.id) set(null) }
+
 		val gamepad = connectedGamepads.firstOrNull()
 		if (gamepad != null) set(gamepad)
 	}

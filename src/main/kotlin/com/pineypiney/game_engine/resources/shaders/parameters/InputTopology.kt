@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.resources.shaders.parameters
 
 import com.pineypiney.game_engine.util.ApiEnum
 import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL40C
 import org.lwjgl.vulkan.VK10
 
 enum class InputTopology(override val opengl: Int, override val vulkan: Int) : ApiEnum {
@@ -12,4 +13,5 @@ enum class InputTopology(override val opengl: Int, override val vulkan: Int) : A
 	TRIANGLES(GL11C.GL_TRIANGLES, VK10.VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST),
 	TRIANGLE_STRIP(GL11C.GL_TRIANGLE_STRIP, VK10.VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP),
 	TRIANGLE_FAN(GL11C.GL_TRIANGLE_FAN, VK10.VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN),
+	PATCHES(GL40C.GL_PATCHES, VK10.VK_PRIMITIVE_TOPOLOGY_PATCH_LIST),
 }

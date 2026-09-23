@@ -63,19 +63,21 @@ class VulkanGraphicsPipeline(
 		val colourBlendAttachment = VkPipelineColorBlendAttachmentState.calloc(1)
 		val multisample = VkPipelineMultisampleStateCreateInfo.calloc().`sType$Default`()
 		val depthStencil = VkPipelineDepthStencilStateCreateInfo.calloc().`sType$Default`()
+		val tesselation = VkPipelineTessellationStateCreateInfo.calloc().`sType$Default`()
 		val renderInfo = VkPipelineRenderingCreateInfo.calloc().`sType$Default`()
-		val dynamic = VkPipelineDynamicStateCreateInfo.calloc()
 
-		fun shaders(vertex: VulkanShaderModule, fragment: VulkanShaderModule): Builder {
+		fun shaders(vertex: VulkanShaderModule, fragment: VulkanShaderModule, optional: Collection<VulkanShaderModule>): Builder {
 			modules.clear()
 			modules.addAll(vertex, fragment)
+			modules.addAll(optional)
 			return this
 		}
 
-		fun shaders(vertexName: String, fragmentName: String): Builder {
+		fun shaders(vertexName: String, fragmentName: String, optional: Iterable<String>): Builder {
 			val vertex = ShaderLoader.INSTANCE.getSubShader(ResourceKey(vertexName)) as VulkanShaderModule
 			val fragment = ShaderLoader.INSTANCE.getSubShader(ResourceKey(fragmentName)) as VulkanShaderModule
-			return shaders(vertex, fragment)
+			val optional = optional.map { ShaderLoader.INSTANCE.getSubShader(ResourceKey(it)) as VulkanShaderModule }
+			return shaders(vertex, fragment, optional)
 		}
 
 		fun setLayout(layout: VulkanPipelineLayout): Builder {
@@ -99,7 +101,13 @@ class VulkanGraphicsPipeline(
 				.cullMode(parameters.cullMode.vulkan, VK10.VK_FRONT_FACE_CLOCKWISE)
 
 			parameters.depthTestOp?.let { enableDepthTest(true, it.vulkan) } ?: disableDepthTest()
-			parameters.blending?.let { (src, dst, op) -> enableBlending(src.vulkan, dst.vulkan, op.vulkan) } ?: disableBlending()
+			parameters.blending?.let { (src, dst, op) ->
+				enableBlending(
+					src.colour().vulkan, dst.colour().vulkan, op.colour().vulkan,
+					src.alpha().vulkan, dst.alpha().vulkan, op.alpha().vulkan
+				)
+			} ?: disableBlending()
+			if (parameters.tesselation != -1) tesselation(parameters.tesselation)
 			if (parameters.multisampling == 1) disableMultisampling() else enableMultisampling(parameters.multisampling)
 
 			return this
@@ -123,15 +131,18 @@ class VulkanGraphicsPipeline(
 			return this
 		}
 
-		fun enableBlending(srcColour: Int = VK10.VK_BLEND_FACTOR_SRC_ALPHA, dstColour: Int = VK10.VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, op: Int = VK10.VK_BLEND_OP_ADD): Builder {
+		fun enableBlending(
+			srcColour: Int = VK10.VK_BLEND_FACTOR_SRC_ALPHA, dstColour: Int = VK10.VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, colourOp: Int = VK10.VK_BLEND_OP_ADD,
+			srcAlpha: Int = VK10.VK_BLEND_FACTOR_SRC_ALPHA, dstAlpha: Int = VK10.VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, alphaOp: Int = VK10.VK_BLEND_OP_ADD
+		): Builder {
 			colourBlendAttachment.colorWriteMask(15)
 				.blendEnable(true)
 				.srcColorBlendFactor(srcColour)
 				.dstColorBlendFactor(dstColour)
-				.colorBlendOp(op)
-				.srcAlphaBlendFactor(VK10.VK_BLEND_FACTOR_ONE)
-				.dstAlphaBlendFactor(VK10.VK_BLEND_FACTOR_ZERO)
-				.alphaBlendOp(op)
+				.colorBlendOp(colourOp)
+				.srcAlphaBlendFactor(srcAlpha)
+				.dstAlphaBlendFactor(dstAlpha)
+				.alphaBlendOp(alphaOp)
 
 			return this
 		}
@@ -198,6 +209,13 @@ class VulkanGraphicsPipeline(
 			return this
 		}
 
+		fun tesselation(controlPoints: Int): Builder {
+			tesselation.flags(0)
+				.patchControlPoints(controlPoints)
+			inputAssembly.topology(VK10.VK_PRIMITIVE_TOPOLOGY_PATCH_LIST)
+			return this
+		}
+
 		fun colourFormat(format: Int): Builder {
 
 			renderInfo.colorAttachmentCount(1)
@@ -259,6 +277,7 @@ class VulkanGraphicsPipeline(
 					.pMultisampleState(multisample)
 					.pColorBlendState(colourBlend)
 					.pDepthStencilState(depthStencil)
+					.pTessellationState(tesselation)
 					.pDynamicState(dynamicState)
 					.layout(layout!!.handle)
 
@@ -288,6 +307,8 @@ class VulkanGraphicsPipeline(
 			multisample.`sType$Default`()
 			depthStencil.clear()
 			depthStencil.`sType$Default`()
+			tesselation.clear()
+			tesselation.`sType$Default`()
 			renderInfo.clear()
 			renderInfo.`sType$Default`()
 			layout = null
@@ -302,6 +323,7 @@ class VulkanGraphicsPipeline(
 			colourBlendAttachment.free()
 			multisample.free()
 			depthStencil.free()
+			tesselation.free()
 			renderInfo.free()
 		}
 	}

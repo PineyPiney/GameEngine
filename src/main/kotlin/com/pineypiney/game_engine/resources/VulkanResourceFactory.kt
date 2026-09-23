@@ -35,9 +35,10 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 		return ShaderLoader.INSTANCE.loadShaderModuleVulkan(vulkan, loader, ResourceKey(fileName.removeSuffix(".$suf")), fileName, code, stage)
 	}
 
+	@Suppress("UNCHECKED_CAST")
 	override fun createRenderShader(vertex: ShaderModule, fragment: ShaderModule, stages: List<ShaderModule>, parameters: RenderShaderParameters, deletionQueue: DeletionQueue): RenderShader {
 		val builder = VulkanGraphicsPipeline.Builder()
-			.shaders(vertex as VulkanShaderModule, fragment as VulkanShaderModule)
+			.shaders(vertex as VulkanShaderModule, fragment as VulkanShaderModule, stages as List<VulkanShaderModule>)
 			.generateLayout(vulkan.device)
 			.parameters(parameters)
 			.colourFormat(vulkan.drawFormat.vulkan)
@@ -102,7 +103,7 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 		return createIndexedMesh(name, vertices.toBuffer(), indices, attributes)
 	}
 
-	override fun createModelMesh(id: String, vertices: Array<out MeshVertex>, indices: IntArray, alpha: Float, order: Int, material: ModelMaterial): ModelMesh {
+	override fun createModelMesh(id: String, vertices: Array<out MeshVertex>, indices: IntArray, material: ModelMaterial): ModelMesh {
 		val mesh = VulkanModelMesh(vulkan, id, vertices, indices.toBuffer(), material)
 		vulkan.deletionQueue.push(mesh)
 		return mesh

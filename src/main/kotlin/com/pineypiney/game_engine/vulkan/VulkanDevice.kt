@@ -11,6 +11,7 @@ import org.lwjgl.vulkan.*
 
 class VulkanDevice(val device: VkDevice, val physicalDevice: VulkanPhysicalDevice, val queueFamilyIndex: Int) : Deletable {
 
+	val instance get() = physicalDevice.physicalDevice.instance
 	val allocator: Long
 
 	val samplers = mutableMapOf<Int, Long>()

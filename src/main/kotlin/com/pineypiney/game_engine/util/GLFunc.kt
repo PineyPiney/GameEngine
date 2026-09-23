@@ -35,28 +35,55 @@ object GLFunc {
 	var blend: Boolean
 		get() = glGetBoolean(GL_BLEND)
 		set(value) = setBool(GL_BLEND, value)
-	val blendFuncSrc: Int get() = glGetInteger(GL_BLEND_SRC)
-	val blendFuncDst: Int get() = glGetInteger(GL_BLEND_DST)
 
-	val blendFuncSrcRGB: Int get() = glGetInteger(GL_BLEND_SRC_RGB)
-	val blendFuncSrcA: Int get() = glGetInteger(GL_BLEND_SRC_ALPHA)
-	val blendFuncDstRGB: Int get() = glGetInteger(GL_BLEND_DST_RGB)
-	val blendFuncDstA: Int get() = glGetInteger(GL_BLEND_DST_ALPHA)
-	var blendFuncSeparate: Vec4i
-		get() = Vec4i(blendFuncSrcRGB, blendFuncSrcA, blendFuncDstRGB, blendFuncDstA)
-		set(value) = glBlendFuncSeparate(value.x, value.y, value.z, value.w)
-	var blendFunc: Vec2i
-		get() = Vec2i(blendFuncSrc, blendFuncDst)
+	val blendFactorSrc: Int get() = glGetInteger(GL_BLEND_SRC)
+	val blendFactorDst: Int get() = glGetInteger(GL_BLEND_DST)
+	val blendOp: Int get() = glGetInteger(GL_BLEND_EQUATION)
+
+	val blendFactorSrcRGB: Int get() = glGetInteger(GL_BLEND_SRC_RGB)
+	val blendFactorSrcA: Int get() = glGetInteger(GL_BLEND_SRC_ALPHA)
+	val blendFactorDstRGB: Int get() = glGetInteger(GL_BLEND_DST_RGB)
+	val blendFactorDstA: Int get() = glGetInteger(GL_BLEND_DST_ALPHA)
+	val blendOpRGB: Int get() = glGetInteger(GL_BLEND_EQUATION_RGB)
+	val blendOpA: Int get() = glGetInteger(GL_BLEND_EQUATION_ALPHA)
+
+	/**
+	 * Set the Blend Functions separately for Colour and Alpha
+	 *
+	 * @param x Src Factor
+	 * @param y Dst Factor
+	 */
+	var blendFactors: Vec2i
+		get() = Vec2i(blendFactorSrc, blendFactorDst)
 		set(value) = glBlendFunc(value.x, value.y)
-	var blendEquationRGB: Int
-		get() = glGetInteger(GL_BLEND_EQUATION_RGB)
+
+	/**
+	 * Set the Blend Functions separately for Colour and Alpha
+	 *
+	 * @param x Src Colour
+	 * @param y Dst Colour
+	 * @param z Src Alpha
+	 * @param w Dst Alpha
+	 */
+	var blendFactorsSeparate: Vec4i
+		get() = Vec4i(blendFactorSrcRGB, blendFactorDstRGB, blendFactorSrcA, blendFactorDstA)
+		set(value) = glBlendFuncSeparate(value.x, value.y, value.z, value.w)
+
+	var blendEquation: Int
+		get() = blendOp
+		set(value) = glBlendEquation(value)
+
+	/**
+	 * Set the Blend Operations separately for Colour and Alpha
+	 *
+	 * Params:
+	 * x - Colour Operation
+	 * y - Alpha Operation
+	 */
+	var blendEquationSeparate: Vec2i
+		get() = Vec2i(blendOpRGB, blendOpA)
 		set(value) {
-			glBlendEquationSeparate(value, blendEquationA)
-		}
-	var blendEquationA: Int
-		get() = glGetInteger(GL_BLEND_EQUATION_ALPHA)
-		set(value) {
-			glBlendEquationSeparate(blendEquationRGB, value)
+			glBlendEquationSeparate(value.x, value.y)
 		}
 
 	var blendColour: Vec4
@@ -116,7 +143,11 @@ object GLFunc {
 		}
 	val sampleBuffers: Int get() = glGetInteger(GL_SAMPLE_BUFFERS)
 
-	var scissor: Vec4i
+	var scissor: Boolean
+		get() = glGetBoolean(GL_SCISSOR_TEST)
+		set(value) = setBool(GL_SCISSOR_TEST, value)
+
+	var scissorBox: Vec4i
 		get() = Vec4i(0, getInts(GL_SCISSOR_BOX, 4))
 		set(value) = glScissor(value.x, value.y, value.z, value.w)
 
@@ -175,6 +206,11 @@ object GLFunc {
 		get() = Vec2i(2, getInts(GL_VIEWPORT, 4))
 		set(value) = glViewport(0, 0, value.x, value.y)
 
+
+	val drawFramebuffer: Int get() = getInts(GL_DRAW_FRAMEBUFFER_BINDING, 1)[0]
+	val readFramebuffer: Int get() = getInts(GL_READ_FRAMEBUFFER_BINDING, 1)[0]
+//	val drawAttachment: Int get() = glGetFramebufferParameteriv()
+
 	/** Maximum amount of atomic counters available in fragment shaders */
 	val maxAtomicCounterFragment: Int get() = glGetInteger(GL_MAX_FRAGMENT_ATOMIC_COUNTERS)
 
@@ -197,7 +233,7 @@ object GLFunc {
 	val maxTessLevel: Int get() = glGetInteger(GL_MAX_TESS_GEN_LEVEL)
 
 	/** Maximum size of the viewport */
-	val maxViewPort: Vec2i get() = Vec2i(0, getInts(GL_MAX_VIEWPORT_DIMS, 0))
+	val maxViewPort: Vec2i get() = Vec2i(0, getInts(GL_MAX_VIEWPORT_DIMS, 2))
 
 	fun getDataSize(dataType: Int): Int {
 		return when (dataType) {

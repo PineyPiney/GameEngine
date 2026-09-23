@@ -10,14 +10,13 @@ import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.OutlinedSliderRendererComponent
+import com.pineypiney.game_engine.rendering.GameRenderer
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
-import com.pineypiney.game_engine.rendering.opengl.Framebuffer
-import com.pineypiney.game_engine.rendering.opengl.OpenGlGameRenderer
+import com.pineypiney.game_engine.rendering.opengl.OpenGlPresentRendering
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.InputState
-import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.serialisation.JsonOps
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
@@ -37,20 +36,15 @@ class AnimatorLogic(
 	var creator: () -> GameObject
 ) : WindowGameLogic() {
 
-	override val renderer = object : OpenGlGameRenderer<AnimatorLogic>() {
+	override val renderer = object : GameRenderer<AnimatorLogic>(window, ::OpenGlPresentRendering) {
 
-		override val view = I
-		override val projection = I
-		override val guiProjection = I
-
-		override val window: WindowI = this@AnimatorLogic.window
 		override val camera: CameraI = OrthographicCamera(window)
 
 		override fun init() {
 			super.init()
 
 			GLFunc.blend = true
-			GLFunc.blendFunc = Vec2i(GL11C.GL_SRC_ALPHA, GL11C.GL_ONE_MINUS_SRC_ALPHA)
+			GLFunc.blendFactors = Vec2i(GL11C.GL_SRC_ALPHA, GL11C.GL_ONE_MINUS_SRC_ALPHA)
 			GLFunc.clearColour = Vec4(1f)
 		}
 
@@ -58,8 +52,8 @@ class AnimatorLogic(
 			camera.getView(view)
 			camera.getProjection(projection)
 
-			clearFrameBuffer()
-			GLFunc.viewportO = Vec2i(framebuffer.width, framebuffer.height)
+			val api = getRenderingApi()
+			api.bindFramebuffer(framebuffer)
 
 			for (o in game.gameObjects.map.flatMap { it.value.flatMap { it.allActiveDescendants() } }) {
 				val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
@@ -70,12 +64,8 @@ class AnimatorLogic(
 			}
 
 			// This draws the buffer onto the screen
-			Framebuffer.unbind()
-			GLFunc.viewportO = window.framebufferSize
-			clear()
-			screenShader.setUp(screenUniforms, this)
-			framebuffer.draw(getRenderingApi())
-			GL11C.glClear(GL11C.GL_DEPTH_BUFFER_BIT)
+			api.endFramebuffer(framebuffer)
+			api.copyFramebuffer(framebuffer, this)
 		}
 
 		override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {

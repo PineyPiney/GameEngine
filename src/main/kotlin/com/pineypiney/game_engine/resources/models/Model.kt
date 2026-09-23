@@ -32,7 +32,7 @@ class Model(
 		// Get the states, or forget it
 		reset()
 		setStates(states)
-		meshes.sortBy { it.order }
+		meshes.sortBy { it.translation.z }
 	}
 
 	private fun setStates(states: Array<State>) {
@@ -42,7 +42,6 @@ class Model(
 	}
 
 	fun reset() {
-		meshes.forEach { it.reset() }
 		rootBone?.reset()
 	}
 

@@ -21,8 +21,6 @@ class VulkanModelMesh(
 
 	override var translation: Vec3 = Vec3()
 	override var rotation: Quat = Quat()
-	override var alpha = 1f
-	override var order = 0
 
 	override val indices = IntArray(indices.capacity() / 4)
 

@@ -1,40 +1,35 @@
-package com.pineypiney.game_engine.rendering.opengl
+package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.rendering.RenderingApi
-import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
-abstract class OpenGlGameRenderer<in E : GameLogicI> : WindowRendererI<E> {
+abstract class GameRenderer<in E : GameLogicI>(override val window: WindowI, apiFact: (GameRenderer<E>) -> PresentingApi) : WindowRendererI<E> {
 
-	val framebuffer = Framebuffer(0, 0)
+	private val api = apiFact(this)
+	open val framebuffer = api.createFramebuffer(window.width, window.height)
 
 	override val viewPos: Vec3 get() = camera.cameraPos
-	override lateinit var viewportSize: Vec2i
 	override var aspectRatio: Float = 1f
-	private val renderingApi: RenderingApi = OpenGlRendering
+	override var viewportSize: Vec2i = window.framebufferSize
+
+	override val view = I
+	override val projection = I
+	override val guiProjection = I
 
 	override fun init() {
 		camera.init()
-		framebuffer.setSize(window.framebufferSize)
 		viewportSize = window.framebufferSize
+		framebuffer.init()
 	}
 
-	open fun clearFrameBuffer(buffer: Framebuffer = this.framebuffer) {
-		buffer.bind()
-		viewportSize = Vec2i(buffer.width, buffer.height)
-		GLFunc.viewportO = viewportSize
-		clear()
-	}
-
-	override fun getRenderingApi(): RenderingApi = renderingApi
+	override fun getRenderingApi(): PresentingApi = api
 
 	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
 		camera.updateAspectRatio(window.aspectRatio)
@@ -44,7 +39,7 @@ abstract class OpenGlGameRenderer<in E : GameLogicI> : WindowRendererI<E> {
 	}
 
 	override fun setClearColour(colour: Vec4) {
-		GLFunc.clearColour = colour
+//		GLFunc.clearColour = colour
 	}
 
 	open fun deleteFrameBuffers() {
@@ -53,6 +48,7 @@ abstract class OpenGlGameRenderer<in E : GameLogicI> : WindowRendererI<E> {
 
 	override fun delete() {
 		deleteFrameBuffers()
+		api.delete()
 	}
 
 	companion object {

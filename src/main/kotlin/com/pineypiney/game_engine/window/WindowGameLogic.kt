@@ -173,7 +173,9 @@ abstract class WindowGameLogic : GameLogic() {
 		gameObjects.forAllObjects {
 			// Ensure it updates the aspect ratio of transform components first
 			val components = components.filterIsInstance<UpdatingAspectRatioComponent>().sortedByDescending { it is TransformComponent }
-			for (r in components) r.updateAspectRatio(viewport)
+			for (r in components) {
+				r.updateAspectRatio(viewport)
+			}
 		}
 	}
 }

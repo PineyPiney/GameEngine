@@ -10,11 +10,10 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider2DCompone
 import com.pineypiney.game_engine.objects.components.rendering.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.util.Animation
+import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
-import com.pineypiney.game_engine.rendering.opengl.DefaultWindowRenderer
-import com.pineypiney.game_engine.rendering.vulkan.VulkanGameRenderer
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.BitMap3D
 import com.pineypiney.game_engine.util.Colour
@@ -102,7 +101,7 @@ class EngineTest{
 
 	@Test
 	fun testTesselationShader(){
-		runOpenGlEngine(::TesselationShaderTest, ::PerspectiveCamera, version = Vec2i(4, 1))
+		runVulkanEngine(::TesselationShaderTest, ::PerspectiveCamera, version = Vec2i(4, 1))
 	}
 
 	companion object {
@@ -116,21 +115,20 @@ class EngineTest{
 		}
 
 		fun <G : WindowGameLogic, C : CameraI> runOpenGlEngine(
-			screen: (TestOpenGlEngine<G, C>, DefaultWindowRenderer<G, C>) -> G,
+			screen: (TestOpenGlEngine<G, C>, DefaultWindowGameRenderer<G, C>) -> G,
 			camera: (WindowI) -> C,
 			ups: Int = 20,
 			fps: Int = 2000,
 			version: Vec2i = Vec2i(3)
 		) {
 			LibrarySetUp.initGLFW()
-
 			val window = TestWindow(version = version)
 			window.init()
 			TestOpenGlEngine(window, screen, camera, ups, fps).run()
 		}
 
 		fun <G : WindowGameLogic, C : CameraI> runVulkanEngine(
-			screen: (TestVulkanEngine<G, C>, VulkanGameRenderer<G, C>) -> G,
+			screen: (TestVulkanEngine<G, C>, DefaultWindowGameRenderer<G, C>) -> G,
 			camera: (WindowI) -> C,
 			ups: Int = 20,
 			fps: Int = 2000,

@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine_test.testVR
 
+import com.pineypiney.game_engine.rendering.GameRenderer
 import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.opengl.Framebuffer
-import com.pineypiney.game_engine.rendering.opengl.OpenGlGameRenderer
+import com.pineypiney.game_engine.rendering.opengl.OpenGlFramebuffer
 import com.pineypiney.game_engine.rendering.opengl.OpenGlRendering
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.maths.I
@@ -37,18 +37,18 @@ class TestVRRenderer(w: Int, h: Int, override val hmd: HMD): VRRenderer<TestVRGa
 		blitBuffer(leftFramebuffer, leftDisplay)
 		blitBuffer(rightFramebuffer, rightDisplay)
 
-		submitFrames(leftDisplay.TCB, rightDisplay.TCB)
+		submitFrames(leftDisplay.colour.texturePointer, rightDisplay.colour.texturePointer)
 		GL11.glGetError()
 
 		// Draws output to the test window
-		Framebuffer.unbind()
+		OpenGlFramebuffer.unbind()
 		clear()
 
 		GLFunc.viewportO = game.gameEngine.window.framebufferSize
 
-		val shader = OpenGlGameRenderer.screenShader
+		val shader = GameRenderer.screenShader
 		shader.use(getRenderingApi())
-		shader.setUniforms(OpenGlGameRenderer.screenUniforms, this)
+		shader.setUniforms(GameRenderer.screenUniforms, this)
 		leftDisplay.draw(getRenderingApi(), Mesh.textureQuad(game.gameEngine.resourcesLoader.factory, "left Display", Vec2(-0.5, 0), Vec2(1, 2)))
 		rightDisplay.draw(getRenderingApi(), Mesh.textureQuad(game.gameEngine.resourcesLoader.factory, "right Display", Vec2(0.5, 0), Vec2(1, 2)))
 		game.gameEngine.window.update()

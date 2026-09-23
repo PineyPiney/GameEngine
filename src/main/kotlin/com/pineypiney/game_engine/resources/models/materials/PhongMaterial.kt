@@ -4,12 +4,12 @@ import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.DeletionQueue
 import glm_.pow
-import glm_.vec3.Vec3
+import glm_.vec4.Vec4
 
 class PhongMaterial(
 	override val name: String,
 	val textures: Map<TextureType, Texture2D>,
-	val baseColour: Vec3 = Vec3(1),
+	override val baseColour: Vec4 = Vec4(1f),
 	val alpha: Float = 1f,
 	val shininess: Float = 64f
 ): ModelMaterial() {
@@ -34,7 +34,7 @@ class PhongMaterial(
 		shader.setUInt("$material.textureMask", mask.toUInt())
 		shader.setBool("$material.ambDiff", true)
 		shader.setFloat("$material.shininess", shininess)
-		shader.setFloat("$material.alpha", alpha)
+		shader.setFloat("$material.alpha", baseColour.a)
 	}
 
 	override fun delete() {

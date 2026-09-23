@@ -1,13 +1,20 @@
 package com.pineypiney.game_engine.rendering.opengl
 
+import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.resources.shaders.StencilOp
 import com.pineypiney.game_engine.resources.shaders.parameters.CompareOp
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipeline
 import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.TextureFormat
+import com.pineypiney.game_engine.resources.textures.parameters.TextureUsage
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.window.Viewport
+import glm_.glm
+import glm_.mat4x4.Mat4
+import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
+import glm_.vec4.Vec4
 import glm_.vec4.Vec4i
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL11C.GL_UNSIGNED_INT
@@ -29,6 +36,23 @@ object OpenGlRendering : RenderingApi {
 
 	override fun updateUniforms(pipeline: VulkanPipeline) {
 		throw UnsupportedOperationException("OpenGL pipelines are not supported")
+	}
+
+	override fun bindFramebuffer(framebuffer: Framebuffer, colour: Vec4, depth: Float, stencil: Int, viewport: Viewport) {
+		(framebuffer as OpenGlFramebuffer).bind()
+
+		GLFunc.clearColour = colour
+		GLFunc.depthClear = depth.toDouble()
+		GLFunc.stencilClear = stencil
+		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT or GL11C.GL_DEPTH_BUFFER_BIT or GL11C.GL_STENCIL_BUFFER_BIT)
+
+		setViewport(viewport)
+		GLFunc.scissor = false
+//		setScissors(viewport)
+	}
+
+	override fun endFramebuffer(framebuffer: Framebuffer) {
+		OpenGlFramebuffer.unbind()
 	}
 
 	override fun bindVertices(handle: Int) {
@@ -100,6 +124,32 @@ object OpenGlRendering : RenderingApi {
 	}
 
 	override fun setScissors(viewport: Viewport) {
-		GLFunc.scissor = Vec4i(viewport.bl, viewport.size)
+		GLFunc.scissorBox = Vec4i(viewport.bl, viewport.size)
 	}
+
+	override fun getMaxTessellationPatchSize(): Int {
+		return GLFunc.maxPatchVertices
+	}
+
+	override fun getMaxTessellationLevel(): Int {
+		return GLFunc.maxTessLevel
+	}
+
+	override fun getMaxComputeWorkgroupSize(): Vec3i = GLFunc.maxComputeWorkGroupSize
+
+	override fun getMaxComputeWorkgroups(): Vec3i = GLFunc.maxComputeWorkGroupCount
+
+	override fun getMaxComputeWorkgroupInvocations(): Int = GLFunc.maxComputeWorkGroupInvocations
+
+	override fun getMaxViewport(): Vec2i = GLFunc.maxViewPort
+
+	override fun updateGui(mat: Mat4, aspectRatio: Float) {
+		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, mat)
+	}
+
+	override fun createFramebuffer(width: Int, height: Int, colourFormat: TextureFormat, depthStencilFormat: TextureFormat, usage: Collection<TextureUsage>): Framebuffer {
+		return OpenGlFramebuffer(width, height, colourFormat, depthStencilFormat)
+	}
+
+	override fun delete() {}
 }

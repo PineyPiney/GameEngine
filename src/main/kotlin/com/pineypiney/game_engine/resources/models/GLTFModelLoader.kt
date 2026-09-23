@@ -278,7 +278,7 @@ class GLTFModelLoader {
 			MeshVertex(values)
 
         }
-		meshes.add(factory.createModelMesh(name, vertices, indArray.toIntArray(), material = materials.getOrElse(material) { PBRMaterial.default }))
+		meshes.add(factory.createModelMesh(name, vertices, indArray.toIntArray(), materials.getOrElse(material) { PBRMaterial.default }))
     }
 
 	fun loadBones(fileName: String, nodesJson: JsonArray, boneJson: JsonObject, bones: MutableSet<Bone>) {

@@ -176,6 +176,12 @@ abstract class Component(final override val parent: GameObject) : ComponentI {
 			field.parse(stream, this, lateParse)
 		}
 	}
+
+	companion object {
+		init {
+			Components.load()
+		}
+	}
 }
 
 fun <C : Component> C.applied(): C {

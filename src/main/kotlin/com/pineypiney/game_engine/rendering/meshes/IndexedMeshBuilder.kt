@@ -2,6 +2,8 @@ package com.pineypiney.game_engine.rendering.meshes
 
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.models.ModelMesh
+import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
+import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -149,10 +151,10 @@ class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
 		return ResourceFactory.INSTANCE.createIndexedMesh(name, vertexBuffer, indices.toIntArray(), Mesh.createAttributes(attributes))
 	}
 
-	fun buildModel(id: String, factory: ResourceFactory): ModelMesh {
+	fun buildModel(id: String, factory: ResourceFactory, material: ModelMaterial = PBRMaterial("$id Mesh Material", emptyMap())): ModelMesh {
 		addVertex()
 		started = false
-		return factory.createModelMesh(id, vertices.toTypedArray(), indices.toIntArray())
+		return factory.createModelMesh(id, vertices.toTypedArray(), indices.toIntArray(), material)
 	}
 
 	companion object {

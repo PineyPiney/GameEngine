@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.resources.shaders.vulkan
 
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.resources.shaders.DataType
+import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.PipelineException
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
 import com.pineypiney.game_engine.vulkan.VmaBuffer
 import com.pineypiney.game_engine.vulkan.VulkanDevice
@@ -15,6 +16,8 @@ abstract class VulkanDescriptorBinding(val binding: Int, val type: Int, val name
 
 	abstract fun contains(uniform: String): Boolean
 
+	abstract fun combine(other: VulkanDescriptorBinding)
+
 	abstract class Image(binding: Int, type: Int, name: String) : VulkanDescriptorBinding(binding, type, name) {
 
 		protected var image: VulkanImage? = null
@@ -25,6 +28,10 @@ abstract class VulkanDescriptorBinding(val binding: Int, val type: Int, val name
 			this.image = image
 			this.layout = layout
 			this.sampler = sampler
+		}
+
+		override fun combine(other: VulkanDescriptorBinding) {
+
 		}
 
 		override fun contains(uniform: String): Boolean = uniform == name
@@ -48,7 +55,7 @@ abstract class VulkanDescriptorBinding(val binding: Int, val type: Int, val name
 		}
 	}
 
-	abstract class Buffer(val device: VulkanDevice, binding: Int, bufferUsage: Int, type: Int, name: String, val variables: DataType.Struct) :
+	abstract class Buffer(val device: VulkanDevice, binding: Int, bufferUsage: Int, type: Int, name: String, var variables: DataType.Struct) :
 		VulkanDescriptorBinding(binding, type, name) {
 
 		val buffer = VmaBuffer.create(device, variables.size.toLong(), bufferUsage, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU, "$name Descriptor Binding")
@@ -74,6 +81,17 @@ abstract class VulkanDescriptorBinding(val binding: Int, val type: Int, val name
 
 		fun getOffsetName(uniform: String): String? {
 			return getOffsetName(name, uniform)
+		}
+
+		override fun combine(other: VulkanDescriptorBinding) {
+			if (other is Buffer) {
+				for ((name, variable) in variables) {
+					val current = other.variables[name]
+					if (current == null) throw PipelineException("Variable $name is declared in one struct but not the other")
+					else if (current.first != variable.first) throw PipelineException("Variable $name is declared with conflicting types ${current.first} and ${variable.first}")
+					else if (current.second != variable.second) throw PipelineException("Variable $name is declared with conflicting indexes ${current.second} and ${variable.second}")
+				}
+			}
 		}
 
 		override fun delete() {

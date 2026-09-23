@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.resources.textures.opengl
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.TextureCopier
-import com.pineypiney.game_engine.rendering.opengl.TextureCopyFramebuffer
+import com.pineypiney.game_engine.rendering.opengl.OpenGlTextureCopier
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
@@ -35,7 +35,7 @@ abstract class OpenGlTexture(override val id: String, val texturePointer: Int, v
 		bind()
 		val buffer = BufferUtils.createByteBuffer(width * height * depth * format.pixelSize)
 		GL11C.glFinish()
-		GL11C.glGetTexImage(target, 0, format.opengl, format.pixelType, buffer)
+		GL11C.glGetTexImage(target, 0, format.openglLayout, format.pixelType, buffer)
 		return buffer
 	}
 
@@ -46,7 +46,7 @@ abstract class OpenGlTexture(override val id: String, val texturePointer: Int, v
 		} else 0
 	}
 
-	override fun createCopier(): TextureCopier = TextureCopyFramebuffer()
+	override fun createCopier(): TextureCopier = OpenGlTextureCopier()
 
 	override fun delete() {
 		unbind()

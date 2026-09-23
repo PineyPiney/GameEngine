@@ -54,7 +54,7 @@ class EditorScreen(override val gameEngine: VulkanWindowedEngine<EditorScreen>, 
 
 	val settings = EditorSettings()
 
-	override val renderer = VulkanEditorRenderer(window, gameEngine.vulkan, settings, sort, depth)
+	override val renderer = VulkanEditorRenderer(window, settings, sort, depth)
 
 	private val fileBrowser = FileBrowser(GameObject("File Browser", 1), this).applied()
 	val objectBrowser = ObjectBrowser(GameObject("Object Browser", 1), this).applied()

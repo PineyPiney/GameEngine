@@ -33,140 +33,144 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.javaType
 
-class Components {
+object Components {
 
-	companion object {
-		private val components: MutableSet<KClass<out ComponentI>> = mutableSetOf()
-		private val fieldTypes: MutableSet<FieldType<*>> = mutableSetOf()
+	private val components: MutableSet<KClass<out ComponentI>> = mutableSetOf()
+	private val fieldTypes: MutableSet<FieldType<*>> = mutableSetOf()
 
-		fun addComponent(component: KClass<out ComponentI>) {
-			if (!component.isAbstract) components.add(component)
-		}
+	fun addComponent(component: KClass<out ComponentI>) {
+		if (!component.isAbstract) components.add(component)
+	}
 
-		fun addFieldType(fieldType: FieldType<*>){
-			fieldTypes.add(fieldType)
-		}
+	fun addFieldType(fieldType: FieldType<*>) {
+		fieldTypes.add(fieldType)
+	}
 
-		fun <T> addFieldType(fieldCreator: (id: String, component: Any, getter: () -> T, setter: (T) -> Unit) -> ComponentField<T>, default: () -> T, klass: KClass<*> = default()!!::class) {
-			fieldTypes.add(FieldType(default, klass, fieldCreator))
-		}
+	fun <T> addFieldType(fieldCreator: (id: String, component: Any, getter: () -> T, setter: (T) -> Unit) -> ComponentField<T>, default: () -> T, klass: KClass<*> = default()!!::class) {
+		fieldTypes.add(FieldType(default, klass, fieldCreator))
+	}
 
-		fun getAllComponentNames() = components.mapNotNull { it.simpleName }
+	fun getAllComponentNames() = components.mapNotNull { it.simpleName }
 
-		fun getAllComponents(): Map<String, KClass<out ComponentI>> =
-			components.associateBy { it.simpleName ?: "Anonymous" }
+	fun getComponent(name: String): KClass<out ComponentI>? {
+		return components.firstOrNull { it.simpleName == name }
+	}
 
-		fun getComponent(name: String): KClass<out ComponentI>? {
-			return components.firstOrNull { it.simpleName == name }
-		}
-
-		fun createComponent(name: String, parent: GameObject): ComponentI? {
-			val component = getComponent(name) ?: return null
-			const@ for (constructor in component.constructors) {
-				val params = mutableMapOf<KParameter, Any?>()
-				for (param in constructor.parameters) {
-					// Components all take a parent GameObject argument
-					if (param.name == "parent" && param.type.javaType == GameObject::class.java) params[param] = parent
-					// If the constructor has a default option then use that one
-					else if (param.isOptional) continue
-					else {
-						// Find the default value for this class
-						val value = fieldTypes.firstNotNullOfOrNull({it.default()}) { d -> d::class == param.type.classifier }
-						if(value != null) params[param] = value
-						// Last resort, if the argument is nullable then set the argument to null
-						else if(param.type.isMarkedNullable) params[param] = null
-						// Otherwise try a new constructor
-						else  continue@const
-					}
-				}
-				return constructor.callBy(params)
-			}
-			return null
-		}
-
-		init {
-			addComponent(Collider2DComponent::class)
-			addComponent(Collider3DComponent::class)
-
-			addComponent(AtlasAnimatedSprite::class)
-			addComponent(CollisionPolygonRenderer::class)
-			addComponent(CaretRendererComponent::class)
-			addComponent(ColouredSpriteComponent::class)
-			addComponent(ColourRendererComponent::class)
-			addComponent(MeshedTextureComponent::class)
-			addComponent(ModelRendererComponent::class)
-			addComponent(SpriteComponent::class)
-			addComponent(TextRendererComponent::class)
-
-			addComponent(ScrollBarComponent::class)
-
-			addComponent(ActionFloatSliderComponent::class)
-			addComponent(ActionIntSliderComponent::class)
-			addComponent(ColourSliderRendererComponent::class)
-			addComponent(OutlinedSliderRendererComponent::class)
-			addComponent(FloatSliderComponent::class)
-			addComponent(SliderPointerComponent::class)
-
-			addComponent(ActionTextFieldComponent::class)
-			addComponent(AnimatedComponent::class)
-			addComponent(ButtonComponent::class)
-			addComponent(CheckBoxComponent::class)
-			addComponent(ClickerComponent::class)
-			addComponent(GameClickerComponent::class)
-			addComponent(HoverComponent::class)
-			addComponent(LightComponent::class)
-			addComponent(RelativeTransformComponent::class)
-			addComponent(Rigidbody2DComponent::class)
-			addComponent(Rigidbody3DComponent::class)
-			addComponent(TextFieldComponent::class)
-			addComponent(TextureMapsComponent::class)
-			addComponent(TransformComponent::class)
-
-			addFieldType(::BoolField, { true })
-			addFieldType(::IntField, {1})
-			addFieldType(FieldType({ 1 }, setOf(IntFieldRange::class)) { i, c, g, s, a ->
-				val rangeA = a.firstOrNull { it is IntFieldRange } as? IntFieldRange
-				val range = rangeA?.let { IntRange(it.min, it.max) } ?: 0..1
-				IntRangeField(i, c, range, g, s)
-			})
-			addFieldType(::UIntField, {1u})
-			addFieldType(::FloatField, {1f})
-			addFieldType(::DoubleField, {1.0})
-			addFieldType(::Vec2iField, {Vec2i()})
-			addFieldType(::Vec3iField, {Vec3i()})
-			addFieldType(::Vec4iField, {Vec4i()})
-			addFieldType(::Vec2Field, {Vec2()})
-			addFieldType(::Vec3Field, {Vec3()})
-			addFieldType(::Vec4Field, {Vec4()})
-			addFieldType(::QuatField, {Quat()})
-			addFieldType(::ShaderField, { RenderShader.missing }, RenderShader::class)
-			addFieldType(::TextureField, { Texture2D.missing }, Texture2D::class)
-			addFieldType(::ModelField, { Model.missing })
-			addFieldType(::Shape2DField, { Rect2D(Vec2(0f), 1f, 1f) }, Shape2D::class)
-			addFieldType(::GameObjectField, { null }, GameObject::class)
-		}
-
-		@Suppress("FilterIsInstanceResultIsAlwaysEmpty")
-		fun <C : Any, T> getDefaultField(property: KMutableProperty1<C, T>, container: C, parent: String = ""): ComponentField<*>? {
-			val fieldsOfType = fieldTypes.filter { fieldType -> property.returnType.withNullability(false) == fieldType.klass.starProjectedType }.filterIsInstance<FieldType<T>>()
-			for(i in fieldsOfType){
-				if(i.annotations.isNotEmpty() && i.annotations.all { property.findAnnotations(it).isNotEmpty() }){
-					return i.fieldCreator(parent + property.name, container, { property.get(container) }, { property.set(container, it) }, property.annotations.toSet())
+	fun createComponent(name: String, parent: GameObject): ComponentI? {
+		val component = getComponent(name) ?: return null
+		const@ for (constructor in component.constructors) {
+			val params = mutableMapOf<KParameter, Any?>()
+			for (param in constructor.parameters) {
+				// Components all take a parent GameObject argument
+				if (param.name == "parent" && param.type.javaType == GameObject::class.java) params[param] = parent
+				// If the constructor has a default option then use that one
+				else if (param.isOptional) continue
+				else {
+					// Find the default value for this class
+					val value = fieldTypes.firstNotNullOfOrNull({ it.default() }) { d -> d::class == param.type.classifier }
+					if (value != null) params[param] = value
+					// Last resort, if the argument is nullable then set the argument to null
+					else if (param.type.isMarkedNullable) params[param] = null
+					// Otherwise try a new constructor
+					else continue@const
 				}
 			}
+			return constructor.callBy(params)
+		}
+		return null
+	}
 
-			val defaultField = fieldsOfType.firstOrNull { it.annotations.isEmpty() }
-			return if(defaultField == null) null
-			else defaultField.fieldCreator(parent + property.name, container, { property.get(container) }, { property.set(container, it) }, emptySet())
+	private var loaded = false
+	val onLoad = mutableSetOf<Components.() -> Unit>()
+
+	fun load() {
+		if (loaded) return
+		addComponent(Collider2DComponent::class)
+		addComponent(Collider3DComponent::class)
+
+		addComponent(AtlasAnimatedSprite::class)
+		addComponent(CollisionPolygonRenderer::class)
+		addComponent(CaretRendererComponent::class)
+		addComponent(ColouredSpriteComponent::class)
+		addComponent(ColourRendererComponent::class)
+		addComponent(MeshedTextureComponent::class)
+		addComponent(ModelRendererComponent::class)
+		addComponent(SpriteComponent::class)
+		addComponent(TextRendererComponent::class)
+
+		addComponent(ScrollBarComponent::class)
+
+		addComponent(ActionFloatSliderComponent::class)
+		addComponent(ActionIntSliderComponent::class)
+		addComponent(ColourSliderRendererComponent::class)
+		addComponent(OutlinedSliderRendererComponent::class)
+		addComponent(FloatSliderComponent::class)
+		addComponent(SliderPointerComponent::class)
+
+		addComponent(ActionTextFieldComponent::class)
+		addComponent(AnimatedComponent::class)
+		addComponent(ButtonComponent::class)
+		addComponent(CheckBoxComponent::class)
+		addComponent(ClickerComponent::class)
+		addComponent(GameClickerComponent::class)
+		addComponent(HoverComponent::class)
+		addComponent(LightComponent::class)
+		addComponent(RelativeTransformComponent::class)
+		addComponent(Rigidbody2DComponent::class)
+		addComponent(Rigidbody3DComponent::class)
+		addComponent(TextFieldComponent::class)
+		addComponent(TextureMapsComponent::class)
+		addComponent(TransformComponent::class)
+
+
+
+		addFieldType(::BoolField, { true })
+		addFieldType(::IntField, { 1 })
+		addFieldType(FieldType({ 1 }, setOf(IntFieldRange::class)) { i, c, g, s, a ->
+			val rangeA = a.firstOrNull { it is IntFieldRange } as? IntFieldRange
+			val range = rangeA?.let { IntRange(it.min, it.max) } ?: 0..1
+			IntRangeField(i, c, range, g, s)
+		})
+		addFieldType(::UIntField, { 1u })
+		addFieldType(::FloatField, { 1f })
+		addFieldType(::DoubleField, { 1.0 })
+		addFieldType(::Vec2iField, { Vec2i() })
+		addFieldType(::Vec3iField, { Vec3i() })
+		addFieldType(::Vec4iField, { Vec4i() })
+		addFieldType(::Vec2Field, { Vec2() })
+		addFieldType(::Vec3Field, { Vec3() })
+		addFieldType(::Vec4Field, { Vec4() })
+		addFieldType(::QuatField, { Quat() })
+		addFieldType(::ShaderField, { RenderShader.missing }, RenderShader::class)
+		addFieldType(::TextureField, { Texture2D.missing }, Texture2D::class)
+		addFieldType(::ModelField, { Model.missing })
+		addFieldType(::Shape2DField, { Rect2D(Vec2(0f), 1f, 1f) }, Shape2D::class)
+		addFieldType(::GameObjectField, { null }, GameObject::class)
+
+		onLoad.forEach { it.invoke(Components) }
+		onLoad.clear()
+		loaded = true
+	}
+
+	@Suppress("FilterIsInstanceResultIsAlwaysEmpty")
+	fun <C : Any, T> getDefaultField(property: KMutableProperty1<C, T>, container: C, parent: String = ""): ComponentField<*>? {
+		val fieldsOfType = fieldTypes.filter { fieldType -> property.returnType.withNullability(false) == fieldType.klass.starProjectedType }.filterIsInstance<FieldType<T>>()
+		for (i in fieldsOfType) {
+			if (i.annotations.isNotEmpty() && i.annotations.all { property.findAnnotations(it).isNotEmpty() }) {
+				return i.fieldCreator(parent + property.name, container, { property.get(container) }, { property.set(container, it) }, property.annotations.toSet())
+			}
 		}
 
-		inline fun <reified T, C: Any> get(property: KMutableProperty1<C, Any>, component: C): T{
-			try {
-				return property.get(component) as T
-			}
-			catch (e: NullPointerException){
-				throw e
-			}
+		val defaultField = fieldsOfType.firstOrNull { it.annotations.isEmpty() }
+		return if (defaultField == null) null
+		else defaultField.fieldCreator(parent + property.name, container, { property.get(container) }, { property.set(container, it) }, emptySet())
+	}
+
+	inline fun <reified T, C : Any> get(property: KMutableProperty1<C, Any>, component: C): T {
+		try {
+			return property.get(component) as T
+		} catch (e: NullPointerException) {
+			throw e
 		}
 	}
 }

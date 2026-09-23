@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.rendering.GameRendererI
-import com.pineypiney.game_engine.rendering.opengl.Framebuffer
+import com.pineypiney.game_engine.rendering.opengl.OpenGlFramebuffer
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
 import com.pineypiney.game_engine.util.maths.I
@@ -21,8 +21,8 @@ import org.lwjgl.openvr.Texture as VRTexture
 
 abstract class VRRenderer<E : GameLogicI>(w: Int, h: Int) : GameRendererI<E> {
 
-	val leftFramebuffer = Framebuffer(w, h)
-	val rightFramebuffer = Framebuffer(w, h)
+	val leftFramebuffer = OpenGlFramebuffer(w, h)
+	val rightFramebuffer = OpenGlFramebuffer(w, h)
 
 	val leftDisplay = VRFramebuffer(w, h)
 	val rightDisplay = VRFramebuffer(w, h)
@@ -43,7 +43,7 @@ abstract class VRRenderer<E : GameLogicI>(w: Int, h: Int) : GameRendererI<E> {
 		rightDisplay.generate()
 	}
 
-	fun drawScene(game: GameLogicI, eye: Int, buffer: Framebuffer, tickDelta: Double) {
+	fun drawScene(game: GameLogicI, eye: Int, buffer: OpenGlFramebuffer, tickDelta: Double) {
 
 		clearFrameBuffer(buffer)
 
@@ -70,7 +70,7 @@ abstract class VRRenderer<E : GameLogicI>(w: Int, h: Int) : GameRendererI<E> {
 		}
 	}
 
-	fun blitBuffer(read: Framebuffer, draw: Framebuffer) {
+	fun blitBuffer(read: OpenGlFramebuffer, draw: OpenGlFramebuffer) {
 		GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, read.FBO)
 		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, draw.FBO)
 
@@ -91,7 +91,7 @@ abstract class VRRenderer<E : GameLogicI>(w: Int, h: Int) : GameRendererI<E> {
 		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0)
 	}
 
-	fun clearFrameBuffer(buffer: Framebuffer) {
+	fun clearFrameBuffer(buffer: OpenGlFramebuffer) {
 		buffer.bind()
 		viewportSize = Vec2i(buffer.width, buffer.height)
 		clear()

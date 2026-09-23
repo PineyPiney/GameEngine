@@ -7,8 +7,8 @@ import org.lwjgl.vulkan.VK10
 data class TextureParameters(
 	var target: Int = GL11C.GL_TEXTURE_2D, var flip: Boolean = true, var numChannels: Int = 0,
 	var wrapS: TextureWrap = TextureWrap.CLAMP_TO_EDGE, var wrapT: TextureWrap = wrapS, var wrapR: TextureWrap = wrapS,
-	var minFilter: TextureFilter = TextureFilter.LINEAR, var magFilter: TextureFilter = minFilter, var usage: TextureUsage = TextureUsage.SAMPLER,
-	val layout: Int = VK10.VK_IMAGE_LAYOUT_GENERAL
+	var minFilter: TextureFilter = TextureFilter.LINEAR, var magFilter: TextureFilter = minFilter, var mipMapRange: IntRange = 0..1000,
+	var usage: TextureUsage = TextureUsage.SAMPLER, val layout: Int = VK10.VK_IMAGE_LAYOUT_GENERAL
 ) {
 
 	fun target(target: Int): TextureParameters {
@@ -46,6 +46,8 @@ data class TextureParameters(
 		GL11C.glTexParameteri(target, GL12C.GL_TEXTURE_WRAP_R, wrapR.opengl)
 		GL11C.glTexParameteri(target, GL11C.GL_TEXTURE_MIN_FILTER, minFilter.opengl)
 		GL11C.glTexParameteri(target, GL11C.GL_TEXTURE_MAG_FILTER, magFilter.opengl)
+		GL11C.glTexParameteri(target, GL12C.GL_TEXTURE_BASE_LEVEL, mipMapRange.first)
+		GL11C.glTexParameteri(target, GL12C.GL_TEXTURE_MAX_LEVEL, mipMapRange.last)
 	}
 
 	/*

@@ -13,8 +13,11 @@ out vec2 texCoords;
 #extension GL_EXT_buffer_reference : require
 
 struct Vertex {
-	vec3 posIn;
-	vec2 texIn;
+	float px;
+	float py;
+	float pz;
+	float tx;
+	float ty;
 };
 
 layout(buffer_reference, std430) readonly buffer VertexBuffer{
@@ -34,8 +37,9 @@ layout (location = 0) out vec2 texCoords;
 void main(){
 
 	#ifdef VULKAN
-	vec3 posIn = vertexBuffer.vertices[gl_VertexID].posIn;
-	vec2 texIn = vertexBuffer.vertices[gl_VertexID].texIn;
+	Vertex v = vertexBuffer.vertices[gl_VertexID];
+	vec3 posIn = vec3(v.px, v.py, v.pz);
+	vec2 texIn = vec2(v.tx, v.ty);
 	#endif
 
 	gl_Position = vec4(posIn, 1.0);

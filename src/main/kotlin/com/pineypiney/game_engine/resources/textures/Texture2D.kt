@@ -24,7 +24,6 @@ interface Texture2D : Texture {
 		setSubData(data, origin.x, origin.y, size.x, size.y, format)
 
 	fun savePNG(file: String, format: TextureFormat = this.format): Boolean {
-		format.pixelType
 		val d = getData(format)
 		d.limit(d.capacity())
 		val fileName = if (file.endsWith(".png")) file else "$file.png"

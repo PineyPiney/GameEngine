@@ -22,11 +22,11 @@ class MeshState(meshId: String, val translation: Vec3, val rotation: Quat, val a
 	}
 
 	override fun applyTo(model: Model) {
-		val mesh = model.meshes.firstOrNull { it.id == this.parentId } ?: return
-		mesh.translation = this.translation
-		mesh.rotation = this.rotation
-		mesh.alpha = this.alpha
-		mesh.order = this.order
+		val mesh = model.meshes.firstOrNull { it.id == parentId } ?: return
+		mesh.translation = translation
+		mesh.rotation = rotation
+		mesh.material.baseColour.a = alpha
+		mesh.translation.z = order * -.001f
 	}
 
 	override fun toString(): String {

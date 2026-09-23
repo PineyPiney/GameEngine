@@ -34,6 +34,7 @@ open class Text(
 
 		lines = generateLines(bounds)
 		lengths = lines.map { getWidth(it) }.toFloatArray()
+
 		data.delete()
 		data = font.getShape(lines.joinToString("\n"), false, bounds, alignment)
 	}

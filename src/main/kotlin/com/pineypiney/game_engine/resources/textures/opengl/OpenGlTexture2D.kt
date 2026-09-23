@@ -5,6 +5,7 @@ import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.GLFunc
+import glm_.vec2.Vec2i
 import kool.Buffer
 import kool.lim
 import org.lwjgl.BufferUtils
@@ -58,6 +59,18 @@ class OpenGlTexture2D(
 
 		glTexSubImage2D(target, 0, x, y, width, height, format.openglLayout, format.pixelType, buf)
 		MemoryUtil.memFree(buf)
+	}
+
+	fun setSize(size: Vec2i, params: TextureParameters = TextureParameters()) {
+		bind()
+		params.loadOpenGL()
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, size.x, size.y, 0, format.openglLayout, format.pixelType, null as ByteBuffer?)
+	}
+
+	fun setFormat(format: TextureFormat, params: TextureParameters = TextureParameters()) {
+		bind()
+		params.loadOpenGL()
+		glTexImage2D(GL_TEXTURE_2D, 0, format.opengl, width, height, 0, format.openglLayout, format.pixelType, null as ByteBuffer?)
 	}
 
 	override fun clear() {

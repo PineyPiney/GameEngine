@@ -15,8 +15,7 @@ import com.pineypiney.game_engine.objects.components.widgets.scrollList.Selectab
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ColourSliderRendererComponent
 import com.pineypiney.game_engine.objects.util.Animation
-import com.pineypiney.game_engine.rendering.WindowRendererI
-import com.pineypiney.game_engine.rendering.vulkan.VulkanGameRenderer
+import com.pineypiney.game_engine.rendering.GameRenderer
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
@@ -50,7 +49,7 @@ import org.lwjgl.openal.AL10
 import kotlin.math.PI
 import kotlin.math.sign
 
-class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val renderer: WindowRendererI<Game2D>) : WindowGameLogic() {
+class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val renderer: GameRenderer<Game2D>) : WindowGameLogic() {
 
 	val camera get() = renderer.camera
 
@@ -76,7 +75,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 		window.setCursor(standardCursors.random())
 	}
 
-	private val bc = Rect2D(b.parent.position.xy, 0.6f, 0.2f)
+	private var bc = Rect2D(b.parent.position.xy, 0.6f, 0.2f)
 
 	var squareColour = Vec4()
 	private val cursorSquare = GameObject.simpleRenderedGameObject("Colour Square", ColourRendererComponent.menuShader, Vec3(), Vec3(.1f, .1f, 1f)) {
@@ -188,8 +187,8 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 
 		renderer.setClearColour(Vec4(1f, 0f, 0f, 1f))
 
-		input.getInput<GamepadInput>().setDefaultController {
-			movement.gamepadID = it.id
+		input.getInput<GamepadInput>().setDefaultController(movement::gamepadID) {
+			movement.gamepadID = it?.id ?: -1
 		}
 	}
 
@@ -239,7 +238,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 				'F' -> toggleFullscreen()
 				'C' -> input.getInput<MouseInput>().setCursorAt(Vec2(0.75))
 				'Z' -> window.size = Vec2i(window.videoMode.width(), window.videoMode.height())
-				' ' -> if (renderer is VulkanGameRenderer<*, *>) renderer.depthImage.savePNG("debug")
+				' ' -> renderer.framebuffer.colour.savePNG("debug")
 			}
 		}
 
@@ -266,6 +265,11 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 	fun updateText(cursorPos: Vec2){
 		val wp = camera.screenToWorld(cursorPos)
 		text.getComponent<TextRendererComponent>()?.setTextContent(wp.roundedString(2).let { "X Part: ${it[0]}\nY Part: ${it[1]}" })
+	}
+
+	override fun updateAspectRatio() {
+		super.updateAspectRatio()
+		bc = Rect2D(b.parent.position.xy, b.parent.scale.xy)
 	}
 
 	override fun cleanUp() {

@@ -15,7 +15,7 @@ import glm_.vec4.Vec4
 
 class OpenGlObjectRenderer(override val viewPos: Vec3, viewportSize: Vec2i = Vec2i(64), override val projection: Mat4 = I) : ObjectRenderer {
 
-	private val framebuffer = Framebuffer(viewportSize.x, viewportSize.y, TextureFormat.RGBA8)
+	private val framebuffer = OpenGlFramebuffer(viewportSize.x, viewportSize.y, TextureFormat.RGBA8)
 
 	override val viewportSize: Vec2i get() = Vec2i(framebuffer.width, framebuffer.height)
 	override val view: Mat4 = I.translate(viewPos)

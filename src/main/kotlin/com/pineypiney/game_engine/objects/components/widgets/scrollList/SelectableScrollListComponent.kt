@@ -46,7 +46,7 @@ abstract class SelectableScrollListComponent(parent: GameObject) : ScrollListCom
 							)
 
 						)
-						entry.addChild(Text.makeMenuText(value, Vec4(1f), fontSize = 0).apply { position = Vec3(.05f, .2f, 0f); scale = Vec3(.9f, .8f, 1f) })
+						entry.addChild(Text.makeMenuText(value, Vec4(1f), fontSize = 0).apply { position = Vec3(.05f, .2f, .01f); scale = Vec3(.9f, .8f, 1f) })
 						entry
 					}
 				}

@@ -27,6 +27,8 @@ class VulkanSwapchainHandler(val device: VulkanDevice, val buffer: LongBuffer, v
 		return image
 	}
 
+	fun currentImage() = images[imageIndex]
+
 	override fun delete() {
 		KHRSwapchain.vkDestroySwapchainKHR(device.device, handle, null)
 		images.delete()

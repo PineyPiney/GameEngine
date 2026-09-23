@@ -155,6 +155,29 @@ interface Mesh : Deletable {
 			return factory.createArrayMesh(name, vertices, createAttributes(setOf(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEX_COORD)))
 		}
 
+		fun tessellatedPlane(factory: ResourceFactory, name: String, width: Float, height: Float, res: Int): Mesh {
+
+			val o = Vec3(-width * .5f, 0f, height * .5f)
+			val patchSize = Vec3(width, 0, -height) / res
+			val texDelta = 1f / res
+			val vertices = FloatArray(res * res * 20)
+			for (x in 0..<res) {
+				val offsetX = x * res * 20
+				for (y in 0..<res) {
+					val offset = offsetX + y * 20
+					(o + patchSize * Vec3(x, 0, y)).to(vertices, offset)
+					(Vec2(x, y) * texDelta).to(vertices, offset + 3)
+					(o + patchSize * Vec3(x + 1, 0, y)).to(vertices, offset + 5)
+					(Vec2(x + 1, y) * texDelta).to(vertices, offset + 8)
+					(o + patchSize * Vec3(x, 0, y + 1)).to(vertices, offset + 10)
+					(Vec2(x, y + 1) * texDelta).to(vertices, offset + 13)
+					(o + patchSize * Vec3(x + 1, 0, y + 1)).to(vertices, offset + 15)
+					(Vec2(x + 1, y + 1) * texDelta).to(vertices, offset + 18)
+				}
+			}
+			return factory.createArrayMesh(name, vertices, createAttributes(setOf(VertexAttribute.POSITION, VertexAttribute.TEX_COORD)))
+		}
+
 		lateinit var cornerSquareShape: Mesh; private set
 		lateinit var centerSquareShape: Mesh; private set
 		lateinit var screenQuadShape: Mesh; private set

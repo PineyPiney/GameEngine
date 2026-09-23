@@ -18,8 +18,6 @@ interface ModelMesh : Mesh {
 	val material: ModelMaterial
 	var translation: Vec3
 	var rotation: Quat
-	var alpha: Float
-	var order: Int
 
 	val vertices: Array<out MeshVertex>
 	val indices: IntArray
@@ -28,10 +26,6 @@ interface ModelMesh : Mesh {
 
 	fun setMaterialUniforms(shader: RenderShader) {
 		material.apply(shader, "material")
-	}
-
-	fun reset() {
-
 	}
 
 	companion object {

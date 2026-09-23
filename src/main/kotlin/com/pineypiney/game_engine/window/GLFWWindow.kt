@@ -73,8 +73,9 @@ abstract class GLFWWindow(
 	override val contentScale: Vec2
 		get() = getVec2(windowHandle, GLFW::glfwGetWindowContentScale)
 
-	override val opacity: Float
+	override var opacity: Float
 		get() = GLFW.glfwGetWindowOpacity(windowHandle)
+		set(value) = GLFW.glfwSetWindowOpacity(windowHandle, value)
 
 	override var cursorPos: Vec2d
 		get() = getVec2d(windowHandle, GLFW::glfwGetCursorPos)

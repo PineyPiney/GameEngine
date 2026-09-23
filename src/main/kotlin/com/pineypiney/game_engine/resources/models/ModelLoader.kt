@@ -26,6 +26,7 @@ import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
+import glm_.vec4.Vec4
 import org.w3c.dom.Document
 import org.w3c.dom.NodeList
 import java.io.InputStream
@@ -223,19 +224,18 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 				vertices.add(MeshVertex.builder(pos).normal(normal).tex(texMap).weights(weights).build())
 			}
 
-			meshes.add(
-				factory.createModelMesh(
-					geo.name,
-					vertices.toTypedArray(),
-					geo.indices,
-					geo.alpha,
-					geo.order,
-					PhongMaterial(
-						"${geo.name} material",
-						mapOf(PhongMaterial.TextureType.DIFFUSE to TextureLoader.findTexture(geo.texture))
-					)
+			val mesh = factory.createModelMesh(
+				geo.name,
+				vertices.toTypedArray(),
+				geo.indices,
+				PhongMaterial(
+					"${geo.name} material",
+					mapOf(PhongMaterial.TextureType.DIFFUSE to TextureLoader.findTexture(geo.texture)),
+					Vec4(1f, 1f, 1f, geo.alpha)
 				)
 			)
+			mesh.translation.z = geo.order * .001f
+			meshes.add(mesh)
 		}
 
 		val newModel = Model(

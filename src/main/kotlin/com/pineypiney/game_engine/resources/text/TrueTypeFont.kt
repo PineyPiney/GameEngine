@@ -71,6 +71,7 @@ class TrueTypeFont(
 		val (texture, dimensions) = createTexture(text.toSet())
 		var line = 0
 		var xOffset = 0f
+
 		for (i in text.indices) {
 
 			if(text[i] == '\n') {
@@ -90,6 +91,7 @@ class TrueTypeFont(
 
 	fun getOutline(char: Char) = getOutline(char.toString())
 
+
 	fun createTexture(chars: Set<Char>): Pair<Texture2D, Map<Char, Vec4>> {
 		if (chars.isEmpty()) return Texture2D.none to emptyMap()
 
@@ -105,6 +107,7 @@ class TrueTypeFont(
 		val copier = texture.createCopier()
 		copier.init()
 		copier.start()
+
 		copier.setDst(texture)
 		for((c, t) in textures){
 			if(t.width == 0 || t.height == 0) continue

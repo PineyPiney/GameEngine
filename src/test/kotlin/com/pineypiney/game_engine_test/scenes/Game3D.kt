@@ -11,8 +11,7 @@ import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComp
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
-import com.pineypiney.game_engine.rendering.WindowRendererI
-import com.pineypiney.game_engine.rendering.cameras.Camera
+import com.pineypiney.game_engine.rendering.GameRenderer
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
@@ -41,9 +40,9 @@ import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.PI
 
-class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<Game3D>) : WindowGameLogic() {
+class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val renderer: GameRenderer<Game3D>) : WindowGameLogic() {
 
-	private val camera get() = renderer.camera as Camera
+	private val camera get() = renderer.camera
 
 	private val pressedKeys = mutableSetOf<Short>()
 
@@ -90,8 +89,8 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 		gltf.addChild(CollisionBox3DRenderer.create(gltf).apply { init() })
 		renderer.setClearColour(Vec4(1f, 0f, 0f, 1f))
 
-		input.getInput<GamepadInput>().setDefaultController {
-			movement.gamepadID = it.id
+		input.getInput<GamepadInput>().setDefaultController(movement::gamepadID) {
+			movement.gamepadID = it?.id ?: -1
 		}
 	}
 

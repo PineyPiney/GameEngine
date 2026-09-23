@@ -50,7 +50,7 @@ abstract class ResourceFactory {
 	abstract fun createArrayMesh(name: String, vertices: FloatArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh
 	abstract fun createIndexedMesh(name: String, vertices: ByteBuffer, indices: IntArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh
 	abstract fun createIndexedMesh(name: String, vertices: FloatArray, indices: IntArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh
-	abstract fun createModelMesh(id: String, vertices: Array<out MeshVertex>, indices: IntArray, alpha: Float = 1f, order: Int = 0, material: ModelMaterial = PhongMaterial(id, emptyMap())): ModelMesh
+	abstract fun createModelMesh(id: String, vertices: Array<out MeshVertex>, indices: IntArray, material: ModelMaterial = PhongMaterial(id, emptyMap())): ModelMesh
 
 	fun loadTexture2DFromFile(fileName: String, stream: InputStream, parameters: TextureParameters = TextureParameters()): Texture2D {
 

@@ -84,7 +84,7 @@ class OpenGlResourceFactory : ResourceFactory() {
 		return OpenGlIndexedMesh(vertices, attributes, indices)
 	}
 
-	override fun createModelMesh(id: String, vertices: Array<out MeshVertex>, indices: IntArray, alpha: Float, order: Int, material: ModelMaterial): OpenGlModelMesh {
-		return OpenGlModelMesh(id, vertices, indices, alpha, order, material)
+	override fun createModelMesh(id: String, vertices: Array<out MeshVertex>, indices: IntArray, material: ModelMaterial): OpenGlModelMesh {
+		return OpenGlModelMesh(id, vertices, indices, material)
 	}
 }

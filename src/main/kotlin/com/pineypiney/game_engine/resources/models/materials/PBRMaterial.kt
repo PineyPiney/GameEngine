@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.util.extension_functions.delete
 import glm_.vec4.Vec4
 
 class PBRMaterial(
-	override val name: String, val textures: Map<String, Texture2D>, val baseColour: Vec4 = Vec4(1f),
+	override val name: String, val textures: Map<String, Texture2D>, override val baseColour: Vec4 = Vec4(1f),
 	var metallicness: Float = 0f, var roughness: Float = .5f, val emission: Float = 1f,
 	var sheen: Float = 0f, var sheenTint: Float = .5f, var anisotropic: Float = 0f,
 	var specular: Float = .5f, var specTint: Float = 0f

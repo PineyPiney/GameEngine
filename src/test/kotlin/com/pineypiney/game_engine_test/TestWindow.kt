@@ -12,6 +12,7 @@ class TestWindow(width: Int = 960, height: Int = 540, version: Vec2i) : OpenGlWi
 	"Example Window", width, height, defaultGLHints + mapOf(
 	GLFW.GLFW_CONTEXT_VERSION_MAJOR to version.x,
 	GLFW.GLFW_CONTEXT_VERSION_MINOR to version.y,
+		GLFW.GLFW_TRANSPARENT_FRAMEBUFFER to 1
 )) {
 
 	// input must be set after the windowHandle has been set so that the callbacks are assigned correctly

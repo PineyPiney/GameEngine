@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.rendering.cameras.Camera
+import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.input.knm.MouseInput
@@ -19,7 +19,7 @@ import glm_.vec2.Vec2d
 import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW
 
-class Movement3D(parent: GameObject, val camera: Camera, val window: WindowI, var speed: Float, val boost: Float = 5f, val defaultYawPitch: Vec2d = Vec2d(180.0, 0.0)) :
+class Movement3D(parent: GameObject, val camera: CameraI, val window: WindowI, var speed: Float, val boost: Float = 5f, val defaultYawPitch: Vec2d = Vec2d(180.0, 0.0)) :
 	DefaultInteractorComponent(parent), PreRenderComponent {
 
 	override val whenVisible: Boolean = false
@@ -110,7 +110,7 @@ class Movement3D(parent: GameObject, val camera: Camera, val window: WindowI, va
 	}
 
 	companion object {
-		fun default(window: WindowI, camera: Camera, speed: Float, boost: Float = 5f, defaultYawPitch: Vec2d = Vec2d(180.0, 0.0)) =
+		fun default(window: WindowI, camera: CameraI, speed: Float, boost: Float = 5f, defaultYawPitch: Vec2d = Vec2d(180.0, 0.0)) =
 			Movement3D(GameObject("Movement 3D"), camera, window, speed, boost, defaultYawPitch).applied()
 	}
 }

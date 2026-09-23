@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.resources.shaders.vulkan
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.resources.shaders.DataType
 import com.pineypiney.game_engine.resources.shaders.ShaderStage
+import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.PipelineException
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VulkanDevice
@@ -31,7 +32,23 @@ class VulkanDescriptorLayout(val device: VulkanDevice, val pointer: LongBuffer, 
 		}
 
 		fun addBinding(binding: VulkanDescriptorBinding): Builder {
-			bindings.add(binding)
+			val current = bindings.firstOrNull { it.binding == binding.binding }
+
+			if (current == null) {
+				bindings.add(binding)
+				return this
+			}
+
+			binding.delete()
+			if (binding.type != current.type) {
+				throw PipelineException("Multiple types bound to binding ${binding.binding}: ${binding.type} and ${current.type}")
+			}
+			try {
+				current.combine(binding)
+			} catch (e: PipelineException) {
+				throw PipelineException("Failed to combine 2 uniforms of type ${binding.type} bound to binding ${binding.binding}:\n${e.message}")
+			}
+
 			return this
 		}
 

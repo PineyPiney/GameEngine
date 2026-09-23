@@ -1,8 +1,9 @@
 package com.pineypiney.game_engine_test
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
 import com.pineypiney.game_engine.rendering.cameras.CameraI
-import com.pineypiney.game_engine.rendering.opengl.DefaultWindowRenderer
+import com.pineypiney.game_engine.rendering.opengl.OpenGlPresentRendering
 import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.text.FontLoader
@@ -13,7 +14,7 @@ import com.pineypiney.game_engine.window.WindowedGameEngine
 
 class TestOpenGlEngine<E : WindowGameLogic, C : CameraI>(
 	override val window: WindowI,
-	val screen: (TestOpenGlEngine<E, C>, DefaultWindowRenderer<E, C>) -> E,
+	val screen: (TestOpenGlEngine<E, C>, DefaultWindowGameRenderer<E, C>) -> E,
 	val camera: (WindowI) -> C,
 	ups: Int,
 	fps: Int
@@ -36,7 +37,7 @@ class TestOpenGlEngine<E : WindowGameLogic, C : CameraI>(
 	}
 
 	override fun setLogic() {
-		activeScreen = screen(this, DefaultWindowRenderer(window, camera(window)))
+		activeScreen = screen(this, DefaultWindowGameRenderer(window, camera(window), ::OpenGlPresentRendering))
 	}
 
 	override fun init() {

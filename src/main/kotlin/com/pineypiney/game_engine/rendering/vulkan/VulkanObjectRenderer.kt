@@ -27,7 +27,7 @@ class VulkanObjectRenderer(override val viewPos: Vec3, val device: VulkanDevice,
 	val submitter = VulkanImmediateSubmitter(device)
 	lateinit var image: VulkanImage2D
 	lateinit var depthImage: VulkanImage2D
-	val api = VulkanRendering(submitter.immediateCommands, descriptorAllocator, ::getViewport)
+	val api = VulkanRendering.create(submitter.immediateCommands, descriptorAllocator, ::getViewport)
 	private var clearColour = Vec4(0f)
 
 	init {

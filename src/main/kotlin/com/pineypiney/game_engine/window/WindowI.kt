@@ -56,7 +56,7 @@ interface WindowI {
 	val framebufferSize: Vec2i
 	val frameSize: Vec4i
 	val contentScale: Vec2
-	val opacity: Float
+	var opacity: Float
 	var cursorPos: Vec2d
 	var width: Int
 	var height: Int
