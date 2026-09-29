@@ -11,6 +11,7 @@ import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.fromHex
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.input.gamepads.GamePad
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.util.text.Text
@@ -33,7 +34,7 @@ class ButtonComponent(
 
 	override fun onInput(window: WindowI, state: InputState, action: Int, cursorPos: CursorPosition): Int {
 		if (super.onInput(window, state, action, cursorPos) == INTERRUPT) return INTERRUPT
-		if (state == InputState(GLFW.GLFW_GAMEPAD_BUTTON_A, ControlType.GAMEPAD_BUTTON) && active) {
+		if (state == InputState(GamePad.BUTTON_A, ControlType.GAMEPAD_BUTTON) && active) {
 			when (action) {
 				GLFW.GLFW_PRESS -> onClick(this, cursorPos.position)
 				GLFW.GLFW_RELEASE -> onUnClick(this, cursorPos.position)

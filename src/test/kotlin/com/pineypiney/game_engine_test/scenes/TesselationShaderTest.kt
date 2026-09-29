@@ -16,6 +16,7 @@ import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParam
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.InputState
+import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowedGameEngineI
@@ -65,7 +66,12 @@ class TesselationShaderTest(override val gameEngine: WindowedGameEngineI<*>, ove
 	override fun addObjects() {
 		add(obj, wireframeObj)
 		add(FPSCounter.createCounterWithText(GameObject("FPS Text", 1).apply { relative(Vec3(-1f, 0f, 0f), Vec2(1f))}, 2.0, "FPS: $", Text.Params(fontSize = 24)))
-		add(Movement3D.default(window, renderer.camera, 10f).parent)
+
+		val movement = Movement3D.default(window, renderer.camera, 10f)
+		add(movement.parent)
+		input.getInput<GamepadInput>().setDefaultController(movement::gamepadID) {
+			movement.gamepadID = it?.id ?: -1
+		}
 	}
 
 	override fun render(tickDelta: Double) {

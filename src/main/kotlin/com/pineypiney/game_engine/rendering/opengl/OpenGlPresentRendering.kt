@@ -13,9 +13,7 @@ import org.lwjgl.opengl.GL11C
 
 class OpenGlPresentRendering(val renderer: WindowRendererI<*>) : RenderingApi by OpenGlRendering, PresentingApi {
 
-	override fun beginPresentation() {
-
-	}
+	override fun beginPresentation(): Boolean = true
 
 	override fun copyFramebuffer(framebuffer: Framebuffer, renderer: WindowRendererI<*>) {
 

@@ -91,4 +91,8 @@ open class MouseInput(val input: Inputs, val window: WindowI) : Input {
 	fun setCursorAt(position: Vec2, drag: Boolean = false){
 		setCursorAt(CursorPosition(position, window), drag)
 	}
+
+	override fun delete() {
+
+	}
 }

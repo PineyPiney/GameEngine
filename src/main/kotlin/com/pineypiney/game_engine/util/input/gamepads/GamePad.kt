@@ -1,60 +1,54 @@
 package com.pineypiney.game_engine.util.input.gamepads
 
-import com.pineypiney.game_engine.resources.textures.Texture2D
-import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.util.ResourceKey
+import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
-import glm_.and
-import glm_.shr
+import glm_.has
 import glm_.vec2.Vec2
-import glm_.vec2.Vec2i
-import glm_.vec4.Vec4
-import kool.cap
-import kool.forEachIndexed
-import kool.getOrNull
-import kool.toByteArray
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.glfw.GLFWGamepadState
-import java.nio.ByteBuffer
 import kotlin.math.abs
-import kotlin.math.floor
-import kotlin.math.max
 
-open class GamePad(val id: Int, val inputs: GamepadInput) {
+abstract class GamePad : Deletable {
 
-	val numButtons = max(GLFW.glfwGetJoystickButtons(id)?.cap ?: 15, 15)
-	val numAxes = GLFW.glfwGetJoystickAxes(id)?.cap ?: 0
-	val state = GLFWGamepadState.calloc()
 
-	val name: String? = GLFW.glfwGetGamepadName(id)
+	abstract val name: String?
+	abstract val id: Int
+	abstract val input: GamepadInput
+
+	var buttons = 0
 
 	// Joy stick and trigger values
-	val axesStates = FloatArray(numAxes)
-	val deadzones = FloatArray(numAxes) { .1f }
+	abstract val axesStates: FloatArray
+	abstract val deadzones: FloatArray
 
 	// Button values
-	val buttonStates = ByteArray(numButtons)
-
-	val leftJoystick get() = Vec2(axesStates[GLFW.GLFW_GAMEPAD_AXIS_LEFT_X], -axesStates[GLFW.GLFW_GAMEPAD_AXIS_LEFT_Y])
-	val rightJoystick
-		get() = Vec2(
-			axesStates[GLFW.GLFW_GAMEPAD_AXIS_RIGHT_X],
-			-axesStates[GLFW.GLFW_GAMEPAD_AXIS_RIGHT_Y]
-		)
+	open val leftJoystick: Vec2 get() = Vec2(axesStates[AXIS_LEFT_X], axesStates[AXIS_LEFT_Y])
+	open val rightJoystick: Vec2 get() = Vec2(axesStates[AXIS_RIGHT_X], axesStates[AXIS_RIGHT_Y])
 
 	// This function is called every render cycle for every connected gamepad
-	fun input() {
-		// This function edits state to contain the correct information
-		GLFW.glfwGetGamepadState(id, state)
+	abstract fun input()
 
-		state.axes().forEachIndexed(::updateAxes)
-		state.buttons().forEachIndexed(::updateButton)
-
-		GLFW.glfwGetJoystickButtons(id)?.let { it: ByteBuffer -> updateBonusButtons(it.toByteArray()) }
+	fun updateButtons(buttonMask: Int) {
+		for (i in 0..31) {
+			val m = 1 shl i
+			if (buttonMask and m != buttons and m) input.gamepadButtonCallback(InputState(m, ControlType.GAMEPAD_BUTTON, 0), (buttonMask shr i) and 1)
+		}
+		buttons = buttonMask
 	}
 
-	fun updateAxes(axis: Int, state: Float) {
+	fun updateButton(button: Int, state: Boolean) {
+		if (state) {
+			if (!buttons.has(button)) {
+				input.gamepadButtonCallback(InputState(button, ControlType.GAMEPAD_BUTTON, 0), 1)
+				buttons = buttons or button
+			}
+		} else if (buttons.has(button)) {
+			input.gamepadButtonCallback(InputState(button, ControlType.GAMEPAD_BUTTON, 0), 0)
+			buttons = buttons and button.inv()
+		}
+	}
+
+	fun updateAxis(axis: Int, state: Float) {
 		val newValue = if (abs(state) < deadzones[axis]) 0f else state
 		val oldValue = axesStates[axis]
 		if (oldValue == newValue) return
@@ -63,51 +57,42 @@ open class GamePad(val id: Int, val inputs: GamepadInput) {
 
 		// This triggers the input function if the axis is pushed in/out of the deadzone
 		when {
-			newValue > 0f -> if (oldValue <= 0f) inputs.gamepadButtonCallback(InputState(axis.toShort(), ControlType.GAMEPAD_AXIS, 0), 1)
-			newValue < 0f -> if (oldValue >= 0f) inputs.gamepadButtonCallback(InputState(axis.toShort(), ControlType.GAMEPAD_AXIS, 0), 2)
-			else -> if (oldValue != 0f) inputs.gamepadButtonCallback(InputState(axis.toShort(), ControlType.GAMEPAD_AXIS, 0), 0)
+			newValue > 0f -> if (oldValue <= 0f) input.gamepadButtonCallback(InputState(axis.toShort(), ControlType.GAMEPAD_AXIS, 0), 1)
+			newValue < 0f -> if (oldValue >= 0f) input.gamepadButtonCallback(InputState(axis.toShort(), ControlType.GAMEPAD_AXIS, 0), 2)
+			else -> if (oldValue != 0f) input.gamepadButtonCallback(InputState(axis.toShort(), ControlType.GAMEPAD_AXIS, 0), 0)
 		}
 	}
 
-	fun updateButton(button: Int, state: Byte) {
-		if (buttonStates[button] == state) return
+	open fun getButton(button: Int) = buttons has button
 
-		buttonStates[button] = state
+	override fun delete() {}
 
-		inputs.gamepadButtonCallback(InputState(button.toShort(), ControlType.GAMEPAD_BUTTON, 0), state.toInt())
-	}
+	companion object {
+		const val BUTTON_A = 0x1
+		const val BUTTON_B = 0x2
+		const val BUTTON_X = 0x4
+		const val BUTTON_Y = 0x8
+		const val BUTTON_DPAD_UP = 0x10
+		const val BUTTON_DPAD_RIGHT = 0x20
+		const val BUTTON_DPAD_DOWN = 0x40
+		const val BUTTON_DPAD_LEFT = 0x80
 
-	// GLFW only supports 15 default buttons, but some controllers have extra buttons
-	open fun updateBonusButtons(buttons: ByteArray) {
+		const val BUTTON_LEFT_BUMPER = 0x100
+		const val BUTTON_RIGHT_BUMPER = 0x200
+		const val BUTTON_LEFT_THUMB = 0x400
+		const val BUTTON_RIGHT_THUMB = 0x800
+		const val BUTTON_OPTIONS = 0x1000
+		const val BUTTON_GUIDE = 0x2000
+		const val BUTTON_CROSS = BUTTON_A
+		const val BUTTON_CIRCLE = BUTTON_B
+		const val BUTTON_SQUARE = BUTTON_X
+		const val BUTTON_TRIANGLE = BUTTON_Y
 
-	}
-
-	open fun getButton(button: Int) = buttonStates[button]
-
-	open fun getButtonIcon(type: ControlType, id: Int): Pair<Texture2D, Vec4> {
-		return when (type) {
-			ControlType.GAMEPAD_BUTTON -> {
-				val x = (id % 4) * .25f
-				val y = .75f - floor(id * .25f) * .25f
-				TextureLoader[ResourceKey("ui/ps_buttons")] to Vec4(x, y, .25f, .25f)
-			}
-
-			ControlType.GAMEPAD_AXIS -> {
-				Texture2D.missing to Vec4()
-			}
-
-			else -> Texture2D.missing to Vec4()
-		}
-	}
-
-	fun getDpadState(): Byte {
-		return GLFW.glfwGetJoystickHats(id)?.getOrNull(0) ?: 0
-	}
-
-	fun getDpadVec(): Vec2i {
-		val state = getDpadState()
-		val x = ((state and GLFW.GLFW_HAT_RIGHT) shr 1) - ((state and GLFW.GLFW_HAT_LEFT) shr 3)
-		val y = (state and GLFW.GLFW_HAT_UP) - ((state and GLFW.GLFW_HAT_DOWN) shr 2)
-		return Vec2i(x, y)
+		const val AXIS_LEFT_X = GLFW.GLFW_GAMEPAD_AXIS_LEFT_X
+		const val AXIS_LEFT_Y = GLFW.GLFW_GAMEPAD_AXIS_LEFT_Y
+		const val AXIS_RIGHT_X = GLFW.GLFW_GAMEPAD_AXIS_RIGHT_X
+		const val AXIS_RIGHT_Y = GLFW.GLFW_GAMEPAD_AXIS_RIGHT_Y
+		const val AXIS_LEFT_TRIGGER = GLFW.GLFW_GAMEPAD_AXIS_LEFT_TRIGGER
+		const val AXIS_RIGHT_TRIGGER = GLFW.GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER
 	}
 }

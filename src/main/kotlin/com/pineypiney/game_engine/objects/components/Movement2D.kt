@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.util.input.gamepads.GamePad
 import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
@@ -34,11 +35,11 @@ open class Movement2D(parent: GameObject, val window: WindowI, var speed: Float 
 				move.x *= keyboardRatio
 				move.normalizeAssign()
 			}
-			move *= (1f + sprintBoost * GLFW.glfwGetKey(window.windowHandle, GLFW.GLFW_KEY_LEFT_SHIFT))
+			move *= (1f + sprintBoost * window.getKey(GLFW.GLFW_KEY_LEFT_SHIFT))
 
 		} else {
 			move += pad.leftJoystick
-			move *= (1f + sprintBoost * (.5f * (1f + pad.axesStates[GLFW.GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER])))
+			move *= (1f + sprintBoost * pad.axesStates[GamePad.AXIS_RIGHT_TRIGGER])
 		}
 
 		return move

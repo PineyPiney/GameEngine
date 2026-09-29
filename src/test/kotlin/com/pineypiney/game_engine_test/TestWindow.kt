@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine_test
 
 import com.pineypiney.game_engine.audio.AudioEngine
-import com.pineypiney.game_engine.util.input.DefaultInput
+import com.pineypiney.game_engine.util.input.GLFWInputs
 import com.pineypiney.game_engine.window.OpenGlWindow
 import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW
@@ -16,7 +16,7 @@ class TestWindow(width: Int = 960, height: Int = 540, version: Vec2i) : OpenGlWi
 )) {
 
 	// input must be set after the windowHandle has been set so that the callbacks are assigned correctly
-	override val input = DefaultInput(this)
+	override val input = GLFWInputs(this)
 
 	init {
 		setIcon(File("src/main/resources/textures/menu_items/slider/pointer.png").inputStream())

@@ -143,8 +143,16 @@ class Colour {
 		}
 
 		// https://stackoverflow.com/questions/51203917/math-behind-hsv-to-rgb-conversion-of-colors
+		/**
+		 * Converts HSV colour to RGB
+		 *
+		 * @param h The hue in the range 0-1
+		 * @param s The saturation in the range 0-1
+		 * @param v The value in the range 0-1
+		 *
+		 */
 		fun hsv2rgb(h: Float, s: Float, v: Float): Vec3{
-			val i = (h * .01666667f).toInt()
+			val i = (h * 6f).toInt()
 			val f = h * 6 - i
 			val p = v * (1 - s)
 			val q = v * (1 - f * s)

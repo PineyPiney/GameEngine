@@ -7,18 +7,17 @@ import glm_.mat4x4.Mat4
 import glm_.quat.Quat
 import glm_.quat.QuatD
 import glm_.vec2.Vec2
-import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec3.Vec3d
 import glm_.vec4.Vec4
-import glm_.vec4.Vec4b
-import kool.*
+import kool.BYTES
+import kool.Ptr
+import kool.adr
+import kool.cap
 import org.lwjgl.openvr.*
 import org.lwjgl.system.MemoryUtil.memGetFloat
 import org.lwjgl.system.MemoryUtil.memPutFloat
-import java.nio.ByteBuffer
 import java.nio.FloatBuffer
-import java.nio.ShortBuffer
 import kotlin.math.asin
 import kotlin.math.cos
 
@@ -89,6 +88,11 @@ var HmdVector3.z: Float
 
 fun HmdVector3.toVec3(): Vec3 = to(Vec3())
 infix fun HmdVector3.to(vec: Vec3): Vec3 = vec(x, y, z)
+infix fun HmdVector3.put(vec: Vec3): HmdVector3 {
+	v(0, vec.x)
+	v(1, vec.y)
+	return v(2, vec.z)
+}
 
 
 var HmdVector4.x: Float
@@ -651,6 +655,7 @@ get() = Mat4.fromPointer(address() + CompositorOverlaySettings.TRANSFORM, true)
 set(value) = value.to(address() + CompositorOverlaySettings.TRANSFORM, true)
  **/
 
+/*
 
 val VRBoneTransform.position: Vec4
 	get() = Vec4.fromPointer(Ptr(address() + VRBoneTransform.POSITION))
@@ -830,11 +835,11 @@ var NotificationBitmap.bytesPerPixel: Int
 // ivroverlay.h
 
 var VROverlayIntersectionParams.source: Vec3
-	get() = Vec3.fromPointer(Ptr(address() + VROverlayIntersectionParams.VSOURCE))
-	set(value) = value.to(Ptr<Float>(address() + VROverlayIntersectionParams.VSOURCE))
-var VROverlayIntersectionParams.direction: Vec3
-	get() = Vec3.fromPointer(Ptr(address() + VROverlayIntersectionParams.VDIRECTION))
-	set(value) = value.to(Ptr<Float>(address() + VROverlayIntersectionParams.VDIRECTION))
+	get() = Vec3(Ptr(address() + VROverlayIntersectionParams.VSOURCE))
+	set(value) = value to Ptr<Float>(address() + VROverlayIntersectionParams.VSOURCE)
+//var VROverlayIntersectionParams.direction: Vec3
+//	get() = vDirection().toVec3()
+//	set(value) { vDirection{ it put value} }
 var VROverlayIntersectionParams.origin: Int
 	get() = VROverlayIntersectionParams.neOrigin(address())
 	set(value) = VROverlayIntersectionParams.neOrigin(address(), value.i)
@@ -1004,6 +1009,8 @@ var RenderModelControllerModeState.scrollWheelVisible: Boolean
 
 // ivrinput.h
 
+*/
+
 
 /** Whether or not this action is currently available to be bound in the active action set */
 val InputAnalogActionData.active: Boolean
@@ -1113,6 +1120,7 @@ val InputBindingInfo.slotName: String
 var VRActiveActionSet.actionSet: Long
 	get() = VRActiveActionSet.nulActionSet(address())
 	set(value) = VRActiveActionSet.nulActionSet(address(), value)
+
 
 /** This is the handle of a device path that this action set should be active for.
  *  To activate for all devices, set this to ::invalidInputValueHandle. */

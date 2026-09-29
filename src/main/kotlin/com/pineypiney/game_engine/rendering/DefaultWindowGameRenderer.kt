@@ -24,7 +24,7 @@ open class DefaultWindowGameRenderer<in G : WindowGameLogic, C : CameraI>(window
 		camera.getProjection(projection)
 
 		val api = getRenderingApi()
-		api.beginPresentation()
+		if (!api.beginPresentation()) return
 		api.bindFramebuffer(framebuffer, Vec4(1f, 0f, 0f, 1f))
 
 		renderLayer(0, game, tickDelta)

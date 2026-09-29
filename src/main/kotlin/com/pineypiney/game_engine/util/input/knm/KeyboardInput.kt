@@ -29,4 +29,8 @@ open class KeyboardInput(val input: Inputs, val window: WindowI) : Input {
 	}
 
 	override fun update() {}
+
+	override fun delete() {
+
+	}
 }

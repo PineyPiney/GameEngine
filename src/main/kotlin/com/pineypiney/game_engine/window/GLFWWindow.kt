@@ -13,6 +13,7 @@ import com.pineypiney.game_engine.util.GLFunc.getVec2i
 import com.pineypiney.game_engine.util.GLFunc.getVec4i
 import com.pineypiney.game_engine.util.GLFunc.setVec2d
 import com.pineypiney.game_engine.util.GLFunc.setVec2i
+import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import glm_.bool
 import glm_.f
@@ -133,7 +134,9 @@ abstract class GLFWWindow(
 	override val videoMode: GLFWVidMode get() = (monitor ?: GLFWMonitor.primary).videoMode
 
 	init {
-		GLFW.glfwSetWindowCloseCallback(windowHandle, ::close)
+		GLFW.glfwSetWindowCloseCallback(windowHandle) {
+			delete()
+		}
 	}
 
 	override fun init() {
@@ -315,6 +318,7 @@ abstract class GLFWWindow(
 
 	override fun delete() {
 		audioOutputDevice?.close()
+		input.inputs.delete()
 	}
 
 	companion object {

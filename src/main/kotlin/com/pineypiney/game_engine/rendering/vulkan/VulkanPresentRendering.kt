@@ -29,7 +29,7 @@ class VulkanPresentRendering(val window: WindowI, device: VulkanDevice, viewport
 	override val cmd: PoolAndBuffer get() = frameObjects.commands
 	override val descriptorAllocator: VulkanDescriptorAllocator get() = frameObjects.frameDescriptorAllocator
 
-	override fun beginPresentation() {
+	override fun beginPresentation(): Boolean {
 		// Clear old frame data
 		frameObjects.refresh()
 		// Wait until the fence is ready, it will be signalled by the previous render cycle
@@ -37,13 +37,14 @@ class VulkanPresentRendering(val window: WindowI, device: VulkanDevice, viewport
 
 		// Get the next swapchain image to draw to, and signal the swapchain semaphore once fetched
 		val swapchainImage = swapchain.acquireNextImage(1000000000, frameObjects.swapchainSemaphore, null)
-		if (swapchainImage == null && window.focused) {
-			updateSwapchain(window.size)
-			return
+		if (swapchainImage == null && window.focused && !window.iconified) {
+			updateSwapchain(window.framebufferSize)
+			return false
 		}
 
 		frameObjects.renderFence.reset()
 		frameObjects.begin()
+		return true
 	}
 
 	override fun copyFramebuffer(framebuffer: Framebuffer, renderer: WindowRendererI<*>) {
@@ -87,13 +88,17 @@ class VulkanPresentRendering(val window: WindowI, device: VulkanDevice, viewport
 			val presentInfo = VkStructs.createPresentInfo(stack, swapchain, frameObjects.renderSemaphore)
 			val err = KHRSwapchain.vkQueuePresentKHR(queue, presentInfo)
 			if (err == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR || err == KHRSwapchain.VK_SUBOPTIMAL_KHR) {
-				updateSwapchain(window.size)
+				if (!window.iconified) {
+					VK10.vkQueueWaitIdle(queue)
+					updateSwapchain(window.framebufferSize)
+				}
 			} else VkUtil.processResult(err, "Failed to present swapchain image to screen")
 		}
 	}
 
 	fun updateSwapchain(size: Vec2i) {
 		device.waitIdle()
+
 		swapchain = VkUtil.createSwapchain(device, surface, swapchain, size.x, size.y, colourFormatSpace.first, colourFormatSpace.second)
 	}
 

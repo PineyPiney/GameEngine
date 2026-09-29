@@ -5,14 +5,16 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.cameras.CameraI
-import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
+import com.pineypiney.game_engine.util.input.gamepads.*
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.input.knm.MouseInput
+import com.pineypiney.game_engine.util.jna.LibScePad
 import com.pineypiney.game_engine.util.maths.eulerToVector
 import com.pineypiney.game_engine.util.maths.up
 import com.pineypiney.game_engine.util.maths.vectorToEuler
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.WindowI
+import glm_.f
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2d
@@ -55,16 +57,26 @@ class Movement3D(parent: GameObject, val camera: CameraI, val window: WindowI, v
 
 				sprint = window.getKey(GLFW.GLFW_KEY_LEFT_SHIFT).toFloat()
 			} else {
-				x = pad.axesStates[GLFW.GLFW_GAMEPAD_AXIS_LEFT_X]
-				y = (pad.buttonStates[GLFW.GLFW_GAMEPAD_BUTTON_A] - pad.buttonStates[GLFW.GLFW_GAMEPAD_BUTTON_B]).toFloat()
-				z = -pad.axesStates[GLFW.GLFW_GAMEPAD_AXIS_LEFT_Y]
+				x = pad.axesStates[GamePad.AXIS_LEFT_X]
+				y = pad.getButton(GamePad.BUTTON_A).f - pad.getButton(GamePad.BUTTON_B).f
+				z = pad.axesStates[GamePad.AXIS_LEFT_Y]
 
-				sprint = .5f * (1f + pad.axesStates[GLFW.GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER])
+				sprint = pad.axesStates[GamePad.AXIS_RIGHT_TRIGGER]
 			}
 
 			travel += camera.cameraRight * x
 			travel += camera.cameraUp * y
 			travel += forward * z
+			if (travel.length2() > 1f) travel.normalizeAssign()
+
+			val feedbackValue = travel.length2() * sprint
+			(pad as? RumbleGamepad)?.setRumble(feedbackValue * .4f, feedbackValue)
+			(pad as? LightBarGamepad)?.setLightBar(Vec3(0f, 0f, feedbackValue))
+			(pad as? TriggerEffectGamepad)?.run {
+				setLeftTriggerEffect(LibScePad.TriggerEffectFeedback(2, 6))
+				setRightTriggerEffect(LibScePad.TriggerEffectFeedback(2, 6))
+			}
+
 			travel *= (1f + boost * sprint)
 
 			if (travel != Vec3(0)) {

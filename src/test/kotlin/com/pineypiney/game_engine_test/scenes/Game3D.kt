@@ -24,6 +24,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.fromAngle
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
+import com.pineypiney.game_engine.util.input.gamepads.NativePsController
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
@@ -115,7 +116,12 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 		torch.position = camera.cameraPos
 		light.position = Vec2.fromAngle(Timer.frameTime.mod(PI * 2).toFloat() * 2f, 10f).run { Vec3(x, 2f, y) }
 
-		object3D.rotate(Vec3(0.5, 1, 1.5) * Timer.frameDelta)
+		val gamepad = input.getInputOrNull<GamepadInput>()?.connectedGamepads?.firstOrNull() as? NativePsController
+		if (gamepad == null) object3D.rotate(Vec3(0.5, 1, 1.5) * Timer.frameDelta)
+		else {
+			object3D.position = gamepad.getRelativeAcceleration() * 5f
+			object3D.rotation = gamepad.orientation
+		}
 		val ray = camera.getRay(input.getInput<MouseInput>().lastPos.screenSpace)
 
 		val shape = Cuboid(Vec3(0f), Quat.identity, Vec3(1f)) transformedBy object3D.worldModel

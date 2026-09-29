@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.objects.components.TransformComponent
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
 import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.util.input.ControlType
-import com.pineypiney.game_engine.util.input.DefaultInput
+import com.pineypiney.game_engine.util.input.GLFWInputs
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.input.knm.MouseInput
@@ -21,7 +21,7 @@ abstract class WindowGameLogic : GameLogic() {
 
 	abstract override val gameEngine: WindowedGameEngineI<*>
 	open val window get() = gameEngine.window
-	open val input get() = gameEngine.window.input as DefaultInput
+	open val input get() = gameEngine.window.input as GLFWInputs
 	abstract override val renderer: WindowRendererI<*>
 
 	override fun open() {

@@ -3,6 +3,7 @@ package com.pineypiney.game_engine_test
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.LibrarySetUp
+import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.apps.animator.ObjectAnimator
 import com.pineypiney.game_engine.apps.editor.EditorScreen
 import com.pineypiney.game_engine.objects.GameObject
@@ -20,6 +21,9 @@ import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.extension_functions.normal
+import com.pineypiney.game_engine.util.jna.GameInput
+import com.pineypiney.game_engine.util.jna.LibScePad
+import com.pineypiney.game_engine.util.jna.StdC
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.Circle
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
@@ -33,13 +37,16 @@ import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine_test.scenes.*
 import com.pineypiney.game_engine_test.testVR.TestVREngine
 import com.pineypiney.game_engine_test.testVR.TestVRGame
+import glm_.asHexString
 import glm_.f
+import glm_.has
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.junit.Test
 import kotlin.math.PI
+import kotlin.math.max
 import kotlin.math.sign
 import kotlin.random.Random
 
@@ -279,6 +286,139 @@ class EngineTest{
 	fun testRegex() {
 		val s = "textures\\\\snake\\snake"
 		val r = Regex("[^\\\\]\\\\[^\\\\]")
+	}
+
+	@Test
+	fun testScePad() {
+
+		val p = StdC.INSTANCE.calloc(0x2004, 1)
+
+		val initParam = LibScePad.InitParam(true)
+		println("Init returned ${LibScePad.INSTANCE.scePadInit3(initParam.p)}")
+		initParam.delete()
+
+		val pad = LibScePad.INSTANCE.scePadOpen(1, 0, 0)
+		println("Open returned $pad")
+
+
+		val idInfoSizeError = LibScePad.INSTANCE.scePadGetContainerIdInformation(pad, p)
+		val size = p.getInt(0).coerceIn(0x2004, 0x10000)
+
+		val infoPointer = StdC.INSTANCE.malloc(size + 4L)
+		val idInfoError = LibScePad.INSTANCE.scePadGetContainerIdInformation(pad, infoPointer)
+		val chars = infoPointer.getCharArray(4, size)
+		val containerIdInfo = chars.concatToString()
+		StdC.INSTANCE.free(infoPointer)
+
+		val busTypeError = LibScePad.INSTANCE.scePadGetControllerBusType(pad, p)
+		val busType = p.getInt(0)
+
+		val infoError = LibScePad.INSTANCE.scePadGetControllerInformation(pad, p)
+		val info = LibScePad.Info.read(p)
+
+		val typeError = LibScePad.INSTANCE.scePadGetControllerType(pad, p)
+		val type = p.getInt(0)
+
+		val jackError = LibScePad.INSTANCE.scePadGetJackState(pad, p)
+		val jack = p.getInt(0)
+
+		val trigStateError = LibScePad.INSTANCE.scePadGetTriggerEffectState(pad, p)
+		val triggerState = p.getIntArray(0, 2)
+
+		val data = LibScePad.Data()
+		while (true) {
+			val read = LibScePad.INSTANCE.scePadReadState(pad, data.p)
+			if (data.buttonBitmask has LibScePad.BUTTON_CIRCLE) break
+
+			val colour = Colour(.3f * Timer.getCurrentTime().toFloat() % 1f, 1f, 1f, 1f, Colour.ColourModel.HSV)
+			val light = LibScePad.LightBar(colour.r, colour.g, colour.b)
+			val lightState = LibScePad.INSTANCE.scePadSetLightBar(pad, light.p)
+
+			val triggerEffect = LibScePad.TriggerEffect(
+				LibScePad.TriggerEffectSlopeFeedback(3, 6, 1, 5),
+				LibScePad.TriggerEffectMultiPosFeedback(ByteArray(10) { ((it / 2 % 2) * 8).toByte() })
+			)
+			val triggerState = LibScePad.INSTANCE.scePadSetTriggerEffect(pad, triggerEffect.p)
+
+			val vibrationEffect = LibScePad.Vibration(8, 0)
+			val vibeModeState = LibScePad.INSTANCE.scePadSetVibrationMode(pad, LibScePad.HAPTICS_MODE)
+			val vibeState = LibScePad.INSTANCE.scePadSetVibration(pad, vibrationEffect.p)
+			vibrationEffect.delete()
+		}
+		data.delete()
+		StdC.INSTANCE.free(p)
+
+		println("Close returned ${LibScePad.INSTANCE.scePadClose(pad)}")
+		println("Terminate returned ${LibScePad.INSTANCE.scePadTerminate()}")
+	}
+
+	@Test
+	fun testGameInput() {
+
+		val controllers = mutableListOf<GameInput.Controller>()
+
+		GameInput.processError(GameInput.INSTANCE.initInput(), "Failed to initialise GameInput")
+
+		val connectCb = GameInput.ConnectCallback { p ->
+			val controller = GameInput.Controller(p)
+			val info = controller.info
+			println("Controller Connected")
+			println("\tName = ${info.displayName}")
+			println("\tFamily = ${info.deviceFamily}")
+			println("\tType = ${info.supportedInput.asHexString}")
+			println("\tGuid = ${info.containerId.toHexString()}")
+
+			synchronized(controllers) {
+				controllers.add(controller)
+			}
+		}
+		val disconnectCb = GameInput.DisconnectCallback { device ->
+
+			val controller = controllers.firstOrNull { it.device == device } ?: return@DisconnectCallback
+
+			val info = controller.info
+			println("Controller Disconnected")
+			println("\tName = ${info.displayName}")
+			println("\tFamily = ${info.deviceFamily}")
+			println("\tType = ${info.supportedInput.asHexString}")
+			println("\tGuid = ${info.containerId.toHexString()}")
+
+			GameInput.INSTANCE.releaseController(controller.p)
+			synchronized(controllers) {
+				controllers.remove(controller)
+			}
+		}
+
+		GameInput.INSTANCE.setConnectCallback(connectCb)
+		GameInput.INSTANCE.setDisconnectCallback(disconnectCb)
+
+		var run = true
+		while (run) {
+			synchronized(controllers) {
+				for ((p) in controllers) {
+					val readError = GameInput.INSTANCE.updateReading(p)
+					if (GameInput.processError(readError, "Failed to get current reading for controller")) continue
+
+					val state = GameInput.GamepadState()
+					val gamepadError = GameInput.INSTANCE.pollGamepad(p, state.p)
+
+					if (state.buttons.has(GameInput.gamepadB)) run = false
+
+					val lf = max(0f, state.leftStickY - .2f) * 1.25f
+					val hf = max(0f, state.rightStickY - .2f) * 1.25f
+					GameInput.INSTANCE.setRumble(p, lf, hf, state.leftTrigger, state.rightTrigger)
+
+					state.delete()
+				}
+			}
+			Thread.sleep(1)
+		}
+
+		try {
+			GameInput.INSTANCE.releaseInput()
+		} catch (e: Exception) {
+
+		}
 	}
 }
 
