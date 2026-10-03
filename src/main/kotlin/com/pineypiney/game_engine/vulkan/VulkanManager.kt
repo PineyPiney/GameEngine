@@ -2,8 +2,6 @@ package com.pineypiney.game_engine.vulkan
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.textures.TextureFormat
-import com.pineypiney.game_engine.util.DeletionQueue
-import com.pineypiney.game_engine.util.VulkanDeletionQueue
 import org.lwjgl.vulkan.EXTDebugUtils
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VkDebugUtilsMessengerCallbackDataEXT
@@ -19,8 +17,6 @@ class VulkanManager {
 	val device = gpu.createDevice()
 	val queue = device.getQueue(0)
 
-	val deletionQueue = VulkanDeletionQueue(device)
-
 	val submitter = VulkanImmediateSubmitter(this)
 
 	val drawFormat = TextureFormat.RGBA8
@@ -28,7 +24,6 @@ class VulkanManager {
 
 	init {
 		INSTANCE = this
-		DeletionQueue.setGlobalQueue(deletionQueue)
 
 
 		device.nameObject(instance.address(), VK10.VK_OBJECT_TYPE_INSTANCE, "Vulkan Instance")
@@ -51,7 +46,6 @@ class VulkanManager {
 	}
 
 	fun cleanUp() {
-		deletionQueue.flush()
 
 		submitter.delete()
 		device.delete()

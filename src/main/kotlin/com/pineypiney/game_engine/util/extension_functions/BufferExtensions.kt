@@ -39,13 +39,6 @@ fun ByteBuffer.getVec4i(offset: Int): Vec4i = Vec4i(getInt(offset), getInt(offse
 fun ByteBuffer.getVec4ub(offset: Int): Vec4ub = Vec4ub(get(offset), get(offset + 1), get(offset + 2), get(offset + 3))
 
 
-fun ByteBuffer.put(v: ToBuffer): ByteBuffer {
-	if (remaining() < v.size()) throw BufferOverflowException()
-	v to this
-	position(position() + v.size())
-	return this
-}
-
 fun ByteBuffer.put(offset: Int, v: ToBuffer): ByteBuffer {
 	if (capacity() - offset < v.size()) throw BufferOverflowException()
 	v.to(this, offset)

@@ -11,7 +11,8 @@ class GLSLCodeSegmenter(val code: String) {
 	var i = 0
 	var lastIndex = 0
 
-	var segmentTree = mutableListOf(mutableListOf<GLSLCodeSegment>())
+	// Ancestry of segments from roots down to current segment
+	val segmentTree = mutableListOf(mutableListOf<GLSLCodeSegment>())
 	var currentSegment = segmentTree.last()
 
 	fun addSegment(isComment: Boolean = inComment) {

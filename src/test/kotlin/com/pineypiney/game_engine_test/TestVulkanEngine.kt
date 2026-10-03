@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.vulkan.VulkanPresentRendering
-import com.pineypiney.game_engine.resources.text.FontLoader
+import com.pineypiney.game_engine.resources.fonts.FontLoader
 import com.pineypiney.game_engine.vulkan.VulkanGameEngine
 import com.pineypiney.game_engine.vulkan.VulkanManager
 import com.pineypiney.game_engine.window.WindowGameLogic

@@ -12,7 +12,7 @@ import com.pineypiney.game_engine.resources.shaders.ShaderModule
 import com.pineypiney.game_engine.resources.shaders.ShaderStage
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlComputeShader
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlRenderShader
-import com.pineypiney.game_engine.resources.shaders.opengl.SubShader
+import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlShaderModule
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture2D
@@ -25,7 +25,7 @@ import java.nio.ByteBuffer
 
 class OpenGlResourceFactory : ResourceFactory() {
 
-	override fun createShaderModule(loader: ResourcesLoader, fileName: String, suf: String, stage: ShaderStage, code: String): SubShader {
+	override fun createShaderModule(loader: ResourcesLoader, fileName: String, suf: String, stage: ShaderStage, code: String): OpenGlShaderModule {
 		if ((stage == ShaderStage.TESS_CTRL || stage == ShaderStage.TESS_EVAL) && !GLFunc.versionAtLeast(4, 1)) {
 			if (!ShaderLoader.warnedTess) {
 				GameEngineI.logger.warn(
@@ -38,25 +38,25 @@ class OpenGlResourceFactory : ResourceFactory() {
 				)
 				ShaderLoader.warnedTess = true
 			}
-			return SubShader("Error", stage, 0, emptyMap())
+			return OpenGlShaderModule("Error", stage, 0, emptyMap(), emptyMap())
 		}
 		if (stage == ShaderStage.COMPUTE && !GLFunc.versionAtLeast(4, 3)) {
 			if (!ShaderLoader.warnedCompute) {
 				GameEngineI.logger.warn("Tried to create Compute Shader, which requires OpenGL 4.3 or higher, but created OpenGL Instance is version ${GLFunc.version.toString(".", Int::toString)}")
 				ShaderLoader.warnedCompute = true
 			}
-			return SubShader("Error", stage, 0, emptyMap())
+			return OpenGlShaderModule("Error", stage, 0, emptyMap(), emptyMap())
 		}
 
 		return ShaderLoader.INSTANCE.loadShaderModuleOpenGl(fileName.removeSuffix(".$suf"), code, stage)
 	}
 
 	override fun createRenderShader(vertex: ShaderModule, fragment: ShaderModule, stages: List<ShaderModule>, parameters: RenderShaderParameters, deletionQueue: DeletionQueue): OpenGlRenderShader {
-		return ShaderLoader.generateGraphicsShaderOpenGl(vertex as SubShader, fragment as SubShader, stages.filterIsInstance<SubShader>(), parameters)
+		return ShaderLoader.generateGraphicsShaderOpenGl(vertex as OpenGlShaderModule, fragment as OpenGlShaderModule, stages.filterIsInstance<OpenGlShaderModule>(), parameters)
 	}
 
-	override fun createComputeShader(compute: ShaderModule): OpenGlComputeShader {
-		return ShaderLoader.generateComputeShaderOpenGl(compute as SubShader)
+	override fun createComputeShader(compute: ShaderModule, deletionQueue: DeletionQueue): OpenGlComputeShader {
+		return ShaderLoader.generateComputeShaderOpenGl(compute as OpenGlShaderModule)
 	}
 
 	override fun nullTexture2D(): OpenGlTexture2D = OpenGlTexture2D("Null", 0)

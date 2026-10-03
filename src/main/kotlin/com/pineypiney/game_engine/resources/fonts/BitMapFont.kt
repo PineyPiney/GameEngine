@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.resources.text
+package com.pineypiney.game_engine.resources.fonts
 
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.shaders.RenderShader

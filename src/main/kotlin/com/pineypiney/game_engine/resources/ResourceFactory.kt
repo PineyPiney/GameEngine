@@ -40,7 +40,7 @@ abstract class ResourceFactory {
 		deletionQueue: DeletionQueue = DeletionQueue.GLOBAL
 	): RenderShader
 
-	abstract fun createComputeShader(compute: ShaderModule): ComputeShader
+	abstract fun createComputeShader(compute: ShaderModule, deletionQueue: DeletionQueue = DeletionQueue.GLOBAL): ComputeShader
 
 	abstract fun nullTexture2D(): Texture2D
 	abstract fun nullTexture3D(): Texture3D

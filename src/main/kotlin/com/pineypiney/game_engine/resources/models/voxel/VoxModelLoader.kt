@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelMesh
 import com.pineypiney.game_engine.util.BitMap3D
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.extension_functions.getOrPut
 import com.pineypiney.game_engine.util.extension_functions.string
 import glm_.int
@@ -38,6 +39,7 @@ class VoxModelLoader {
 
 
 		val meshes = models.map { it.generateMesh(factory, rgba) }
+		DeletionQueue.GLOBAL.pushAll(meshes)
 		return Model(name, meshes.toTypedArray())
 	}
 

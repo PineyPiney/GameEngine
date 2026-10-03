@@ -3,8 +3,8 @@ package com.pineypiney.game_engine.util.text
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
+import com.pineypiney.game_engine.resources.fonts.Font
 import com.pineypiney.game_engine.resources.shaders.RenderShader
-import com.pineypiney.game_engine.resources.text.Font
 import com.pineypiney.game_engine.util.extension_functions.replaceWhiteSpaces
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4

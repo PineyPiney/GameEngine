@@ -15,6 +15,10 @@ open class ObjectCollection() {
 		for(obj in objects) addObject(obj)
 	}
 
+	constructor(objects: Iterable<GameObject>) : this() {
+		for (obj in objects) addObject(obj)
+	}
+
 	open val map = CollectionMap(::ObjectCollectionLayer)
 
 	open val gameItems get() = get(0)

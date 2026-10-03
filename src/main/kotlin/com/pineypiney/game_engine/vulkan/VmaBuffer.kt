@@ -15,9 +15,9 @@ class VmaBuffer(val device: VulkanDevice, val buffer: Long, val allocation: Long
 
 	val size: Long get() = info.size()
 
-	fun setBuffer(data: ByteBuffer, offset: Long = 0L) = getBuffer(offset, data.remaining()).put(data)
 	fun getBuffer(size: Int = info.size().toInt()): ByteBuffer = MemoryUtil.memByteBuffer(info.pMappedData(), size)
 	fun getBuffer(offset: Long, size: Int): ByteBuffer = MemoryUtil.memByteBuffer(info.pMappedData() + offset, size)
+	fun setBuffer(data: ByteBuffer, offset: Long = 0L): ByteBuffer = getBuffer(offset, data.remaining()).put(data)
 
 	fun clear() {
 		LibCString.memset(getBuffer(info.size().toInt()), 0)

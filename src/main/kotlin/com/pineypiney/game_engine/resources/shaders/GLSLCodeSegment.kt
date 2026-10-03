@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.resources.shaders
 
 data class GLSLCodeSegment(val code: String, val bracketContents: MutableList<GLSLCodeSegment> = mutableListOf(), val comment: String = "") {
 
+
 	override fun toString(): String {
 		val builder = StringBuilder()
 		if (comment.isNotEmpty()) {

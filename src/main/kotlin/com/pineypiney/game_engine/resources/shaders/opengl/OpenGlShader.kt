@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlMesh
 import com.pineypiney.game_engine.resources.shaders.Shader
+import com.pineypiney.game_engine.resources.shaders.ShaderStorageBuffer
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniform
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.resources.textures.Texture
@@ -36,10 +37,18 @@ import java.nio.FloatBuffer
 import java.nio.IntBuffer
 import java.nio.LongBuffer
 
-abstract class OpenGlShader(private var ID: Int, val uniforms: Map<String, String>) : Shader {
+abstract class OpenGlShader(private var ID: Int, val uniforms: Map<String, String>, val ssboBindings: Map<String, Int>) : Shader {
+
+	val ssbos = mutableMapOf<String, OpenGlShaderStorageBuffer>()
 
 	override fun use(api: RenderingApi) {
 		GL20C.glUseProgram(ID)
+	}
+
+	fun bindSSBOS() {
+		for ((name, binding) in ssboBindings) {
+			ssbos[name]?.bind(binding)
+		}
 	}
 
 	// Functions to set uniforms within shaders
@@ -294,6 +303,18 @@ abstract class OpenGlShader(private var ID: Int, val uniforms: Map<String, Strin
 	override fun getMat4d(name: String): Mat4d = Mat4d(getDN(name, 16))
 	override fun getMat4s(name: String, size: Int): Array<Mat4> = getFN(name, 16 * size).let { a -> Array(size) { i -> Mat4(a.sliceArray((i * 16)..(i * 16 + 15))) } }
 	override fun getMat4ds(name: String, size: Int): Array<Mat4d> = getDN(name, 16 * size).let { a -> Array(size) { i -> Mat4d(a.sliceArray((i * 16)..(i * 16 + 15))) } }
+
+	override fun createSSBO(name: String, size: Int): ShaderStorageBuffer {
+		return OpenGlShaderStorageBuffer(size, GL15.GL_DYNAMIC_COPY)
+	}
+
+	override fun getSSBO(name: String): ShaderStorageBuffer? {
+		return ssbos[name]
+	}
+
+	override fun setSSBO(name: String, ssbo: ShaderStorageBuffer) {
+		ssbos[name] = ssbo as OpenGlShaderStorageBuffer
+	}
 
 	fun <E> get1(name: String, func: (Int, Int) -> E): E {
 		return func(ID, getVar(name))

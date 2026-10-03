@@ -54,8 +54,11 @@ class VulkanDescriptorLayout(val device: VulkanDevice, val pointer: LongBuffer, 
 
 		fun addStorageImage(binding: Int, name: String) = addBinding(VulkanDescriptorBinding.StorageImage(binding, name))
 		fun addCombinedImage(binding: Int, name: String) = addBinding(VulkanDescriptorBinding.CombinedSampler(binding, name))
-		fun addStorageBuffer(device: VulkanDevice, binding: Int, name: String, offsets: DataType.Struct) =
-			addBinding(VulkanDescriptorBinding.UniformBuffer(device, binding, name, offsets))
+		fun addUniformBuffer(device: VulkanDevice, binding: Int, name: String, struct: DataType.Struct) =
+			addBinding(VulkanDescriptorBinding.UniformBuffer(device, binding, name, struct))
+
+		fun addStorageBuffer(device: VulkanDevice, binding: Int, name: String, struct: DataType.Struct) =
+			addBinding(VulkanDescriptorBinding.StorageBuffer(device, binding, name, struct))
 
 		fun clear() = bindings.clear()
 

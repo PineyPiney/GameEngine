@@ -40,6 +40,8 @@ fun Double.round(places: Int): Double {
  * @return The rounded value of the float
  */
 fun Float.round(places: Int): Float {
+	if (places == 0) return roundToInt().toFloat()
+
 	val mult = 10f.pow(places)
 	return try{
 		(mult * this).roundToInt() / mult

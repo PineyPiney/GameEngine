@@ -16,6 +16,7 @@ import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.resources.fonts.TrueTypeLoader
 import com.pineypiney.game_engine.util.BitMap3D
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.util.extension_functions.addAll
@@ -45,6 +46,7 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.junit.Test
+import java.io.FileInputStream
 import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.sign
@@ -102,13 +104,20 @@ class EngineTest{
 	}
 
 	@Test
-	fun testComputeShader(){
-		runOpenGlEngine(::ComputeShaderTest, ::OrthographicCamera, version = Vec2i(4, 3))
+	fun testTesselationShader() {
+		//runOpenGlEngine(::TesselationShaderTest, ::PerspectiveCamera, version = Vec2i(4, 1))
+		runVulkanEngine(::TesselationShaderTest, ::PerspectiveCamera)
 	}
 
 	@Test
-	fun testTesselationShader(){
-		runVulkanEngine(::TesselationShaderTest, ::PerspectiveCamera, version = Vec2i(4, 1))
+	fun testComputeShader(){
+		runOpenGlEngine(::ComputeShaderTest, ::OrthographicCamera, version = Vec2i(4, 3))
+//		runVulkanEngine(::ComputeShaderTest, ::OrthographicCamera)
+	}
+
+	@Test
+	fun testTTFRender() {
+		runOpenGlEngine(::TTFTest, ::OrthographicCamera)
 	}
 
 	companion object {
@@ -138,8 +147,7 @@ class EngineTest{
 			screen: (TestVulkanEngine<G, C>, DefaultWindowGameRenderer<G, C>) -> G,
 			camera: (WindowI) -> C,
 			ups: Int = 20,
-			fps: Int = 2000,
-			version: Vec2i = Vec2i(3)
+			fps: Int = 2000
 		) {
 			LibrarySetUp.initGLFW()
 			val window = VulkanWindow("Vulkan Window", 960, 540)
@@ -286,6 +294,17 @@ class EngineTest{
 	fun testRegex() {
 		val s = "textures\\\\snake\\snake"
 		val r = Regex("[^\\\\]\\\\[^\\\\]")
+	}
+
+	@Test
+	fun testTTFLoader() {
+		FileInputStream("src/main/resources/fonts/LightSlab.ttf").use { stream ->
+			try {
+				TrueTypeLoader().load(stream)
+			} catch (e: Exception) {
+				e.printStackTrace()
+			}
+		}
 	}
 
 	@Test

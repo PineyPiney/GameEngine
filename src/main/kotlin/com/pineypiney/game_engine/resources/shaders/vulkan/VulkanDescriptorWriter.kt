@@ -65,6 +65,10 @@ class VulkanDescriptorWriter {
 		return writeBuffer(binding, buffer.buffer, size, offset, VK10.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
 	}
 
+	fun writeStorageBuffer(binding: Int, buffer: VmaBuffer?, size: Long, offset: Long = 0): VulkanDescriptorWriter {
+		return writeBuffer(binding, buffer?.buffer ?: 0L, size, offset, VK10.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
+	}
+
 	fun clear(): VulkanDescriptorWriter {
 		imageInfos.clear()
 		bufferInfos.clear()

@@ -5,7 +5,6 @@ import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorSet
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipeline
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
 import com.pineypiney.game_engine.util.DeletionQueue
-import com.pineypiney.game_engine.util.VulkanDeletionQueue
 import com.pineypiney.game_engine.window.Viewport
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
@@ -211,7 +210,7 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 		fun create(device: VulkanDevice, stack: MemoryStack, name: String): PoolAndBuffer {
 			val pool = device.createCommandPool(stack, name)
 			val buffer = device.createCommandBuffer(stack, pool, name)
-			val deletion = VulkanDeletionQueue(device)
+			val deletion = DeletionQueue()
 			return PoolAndBuffer(pool, buffer, deletion)
 		}
 	}

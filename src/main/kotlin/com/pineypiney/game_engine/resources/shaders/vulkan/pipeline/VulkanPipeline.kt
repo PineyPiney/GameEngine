@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanMesh
 import com.pineypiney.game_engine.resources.shaders.DataType
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderStage
+import com.pineypiney.game_engine.resources.shaders.ShaderStorageBuffer
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniform
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.resources.shaders.vulkan.*
@@ -40,6 +41,7 @@ import glm_.mat4x4.Mat4d
 import glm_.vec2.*
 import glm_.vec3.*
 import glm_.vec4.*
+import org.lwjgl.util.vma.Vma
 import org.lwjgl.vulkan.VK10
 import java.nio.*
 
@@ -85,7 +87,7 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 
 		for (layout in descriptorLayouts) {
 			for (binding in layout.bindings) {
-				if (binding.contains(name) && binding is VulkanDescriptorBinding.Buffer) {
+				if (binding is VulkanDescriptorBinding.UniformBuffer && binding.contains(name)) {
 					binding.set(name, buffer)
 					return
 				}
@@ -98,7 +100,7 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 
 		for (layout in descriptorLayouts) {
 			for (binding in layout.bindings) {
-				if (binding is VulkanDescriptorBinding.Buffer) {
+				if (binding is VulkanDescriptorBinding.UniformBuffer) {
 					binding.get(name)?.let { return it }
 				}
 			}
@@ -303,17 +305,17 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 	}
 
 	fun set(name: String, element: ToBuffer) {
-		getBuffer(name)?.put(element)
+		getBuffer(name)?.put(0, element)
 	}
 
 	fun setArray(name: String, array: Array<out ToBuffer>) {
 		val buffer = getBuffer(name) ?: return
-		for (entry in array) buffer.put(entry)
+		for (entry in array) buffer.put(0, entry)
 	}
 
 	fun setList(name: String, array: List<ToBuffer>) {
 		val buffer = getBuffer(name) ?: return
-		for (entry in array) buffer.put(entry)
+		for (entry in array) buffer.put(0, entry)
 	}
 
 	override fun getBool(name: String): Boolean {
@@ -411,6 +413,31 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 	override fun getMat4s(name: String, size: Int): Array<Mat4> = getMatrices(name, size, 16, ::toFloats, ::Mat4, ::Mat4)
 	override fun getMat4ds(name: String, size: Int): Array<Mat4d> = getMatrices(name, size, 16, ::toDoubles, ::Mat4d, ::Mat4d)
 
+	override fun createSSBO(name: String, size: Int): ShaderStorageBuffer {
+		return VulkanShaderStorageBuffer(device, name, size, VK10.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU)
+	}
+
+	override fun getSSBO(name: String): ShaderStorageBuffer? {
+		for (layout in descriptorLayouts) {
+			for (binding in layout.bindings) {
+				if (binding is VulkanDescriptorBinding.StorageBuffer && binding.name == name) {
+					return binding.ssbo
+				}
+			}
+		}
+		return null
+	}
+
+	override fun setSSBO(name: String, ssbo: ShaderStorageBuffer) {
+		for (layout in descriptorLayouts) {
+			for (binding in layout.bindings) {
+				if (binding is VulkanDescriptorBinding.StorageBuffer && binding.name == name) {
+					binding.ssbo = (ssbo as VulkanShaderStorageBuffer)
+					return
+				}
+			}
+		}
+	}
 
 	fun <E> get(name: String, func: ByteBuffer.() -> E, default: E): E {
 		return getBuffer(name)?.func() ?: default
@@ -475,10 +502,22 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 						when (val data = uniformBuffer.data) {
 							is DataType.Sampler -> builder.addCombinedImage(uniformBuffer.binding, uniformBuffer.name)
 							is DataType.Image -> builder.addStorageImage(uniformBuffer.binding, uniformBuffer.name)
-							is DataType.Struct -> builder.addStorageBuffer(device, uniformBuffer.binding, uniformBuffer.name, data)
+							is DataType.Struct -> builder.addUniformBuffer(device, uniformBuffer.binding, uniformBuffer.name, data)
 						}
 					} catch (e: PipelineException) {
 						GameEngineI.logger.error("Error adding binding to uniform set ${uniformBuffer.set} in pipeline ${data.values.joinToString(transform = VulkanShaderData::name)}:\n${e.message}")
+					}
+				}
+				for (storageBuffer in stageData.storages) {
+					while (builders.size <= storageBuffer.set) builders.add(VulkanDescriptorLayout.Builder())
+					val builder = builders[storageBuffer.set]
+					builder.addStage(stage)
+					try {
+						when (val data = storageBuffer.data) {
+							is DataType.Struct -> builder.addStorageBuffer(device, storageBuffer.binding, storageBuffer.name, data)
+						}
+					} catch (e: PipelineException) {
+						GameEngineI.logger.error("Error adding binding to uniform set ${storageBuffer.set} in pipeline ${data.values.joinToString(transform = VulkanShaderData::name)}:\n${e.message}")
 					}
 				}
 			}

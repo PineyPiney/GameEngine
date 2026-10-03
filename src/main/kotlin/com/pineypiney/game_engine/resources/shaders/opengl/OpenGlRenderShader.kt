@@ -15,12 +15,13 @@ import glm_.vec4.Vec4i
 
 class OpenGlRenderShader(
 	ID: Int,
-	override val vertex: SubShader,
-	override val fragment: SubShader,
+	override val vertex: OpenGlShaderModule,
+	override val fragment: OpenGlShaderModule,
 	override val stages: List<ShaderModule>,
 	uniforms: Map<String, String>,
+	ssbos: Map<String, Int>,
 	override val parameters: RenderShaderParameters
-) : OpenGlShader(ID, uniforms), RenderShader {
+) : OpenGlShader(ID, uniforms, ssbos), RenderShader {
 
 	override val screenMask: Byte = RandomHelper.createMask(uniforms::containsKey, "view", "projection", "guiProjection", "viewport", "viewPos").toByte()
 
@@ -61,6 +62,7 @@ class OpenGlRenderShader(
 
 	override fun draw(meshName: String, mesh: Mesh, api: RenderingApi) {
 		setParameters()
+		bindSSBOS()
 		(mesh as OpenGlMesh).bindAndDraw(api, parameters.topology.opengl)
 	}
 

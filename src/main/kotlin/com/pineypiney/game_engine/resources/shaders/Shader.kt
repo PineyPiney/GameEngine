@@ -275,5 +275,9 @@ interface Shader : Deletable {
 	fun getMat4s(name: String, size: Int): Array<Mat4>
 	fun getMat4ds(name: String, size: Int): Array<Mat4d>
 
+	fun createSSBO(name: String, size: Int): ShaderStorageBuffer
+	fun getSSBO(name: String): ShaderStorageBuffer?
+	fun setSSBO(name: String, ssbo: ShaderStorageBuffer)
+
 	fun compileUniforms(): Uniforms
 }

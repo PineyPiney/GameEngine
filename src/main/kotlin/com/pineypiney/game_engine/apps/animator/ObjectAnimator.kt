@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
-import com.pineypiney.game_engine.resources.text.FontLoader
+import com.pineypiney.game_engine.resources.fonts.FontLoader
 import com.pineypiney.game_engine.window.OpenGlWindow
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngine

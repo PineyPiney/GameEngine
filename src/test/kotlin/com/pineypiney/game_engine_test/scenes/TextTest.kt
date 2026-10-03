@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.objects.components.rendering.TextRendererCompo
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.resources.text.FontLoader
+import com.pineypiney.game_engine.resources.fonts.FontLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.InputState

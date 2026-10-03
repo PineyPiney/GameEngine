@@ -51,7 +51,7 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 		return pipeline
 	}
 
-	override fun createComputeShader(compute: ShaderModule): ComputeShader {
+	override fun createComputeShader(compute: ShaderModule, deletionQueue: DeletionQueue): ComputeShader {
 		val builder = VulkanComputePipeline.Builder()
 		val pipeline = builder
 			.setModule(compute as VulkanShaderModule)
@@ -59,7 +59,7 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 			.build(vulkan.device)
 
 		builder.delete()
-		vulkan.deletionQueue.push(pipeline)
+		deletionQueue.push(pipeline)
 		return pipeline
 	}
 
@@ -105,7 +105,6 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 
 	override fun createModelMesh(id: String, vertices: Array<out MeshVertex>, indices: IntArray, material: ModelMaterial): ModelMesh {
 		val mesh = VulkanModelMesh(vulkan, id, vertices, indices.toBuffer(), material)
-		vulkan.deletionQueue.push(mesh)
 		return mesh
 	}
 }

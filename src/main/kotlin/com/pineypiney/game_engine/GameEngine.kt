@@ -83,5 +83,6 @@ abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: Re
 		activeScreen.cleanUp()
 		deletionQueue.flush()
 		resourcesLoader.cleanUp()
+		DeletionQueue.GLOBAL.flush()
 	}
 }

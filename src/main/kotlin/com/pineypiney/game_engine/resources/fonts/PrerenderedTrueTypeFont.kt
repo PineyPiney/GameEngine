@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.resources.text
+package com.pineypiney.game_engine.resources.fonts
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.ResourceFactory
@@ -21,7 +21,7 @@ import java.awt.font.FontRenderContext
 import java.awt.geom.Rectangle2D
 import java.awt.Font as JavaFont
 
-class TrueTypeFont(
+class PrerenderedTrueTypeFont(
 	override val name: String,
 	val font: JavaFont,
 	val factory: ResourceFactory,

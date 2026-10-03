@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.resources.text
+package com.pineypiney.game_engine.resources.fonts
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.Timer
@@ -33,8 +33,9 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 
 	fun loadFonts(streams: ResourcesLoader.Streams){
 		streams.useEachStream { fileName, stream ->
-			if (fileName.substringAfter('.') == "bff") {
-				loadFontFromBFF(streams.engine.resourcesLoader.factory, fileName, stream)
+			when (fileName.substringAfter('.')) {
+				"bff" -> loadFontFromBFF(streams.engine.resourcesLoader.factory, fileName, stream)
+//				"ttf" -> loadBeziersFromTTF(stream)
 			}
 		}
 	}
@@ -251,7 +252,11 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 		}
 
 		val name = fontName.substringBefore('.')
-		this.map[ResourceKey(name)] = TrueTypeFont(name, font, resourcesLoader.factory, map, ctx, shader)
+		this.map[ResourceKey(name)] = PrerenderedTrueTypeFont(name, font, resourcesLoader.factory, map, ctx, shader)
+	}
+
+	fun loadBeziersFromTTF(stream: InputStream) {
+		TrueTypeLoader().load(stream)
 	}
 
 	fun loadBoldFromTexture(

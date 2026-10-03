@@ -14,6 +14,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import kool.emptyBuffer
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11C.GL_TRIANGLES
 import java.nio.ByteBuffer
 
@@ -86,8 +87,9 @@ interface Mesh : Deletable {
 		}
 
 		fun textureCircle(factory: ResourceFactory, name: String, center: Vec2, radius: Float, segments: Int = 32, tc: Vec2 = Vec2(.5f), tr: Float = .5f): Mesh {
-			val vertices = kool.ByteBuffer(segments * 16 + 16)
-			vertices.put(center)
+			val vertices = BufferUtils.createByteBuffer(segments * 16 + 16)
+			vertices.put(0, center)
+			vertices.put(8, tc)
 			val indices = IntArray(segments * 3)
 			val angle = 2f * PIF / segments
 			repeat(segments) { i ->

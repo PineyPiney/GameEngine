@@ -14,6 +14,7 @@ import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.CollectionMap
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.transformedBy
@@ -138,6 +139,7 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 			}
 		}
 		meshes.add(loader.factory.createModelMesh(name, vertices.toTypedArray(), indices.toIntArray(), material = material))
+		DeletionQueue.GLOBAL.pushAll(meshes)
 
 		return Model(fileName, meshes.toTypedArray())
 	}
@@ -238,6 +240,7 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 			meshes.add(mesh)
 		}
 
+		DeletionQueue.GLOBAL.pushAll(meshes)
 		val newModel = Model(
 			fileName,
 			meshes.toTypedArray().reversedArray(),

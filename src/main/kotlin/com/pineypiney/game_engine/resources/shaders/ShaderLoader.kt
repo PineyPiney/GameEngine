@@ -6,7 +6,8 @@ import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlComputeShader
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlRenderShader
-import com.pineypiney.game_engine.resources.shaders.opengl.SubShader
+import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlShaderModule
+import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlShaderParser
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderBuilder
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderData
@@ -14,9 +15,7 @@ import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderModule
 import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.addToMapOr
 import com.pineypiney.game_engine.util.extension_functions.delete
-import com.pineypiney.game_engine.util.extension_functions.splitAndTrimLineBreak
 import com.pineypiney.game_engine.util.extension_functions.splitAndTrimWhitespace
 import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VulkanManager
@@ -63,7 +62,7 @@ class ShaderLoader private constructor() : Deletable {
 		}
 	}
 
-	fun loadShaderModuleOpenGl(name: String, code: String, stage: ShaderStage): SubShader {
+	fun loadShaderModuleOpenGl(name: String, code: String, stage: ShaderStage): OpenGlShaderModule {
 		val subshader = generateSubShaderOpenGl(name, code, stage)
 		shaderMap[ResourceKey(name)] = subshader
 		return subshader
@@ -71,7 +70,7 @@ class ShaderLoader private constructor() : Deletable {
 
 	fun loadShaderModuleVulkan(vulkan: VulkanManager, loader: ResourcesLoader, key: ResourceKey, fileName: String, code: String, stage: ShaderStage): ShaderModule {
 
-		val buffer = compileGlslAsSpirv(loader, fileName, code, stage) ?: return VulkanShaderModule(VulkanShaderData("Error", emptyList(), null), stage, vulkan.device, 0L)
+		val buffer = compileGlslAsSpirv(loader, fileName, code, stage) ?: return VulkanShaderModule(VulkanShaderData("Error", emptyList(), emptyList(), null), stage, vulkan.device, 0L)
 
 		MemoryStack.stackPush().use { stack ->
 			val shaderCreateInfo = VkShaderModuleCreateInfo.calloc(stack)
@@ -83,7 +82,8 @@ class ShaderLoader private constructor() : Deletable {
 			vulkan.device.nameObject(pointer[0], VK10.VK_OBJECT_TYPE_SHADER_MODULE, key.key)
 
 			val shaderBuilder = VulkanShaderBuilder(stage)
-			val shaderData = shaderBuilder.parseUniformsVulkan(key.key, code)
+			shaderBuilder.parse(code)
+			val shaderData = VulkanShaderData(key.key, shaderBuilder.uniforms, shaderBuilder.storages, shaderBuilder.pushConstants)
 
 			val shaderModule = VulkanShaderModule(shaderData, stage, vulkan.device, pointer[0])
 			shaderMap.put(key, shaderModule)?.delete()
@@ -187,7 +187,7 @@ class ShaderLoader private constructor() : Deletable {
 
 		// OPENGL
 
-		fun generateSubShaderOpenGl(name: String, code: String, stage: ShaderStage): SubShader {
+		fun generateSubShaderOpenGl(name: String, code: String, stage: ShaderStage): OpenGlShaderModule {
 
 			var openglCode = addMacro(code, "OPENGL")
 			openglCode = openglCode.replace("gl_VertexIndex", "gl_VertexID")
@@ -196,9 +196,9 @@ class ShaderLoader private constructor() : Deletable {
 
 			val handle = createShaderFromString(openglCode, stage, name)
 
-			val uniforms = compileUniforms(code)
+			val (uniforms, ssbos) = compileOpenGlUniforms(code)
 
-			return SubShader(name, stage, handle, uniforms.toMap())
+			return OpenGlShaderModule(name, stage, handle, uniforms.toMap(), ssbos)
 
 		}
 
@@ -218,10 +218,15 @@ class ShaderLoader private constructor() : Deletable {
 			return shader
 		}
 
-		fun generateGraphicsShaderOpenGl(vertexShader: SubShader, fragmentShader: SubShader, optionalShaders: List<SubShader>, parameters: RenderShaderParameters): OpenGlRenderShader {
+		fun generateGraphicsShaderOpenGl(
+			vertexShader: OpenGlShaderModule,
+			fragmentShader: OpenGlShaderModule,
+			optionalShaders: List<OpenGlShaderModule>,
+			parameters: RenderShaderParameters
+		): OpenGlRenderShader {
 			if (!GLFunc.isLoaded) {
 				GameEngineI.warn("Could not generate shader because OpenGL has not been loaded")
-				return OpenGlRenderShader(0, vertexShader, fragmentShader, emptyList(), uniforms = emptyMap(), parameters)
+				return OpenGlRenderShader(0, vertexShader, fragmentShader, emptyList(), emptyMap(), emptyMap(), parameters)
 			}
 			val ID = glCreateProgram()
 
@@ -231,10 +236,13 @@ class ShaderLoader private constructor() : Deletable {
 			val name = StringBuilder("${vertexShader.getName()} x ${fragmentShader.getName()}")
 
 			val uniforms = vertexShader.uniforms.toMutableMap()
+			val ssbos = vertexShader.ssbos.toMutableMap()
 			uniforms.putAll(fragmentShader.uniforms)
+			ssbos.putAll(fragmentShader.ssbos)
 			for (subshader in optionalShaders) {
 				glAttachShader(ID, subshader.handle)
 				uniforms.putAll(subshader.uniforms)
+				ssbos.putAll(subshader.ssbos)
 				name.append(" x ${subshader.getName()}")
 			}
 			glLinkProgram(ID)
@@ -243,68 +251,21 @@ class ShaderLoader private constructor() : Deletable {
 			checkCompileErrorsOpenGl(ID, null, name.toString())
 
 
-			return OpenGlRenderShader(ID, vertexShader, fragmentShader, optionalShaders, uniforms, parameters)
+			return OpenGlRenderShader(ID, vertexShader, fragmentShader, optionalShaders, uniforms, ssbos, parameters)
 		}
 
-		fun generateComputeShaderOpenGl(shader: SubShader): OpenGlComputeShader {
+		fun generateComputeShaderOpenGl(shader: OpenGlShaderModule): OpenGlComputeShader {
 			val ID = glCreateProgram()
 			glAttachShader(ID, shader.handle)
 			glLinkProgram(ID)
 			checkCompileErrorsOpenGl(ID, null, shader.getName())
-			return OpenGlComputeShader(ID, shader, shader.uniforms)
+			return OpenGlComputeShader(ID, shader, shader.uniforms, shader.ssbos)
 		}
 
-		fun compileUniforms(code: String): Map<String, String> {
-			var structName = ""
-			val structs = mutableMapOf<String, MutableMap<String, String>>()
-			val uniforms = mutableMapOf<String, String>()
-
-			var skipNext = false
-			for (fullLine in code.splitAndTrimLineBreak()) {
-
-				val commentIndex = fullLine.indexOf("//")
-				val line = if(commentIndex == -1) fullLine else fullLine.substring(0, commentIndex).trim()
-
-				if(line.isNotEmpty()){
-					if(skipNext) {
-						skipNext = false
-						continue
-					}
-
-					val parts = line.splitAndTrimWhitespace()
-					if (structName.isNotEmpty()) {
-						if (line[0] == '}') structName = ""
-						else {
-							val bracket = line.contains('}')
-							structs.addToMapOr(
-								structName,
-								if (line.contains('}')) parts[1].substringBefore('}') else parts[1].substringBefore(';'),
-								parts[0]
-							)
-							if (bracket) structName = ""
-						}
-					}
-					if (parts[0] == "struct") {
-						structName = parts[1].removeSuffix("{").trim()
-						structs[structName] = mutableMapOf()
-					}
-					if (parts[0] != "uniform") continue
-					val name = line.removePrefix("uniform ${parts[1]} ").substringBefore(';')
-					if (structs.containsKey(parts[1])) {
-						for ((k, v) in structs[parts[1]]!!) {
-							uniforms["$name.$k"] = v
-						}
-					} else uniforms[name] = parts[1]
-				}
-
-
-				if(commentIndex != -1){
-					val comment = fullLine.substring(commentIndex + 2)
-					if(comment.contains("MANUAL")) skipNext = true
-				}
-			}
-
-			return uniforms
+		fun compileOpenGlUniforms(code: String): Pair<Map<String, String>, Map<String, Int>> {
+			val parser = OpenGlShaderParser()
+			parser.parse(code)
+			return parser.uniforms to parser.ssbos
 		}
 
 		fun checkCompileErrorsOpenGl(shader: Int, stage: ShaderStage?, shaderName: String) {

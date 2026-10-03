@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.shaders.RenderShader
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.maths.I
 import glm_.mat4x4.Mat4
 import glm_.quat.Quat
@@ -38,6 +39,7 @@ interface ModelMesh : Mesh {
 				.vertex(1f, 1f, 0f).texture(1f, 1f)
 				.vertex(0f, 1f, 0f).texture(0f, 1f)
 			missing = builder.buildModel("missing", factory)
+			DeletionQueue.GLOBAL.push(missing)
 		}
 	}
 }

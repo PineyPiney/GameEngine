@@ -136,13 +136,8 @@ fun Vec2i.isBetween(bl: Vec2i, tr: Vec2i): Boolean {
 
 
 fun Vec2.round(round: Float): Vec2 {
-	x =
-		if (x >= 0) x - x.mod(round)
-		else x + round - x.mod(round)
-	y =
-		if (y >= 0) y - y.mod(round)
-		else y + round - y.mod(round)
-
+	x = (x / round).roundToInt() * round
+	y = (y / round).roundToInt() * round
 	return this
 }
 

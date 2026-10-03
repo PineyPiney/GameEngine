@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.opengl.OpenGlPresentRendering
 import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.OpenGlResourceFactory
-import com.pineypiney.game_engine.resources.text.FontLoader
+import com.pineypiney.game_engine.resources.fonts.FontLoader
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI

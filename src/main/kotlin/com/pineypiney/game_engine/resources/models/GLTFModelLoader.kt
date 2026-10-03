@@ -18,6 +18,7 @@ import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.parameters.TextureFilter
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.resources.textures.parameters.TextureWrap
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.exceptions.ModelParseException
 import com.pineypiney.game_engine.util.extension_functions.*
@@ -129,6 +130,8 @@ class GLTFModelLoader {
             for ((_, primitive) in primitives.objects) {
 				loadPrimitive(factory, fileName, name, primitive, meshes, accessors, materials)
             }
+
+			DeletionQueue.GLOBAL.pushAll(meshes)
 			meshCollections.add(meshes)
         }
 

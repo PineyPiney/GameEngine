@@ -15,7 +15,7 @@ class BitMap2D(val x: Int, val y: Int) {
 	val numBytes = xRowBytes * y
 	val bytes = UByteArray(numBytes)
 
-	fun or(startX: Int, startY: Int, endX: Int, endY: Int){
+	fun orRange(startX: Int, startY: Int, endX: Int, endY: Int) {
 		val firstByte = startX / 8
 		val firstBit = startX % 8
 		val lastByte = endX / 8
@@ -24,11 +24,11 @@ class BitMap2D(val x: Int, val y: Int) {
 		for (y in startY..endY){
 			val yO = y * xRowBytes
 			if(numXBytes == 1){
-				or(yO + firstByte, createByteMask(firstBit, lastBit))
+				orByte(yO + firstByte, createByteMask(firstBit, lastBit))
 			}
 			else {
-				or(yO + firstByte, createByteMask(firstBit, 7))
-				or(yO + lastByte, createByteMask(0, lastBit))
+				orByte(yO + firstByte, createByteMask(firstBit, 7))
+				orByte(yO + lastByte, createByteMask(0, lastBit))
 				if(numXBytes > 2){
 					for(xO in yO + firstByte + 1..<yO + lastByte) bytes[xO] = 255u
 				}
@@ -39,14 +39,14 @@ class BitMap2D(val x: Int, val y: Int) {
 	fun or(x: Int, y: Int){
 		val byte = byteIndex(x, y)
 		val bit = x % 8
-		or(byte, (1u shl bit).toUByte())
+		orByte(byte, (1u shl bit).toUByte())
 	}
 
-	fun or(byte: Int, value: UByte){
+	fun orByte(byte: Int, value: UByte) {
 		bytes[byte] = bytes[byte] or value
 	}
 
-	fun andNot(startX: Int, startY: Int, endX: Int, endY: Int){
+	fun andNotRange(startX: Int, startY: Int, endX: Int, endY: Int) {
 		val firstByte = startX / 8
 		val firstBit = startX % 8
 		val lastByte = endX / 8
@@ -55,11 +55,11 @@ class BitMap2D(val x: Int, val y: Int) {
 		for (y in startY..endY){
 			val yO = y * xRowBytes
 			if(numXBytes == 1){
-				andNot(yO + firstByte, createByteMask(firstBit, lastBit))
+				andNotByte(yO + firstByte, createByteMask(firstBit, lastBit))
 			}
 			else {
-				andNot(yO + firstByte, createByteMask(firstBit, 7))
-				andNot(yO + lastByte, createByteMask(0, lastBit))
+				andNotByte(yO + firstByte, createByteMask(firstBit, 7))
+				andNotByte(yO + lastByte, createByteMask(0, lastBit))
 				if(numXBytes > 2){
 					for(xO in yO + firstByte + 1..<yO + lastByte) bytes[xO] = 0u
 				}
@@ -67,20 +67,31 @@ class BitMap2D(val x: Int, val y: Int) {
 		}
 	}
 
-	infix fun andNot(rect: Vec4i){
-		andNot(rect.x, rect.y, rect.z, rect.w)
+	infix fun andNotRange(rect: Vec4i) {
+		andNotRange(rect.x, rect.y, rect.z, rect.w)
 	}
 
 	infix fun andNot(other: BitMap2D): BitMap2D {
-		if(other.x != x || other.y != y) throw IllegalArgumentException("Cannot andNot Bitmap of size ($x, $y) with Bitmap of size (${other.x}, ${other.y}, they must be the same size")
+		if (other.x != x || other.y != y) throw IllegalArgumentException("Cannot andNot Bitmap of size ($x, $y) with Bitmap of size (${other.x}, ${other.y}), they must be the same size")
 
 		val newMap = BitMap2D(x, y)
 		for(i in 0..<numBytes) newMap.bytes[i] = bytes[i] and other.bytes[i].inv()
 		return newMap
 	}
 
-	fun andNot(byte: Int, value: UByte){
+	fun andNot(x: Int, y: Int) {
+		val byte = byteIndex(x, y)
+		val bit = x % 8
+		andNotByte(byte, (1u shl bit).toUByte())
+	}
+
+	fun andNotByte(byte: Int, value: UByte) {
 		bytes[byte] = bytes[byte] and value.inv()
+	}
+
+	fun setBit(x: Int, y: Int, on: Boolean) {
+		if (on) or(x, y)
+		else andNot(x, y)
 	}
 
 	fun check(x: Int, y: Int): Boolean{
@@ -148,7 +159,7 @@ class BitMap2D(val x: Int, val y: Int) {
 						else break
 					}
 					val rect = Vec4i(x, range.first, boxX + 1, range.last + 1)
-					andNot(rect.x, rect.y, boxX, range.last)
+					andNotRange(rect.x, rect.y, boxX, range.last)
 					list.add(rect)
 					range = -1..-1
 				}

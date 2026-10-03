@@ -6,7 +6,6 @@ import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
-import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
@@ -14,7 +13,6 @@ import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.s
 import glm_.vec2.Vec2
-import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 
 abstract class MultiTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<MultiTest>) : WindowGameLogic() {
@@ -32,7 +30,7 @@ abstract class MultiTest(override val gameEngine: WindowedGameEngineI<*>, overri
 
 	override fun init() {
 		super.init()
-		for(test in tests) for(layer in test.objects.map) layer.value.init()
+		for (test in tests) for ((_, layer) in test.objects.map) layer.init()
 		gameObjects += tests.first().objects
 	}
 
@@ -82,9 +80,10 @@ abstract class MultiTest(override val gameEngine: WindowedGameEngineI<*>, overri
 		return action
 	}
 
-	override fun updateAspectRatio() {
-		super.updateAspectRatio()
-		GLFunc.viewportO = Vec2i(window.width, window.height)
+	override fun cleanUp() {
+		for (test in tests) test.objects.delete()
+		gameObjects.map.clear()
+		super.cleanUp()
 	}
 
 	open class Test(val objects: ObjectCollection){

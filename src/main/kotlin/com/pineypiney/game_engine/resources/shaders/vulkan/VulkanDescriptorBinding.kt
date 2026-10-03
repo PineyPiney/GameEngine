@@ -55,23 +55,15 @@ abstract class VulkanDescriptorBinding(val binding: Int, val type: Int, val name
 		}
 	}
 
-	abstract class Buffer(val device: VulkanDevice, binding: Int, bufferUsage: Int, type: Int, name: String, var variables: DataType.Struct) :
-		VulkanDescriptorBinding(binding, type, name) {
+	class UniformBuffer(val device: VulkanDevice, binding: Int, name: String, var variables: DataType.Struct) :
+		VulkanDescriptorBinding(binding, VK10.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, name) {
 
-		val buffer = VmaBuffer.create(device, variables.size.toLong(), bufferUsage, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU, "$name Descriptor Binding")
+		val buffer = VmaBuffer.create(device, variables.size.toLong(), VK10.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU, "$name Descriptor Binding")
 
 		override fun contains(uniform: String): Boolean = variables.variables.containsKey(getOffsetName(uniform))
 
-		fun set(name: String, data: ByteBuffer, offset: Int, length: Int) {
-			val (_, index) = variables.variables[getOffsetName(name) ?: return] ?: return
-			val dst = this.buffer.getBuffer(variables.size)
-			dst.put(index, data, offset, length)
-		}
-
-		fun set(name: String, data: ByteBuffer) {
-			val (_, index) = variables.variables[getOffsetName(name) ?: return] ?: return
-			val dst = this.buffer.getBuffer(variables.size)
-			dst.put(index, data, 0, data.capacity())
+		override fun bind(writer: VulkanDescriptorWriter) {
+			writer.writeUniformBuffer(binding, buffer, variables.size.toLong())
 		}
 
 		fun get(name: String): ByteBuffer? {
@@ -79,12 +71,24 @@ abstract class VulkanDescriptorBinding(val binding: Int, val type: Int, val name
 			return buffer.getBuffer(o.toLong(), s)
 		}
 
+		fun set(name: String, data: ByteBuffer, offset: Int, length: Int) {
+			val (_, index) = variables.variables[getOffsetName(name) ?: return] ?: return
+			val dst = buffer.getBuffer(variables.size)
+			dst.put(index, data, offset, length)
+		}
+
+		fun set(name: String, data: ByteBuffer) {
+			val (_, index) = variables.variables[getOffsetName(name) ?: return] ?: return
+			val dst = buffer.getBuffer(variables.size)
+			dst.put(index, data, 0, data.capacity())
+		}
+
 		fun getOffsetName(uniform: String): String? {
 			return getOffsetName(name, uniform)
 		}
 
 		override fun combine(other: VulkanDescriptorBinding) {
-			if (other is Buffer) {
+			if (other is UniformBuffer) {
 				for ((name, variable) in variables) {
 					val current = other.variables[name]
 					if (current == null) throw PipelineException("Variable $name is declared in one struct but not the other")
@@ -103,11 +107,24 @@ abstract class VulkanDescriptorBinding(val binding: Int, val type: Int, val name
 		}
 	}
 
-	class UniformBuffer(device: VulkanDevice, binding: Int, name: String, variables: DataType.Struct) :
-		Buffer(device, binding, VK10.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK10.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, name, variables) {
+	class StorageBuffer(device: VulkanDevice, binding: Int, name: String, val data: DataType) :
+		VulkanDescriptorBinding(binding, VK10.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, name) {
+
+		var ssbo: VulkanShaderStorageBuffer? = null
+
 		override fun bind(writer: VulkanDescriptorWriter) {
-			writer.writeUniformBuffer(binding, buffer, variables.size.toLong())
+			writer.writeStorageBuffer(binding, ssbo?.buffer, ssbo?.size?.toLong() ?: 0L)
 		}
+
+		override fun contains(uniform: String): Boolean {
+			return uniform == name
+		}
+
+		override fun combine(other: VulkanDescriptorBinding) {
+			if (other is StorageBuffer && other.data != data) throw PipelineException("SSBOs have conflicting types $data and ${other.data}")
+		}
+
+		override fun delete() {}
 	}
 
 	companion object {
