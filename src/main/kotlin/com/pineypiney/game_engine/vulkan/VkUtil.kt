@@ -241,11 +241,13 @@ object VkUtil {
 		MemoryStack.stackPush().use { stack ->
 			val buffer = stack.mallocLong(1)
 			processResult(GLFWVulkan.glfwCreateWindowSurface(instance, window.windowHandle, null, buffer), "Failed to create Surface")
+
 			return VulkanSurface(instance, buffer[0])
 		}
 	}
 
 	fun createSwapchain(
+		name: String,
 		device: VulkanDevice,
 		surface: VulkanSurface,
 		oldSwapchain: VulkanSwapchainHandler?,
@@ -308,9 +310,12 @@ object VkUtil {
 			val images = swapchainImages.mapIndexed { index, image ->
 				viewCreateInfo.image(image)
 				processResult(VK10.vkCreateImageView(device.device, viewCreateInfo, null, viewBuffer), "Failed to create Image View")
-				VulkanSwapchainImage(device, image, viewBuffer.get(0), format, width, height)
+				device.nameObject(image, VK10.VK_OBJECT_TYPE_IMAGE, "$name Image $index")
+				device.nameObject(viewBuffer[0], VK10.VK_OBJECT_TYPE_IMAGE_VIEW, "$name Image $index View")
+				VulkanSwapchainImage(device, image, viewBuffer[0], format, width, height)
 			}
 
+			device.nameObject(longBuffer[0], KHRSwapchain.VK_OBJECT_TYPE_SWAPCHAIN_KHR, name)
 			return VulkanSwapchainHandler(device, longBuffer, images)
 		}
 	}

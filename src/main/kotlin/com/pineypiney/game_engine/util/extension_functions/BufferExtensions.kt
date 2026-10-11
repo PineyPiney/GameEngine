@@ -45,6 +45,14 @@ fun ByteBuffer.put(offset: Int, v: ToBuffer): ByteBuffer {
 	return this
 }
 
+fun ByteBuffer.put(v: ToBuffer): ByteBuffer {
+	val size = v.bytes()
+	if (remaining() < size) throw BufferOverflowException()
+	v to this
+	position(position() + size)
+	return this
+}
+
 fun IntBuffer.getVec2i(): Vec2i {
 	return Vec2i(get(), get())
 }
@@ -65,5 +73,5 @@ fun ByteBuffer.resize(newCapacity: Int, stack: MemoryStack): ByteBuffer {
 	return stack.malloc(newCapacity).put(flip())
 }
 
-inline fun <reified E : Struct<E>> StructBuffer<E, *>.toArray() = Array<E>(capacity()) { get() }
+inline fun <reified E : Struct<E>> StructBuffer<E, *>.toArray() = Array(capacity()) { get() }
 fun PointerBuffer.toArray() = LongArray(capacity()) { get() }

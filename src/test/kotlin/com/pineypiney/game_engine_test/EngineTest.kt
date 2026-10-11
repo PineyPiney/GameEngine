@@ -1,20 +1,15 @@
 package com.pineypiney.game_engine_test
 
-import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.GameLogicI
-import com.pineypiney.game_engine.LibrarySetUp
-import com.pineypiney.game_engine.Timer
+import com.pineypiney.game_engine.*
 import com.pineypiney.game_engine.apps.animator.ObjectAnimator
-import com.pineypiney.game_engine.apps.editor.EditorScreen
+import com.pineypiney.game_engine.apps.editor.EditorEngine
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.rendering.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.util.Animation
-import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
-import com.pineypiney.game_engine.rendering.cameras.CameraI
-import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
-import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
+import com.pineypiney.game_engine.resources.DirectorySource
+import com.pineypiney.game_engine.resources.GithubSource
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.fonts.TrueTypeLoader
 import com.pineypiney.game_engine.util.BitMap3D
@@ -31,8 +26,8 @@ import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.vulkan.VulkanManager
+import com.pineypiney.game_engine.window.OpenGlWindow
 import com.pineypiney.game_engine.window.VulkanWindow
-import com.pineypiney.game_engine.window.VulkanWindowedEngine
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine_test.scenes.*
@@ -61,16 +56,17 @@ class EngineTest{
 
 	@Test
 	fun test2D() {
-		runVulkanEngine(::Game2D, ::OrthographicCamera)
+		runOpenGlEngine(::Game2D)
 	}
 
 	@Test
 	fun test3D(){
-		runVulkanEngine(::Game3D, ::PerspectiveCamera)
+		runVulkanEngine(::Game3D)
 	}
+
 	@Test
 	fun testLighting(){
-		runOpenGlEngine(::LightingTest, ::PerspectiveCamera)
+		runOpenGlEngine(::LightingTest)
 	}
 
 	@Test
@@ -80,44 +76,44 @@ class EngineTest{
 
 	@Test
 	fun testCollisionVisual(){
-		runOpenGlEngine(::CollisionTest, ::OrthographicCamera, 100)
+		runOpenGlEngine(::CollisionTest, 100)
 	}
 
 	@Test
 	fun testCollision3DVisual(){
-		runOpenGlEngine(::Collision3DTest, ::OrthographicCamera, 100)
+		runOpenGlEngine(::Collision3DTest, 100)
 	}
 
 	@Test
 	fun testText(){
-		runOpenGlEngine(::TextTest, ::OrthographicCamera)
+		runOpenGlEngine(::TextTest)
 	}
 
 	@Test
 	fun testShader(){
-		runOpenGlEngine(::ShaderTest, ::OrthographicCamera)
+		runOpenGlEngine(::ShaderTest)
 	}
 
 	@Test
 	fun testStencil() {
-		runVulkanEngine(::StencilTest, ::OrthographicCamera)
+		runVulkanEngine(::StencilTest)
 	}
 
 	@Test
 	fun testTesselationShader() {
-		//runOpenGlEngine(::TesselationShaderTest, ::PerspectiveCamera, version = Vec2i(4, 1))
-		runVulkanEngine(::TesselationShaderTest, ::PerspectiveCamera)
+		//runOpenGlEngine(::TesselationShaderTest, version = Vec2i(4, 1))
+		runVulkanEngine(::TesselationShaderTest)
 	}
 
 	@Test
 	fun testComputeShader(){
-		runOpenGlEngine(::ComputeShaderTest, ::OrthographicCamera, version = Vec2i(4, 3))
+		runOpenGlEngine(::ComputeShaderTest, version = Vec2i(4, 3))
 //		runVulkanEngine(::ComputeShaderTest, ::OrthographicCamera)
 	}
 
 	@Test
 	fun testTTFRender() {
-		runOpenGlEngine(::TTFTest, ::OrthographicCamera)
+		runOpenGlEngine(::TTFTest)
 	}
 
 	companion object {
@@ -130,9 +126,8 @@ class EngineTest{
 			engine(window, screen, ups, fps).run()
 		}
 
-		fun <G : WindowGameLogic, C : CameraI> runOpenGlEngine(
-			screen: (TestOpenGlEngine<G, C>, DefaultWindowGameRenderer<G, C>) -> G,
-			camera: (WindowI) -> C,
+		fun <G : WindowGameLogic> runOpenGlEngine(
+			screen: (TestEngine<G>) -> G,
 			ups: Int = 20,
 			fps: Int = 2000,
 			version: Vec2i = Vec2i(3)
@@ -140,33 +135,48 @@ class EngineTest{
 			LibrarySetUp.initGLFW()
 			val window = TestWindow(version = version)
 			window.init()
-			TestOpenGlEngine(window, screen, camera, ups, fps).run()
+			TestEngine(window, OpenGlManager, screen, ups, fps).run()
 		}
 
-		fun <G : WindowGameLogic, C : CameraI> runVulkanEngine(
-			screen: (TestVulkanEngine<G, C>, DefaultWindowGameRenderer<G, C>) -> G,
-			camera: (WindowI) -> C,
+		fun <G : WindowGameLogic> runVulkanEngine(
+			screen: (TestEngine<G>) -> G,
 			ups: Int = 20,
 			fps: Int = 2000
 		) {
 			LibrarySetUp.initGLFW()
 			val window = VulkanWindow("Vulkan Window", 960, 540)
 			window.init()
-			TestVulkanEngine(window, screen, camera, ups, fps).run()
+			TestEngine(window, VulkanManager(), screen, ups, fps).run()
 		}
 	}
 
 	@Test
 	fun testAnimator(){
 		LibrarySetUp.initGLFW()
-		ObjectAnimator.run(::createSnake)
+		ObjectAnimator.run(OpenGlManager, ::createSnake)
 	}
 
 	@Test
-	fun testEditor(){
+	fun testVulkanEditor() {
 		LibrarySetUp.initGLFW()
 		val window = VulkanWindow("Editor").apply { init() }
-		VulkanWindowedEngine(window, VulkanManager(), ::EditorScreen).run()
+		EditorEngine(window, VulkanManager(), listOf(DirectorySource("src/test/resources"), DirectorySource())).run()
+	}
+
+	@Test
+	fun testOpenGlEditor() {
+		LibrarySetUp.initGLFW()
+		val window = OpenGlWindow("Editor").apply { init() }
+		EditorEngine(window, OpenGlManager, listOf(DirectorySource("src/test/resources"), DirectorySource())).run()
+	}
+
+	@Test
+	fun testUrlResource() {
+		val githubResource = GithubSource.ENGINE
+		githubResource.getStream(githubResource.streamList.first()).use { stream ->
+			val text = stream?.reader()?.readText() ?: return@use
+			println("First file contains $text")
+		}
 	}
 
 	@Test
@@ -292,7 +302,7 @@ class EngineTest{
 
 	@Test
 	fun testRegex() {
-		val s = "textures\\\\snake\\snake"
+		val s = "textures\\test\\snake\\snake"
 		val r = Regex("[^\\\\]\\\\[^\\\\]")
 	}
 

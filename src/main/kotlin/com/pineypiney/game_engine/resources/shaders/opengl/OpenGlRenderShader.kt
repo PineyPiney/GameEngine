@@ -10,18 +10,20 @@ import com.pineypiney.game_engine.resources.shaders.parameters.CullMode
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.RandomHelper
+import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
 
 class OpenGlRenderShader(
-	ID: Int,
+	program: Int,
+	override val id: ResourceKey,
 	override val vertex: OpenGlShaderModule,
 	override val fragment: OpenGlShaderModule,
 	override val stages: List<ShaderModule>,
 	uniforms: Map<String, String>,
 	ssbos: Map<String, Int>,
 	override val parameters: RenderShaderParameters
-) : OpenGlShader(ID, uniforms, ssbos), RenderShader {
+) : OpenGlShader(program, uniforms, ssbos), RenderShader {
 
 	override val screenMask: Byte = RandomHelper.createMask(uniforms::containsKey, "view", "projection", "guiProjection", "viewport", "viewPos").toByte()
 

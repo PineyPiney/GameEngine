@@ -10,7 +10,9 @@ import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComp
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
-import com.pineypiney.game_engine.rendering.WindowRendererI
+import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
+import com.pineypiney.game_engine.rendering.GameRenderer
+import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
@@ -22,7 +24,7 @@ import com.pineypiney.game_engine.resources.models.OpenGlModelMesh
 import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.util.Debug
+import com.pineypiney.game_engine.util.DebugTimer
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.PIF
@@ -51,8 +53,10 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("UNUSED")
-class LightingTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<LightingTest>) : WindowGameLogic() {
+class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
+	override val id: String = "Lighting Test"
+	override val renderer: GameRenderer<LightingTest> = DefaultWindowGameRenderer(window, ::PerspectiveCamera) { gameEngine.manager.createPresentingApi(it, id) }
 	private val camera get() = renderer.camera
 	val vel = Vec3(0f)
 
@@ -60,15 +64,15 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>, override val
 
 	private val movementController = Movement3D.default(window, camera, 10f)
 
-	val zArrow = GameObject.simpleModelledGameObject("arrow", ModelLoader[ResourceKey("gltf/arrow")], ModelRendererComponent.pbrShader).apply { position = Vec3(0f, -4f, 0f) }
+	val zArrow = GameObject.simpleModelledGameObject("arrow", ModelLoader[ResourceKey("gltf/arrow")], ModelRendererComponent.modelPbr).apply { position = Vec3(0f, -4f, 0f) }
 
 	//val model = ModelLoader[ResourceKey("SavedModel")]
 	val model get() = Model("icosahedron",  arrayOf(createSphereMeshWithTangents(1f, 3)))
 	val firstModel = Model("model", arrayOf(createInvertedCuboid(AxisAlignedCuboid(Vec3(0f), Vec3(1f)))))
-	val modelShader = ShaderLoader[ResourceKey("vertex/tangent_model"), ResourceKey("fragment/pbr_lit_tangent_model")]
+	val modelShader = ShaderLoader[ResourceKey("debug_model"), ResourceKey("vertex/tangent_3D"), ResourceKey("fragment/pbr_lit_tangent_model")]
 	private val litModel = GameObject.simpleModelledGameObject("Lit Model", firstModel, ModelRendererComponent.debugTrisShader)
 
-	val debugShader = ShaderLoader[ResourceKey("vertex/tangent_model"), ResourceKey("fragment/colour_in"), ResourceKey("geometry/visualise_tangents")]
+	val debugShader = ShaderLoader[ResourceKey("debug_lighting"), ResourceKey("vertex/tangent_3D"), ResourceKey("fragment/colour_in"), ResourceKey("geometry/visualise_tangents")]
 	val debugModel = GameObject.simpleModelledGameObject("Debug Model", firstModel, debugShader)
 
 	var rotatePoint = true
@@ -185,7 +189,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>, override val
 
 	fun createSphereMesh(radius: Float, subdivisions: Int): OpenGlModelMesh {
 
-		val d = Debug().start()
+		val d = DebugTimer().start()
 
 		val gr = 1.618034f
 		val m = 1f / sqrt(gr * gr + 1f)
@@ -337,7 +341,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>, override val
 
 	fun createSphereMeshWithTangents(radius: Float, subdivisions: Int): OpenGlModelMesh {
 
-		val d = Debug().start()
+		val d = DebugTimer().start()
 
 		val icoIndices = intArrayOf(
 			0, 5, 6,

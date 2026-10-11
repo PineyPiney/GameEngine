@@ -26,6 +26,7 @@ open class ColouredSpriteComponent(
 	}
 
 	companion object {
-		val colouredMenuShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/texture_coloured")]
+		val coloured2DShader = ShaderLoader.loadRenderShader(ResourceKey("2d/coloured_texture"))
+		val colouredMenuShader = ShaderLoader.loadRenderShader(ResourceKey("menu/coloured_texture"))
 	}
 }

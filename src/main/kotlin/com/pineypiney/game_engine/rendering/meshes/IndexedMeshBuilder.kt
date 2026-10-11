@@ -41,6 +41,8 @@ class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
 		return this
 	}
 
+	fun vertex(vec: Vec3) = vertex(vec.x, vec.y, vec.z)
+
 	fun vertex(vec: Vec2) = vertex(vec.x, vec.y)
 
 	fun texture(u: Float, v: Float): IndexedMeshBuilder {

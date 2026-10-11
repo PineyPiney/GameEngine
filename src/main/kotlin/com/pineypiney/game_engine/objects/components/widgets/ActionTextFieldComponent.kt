@@ -52,10 +52,18 @@ open class ActionTextFieldComponent<E : TextFieldComponent>(
 			return obj to addActionTextField(obj, startText, updateType, textSize, action)
 		}
 
-		fun <E : TextFieldComponent> createActionTextFieldAt(name: String, origin: Vec2, size: Vec2, updateType: Int = UPDATE_ON_FINISH, action: TextFieldAction<E>): ActionTextFieldComponent<E> {
+		fun <E : TextFieldComponent> createActionTextFieldAt(
+			name: String,
+			origin: Vec2,
+			size: Vec2,
+			startText: String,
+			textSize: Int,
+			updateType: Int = UPDATE_ON_FINISH,
+			action: TextFieldAction<E>
+		): ActionTextFieldComponent<E> {
 			val obj = GameObject(name, 1)
 			obj.os(origin, size)
-			return addActionTextField(obj, "", updateType, 12, action)
+			return addActionTextField(obj, startText, updateType, textSize, action)
 		}
 
 		fun <E : TextFieldComponent> createActionTextFieldAt(

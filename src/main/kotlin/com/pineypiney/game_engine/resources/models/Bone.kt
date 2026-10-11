@@ -109,7 +109,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 
 	companion object {
 		val boneMatrix = I.translate(Vec3(0, 0.33, 0)).scale(Vec3(0.2, 0.6, 1))
-		val boneShader = ShaderLoader.get(ResourceKey("vertex/pass_pos"), ResourceKey("fragment/bones"))
+		val boneShader = ShaderLoader[ResourceKey("bone"), ResourceKey("vertex/pass_pos_2D"), ResourceKey("fragment/bones")]
 
 //		fun generateBoneMesh(): IndicesMesh {
 //

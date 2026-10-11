@@ -1,0 +1,81 @@
+[
+	{
+		"type": "default",
+		"name": "Frank",
+		"active": true,
+		"layer": 0,
+		"components": [
+			{
+				"name": "TransformComponent",
+				"position": [
+					0.0,
+					0.0,
+					0.0
+				],
+				"rotation": [
+					0.0,
+					0.0,
+					0.0,
+					1.0
+				],
+				"scale": [
+					1.0,
+					1.0,
+					1.0
+				]
+			}
+		]
+	},
+	{
+		"type": "default",
+		"name": "Tim",
+		"active": true,
+		"layer": 0,
+		"components": [
+			{
+				"name": "TransformComponent",
+				"position": [
+					0.0,
+					0.0,
+					0.0
+				],
+				"rotation": [
+					0.0,
+					0.0,
+					0.0,
+					1.0
+				],
+				"scale": [
+					1.0,
+					1.0,
+					1.0
+				]
+			},
+			{
+				"name": "LightComponent",
+				"on": true
+			}
+		]
+	},
+	{
+		"type": "prefab",
+		"path": "src\\test\\resources\\editor\\test.pfb",
+		"name": "Test",
+		"edits": [
+			{
+				"id": "",
+				"node": [
+					{
+						"field": "TransformComponent.position",
+						"json": [
+							-0.23415998,
+							-1.7493114,
+							0.0
+						],
+						"type": "fled"
+					}
+				]
+			}
+		]
+	}
+]

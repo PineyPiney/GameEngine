@@ -3,7 +3,6 @@ package com.pineypiney.game_engine.resources.shaders.vulkan.pipeline
 import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderStage
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderModule
@@ -20,6 +19,7 @@ import org.lwjgl.vulkan.*
 
 class VulkanGraphicsPipeline(
 	pipeline: Long,
+	override val id: ResourceKey,
 	override val vertex: VulkanShaderModule,
 	override val fragment: VulkanShaderModule,
 	override val stages: List<VulkanShaderModule>,
@@ -71,13 +71,6 @@ class VulkanGraphicsPipeline(
 			modules.addAll(vertex, fragment)
 			modules.addAll(optional)
 			return this
-		}
-
-		fun shaders(vertexName: String, fragmentName: String, optional: Iterable<String>): Builder {
-			val vertex = ShaderLoader.INSTANCE.getSubShader(ResourceKey(vertexName)) as VulkanShaderModule
-			val fragment = ShaderLoader.INSTANCE.getSubShader(ResourceKey(fragmentName)) as VulkanShaderModule
-			val optional = optional.map { ShaderLoader.INSTANCE.getSubShader(ResourceKey(it)) as VulkanShaderModule }
-			return shaders(vertex, fragment, optional)
 		}
 
 		fun setLayout(layout: VulkanPipelineLayout): Builder {
@@ -228,7 +221,7 @@ class VulkanGraphicsPipeline(
 			return this
 		}
 
-		override fun build(device: VulkanDevice): VulkanGraphicsPipeline {
+		override fun build(device: VulkanDevice, id: ResourceKey): VulkanGraphicsPipeline {
 
 
 			if (layout == null) throw Error("No layout was set for this pipeline")
@@ -292,7 +285,7 @@ class VulkanGraphicsPipeline(
 				device.nameObject(pPipeline[0], VK10.VK_OBJECT_TYPE_PIPELINE, name)
 				device.nameObject(layout!!.handle, VK10.VK_OBJECT_TYPE_PIPELINE_LAYOUT, "$name Layout")
 
-				return VulkanGraphicsPipeline(pPipeline[0], vertex, fragment, optionalModules, parameters, layout!!)
+				return VulkanGraphicsPipeline(pPipeline[0], id, vertex, fragment, optionalModules, parameters, layout!!)
 			}
 		}
 

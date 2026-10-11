@@ -25,10 +25,10 @@ import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW
 
 @Suppress("UNUSED")
-class TesselationShaderTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: GameRenderer<TesselationShaderTest>) : WindowGameLogic() {
+class TesselationShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
-	@Suppress("UNCHECKED_CAST")
-	val defaultRenderer get() = renderer as DefaultWindowGameRenderer<TesselationShaderTest, PerspectiveCamera>
+	override val id: String = "Tesselation Shader Test"
+	override val renderer: GameRenderer<TesselationShaderTest> = DefaultWindowGameRenderer(window, ::PerspectiveCamera) { gameEngine.manager.createPresentingApi(it, id) }
 
 	init {
 		val api = renderer.getRenderingApi()
@@ -39,11 +39,11 @@ class TesselationShaderTest(override val gameEngine: WindowedGameEngineI<*>, ove
 	val heightMap = TextureLoader[ResourceKey("swiss_height_map")]
 	val mesh = Mesh.tessellatedPlane(gameEngine.resourcesLoader.factory, "Switzerland Mesh", heightMap.width * .1f, heightMap.height * .1f, 64)
 
-	val shader = ShaderLoader[ResourceKey("vertex/pass_through"), ResourceKey("fragment/texture"), listOf(
+	val shader = ShaderLoader[ResourceKey("tesselation_test"), ResourceKey("vertex/pass_through"), ResourceKey("fragment/texture"), listOf(
 		ResourceKey("tessellation/dynamic_lod"),
 		ResourceKey("tessellation/random_colour")
 	), RenderShaderParameters(InputTopology.PATCHES, cullMode = CullMode.NONE, tesselation = 4)]
-	val wireframeShader = shader.withParameters(shader.parameters.copy(fillMode = PolygonMode.LINE))
+	val wireframeShader = shader.withParameters(ResourceKey("tesselation_test_wireframe"), shader.parameters.copy(fillMode = PolygonMode.LINE))
 	val uniformValues = mutableMapOf<String, Any>()
 
 	val obj = GameObject.simpleRenderedGameObject("Switzerland", shader, Vec3(0f), Vec3(1f), mesh, {

@@ -30,7 +30,7 @@ open class MeshedTextureComponent(
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	companion object {
-		val default2DShader = ShaderLoader[ResourceKey("vertex/2D"), ResourceKey("fragment/texture")]
-		val default3DShader = ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/texture")]
+		val default2DShader = ShaderLoader.loadRenderShader(ResourceKey("2d/texture"))
+		val default3DShader = ShaderLoader.loadRenderShader(ResourceKey("3d/texture"))
 	}
 }

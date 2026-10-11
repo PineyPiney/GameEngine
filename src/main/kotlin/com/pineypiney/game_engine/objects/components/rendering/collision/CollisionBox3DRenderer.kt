@@ -14,7 +14,7 @@ import glm_.vec4.Vec4
 class CollisionBox3DRenderer(
 	parent: GameObject,
 	val obj: GameObject,
-	val lineThickness: Float = .05f,
+	val width: Float = .05f,
 	val colour: Vec4 = Vec4(1f),
 	shader: RenderShader = defaultShader
 ) : ShaderRenderedComponent(parent, shader) {
@@ -30,8 +30,8 @@ class CollisionBox3DRenderer(
 				) * rotation.toMat4()).scale(sides)
 			}
 		}
-		uniforms.setVec4Uniform("colour", ::colour)
-		uniforms.setFloatUniform("thickness", ::lineThickness)
+		uniforms.setVec4Uniform("outlineColour", ::colour)
+		uniforms.setFloatUniform("width", ::width)
 	}
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
@@ -42,8 +42,7 @@ class CollisionBox3DRenderer(
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	companion object {
-		val defaultShader =
-			ShaderLoader.get(ResourceKey("vertex/pass_pos_3D"), ResourceKey("fragment/collider3D"))
+		val defaultShader = ShaderLoader.loadRenderShader(ResourceKey("3d/outline_cube"))
 
 		fun create(obj: GameObject, lineThickness: Float = .05f, colour: Vec4 = Vec4(1f)): GameObject{
 			val par = GameObject(obj.name + " Collider Renderer")

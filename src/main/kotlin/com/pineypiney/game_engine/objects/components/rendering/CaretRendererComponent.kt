@@ -13,7 +13,7 @@ import glm_.vec4.Vec4
 class CaretRendererComponent(
 	parent: GameObject,
 	colour: Vec4,
-	shader: RenderShader = defaultShader,
+	shader: RenderShader = shader3D,
 	shape: Mesh = Mesh.centerSquareShape
 ) : ColourRendererComponent(parent, colour, shader, shape),
 	UpdatingAspectRatioComponent {

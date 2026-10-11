@@ -440,6 +440,7 @@ interface Codec<A> {
 		}
 
 		fun <E : Enum<E>> enum(fromString: (String) -> E): Codec<E> = STRING.map(Enum<E>::name, fromString)
+		fun <E : Enum<E>> nullableEnum(fromString: (String) -> E): Codec<E?> = STRING.map({ it?.name ?: "null" }) { runCatching { fromString(it) }.getOrDefault(null) }
 
 		val BOOL = object : Codec<Boolean> {
 			override fun <E> encode(ops: SerialOps<E>, value: Boolean): E = ops.writeBool(value)
@@ -584,7 +585,7 @@ interface Codec<A> {
 		val TEXTURE = STRING.map(Texture2D::id) { TextureLoader[ResourceKey(it)] }
 		val MODEL = STRING.map(Model::name) { ModelLoader[ResourceKey(it)] }
 
-		fun relativeGameObject(container: Any): Codec<GameObject?> {
+		fun relativeGameObject(container: Any?): Codec<GameObject?> {
 			return STRING.map({ GameObjectField.serialise(it, container) }) { GameObjectField.parse(it, container) }
 		}
 	}

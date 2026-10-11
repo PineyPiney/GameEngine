@@ -20,7 +20,7 @@ import com.pineypiney.game_engine.util.maths.Collider2D
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
-open class ModelRendererComponent(parent: GameObject, var model: Model = Model.missing, shader: RenderShader = defaultShader) :
+open class ModelRendererComponent(parent: GameObject, var model: Model = Model.missing, shader: RenderShader = modelUnlit) :
 	ShaderRenderedComponent(parent, shader) {
 
 	protected var animation: ModelAnimation? = null
@@ -32,7 +32,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 	var erp: String = "lerp"
 
 	val queue = DeletionQueue()
-	val wireframeShader = ShaderLoader[ResourceKey(shader.vertex.getName()), ResourceKey(shader.fragment.getName()), RenderShaderParameters(fillMode = PolygonMode.LINE), queue]
+	val wireframeShader = shader.withParameters(ResourceKey("$model Wireframe"), RenderShaderParameters(fillMode = PolygonMode.LINE), queue)
 
 	@IntFieldRange(0, 7)
 	var debug = 0
@@ -155,16 +155,15 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 
 	@Suppress("UNUSED")
 	companion object {
-		val bonelessShader = ShaderLoader[ResourceKey("vertex/model_boneless"), ResourceKey("fragment/model")]
-		val defaultShader = ShaderLoader[ResourceKey("vertex/model"), ResourceKey("fragment/model")]
-		val defaultLitShader = ShaderLoader[ResourceKey("vertex/model"), ResourceKey("fragment/lit_model")]
+		val modelUnlit = ShaderLoader.loadRenderShader(ResourceKey("3d/model"))
+		val modelPhong = ShaderLoader.loadRenderShader(ResourceKey("3d/model_phong"))
 
-		val bonelessPbrShader = ShaderLoader[ResourceKey("vertex/model_boneless"), ResourceKey("fragment/pbr_lit_model")]
-		val pbrShader = ShaderLoader[ResourceKey("vertex/model"), ResourceKey("fragment/pbr_lit_model")]
-		val tangentBonesShader = ShaderLoader[ResourceKey("vertex/tangent_bones_model"), ResourceKey("fragment/model")]
+		val meshPbr = ShaderLoader.loadRenderShader(ResourceKey("3d/pbr"))
+		val modelPbr = ShaderLoader.loadRenderShader(ResourceKey("3d/model_pbr"))
+		val tangentBonesShader = ShaderLoader.loadRenderShader(ResourceKey("3d/tangent_model"))
 
 
-		val debugTrisShader = ShaderLoader[ResourceKey("vertex/tangent_bones_model"), ResourceKey("fragment/colour_primitives")]
-		val debugWeightsShader = ShaderLoader[ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights")]
+		val debugTrisShader = ShaderLoader[ResourceKey("debug_model_tris"), ResourceKey("vertex/tangent_model"), ResourceKey("fragment/colour_primitives")]
+		val debugWeightsShader = ShaderLoader[ResourceKey("debug_model_weights"), ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights")]
 	}
 }

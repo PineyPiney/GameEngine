@@ -3,18 +3,55 @@ package com.pineypiney.game_engine.util.extension_functions
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.normal
 import glm_.*
+import glm_.mat2x2.Mat2x2t
+import glm_.mat2x3.Mat2x3t
+import glm_.mat2x4.Mat2x4t
+import glm_.mat3x2.Mat3x2t
+import glm_.mat3x3.Mat3x3t
+import glm_.mat3x4.Mat3x4t
+import glm_.mat4x2.Mat4x2t
+import glm_.mat4x3.Mat4x3t
 import glm_.mat4x4.Mat4
+import glm_.mat4x4.Mat4x4t
 import glm_.quat.Quat
 import glm_.vec1.Vec1Vars
+import glm_.vec1.Vec1t
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
+import glm_.vec2.Vec2t
 import glm_.vec3.Vec3
 import glm_.vec3.Vec3i
+import glm_.vec3.Vec3t
 import glm_.vec4.Vec4
+import glm_.vec4.Vec4t
 import kotlin.math.*
 
 
+fun ToBuffer.bytes(): Int {
+	return when (this) {
+		is Vec1Vars<*> -> {
+			val length = when (this) {
+				is Vec1t<*> -> 1
+				is Vec2t<*> -> 2
+				is Vec3t<*> -> 3
+				is Vec4t<*> -> 4
+				else -> return 0
+			}
+			length * x.bytes()
+		}
 
+		is Mat2x2t<*> -> 4 * a0.bytes()
+		is Mat2x3t<*> -> 6 * a0.bytes()
+		is Mat2x4t<*> -> 8 * a0.bytes()
+		is Mat3x2t<*> -> 6 * a0.bytes()
+		is Mat3x3t<*> -> 9 * a0.bytes()
+		is Mat3x4t<*> -> 12 * a0.bytes()
+		is Mat4x2t<*> -> 8 * a0.bytes()
+		is Mat4x3t<*> -> 12 * a0.bytes()
+		is Mat4x4t<*> -> 16 * a0.bytes()
+		else -> 0
+	}
+}
 /**
  * The distance between [this] and [other]
  */

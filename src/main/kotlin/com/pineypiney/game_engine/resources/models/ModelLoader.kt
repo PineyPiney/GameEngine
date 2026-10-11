@@ -48,7 +48,7 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 
 	fun loadModelTextures(streams: ResourcesLoader.Streams){
 		streams.useEachStream { fileName, stream ->
-			val texture = streams.engine.resourcesLoader.factory.loadTexture2DFromFile(fileName, stream, TextureParameters())
+			val texture = streams.loader.factory.loadTexture2DFromFile(fileName, stream, TextureParameters())
 			modelTextures[ResourceKey(fileName)] = texture
 		}
 	}
@@ -56,11 +56,11 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 	fun loadModels(streams: ResourcesLoader.Streams) {
 		streams.useEachStream { fileName, stream ->
 			when (val fileType = fileName.substringAfterLast('.')) {
-				"pgm" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadPGMModel(streams.engine.resourcesLoader.factory, fileName, stream)
-				"obj" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadObjModel(streams.engine.resourcesLoader, fileName, stream)
-				"gltf" -> gltfLoader.loadGLTFFile(streams.engine.resourcesLoader, fileName, stream, map)
-				"glb" -> gltfLoader.loadGLBFile(streams.engine.resourcesLoader.factory, fileName, stream, map)
-				"vox" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = voxLoader.loadVoxModel(streams.engine.resourcesLoader.factory, fileName, stream)
+				"pgm" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadPGMModel(streams.loader.factory, fileName, stream)
+				"obj" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = loadObjModel(streams.loader, fileName, stream)
+				"gltf" -> gltfLoader.loadGLTFFile(streams.loader, fileName, stream, map)
+				"glb" -> gltfLoader.loadGLBFile(streams.loader.factory, fileName, stream, map)
+				"vox" -> map[ResourceKey(fileName.removeSuffix(".$fileType"))] = voxLoader.loadVoxModel(streams.loader.factory, fileName, stream)
 			}
 		}
 	}

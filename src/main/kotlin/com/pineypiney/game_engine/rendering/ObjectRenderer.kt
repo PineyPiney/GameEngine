@@ -20,8 +20,7 @@ interface ObjectRenderer : RendererI {
 
 
 	companion object {
-		fun create(parent: RendererI, viewPos: Vec3, size: Vec2i, projection: Mat4 = I): ObjectRenderer {
-			val api = parent.getRenderingApi()
+		fun create(api: RenderingApi, viewPos: Vec3, size: Vec2i, projection: Mat4 = I): ObjectRenderer {
 			return if (api is VulkanRendering) VulkanObjectRenderer(viewPos, api.device, size, projection.translate(0f, 0f, 1f))
 			else OpenGlObjectRenderer(viewPos, size, projection)
 		}

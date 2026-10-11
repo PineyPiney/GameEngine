@@ -121,11 +121,20 @@ class Animation(
 	}
 
 	class KeyFrame(val properties: MutableMap<String, InputStream>) {
+
 		override fun toString(): String {
 			return "KeyFrame[" +
 					properties.map { (k, v) ->
 						"{$k = $v}"
 					}.joinToString() + "]"
+		}
+
+		companion object {
+			fun fromStrings(properties: Map<String, String>): KeyFrame {
+				return KeyFrame(properties.mapValues { (_, s) ->
+					ByteArrayInputStream(Codec.STRING.encodeBytes(s))
+				}.toMutableMap())
+			}
 		}
 	}
 }

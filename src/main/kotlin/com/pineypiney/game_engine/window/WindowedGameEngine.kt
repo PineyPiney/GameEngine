@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.window
 
+import com.pineypiney.game_engine.ApiManager
 import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
@@ -8,7 +9,7 @@ import com.pineypiney.game_engine.util.input.knm.MouseInput
 import glm_.c
 import org.lwjgl.glfw.GLFW
 
-abstract class WindowedGameEngine<E : WindowGameLogic>(resourcesLoader: ResourcesLoader) :
+abstract class WindowedGameEngine<E : WindowGameLogic>(override val manager: ApiManager, resourcesLoader: ResourcesLoader = ResourcesLoader.directoryAndEngine(manager.createResourceFactory())) :
 	GameEngine<E>(resourcesLoader), WindowedGameEngineI<E> {
 
 	override val input; get() = window.input
@@ -69,7 +70,9 @@ abstract class WindowedGameEngine<E : WindowGameLogic>(resourcesLoader: Resource
 	override fun shouldRun(): Boolean = !window.shouldClose
 
 	override fun cleanUp() {
+		manager.waitIdle()
 		super.cleanUp()
 		GLFW.glfwTerminate()
+		manager.delete()
 	}
 }

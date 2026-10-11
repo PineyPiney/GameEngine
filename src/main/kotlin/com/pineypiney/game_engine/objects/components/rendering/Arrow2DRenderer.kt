@@ -5,15 +5,13 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlArrayMesh
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.normal
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 
 open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width: Float, var colour: Vec4 = Vec4(1f)) : ShaderRenderedComponent(parent,
-	ColourRendererComponent.defaultShader
+	ColourRendererComponent.shader3D
 ) {
 
 	constructor(parent: GameObject, colour: Vec3, origin: Vec2, point: Vec2, width: Float) : this(parent, origin, point, width, Vec4(colour, 1f))
@@ -60,23 +58,17 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 
 		val array: Array<Vec2> = if(length <= width * 2f){
 			val perp = vec.normal() * (length * .5f)
-			arrayOf(origin - perp, point, origin + perp)
+			arrayOf(origin + perp, point, origin - perp)
 		}
 		else {
 			val perp = vec.normal() * (width * .5f)
 			val headBase = point - vec * (width * 2f)
 			arrayOf(
-				origin - perp, headBase - perp, headBase + perp,
-				headBase + perp, origin + perp, origin - perp,
-				headBase - (perp * 2), point, headBase + (perp * 2)
+				origin - perp, headBase + perp, headBase - perp,
+				headBase + perp, origin - perp, origin + perp,
+				headBase + (perp * 2), point, headBase - (perp * 2)
 			)
 		}
 		return OpenGlArrayMesh(array.flatMap { it.array.toList() }.toFloatArray(), setOf(VertexAttribute.POSITION2D))
-	}
-
-	companion object {
-		val defaultShader = ShaderLoader.get(ResourceKey("vertex/2D"), ResourceKey("fragment/colour"))
-		val shader3D = ShaderLoader.get(ResourceKey("vertex/3D"), ResourceKey("fragment/colour"))
-		val menuShader = ShaderLoader.get(ResourceKey("vertex/menu"), ResourceKey("fragment/colour"))
 	}
 }

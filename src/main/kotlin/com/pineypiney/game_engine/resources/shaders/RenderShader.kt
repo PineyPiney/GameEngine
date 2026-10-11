@@ -17,7 +17,6 @@ import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.serialisation.Codec
-import com.pineypiney.game_engine.util.serialisation.Codec.Companion.KEY
 import kotlin.experimental.and
 
 @Suppress("UNUSED")
@@ -82,8 +81,13 @@ interface RenderShader : Shader {
 
 	fun getSubShader(stage: ShaderStage) = stages.firstOrNull { it.getStage() == stage }
 
-	fun withParameters(parameters: RenderShaderParameters, deletionQueue: DeletionQueue = DeletionQueue.GLOBAL) =
-		ResourceFactory.INSTANCE.createRenderShader(vertex, fragment, stages, parameters, deletionQueue)
+	fun withParameters(id: ResourceKey, parameters: RenderShaderParameters, deletionQueue: DeletionQueue? = DeletionQueue.GLOBAL) =
+		ResourceFactory.INSTANCE.createRenderShader(id, vertex, fragment, stages, parameters).apply { deletionQueue?.push(this) }
+
+	fun save(): RenderShader {
+		ShaderLoader.save(id, this)
+		return this
+	}
 
 	companion object {
 
@@ -91,14 +95,16 @@ interface RenderShader : Shader {
 
 		lateinit var missing: RenderShader
 
-		val CODEC = Codec.map(
-			KEY.field("v") { it: RenderShader -> ResourceKey(it.vertex.getName()) },
-			KEY.field("f") { it: RenderShader -> ResourceKey(it.fragment.getName()) },
-			KEY.opnull().field("tc") { it: RenderShader -> it.getSubShader(ShaderStage.TESS_CTRL)?.let { ResourceKey(it.getName()) } },
-			KEY.opnull().field("te") { it: RenderShader -> it.getSubShader(ShaderStage.TESS_EVAL)?.let { ResourceKey(it.getName()) } },
-			KEY.opnull().field("g") { it: RenderShader -> it.getSubShader(ShaderStage.GEOMETRY)?.let { ResourceKey(it.getName()) } },
+		fun codec(id: ResourceKey) = Codec.map(
+			Codec.KEY.field("v") { it: RenderShader -> ResourceKey(it.vertex.getName()) },
+			Codec.KEY.field("f") { it: RenderShader -> ResourceKey(it.fragment.getName()) },
+			Codec.KEY.opnull().field("tc") { it: RenderShader -> it.getSubShader(ShaderStage.TESS_CTRL)?.let { ResourceKey(it.getName()) } },
+			Codec.KEY.opnull().field("te") { it: RenderShader -> it.getSubShader(ShaderStage.TESS_EVAL)?.let { ResourceKey(it.getName()) } },
+			Codec.KEY.opnull().field("g") { it: RenderShader -> it.getSubShader(ShaderStage.GEOMETRY)?.let { ResourceKey(it.getName()) } },
 			RenderShaderParameters.CODEC.optional(RenderShaderParameters()).field(RenderShader::parameters, "params")
-		) { v, f, tc, te, g, p -> ShaderLoader[v, f, listOfNotNull(tc, te, g), p] }
+		) { v, f, tc, te, g, p -> ShaderLoader[id, v, f, listOfNotNull(tc, te, g), p, null] }
+
+		val COMPILED_CODEC = Codec.KEY.map(RenderShader::id, ShaderLoader::loadRenderShader)
 
 		fun initDefaultShader(loader: ResourcesLoader) {
 
@@ -159,7 +165,8 @@ interface RenderShader : Shader {
 
 			val vertex = loader.factory.createShaderModule(loader, "missing_vertex", "", ShaderStage.VERTEX, vS)
 			val fragment = loader.factory.createShaderModule(loader, "missing_fragment", "", ShaderStage.FRAGMENT, fS)
-			missing = loader.factory.createRenderShader(vertex, fragment, emptyList(), RenderShaderParameters())
+			missing = loader.factory.createRenderShader(ResourceKey("missing"), vertex, fragment, emptyList(), RenderShaderParameters())
+			DeletionQueue.GLOBAL.push(missing)
 		}
 	}
 }

@@ -4,7 +4,6 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.Resource
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.util.text.TextData
@@ -51,7 +50,7 @@ abstract class Font : Resource {
 	}
 
 	companion object {
-		val fontShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/text"), RenderShaderParameters(depthTestOp = null)]
+		val fontShader = ShaderLoader.loadRenderShader(ResourceKey("menu/text"))
 		val defaultFont: Font; get() = FontLoader[ResourceKey(GameEngineI.defaultFont)]
 	}
 }

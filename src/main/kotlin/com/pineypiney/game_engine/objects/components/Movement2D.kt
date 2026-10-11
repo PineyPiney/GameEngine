@@ -1,6 +1,5 @@
 package com.pineypiney.game_engine.objects.components
 
-import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.rendering.RendererI
@@ -17,7 +16,7 @@ open class Movement2D(parent: GameObject, val window: WindowI, var speed: Float 
 	override val whenVisible: Boolean get() = false
 
 	override fun preRender(renderer: RendererI, tickDelta: Double) {
-		set(getMovement() * speed * Timer.frameDelta)
+		set(getMovement() * speed)
 	}
 
 	fun getMovement(): Vec2 {
@@ -43,5 +42,14 @@ open class Movement2D(parent: GameObject, val window: WindowI, var speed: Float 
 		}
 
 		return move
+	}
+
+	companion object {
+		fun create(name: String, window: WindowI, speed: Float = 4f, sprintBoost: Float = 2f, set: (Vec2) -> Unit): Movement2D {
+			val obj = GameObject(name)
+			val mov = Movement2D(obj, window, speed, sprintBoost, set)
+			obj.components.add(mov)
+			return mov
+		}
 	}
 }

@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.util.DeletionQueue
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.VK10
 
-class VulkanFrameObjects(device: VulkanDevice) : Deletable {
+class VulkanFrameObjects(device: VulkanDevice, name: String) : Deletable {
 
 	val commands: PoolAndBuffer
 	val renderFence: VulkanFence
@@ -15,10 +15,10 @@ class VulkanFrameObjects(device: VulkanDevice) : Deletable {
 
 	init {
 		MemoryStack.stackPush().use { stack ->
-			commands = PoolAndBuffer.create(device, stack, "Frame Objects")
-			renderFence = device.createFence(stack, VK10.VK_FENCE_CREATE_SIGNALED_BIT, "Render")
-			swapchainSemaphore = device.createSemaphore(stack, 0, "Swapchain")
-			renderSemaphore = device.createSemaphore(stack, 0, "Render")
+			commands = PoolAndBuffer.create(device, stack, "$name Frame Objects")
+			renderFence = device.createFence(stack, VK10.VK_FENCE_CREATE_SIGNALED_BIT, "$name Render Fence")
+			swapchainSemaphore = device.createSemaphore(stack, 0, "$name Swapchain Semaphore")
+			renderSemaphore = device.createSemaphore(stack, 0, "$name Render Semaphore")
 		}
 
 		// These are arbitrary values chosen in the following guide

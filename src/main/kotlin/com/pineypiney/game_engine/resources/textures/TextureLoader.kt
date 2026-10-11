@@ -7,7 +7,6 @@ import com.pineypiney.game_engine.resources.textures.parameters.TextureFilter
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.resources.textures.parameters.TextureUsage
 import com.pineypiney.game_engine.resources.textures.parameters.TextureWrap
-import com.pineypiney.game_engine.util.Debug
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec3.Vec3i
 import kool.toBuffer
@@ -33,7 +32,7 @@ class TextureLoader private constructor() : DeletableResourceLoader<Texture2D>()
 		streams.useEachStream { fileName, stream ->
 			val keyName = fileName.substringBefore('.')
 			val params = flags[keyName] ?: flags["*"] ?: TextureParameters()
-			val texture = streams.engine.resourcesLoader.factory.loadTexture2DFromFile(fileName, stream, params)
+			val texture = streams.loader.factory.loadTexture2DFromFile(fileName, stream, params)
 			map[ResourceKey(keyName)] = texture
 		}
 	}
@@ -80,12 +79,6 @@ class TextureLoader private constructor() : DeletableResourceLoader<Texture2D>()
 		return t ?: Texture2D.none
 	}
 
-	override fun delete() {
-		super.delete()
-		Texture2D.missing.delete()
-		Texture3D.missing.delete()
-	}
-
 	companion object {
 		val fileTypes = setOf("png", "jpg", "jpeg", "tga", "bmp", "hdr")
 		val INSTANCE = TextureLoader()
@@ -104,9 +97,7 @@ class TextureLoader private constructor() : DeletableResourceLoader<Texture2D>()
 				STBImage.stbi_set_flip_vertically_on_load(flip)
 
 				// Load texture data from file
-				val d = Debug().start()
 				val data: ByteBuffer? = STBImage.stbi_load_from_memory(buffer, pointers, pointers.slice(1, 1), pointers.slice(2, 1), numChan)
-				d.add()
 				return data to Vec3i(pointers[0], pointers[1], if (numChan == 0) pointers[2] else numChan)
 			}
 		}

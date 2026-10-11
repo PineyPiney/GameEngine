@@ -34,7 +34,7 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 	fun loadFonts(streams: ResourcesLoader.Streams){
 		streams.useEachStream { fileName, stream ->
 			when (fileName.substringAfter('.')) {
-				"bff" -> loadFontFromBFF(streams.engine.resourcesLoader.factory, fileName, stream)
+				"bff" -> loadFontFromBFF(streams.loader.factory, fileName, stream)
 //				"ttf" -> loadBeziersFromTTF(stream)
 			}
 		}

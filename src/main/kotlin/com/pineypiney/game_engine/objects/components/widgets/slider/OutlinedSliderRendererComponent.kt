@@ -5,52 +5,37 @@ import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedCom
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec4.Vec4
 
 open class OutlinedSliderRendererComponent(parent: GameObject) : ShaderRenderedComponent(parent, sliderShader) {
 
 	open var colour: Vec4 = Vec4(0.7)
-	open var outlineThickness: Float = 0.06f
+	open var outlineThickness: Float = 0.005f
 	open var outlineColour: Vec4 = Vec4(0.5, 0.5, 0.5, 1)
+
+	val mesh get() = Mesh.centerSquareShape
 
 	override fun setUniforms() {
 		super.setUniforms()
 
-		uniforms.setVec4Uniform("colour") { colour }
-		uniforms.setFloatUniform("outlineThickness", ::outlineThickness)
+		uniforms.setMat4Uniform("model") {
+			// Compensate for using centerSquareMesh
+			parent.worldModel.translate(.5f, .5f, 0f)
+		}
+		uniforms.setVec4Uniform("colour", ::colour)
 		uniforms.setVec4Uniform("outlineColour", ::outlineColour)
+		uniforms.setFloatUniform("width", ::outlineThickness)
 	}
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		val mesh = Mesh.cornerSquareShape
 		shader.draw("vertexBuffer", mesh, renderer)
-		/*
-		// This only updates the stencil if the pixel passes all tests
-		//GLFunc.stencilTest = true
-		GLFunc.stencilOp = Vec3i(GL11C.GL_KEEP, GL11C.GL_KEEP, GL11C.GL_REPLACE)
-		GLFunc.stencilFRM = Vec3i(GL11C.GL_ALWAYS, 1, 0xFF)
-		GLFunc.stencilWriteMask = 0xFF
-		shape.bindAndDraw()
-
-		GLFunc.stencilFRM = Vec3i(GL11C.GL_NOTEQUAL, 1, 0xFF)
-		GLFunc.stencilWriteMask = 0
-
-		val outline = Vec2(outlineThickness / renderer.aspectRatio, outlineThickness)
-		shader.setMat4("model", parent.worldModel.translate(Vec3(-outline, 0f)).scale(Vec3(Vec2(1f, 1f) + (outline * 2))))
-		shader.setVec4("colour", outlineColour)
-		shape.draw()
-		GLFunc.stencilTest = false
-
-		 */
 	}
 
-	override fun getMeshes(): Collection<Mesh> = listOf(Mesh.cornerSquareShape)
+	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
 	companion object {
-		val sliderShader =
-			ShaderLoader[ResourceKey("vertex/2D_pass_pos"), ResourceKey("fragment/sliders/outlined_slider"), RenderShaderParameters(depthTestOp = null)]
+		val sliderShader = ShaderLoader.loadRenderShader(ResourceKey("menu/outline_rect"))
 	}
 }

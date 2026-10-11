@@ -12,13 +12,16 @@ import java.nio.ByteBuffer
 class MeshVertex(val map: Set<VertexAttribute.Pair<*, *>>) {
 
 	val position: Vec3
-		get() = getAttributeOrNull(VertexAttribute.POSITION)?.value as? Vec3 ?: Vec3(getAttribute(VertexAttribute.POSITION2D).value as Vec2)
+		get() = getAttributeOrNull(VertexAttribute.POSITION)?.value ?: Vec3(getAttribute(VertexAttribute.POSITION2D).value)
 
 	val attributes: List<VertexAttribute<*, *>>
 		get() = map.map { it.id }
 
-	fun getAttribute(attribute: VertexAttribute<*, *>) = map.first { it.id == attribute }
-	fun getAttributeOrNull(attribute: VertexAttribute<*, *>) = map.firstOrNull { it.id == attribute }
+	@Suppress("UNCHECKED_CAST")
+	fun <T, P> getAttribute(attribute: VertexAttribute<T, P>): VertexAttribute.Pair<T, P> = map.first { it.id == attribute } as VertexAttribute.Pair<T, P>
+
+	@Suppress("UNCHECKED_CAST")
+	fun <T, P> getAttributeOrNull(attribute: VertexAttribute<T, P>): VertexAttribute.Pair<T, P>? = map.firstOrNull { it.id == attribute } as? VertexAttribute.Pair<T, P>
 
 	fun putData(buffer: ByteBuffer, offset: Int){
 		var off = offset

@@ -15,7 +15,6 @@ import com.pineypiney.game_engine.objects.components.widgets.slider.*
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Texture2D
-import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import glm_.quat.Quat
@@ -29,6 +28,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.findAnnotations
+import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.javaType
@@ -46,7 +46,7 @@ object Components {
 		fieldTypes.add(fieldType)
 	}
 
-	fun <T> addFieldType(fieldCreator: (id: String, component: Any, getter: () -> T, setter: (T) -> Unit) -> ComponentField<T>, default: () -> T, klass: KClass<*> = default()!!::class) {
+	fun <T> addFieldType(fieldCreator: (id: String, component: Any?, getter: () -> T, setter: (T) -> Unit) -> ComponentField<T>, default: () -> T, klass: KClass<*> = default()!!::class) {
 		fieldTypes.add(FieldType(default, klass, fieldCreator))
 	}
 
@@ -67,8 +67,13 @@ object Components {
 				else if (param.isOptional) continue
 				else {
 					// Find the default value for this class
-					val value = fieldTypes.firstNotNullOfOrNull({ it.default() }) { d -> d::class == param.type.classifier }
-					if (value != null) params[param] = value
+					val fieldType = fieldTypes.firstOrNull { ft -> ft.klass.starProjectedType.isSubtypeOf(param.type) }
+					val type = param.type.javaType
+					if (fieldType != null) params[param] = fieldType.default()
+					else if (type is Class<*> && type.isEnum) {
+						val values = (param.type.javaType as Class<*>).getMethod("values").invoke(null) as Array<*>
+						params[param] = values[0]
+					}
 					// Last resort, if the argument is nullable then set the argument to null
 					else if (param.type.isMarkedNullable) params[param] = null
 					// Otherwise try a new constructor
@@ -134,6 +139,7 @@ object Components {
 		addFieldType(::UIntField, { 1u })
 		addFieldType(::FloatField, { 1f })
 		addFieldType(::DoubleField, { 1.0 })
+		addFieldType(::StringField, { "" })
 		addFieldType(::Vec2iField, { Vec2i() })
 		addFieldType(::Vec3iField, { Vec3i() })
 		addFieldType(::Vec4iField, { Vec4i() })
@@ -153,8 +159,16 @@ object Components {
 	}
 
 	@Suppress("FilterIsInstanceResultIsAlwaysEmpty")
-	fun <C : Any, T> getDefaultField(property: KMutableProperty1<C, T>, container: C, parent: String = ""): ComponentField<*>? {
+	fun <C, T> getDefaultField(property: KMutableProperty1<C, T>, container: C, parent: String = ""): ComponentField<*>? {
 		val fieldsOfType = fieldTypes.filter { fieldType -> property.returnType.withNullability(false) == fieldType.klass.starProjectedType }.filterIsInstance<FieldType<T>>()
+
+		if (fieldsOfType.isEmpty() && (property.returnType.javaType as Class<*>).isEnum) {
+			try {
+				@Suppress("UNCHECKED_CAST")
+				return getEnumField(property as KMutableProperty1<C, out Enum<*>>, container, parent)
+			} catch (_: Throwable) {
+			}
+		}
 		for (i in fieldsOfType) {
 			if (i.annotations.isNotEmpty() && i.annotations.all { property.findAnnotations(it).isNotEmpty() }) {
 				return i.fieldCreator(parent + property.name, container, { property.get(container) }, { property.set(container, it) }, property.annotations.toSet())
@@ -164,6 +178,22 @@ object Components {
 		val defaultField = fieldsOfType.firstOrNull { it.annotations.isEmpty() }
 		return if (defaultField == null) null
 		else defaultField.fieldCreator(parent + property.name, container, { property.get(container) }, { property.set(container, it) }, emptySet())
+	}
+
+	fun <C, T : Enum<T>> getEnumField(property: KMutableProperty1<C, T>, container: C, parent: String = ""): ComponentField<*>? {
+		val fromString = (property.returnType.javaType as Class<*>).getMethod("valueOf", String::class.java)
+
+		@Suppress("UNCHECKED_CAST")
+		return runCatching {
+			if (property.returnType.isMarkedNullable)
+				NullableEnumField(
+					parent + property.name, container,
+					{ fromString(null, it) as T },
+					property.returnType, { property.get(container) },
+					{ (property as KMutableProperty1<C, T?>).set(container, it) }
+				)
+			else EnumField(parent + property.name, container, { fromString(null, it) as T }, { property.get(container) }, { property.set(container, it) })
+		}.getOrNull()
 	}
 
 	inline fun <reified T, C : Any> get(property: KMutableProperty1<C, Any>, component: C): T {

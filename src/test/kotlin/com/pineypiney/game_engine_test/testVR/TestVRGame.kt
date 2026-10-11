@@ -15,13 +15,21 @@ import glm_.vec3.Vec3
 
 class TestVRGame(override val gameEngine: TestVREngine<TestVRGame>) : GameLogic() {
 
+	override val id: String = "Test VR Game"
 	override val renderer = TestVRRenderer(gameEngine.rtWidth, gameEngine.rtHeight, gameEngine.hmd)
 
 	val inputVR get() = gameEngine.inputVR
 
 	override fun addObjects() {
 		for(i in 0..999){
-			add(GameObject.simpleRenderedGameObject("Cube $i", ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/plain")], positions[i], Vec3(0.3f), Mesh.centerCubeShape) {
+			add(
+				GameObject.simpleRenderedGameObject(
+					"Cube $i",
+					ShaderLoader[ResourceKey("3d_plain"), ResourceKey("vertex/3D"), ResourceKey("fragment/plain")],
+					positions[i],
+					Vec3(0.3f),
+					Mesh.centerCubeShape
+				) {
 
 			})
 		}

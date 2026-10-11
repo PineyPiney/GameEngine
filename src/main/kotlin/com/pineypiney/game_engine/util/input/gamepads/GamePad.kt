@@ -4,7 +4,9 @@ import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
 import glm_.has
+import glm_.i
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW
 import kotlin.math.abs
 
@@ -21,7 +23,12 @@ abstract class GamePad : Deletable {
 	abstract val axesStates: FloatArray
 	abstract val deadzones: FloatArray
 
-	// Button values
+	// 2D values
+	open val dPad: Vec2i
+		get() = Vec2i(
+			(buttons has BUTTON_DPAD_LEFT).i - (buttons has BUTTON_DPAD_RIGHT).i,
+			(buttons has BUTTON_DPAD_UP).i - (buttons has BUTTON_DPAD_DOWN).i
+		)
 	open val leftJoystick: Vec2 get() = Vec2(axesStates[AXIS_LEFT_X], axesStates[AXIS_LEFT_Y])
 	open val rightJoystick: Vec2 get() = Vec2(axesStates[AXIS_RIGHT_X], axesStates[AXIS_RIGHT_Y])
 

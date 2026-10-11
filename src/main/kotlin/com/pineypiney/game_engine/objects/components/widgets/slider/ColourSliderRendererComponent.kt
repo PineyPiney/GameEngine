@@ -37,10 +37,8 @@ open class ColourSliderRendererComponent(parent: GameObject, shader: RenderShade
 	}
 
 	companion object {
-		val redShader = ShaderLoader.get(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/red_slider")))
-		val greenShader =
-			ShaderLoader.get(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/green_slider")))
-		val blueShader =
-			ShaderLoader.get(ResourceKey("vertex/menu"), ResourceKey(("fragment/sliders/blue_slider")))
+		val redShader = ShaderLoader[ResourceKey("red_slider"), ResourceKey("vertex/menu"), ResourceKey("fragment/sliders/red_slider")]
+		val greenShader = ShaderLoader[ResourceKey("green_slider"), ResourceKey("vertex/menu"), ResourceKey("fragment/sliders/green_slider")]
+		val blueShader = ShaderLoader[ResourceKey("blue_slider"), ResourceKey("vertex/menu"), ResourceKey("fragment/sliders/blue_slider")]
 	}
 }

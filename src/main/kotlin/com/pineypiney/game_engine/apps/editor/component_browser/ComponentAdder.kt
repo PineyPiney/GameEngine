@@ -35,7 +35,7 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 		Sprite(TextureLoader[ResourceKey("editor/icons")], 40f, Vec2(0f), Vec2(0f), Vec2(.25f, 1f)),
 		Vec3(.875f, .9f, .01f),
 		Vec2(.125f, .1f),
-		ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/background_texture")]
+
 	) { _, _ ->
 		browser.adderPos = transform?.origin ?: Vec2(this.parent.position)
 		this.parent.delete()
@@ -92,5 +92,9 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 		if(grab.x != -1f){
 			transform?.origin = Vec2((cursorPos.position.x - grab.x) / window.aspectRatio, cursorPos.position.y - grab.y)
 		}
+	}
+
+	companion object {
+		val shader = ShaderLoader[ResourceKey("close_button"), ResourceKey("vertex/menu"), ResourceKey("fragment/background_texture")]
 	}
 }

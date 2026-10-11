@@ -17,7 +17,7 @@ import com.pineypiney.game_engine.resources.textures.Texture3D
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
-import com.pineypiney.game_engine.util.DeletionQueue
+import com.pineypiney.game_engine.util.ResourceKey
 import kool.free
 import org.lwjgl.stb.STBImage
 import java.io.InputStream
@@ -26,21 +26,16 @@ import java.nio.ByteBuffer
 
 abstract class ResourceFactory {
 
-	init {
-		INSTANCE = this
-	}
-
-
 	abstract fun createShaderModule(loader: ResourcesLoader, fileName: String, suf: String, stage: ShaderStage, code: String): ShaderModule
 	abstract fun createRenderShader(
+		id: ResourceKey,
 		vertex: ShaderModule,
 		fragment: ShaderModule,
 		stages: List<ShaderModule>,
-		parameters: RenderShaderParameters,
-		deletionQueue: DeletionQueue = DeletionQueue.GLOBAL
+		parameters: RenderShaderParameters
 	): RenderShader
 
-	abstract fun createComputeShader(compute: ShaderModule, deletionQueue: DeletionQueue = DeletionQueue.GLOBAL): ComputeShader
+	abstract fun createComputeShader(compute: ShaderModule): ComputeShader
 
 	abstract fun nullTexture2D(): Texture2D
 	abstract fun nullTexture3D(): Texture3D
@@ -74,6 +69,6 @@ abstract class ResourceFactory {
 	}
 
 	companion object {
-		lateinit var INSTANCE: ResourceFactory; private set
+		val INSTANCE: ResourceFactory get() = ResourcesLoader.INSTANCE.factory
 	}
 }

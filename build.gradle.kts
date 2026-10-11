@@ -51,13 +51,13 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.24")
+    testImplementation(kotlin("test"))
 
     implementation(kotlin("reflect"))
 
     // Logback
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-    implementation("ch.qos.logback:logback-classic:1.5.32")
+    implementation("ch.qos.logback:logback-classic:1.6.3")
 
     // GLM
     implementation("kotlin.graphics:kool:0.9.75")
@@ -101,6 +101,10 @@ dependencies {
     implementation("com.google.code.gson:gson:2.14.0")
 
     implementation("net.java.dev.jna:jna-platform:5.19.1")
+
+    // https://github.com/lysine-dev/okhttp#releases
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:5.5.0"))
+    implementation("com.squareup.okhttp3:okhttp")
 }
 
 publishing{

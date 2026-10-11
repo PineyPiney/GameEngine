@@ -60,7 +60,7 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		line: String = text.text,
 		amount: Float = text.underlineAmount
 	) {
-		val shader = if (shader.hasView) ColourRendererComponent.defaultShader else ColourRendererComponent.menuShader
+		val shader = if (shader.hasView) ColourRendererComponent.shader3D else ColourRendererComponent.menuShader
 		val newModel = model.scale(text.font.getWidth(line) * amount, text.underlineThickness, 0f)
 			.translate(0f, text.underlineOffset, 0f)
 
@@ -155,6 +155,6 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 	}
 
 	companion object {
-		val gameTextShader = ShaderLoader[ResourceKey("vertex/2D"), ResourceKey("fragment/text")]
+		val gameTextShader = ShaderLoader.loadRenderShader(ResourceKey("2d/text"))
 	}
 }

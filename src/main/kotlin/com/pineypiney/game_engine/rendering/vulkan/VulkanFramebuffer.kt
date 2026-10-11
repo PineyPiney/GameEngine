@@ -26,13 +26,14 @@ class VulkanFramebuffer(
 	}
 
 	override fun setSize(size: Vec2i) {
-		this.size = size
-		refreshImages()
+		if (size != this.size) {
+			this.size = size
+			refreshImages()
+		}
 	}
 
 	override fun setSize(width: Int, height: Int) {
-		size = Vec2i(width, height)
-		refreshImages()
+		setSize(Vec2i(width, height))
 	}
 
 	fun refreshImages() {

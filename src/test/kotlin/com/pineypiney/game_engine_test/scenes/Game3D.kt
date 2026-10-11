@@ -9,13 +9,15 @@ import com.pineypiney.game_engine.objects.components.Movement3D
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComponent
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
-import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
+import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
 import com.pineypiney.game_engine.rendering.GameRenderer
+import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture2D
@@ -41,8 +43,10 @@ import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.PI
 
-class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val renderer: GameRenderer<Game3D>) : WindowGameLogic() {
+class Game3D(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
+	override val id: String = "3D Game"
+	override val renderer: GameRenderer<Game3D> = DefaultWindowGameRenderer(window, ::PerspectiveCamera) { gameEngine.manager.createPresentingApi(it, id) }
 	private val camera get() = renderer.camera
 
 	private val pressedKeys = mutableSetOf<Short>()
@@ -56,24 +60,25 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 		indicesMult = it.value
 	}
 
-	private val crosshair = GameObject.simpleRenderedGameObject("Crosshair", ShaderLoader[ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")], Vec3(0f), Vec3(Vec2(.2f), 1f)) {}
+	private val crosshair =
+		GameObject.simpleRenderedGameObject("Crosshair", ShaderLoader[ResourceKey("crosshair"), ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")], Vec3(0f), Vec3(Vec2(.2f), 1f)) {}
 
-	private val cursorRay = GameObject.simpleModelledGameObject("Cursor Ray", ModelLoader[ResourceKey("gltf/Arrow")], ModelRendererComponent.bonelessPbrShader)
+	private val cursorRay = GameObject.simpleModelledGameObject("Cursor Ray", ModelLoader[ResourceKey("gltf/Arrow")], ModelRendererComponent.meshPbr)
 
 	private val object3D = GameObject.simpleTextureGameObject("Broke Cube", TextureLoader[ResourceKey("broke")], Mesh.centerCubeShape, MeshedTextureComponent.default3DShader)
 		.apply { rotation = Quat(Vec3(0.4, PI / 4, 1.2)) }
 
 	var blockHover = false
-	private val block = GameObject.simpleRenderedGameObject("Lit Cube", ShaderLoader[ResourceKey("vertex/3D"), ResourceKey("fragment/pbr_lit_model")], mesh = Mesh.centerCubeShape) {
+	private val block = GameObject.simpleRenderedGameObject("Lit Cube", ModelRendererComponent.meshPbr, mesh = Mesh.centerCubeShape) {
 		shader.setLightUniforms(parent)
 		shader.setVec4("material.baseColourFactor", Vec4(1.0))
 		shader.setFloat("material.roughnessFactor", .5f)
 		shader.setFloat("material.metallicFactor", .5f)
 	}
 
-	private val doughnut = GameObject.simpleModelledGameObject("Broke Model", ModelLoader[ResourceKey("broke")], ModelRendererComponent.bonelessPbrShader)
+	private val doughnut = GameObject.simpleModelledGameObject("Broke Model", ModelLoader[ResourceKey("broke")], ModelRendererComponent.meshPbr)
 		.apply { translate(Vec3(0f, 2f, 0f)) }
-	private val gltf = GameObject.simpleModelledGameObject("Heart", ModelLoader[ResourceKey("gltf/SketchUp")], ModelRendererComponent.bonelessPbrShader)
+	private val gltf = GameObject.simpleModelledGameObject("Heart", ModelLoader[ResourceKey("gltf/SketchUp")], ModelRendererComponent.meshPbr, Model.DEBUG_COLLIDER)
 		.apply { translate(Vec3(2f, 2f, 0f)); resize(Vec3(.002f)) }
 	private val voxel =
 		GameObject.simpleModelledGameObject("Voxel", ModelLoader[ResourceKey("voxel/Mecha01")], ColourRendererComponent.vertexColours).apply { translate(Vec3(0f, -4f, 0f)); scale(Vec3(.1f)) }
@@ -84,21 +89,10 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 
 	val fpsText = FPSCounter.createCounterWithText(GameObject("FPS Text", 1).apply { pixel(Vec2i(-200, -100), Vec2i(200, 100), Vec2(1f)) }, 2.0, "FPS: $", Text.Params(Vec4(0f, 0f, 0f, 1f), 32, Text.ALIGN_TOP_RIGHT))
 
-	override fun init() {
-		super.init()
-		window.setCursorMode(GLFW_CURSOR_DISABLED)
-		gltf.addChild(CollisionBox3DRenderer.create(gltf).apply { init() })
-		renderer.setClearColour(Vec4(1f, 0f, 0f, 1f))
-
-		input.getInput<GamepadInput>().setDefaultController(movement::gamepadID) {
-			movement.gamepadID = it?.id ?: -1
-		}
-	}
-
 	override fun addObjects() {
 		add(movement.parent)
 		add(object3D.apply { translate(Vec3(-2, 0, 0)) })
-		add(block)
+		add(block.apply { rotate(Vec3(834.1241f, 294.1015f, 295.97235f)) })
 		add(crosshair)
 		add(cursorRay)
 		add(doughnut.apply { getComponent<ModelRendererComponent>()?.setAnimation("TorusAction") })
@@ -107,6 +101,16 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>, override val rende
 		add(light, torch, sun.apply { position = Vec3(0f, 900f, 0f); scale = Vec3(50f) })
 		add(indexSlider.parent)
 		add(fpsText)
+	}
+
+	override fun init() {
+		super.init()
+		window.setCursorMode(GLFW_CURSOR_DISABLED)
+		renderer.setClearColour(Vec4(1f, 0f, 0f, 1f))
+
+		input.getInput<GamepadInput>().setDefaultController(movement::gamepadID) {
+			movement.gamepadID = it?.id ?: -1
+		}
 	}
 
 	override fun render(tickDelta: Double) {

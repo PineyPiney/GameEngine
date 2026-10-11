@@ -385,7 +385,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 		fun simpleModelledGameObject(
 			name: String,
 			model: Model,
-			shader: RenderShader = ModelRendererComponent.defaultShader,
+			shader: RenderShader = ModelRendererComponent.modelUnlit,
 			debug: Int = 0
 		): GameObject {
 			val o = GameObject(name)
@@ -402,7 +402,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 				ColourRendererComponent(
 					o,
 					Vec4(1f),
-					ColourRendererComponent.defaultShader,
+					ColourRendererComponent.shader3D,
 					Mesh.centerCubeShape
 				)
 			)

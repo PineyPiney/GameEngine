@@ -5,7 +5,6 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider3DCompone
 import com.pineypiney.game_engine.objects.components.rendering.Arrow2DRenderer
 import com.pineypiney.game_engine.objects.components.rendering.collision.Collision3DPolygonRenderer
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox3DRenderer
-import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
@@ -18,20 +17,20 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW
 
-class Collision3DTest(gameEngine: WindowedGameEngineI<*>, renderer: WindowRendererI<MultiTest>) : MultiTest(gameEngine, renderer) {
+class Collision3DTest(gameEngine: WindowedGameEngineI<*>) : MultiTest("3D Collision Test", gameEngine) {
 
 
 	val base = GameObject("Base").apply {
 		position = Vec3(0f, -5f, 0f)
 		components.add(Collider3DComponent(this, Cuboid(Vec3(-2f, 0f, 0f), Quat(), Vec3(2f))))
-		addChild(CollisionBox3DRenderer.create(this, 100f))
+		addChild(CollisionBox3DRenderer.create(this))
 	}
 
-	val triangle = Triangle3D(Vec3(-.5f, -.5f, 0f), Vec3(0f, .5f, 0f), Vec3(.5f, -.5f, 0f))
+	val triangle = Triangle3D(Vec3(-.5f, -.5f, 0f), Vec3(.5f, -.5f, 0f), Vec3(0f, .5f, 0f))
 
 	val dragItem = GameObject("Dragging").apply {
 		components.add(Collider3DComponent(this, triangle))
-		addChild(Collision3DPolygonRenderer.create(this, 5f))
+		addChild(Collision3DPolygonRenderer.create(this))
 	}
 	val ejectionArrow = GameObject("Ejection Arrow").apply {
 		components.add(Arrow2DRenderer(this, Vec2(), Vec2(1f), .2f).apply { visible = false })

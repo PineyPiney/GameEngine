@@ -6,7 +6,6 @@ import com.pineypiney.game_engine.objects.components.colliders.Collider2DCompone
 import com.pineypiney.game_engine.objects.components.rendering.Arrow2DRenderer
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionBox2DRenderer
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionPolygonRenderer
-import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.util.extension_functions.PIF
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.ControlType
@@ -23,7 +22,7 @@ import org.lwjgl.glfw.GLFW
 import kotlin.math.sqrt
 
 @Suppress("UNUSED")
-class CollisionTest(gameEngine: WindowedGameEngineI<*>, renderer: WindowRendererI<MultiTest>) : MultiTest(gameEngine, renderer) {
+class CollisionTest(gameEngine: WindowedGameEngineI<*>) : MultiTest("2D Collision Test", gameEngine) {
 
 	val bases = Array(5){ GameObject("Base$it").apply {
 		position = Vec3(2.8f*it -7f, -5f, 0f)
@@ -114,7 +113,7 @@ class CollisionTest(gameEngine: WindowedGameEngineI<*>, renderer: WindowRenderer
 		components.addAll(
 			Collider2DComponent(this, Parallelogram(Vec2(0f), Vec2(-8f, 2f), Vec2(8f, 2f)))
 		)
-		addChild(CollisionPolygonRenderer.create(this, 100f))
+		addChild(CollisionPolygonRenderer.create(this))
 	}
 
 	val paraItem = GameObject("Falling").apply {
@@ -123,7 +122,7 @@ class CollisionTest(gameEngine: WindowedGameEngineI<*>, renderer: WindowRenderer
 			Collider2DComponent(this, Parallelogram(Vec2(0f, -.5f), Vec2(-1f, .5f), Vec2(1f, .5f))),
 			Rigidbody2DComponent(this).apply { dragCoefficient = 0f; friction = 0f }
 		)
-		addChild(CollisionPolygonRenderer.create(this, 5f))
+		addChild(CollisionPolygonRenderer.create(this))
 	}
 
 	val parallelogramTest = object : Test(paraBase, paraItem){
@@ -141,12 +140,12 @@ class CollisionTest(gameEngine: WindowedGameEngineI<*>, renderer: WindowRenderer
 	val dragBase = GameObject("Base").apply {
 		position = Vec3(0f, -5f, 0f)
 		components.add(Collider2DComponent(this, parallelogram))
-		addChild(CollisionPolygonRenderer.create(this, 100f))
+		addChild(CollisionPolygonRenderer.create(this))
 	}
 
 	val dragItem = GameObject("Dragging").apply {
-		components.add(Collider2DComponent(this, Parallelogram(Vec2(0f, -.5f), Vec2(-1f, .5f), Vec2(1f, .5f))),)
-		addChild(CollisionPolygonRenderer.create(this, 5f))
+		components.add(Collider2DComponent(this, Parallelogram(Vec2(0f, -.5f), Vec2(-1f, .5f), Vec2(1f, .5f))))
+		addChild(CollisionPolygonRenderer.create(this))
 	}
 	val ejectionArrow = GameObject("Ejection Arrow").apply {
 		components.add(Arrow2DRenderer(this, Vec2(), Vec2(1f), .2f).apply { visible = false })

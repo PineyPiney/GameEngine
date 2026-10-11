@@ -4,7 +4,8 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.components.InteractorComponent
-import com.pineypiney.game_engine.rendering.WindowRendererI
+import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
+import com.pineypiney.game_engine.rendering.GameRenderer
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.input.InputState
@@ -15,7 +16,9 @@ import glm_.s
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 
-abstract class MultiTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<MultiTest>) : WindowGameLogic() {
+abstract class MultiTest(override val id: String, override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
+
+	override val renderer: GameRenderer<MultiTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(it, id) }
 
 	val camera get() = renderer.camera as OrthographicCamera
 

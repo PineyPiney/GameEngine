@@ -4,8 +4,10 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
+import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
+import com.pineypiney.game_engine.rendering.GameRenderer
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.rendering.WindowRendererI
+import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlRenderShader
@@ -28,9 +30,12 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 
 @Suppress("UNUSED")
-class ShaderTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<ShaderTest>) : WindowGameLogic() {
+class ShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
-	val shader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/squircle")]
+	override val id: String = "Render Shader Test"
+	override val renderer: GameRenderer<ShaderTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(it, id) }
+
+	val shader = ShaderLoader[ResourceKey("menu_squircle"), ResourceKey("vertex/menu"), ResourceKey("fragment/squircle")]
 	val uniformValues = mutableMapOf<String, Any>()
 
 	val obj = GameObject("Shader Object").apply {

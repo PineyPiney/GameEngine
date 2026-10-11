@@ -1,12 +1,18 @@
 package com.pineypiney.game_engine.vulkan
 
+import com.pineypiney.game_engine.ApiManager
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.rendering.PresentingApi
+import com.pineypiney.game_engine.rendering.WindowRendererI
+import com.pineypiney.game_engine.rendering.vulkan.VulkanPresentRendering
+import com.pineypiney.game_engine.resources.ResourceFactory
+import com.pineypiney.game_engine.resources.VulkanResourceFactory
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import org.lwjgl.vulkan.EXTDebugUtils
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VkDebugUtilsMessengerCallbackDataEXT
 
-class VulkanManager {
+class VulkanManager : ApiManager {
 
 	val instance = VkUtil.createInstance(true)
 
@@ -23,12 +29,10 @@ class VulkanManager {
 	val depthFormat = TextureFormat.DEPTH24_STENCIL8
 
 	init {
-		INSTANCE = this
-
-
 		device.nameObject(instance.address(), VK10.VK_OBJECT_TYPE_INSTANCE, "Vulkan Instance")
 		device.nameObject(gpu.physicalDevice.address(), VK10.VK_OBJECT_TYPE_PHYSICAL_DEVICE, gpu.name)
 		device.nameObject(device.device.address(), VK10.VK_OBJECT_TYPE_DEVICE, device.physicalDevice.name + " Vulkan Device")
+		device.nameObject(errorHandle, EXTDebugUtils.VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT, "Error Messenger")
 	}
 
 	@Suppress("unused")
@@ -45,16 +49,20 @@ class VulkanManager {
 		return 0
 	}
 
-	fun cleanUp() {
+	override fun createResourceFactory(): ResourceFactory = VulkanResourceFactory(this)
+
+	override fun createPresentingApi(renderer: WindowRendererI<*>, name: String): PresentingApi = VulkanPresentRendering(renderer, name, device)
+
+	override fun waitIdle() {
+		device.waitIdle()
+	}
+
+	override fun delete() {
 
 		submitter.delete()
 		device.delete()
 
 		EXTDebugUtils.vkDestroyDebugUtilsMessengerEXT(instance, errorHandle, null)
 		VK10.vkDestroyInstance(instance, null)
-	}
-
-	companion object {
-		lateinit var INSTANCE: VulkanManager
 	}
 }

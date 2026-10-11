@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.rendering.meshes
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.resources.ResourceFactory
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.Vectors
 import com.pineypiney.game_engine.util.extension_functions.PIF
 import com.pineypiney.game_engine.util.extension_functions.fromAngle
@@ -194,6 +195,8 @@ interface Mesh : Deletable {
 
 			cornerCubeShape = textureCuboid(factory, "Corner Cube", Vec3(0f), Vec3(1f))
 			centerCubeShape = textureCuboid(factory, "Center Cube", Vec3(-.5f), Vec3(.5f))
+
+			DeletionQueue.GLOBAL.pushAll(cornerSquareShape, centerSquareShape, screenQuadShape, cornerCubeShape, centerCubeShape)
 		}
 	}
 }

@@ -5,7 +5,6 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.ResourceKey
@@ -51,7 +50,7 @@ open class SpriteComponent(
 	}
 
 	companion object {
-		val defaultShader = ShaderLoader[ResourceKey("vertex/2D"), ResourceKey("fragment/texture")]
-		val menuShader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/texture"), RenderShaderParameters(depthTestOp = null)]
+		val defaultShader = ShaderLoader.loadRenderShader(ResourceKey("2d/texture"))
+		val menuShader = ShaderLoader.loadRenderShader(ResourceKey("menu/texture"))
 	}
 }

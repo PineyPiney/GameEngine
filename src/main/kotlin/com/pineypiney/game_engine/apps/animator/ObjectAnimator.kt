@@ -1,24 +1,23 @@
 package com.pineypiney.game_engine.apps.animator
 
+import com.pineypiney.game_engine.ApiManager
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.resources.FileResourcesLoader
-import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.fonts.FontLoader
 import com.pineypiney.game_engine.window.OpenGlWindow
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngine
-import java.io.File
 
 class ObjectAnimator(
-	val resources: ResourcesLoader = FileResourcesLoader(OpenGlResourceFactory(), File("src/main/resources")),
+	manager: ApiManager,
+	val resources: ResourcesLoader = ResourcesLoader.directory(manager.createResourceFactory()),
 	creator: () -> GameObject,
 	val tweaker: (GameObject) -> Unit = {}
 ) {
 
-	private val engine = object : WindowedGameEngine<AnimatorLogic>(resources) {
+	private val engine = object : WindowedGameEngine<AnimatorLogic>(manager, resources) {
 
 		override lateinit var activeScreen: AnimatorLogic
 
@@ -36,6 +35,7 @@ class ObjectAnimator(
 
 		override fun setLogic() {
 			activeScreen = AnimatorLogic(this, null, creator)
+			deletionQueue.push(activeScreen)
 		}
 
 		override fun init() {
@@ -67,9 +67,9 @@ class ObjectAnimator(
 
 		val window = OpenGlWindow("Animator", 960, 540)
 
-		fun run(creator: () -> GameObject, tweaker: (GameObject) -> Unit = {}) {
+		fun run(manager: ApiManager, creator: () -> GameObject, tweaker: (GameObject) -> Unit = {}) {
 			init()
-			val animator = ObjectAnimator(creator = creator, tweaker = tweaker)
+			val animator = ObjectAnimator(manager, creator = creator, tweaker = tweaker)
 			animator.run()
 		}
 	}

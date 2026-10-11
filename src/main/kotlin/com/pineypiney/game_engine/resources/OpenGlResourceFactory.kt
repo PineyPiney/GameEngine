@@ -18,8 +18,8 @@ import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture2D
 import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture3D
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
-import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.toString
 import java.nio.ByteBuffer
 
@@ -51,11 +51,11 @@ class OpenGlResourceFactory : ResourceFactory() {
 		return ShaderLoader.INSTANCE.loadShaderModuleOpenGl(fileName.removeSuffix(".$suf"), code, stage)
 	}
 
-	override fun createRenderShader(vertex: ShaderModule, fragment: ShaderModule, stages: List<ShaderModule>, parameters: RenderShaderParameters, deletionQueue: DeletionQueue): OpenGlRenderShader {
-		return ShaderLoader.generateGraphicsShaderOpenGl(vertex as OpenGlShaderModule, fragment as OpenGlShaderModule, stages.filterIsInstance<OpenGlShaderModule>(), parameters)
+	override fun createRenderShader(id: ResourceKey, vertex: ShaderModule, fragment: ShaderModule, stages: List<ShaderModule>, parameters: RenderShaderParameters): OpenGlRenderShader {
+		return ShaderLoader.generateGraphicsShaderOpenGl(id, vertex as OpenGlShaderModule, fragment as OpenGlShaderModule, stages.filterIsInstance<OpenGlShaderModule>(), parameters)
 	}
 
-	override fun createComputeShader(compute: ShaderModule, deletionQueue: DeletionQueue): OpenGlComputeShader {
+	override fun createComputeShader(compute: ShaderModule): OpenGlComputeShader {
 		return ShaderLoader.generateComputeShaderOpenGl(compute as OpenGlShaderModule)
 	}
 

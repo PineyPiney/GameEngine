@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.resources.textures
 
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.extension_functions.repeat
 import glm_.f
 import glm_.vec2.Vec2i
@@ -91,6 +92,8 @@ interface Texture2D : Texture {
 		fun initDefaultTextures(factory: ResourceFactory) {
 			none = factory.nullTexture2D()
 			missing = factory.createTexture2D("missing", 32, 32, TextureFormat.RGBA8, TextureFormat.RGBA8, createErrorData(), TextureParameters())
+
+			DeletionQueue.GLOBAL.push(missing)
 		}
 	}
 }

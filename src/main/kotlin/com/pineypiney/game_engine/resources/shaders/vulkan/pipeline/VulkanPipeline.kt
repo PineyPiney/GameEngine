@@ -14,6 +14,7 @@ import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.resources.shaders.vulkan.*
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
+import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.put
 import com.pineypiney.game_engine.util.vulkanMask
 import com.pineypiney.game_engine.vulkan.PoolAndBuffer
@@ -309,8 +310,10 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 	}
 
 	fun setArray(name: String, array: Array<out ToBuffer>) {
+		if (array.isEmpty()) return
 		val buffer = getBuffer(name) ?: return
-		for (entry in array) buffer.put(0, entry)
+		val size = array[0].size()
+		for ((i, entry) in array.withIndex()) buffer.put(size * i, entry)
 	}
 
 	fun setList(name: String, array: List<ToBuffer>) {
@@ -577,6 +580,6 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 
 		var layout: VulkanPipelineLayout? = null
 
-		abstract fun build(device: VulkanDevice): P
+		abstract fun build(device: VulkanDevice, id: ResourceKey): P
 	}
 }

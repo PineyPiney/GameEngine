@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.apps.animator
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.GameObjectSerializer
-import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.objects.components.ComponentI
 import com.pineypiney.game_engine.objects.components.rendering.AnimatedComponent
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
@@ -13,15 +12,12 @@ import com.pineypiney.game_engine.objects.components.widgets.slider.OutlinedSlid
 import com.pineypiney.game_engine.rendering.GameRenderer
 import com.pineypiney.game_engine.rendering.cameras.CameraI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
-import com.pineypiney.game_engine.rendering.opengl.OpenGlPresentRendering
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.serialisation.JsonOps
 import com.pineypiney.game_engine.window.WindowGameLogic
-import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
-import glm_.glm
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -36,7 +32,8 @@ class AnimatorLogic(
 	var creator: () -> GameObject
 ) : WindowGameLogic() {
 
-	override val renderer = object : GameRenderer<AnimatorLogic>(window, ::OpenGlPresentRendering) {
+	override val id: String = "Animator Logic"
+	override val renderer = object : GameRenderer<AnimatorLogic>(window, { gameEngine.manager.createPresentingApi(it, id) }) {
 
 		override val camera: CameraI = OrthographicCamera(window)
 
@@ -55,7 +52,7 @@ class AnimatorLogic(
 			val api = getRenderingApi()
 			api.bindFramebuffer(framebuffer)
 
-			for (o in game.gameObjects.map.flatMap { it.value.flatMap { it.allActiveDescendants() } }) {
+			for (o in game.gameObjects.map.flatMap { (_, layer) -> layer.flatMap { it.allActiveDescendants() } }) {
 				val renderedComponents = o.components.filterIsInstance<RenderedComponent>().filter { it.visible }
 				if (renderedComponents.isNotEmpty()) {
 					for (c in o.components.filterIsInstance<PreRenderComponent>()) c.preRender(this, tickDelta)
@@ -66,12 +63,6 @@ class AnimatorLogic(
 			// This draws the buffer onto the screen
 			api.endFramebuffer(framebuffer)
 			api.copyFramebuffer(framebuffer, this)
-		}
-
-		override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
-			super.updateAspectRatio(window, objects)
-			val w = window.aspectRatio
-			glm.ortho(-w, w, -1f, 1f, guiProjection)
 		}
 	}
 
@@ -218,7 +209,7 @@ class AnimatorLogic(
 		o.getComponent<AnimatedComponent>()?.let { a -> properties.putAll(a.getProperties()) }
 	}
 
-	private fun updateKeyFrameField(key: String, oldValue: InputStream, value: InputStream) {
+	private fun updateKeyFrameField(key: String, value: InputStream) {
 		val animation = animationSelector.item?.animation ?: return
 		animation.frames[animation.lastFrame]?.properties?.set(key, value)
 	}

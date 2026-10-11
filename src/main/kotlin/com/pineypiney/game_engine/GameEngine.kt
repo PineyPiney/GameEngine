@@ -2,6 +2,7 @@ package com.pineypiney.game_engine
 
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.DeletionQueue
+import com.pineypiney.game_engine.util.EngineDeletionQueue
 
 abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: ResourcesLoader) : GameEngineI<E> {
 
@@ -9,7 +10,7 @@ abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: Re
 	override val TARGET_UPS: Int = 20
 
 	override val timer: Timer = Timer()
-	override val deletionQueue: DeletionQueue = DeletionQueue()
+	override val deletionQueue: EngineDeletionQueue = EngineDeletionQueue()
 
 	private var frameTime: Double = 0.0
 	private var accumulator = 0.0
@@ -80,7 +81,6 @@ abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: Re
 	}
 
 	override fun cleanUp() {
-		activeScreen.cleanUp()
 		deletionQueue.flush()
 		resourcesLoader.cleanUp()
 		DeletionQueue.GLOBAL.flush()

@@ -14,22 +14,27 @@ import glm_.vec3.Vec3i
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.*
 
-class VulkanPresentRendering(val window: WindowI, device: VulkanDevice, viewport: () -> Viewport) : VulkanRendering(viewport), PresentingApi {
+class VulkanPresentRendering(val window: WindowI, val name: String, device: VulkanDevice, viewport: () -> Viewport) : VulkanRendering(viewport), PresentingApi {
 
-	constructor(renderer: WindowRendererI<*>) : this(renderer.window, VulkanManager.INSTANCE.device, renderer::getViewport)
+	constructor(renderer: WindowRendererI<*>, name: String, device: VulkanDevice) : this(renderer.window, name, device, renderer::getViewport)
 
 	val surface = VkUtil.createSurface(device.instance, window)
 	val colourFormatSpace = device.physicalDevice.getSurfaceColour(surface)
-	var swapchain = VkUtil.createSwapchain(device, surface, null, window.width, window.height, colourFormatSpace.first, colourFormatSpace.second)
+	var swapchain = VkUtil.createSwapchain("$name Swapchain", device, surface, null, window.width, window.height, colourFormatSpace.first, colourFormatSpace.second)
+
+	init {
+		device.nameObject(surface.handle, KHRSurface.VK_OBJECT_TYPE_SURFACE_KHR, "$name Surface")
+	}
 
 	var frameIndex = 0
-	val frames: Array<VulkanFrameObjects> = Array(swapchain.images.size) { VulkanFrameObjects(device) }
+	val frames: Array<VulkanFrameObjects> = Array(swapchain.images.size) { VulkanFrameObjects(device, name) }
 	val frameObjects get() = frames[frameIndex]
 
 	override val cmd: PoolAndBuffer get() = frameObjects.commands
 	override val descriptorAllocator: VulkanDescriptorAllocator get() = frameObjects.frameDescriptorAllocator
 
 	override fun beginPresentation(): Boolean {
+		if (window.iconified) return false
 		// Clear old frame data
 		frameObjects.refresh()
 		// Wait until the fence is ready, it will be signalled by the previous render cycle
@@ -37,7 +42,7 @@ class VulkanPresentRendering(val window: WindowI, device: VulkanDevice, viewport
 
 		// Get the next swapchain image to draw to, and signal the swapchain semaphore once fetched
 		val swapchainImage = swapchain.acquireNextImage(1000000000, frameObjects.swapchainSemaphore, null)
-		if (swapchainImage == null && window.focused && !window.iconified) {
+		if (swapchainImage == null) {
 			updateSwapchain(window.framebufferSize)
 			return false
 		}
@@ -99,7 +104,7 @@ class VulkanPresentRendering(val window: WindowI, device: VulkanDevice, viewport
 	fun updateSwapchain(size: Vec2i) {
 		device.waitIdle()
 
-		swapchain = VkUtil.createSwapchain(device, surface, swapchain, size.x, size.y, colourFormatSpace.first, colourFormatSpace.second)
+		swapchain = VkUtil.createSwapchain("$name Swapchain", device, surface, swapchain, size.x, size.y, colourFormatSpace.first, colourFormatSpace.second)
 	}
 
 	override fun delete() {

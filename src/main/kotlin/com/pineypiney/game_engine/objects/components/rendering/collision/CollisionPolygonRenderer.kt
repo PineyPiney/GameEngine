@@ -2,13 +2,13 @@ package com.pineypiney.game_engine.objects.components.rendering.collision
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
+import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.ShaderRenderedComponent
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.IndexedMeshBuilder
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.shaders.RenderShader
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.parameters.CullMode
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.util.ResourceKey
@@ -69,14 +69,14 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, var wid
 	override fun getMeshes(): Collection<Mesh> = mesh?.let { listOf(it) } ?: emptyList()
 
 	companion object {
-		val defaultShader = ShaderLoader[ResourceKey("vertex/pass_pos"), ResourceKey("fragment/colour"), RenderShaderParameters().cullMode(CullMode.NONE)]
+		val defaultShader = ColourRendererComponent.shader2D.withParameters(ResourceKey("2d_polygon"), RenderShaderParameters(cullMode = CullMode.NONE))
 
-		fun getPoints(shape: Shape2D?): Iterable<Vec2>? {
+		fun getPoints(shape: Shape2D?): Collection<Vec2>? {
 			return when(shape){
 				is Rect2D -> shape.points
 				is Parallelogram -> shape.points
 				is Polygon -> shape.vertices
-				is Circle -> List(32) { shape.center + Vec2.fromAngle(it * .0625f * PIF, shape.radius) }
+				is Circle -> List(32) { shape.center + Vec2.fromAngle(it * -.0625f * PIF, shape.radius) }
 				else -> null
 			}
 		}
@@ -97,14 +97,14 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, var wid
 				val o1 = (v2 - v1).normalizeAssign()
 				val o2 = (v3 - v2).normalizeAssign()
 
-				val m1 = o1.cross(v2)
-				val m2 = o2.cross(v2)
+				val m1 = v2.cross(o1)
+				val m2 = v2.cross(o2)
 
 				builder.startQuad()
-					.vertex(p2 - o1 * width / m1)
 					.vertex(p2 + o1 * width / m1)
+					.vertex(p2)
+					.vertex(p3)
 					.vertex(p3 + o2 * width / m2)
-					.vertex(p3 - o2 * width / m2)
 			}
 			return builder.build("$name Wireframe")
 		}

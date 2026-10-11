@@ -2,7 +2,6 @@ package com.pineypiney.game_engine_test.scenes
 
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.rendering.GameRenderer
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.fonts.Glyph
@@ -21,21 +20,19 @@ import glm_.vec4.Vec4
 import org.lwjgl.BufferUtils
 import java.io.FileInputStream
 
-@OptIn(ExperimentalUnsignedTypes::class)
 @Suppress("UNUSED")
-class TTFTest(gameEngine: WindowedGameEngineI<*>, renderer: GameRenderer<MultiTest>) : MultiTest(gameEngine, renderer) {
+class TTFTest(gameEngine: WindowedGameEngineI<*>) : MultiTest("True Type Font Bezier Test", gameEngine) {
 
 	val font = FileInputStream("src/main/resources/fonts/LightSlab.ttf").use { stream ->
 		TrueTypeLoader().load(stream)
 	}!!
 
 	val outlineObjects = mutableListOf<GameObject>()
-	val shader = ShaderLoader[ResourceKey("vertex/2D"), ResourceKey("fragment/colour"), RenderShaderParameters(InputTopology.LINE_STRIP)]
+	val shader = ShaderLoader[ResourceKey("ttf_fill"), ResourceKey("vertex/2D"), ResourceKey("fragment/colour"), RenderShaderParameters(InputTopology.LINE_STRIP)]
 
 	val fillObjects = mutableListOf<GameObject>()
 	val curveBuffers = mutableMapOf<Char, ShaderStorageBuffer>()
-	val arrays = mutableMapOf<Char, Array<UByteArray>>()
-	val bezierShader = ShaderLoader[ResourceKey("vertex/2D"), ResourceKey("fragment/bezier_font"), RenderShaderParameters()]
+	val bezierShader = ShaderLoader[ResourceKey("bezier_test"), ResourceKey("vertex/2D"), ResourceKey("fragment/bezier_font"), RenderShaderParameters()]
 
 	init {
 		val m = 4f
@@ -89,9 +86,6 @@ class TTFTest(gameEngine: WindowedGameEngineI<*>, renderer: GameRenderer<MultiTe
 				outlineObjects.add(obj)
 				deletionQueue.push(mesh)
 			}
-
-			val pixels = Array(200) { UByteArray(200) { 255u } }
-			arrays[char] = pixels
 
 			val ssbo = bezierShader.createSSBO("$char Curve SSBO", glyph.curves.size * 24)
 			curveBuffers[char] = ssbo

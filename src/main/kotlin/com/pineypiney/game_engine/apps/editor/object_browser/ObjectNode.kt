@@ -25,7 +25,7 @@ import glm_.vec4.Vec4
 class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(parent, obj), Draggable, DraggableAcceptor {
 
 	val head: Boolean get() = parent.parent?.name == "Object List"
-	val browser: ObjectBrowser? get() = parent.getAncestor(-1).getComponent<ObjectBrowser>()
+	val browser: ObjectBrowser? get() = parent.getAncestor(-1).getChild("Object Browser")!!.getComponent<ObjectBrowser>()
 
 	var fileSelect = 0.0
 

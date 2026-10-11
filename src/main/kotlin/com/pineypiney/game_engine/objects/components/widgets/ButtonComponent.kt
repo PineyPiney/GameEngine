@@ -150,6 +150,7 @@ class ButtonComponent(
 			pos: Vec2i,
 			size: Vec2i,
 			origin: Vec2 = Vec2(-1f),
+			screenRelative: Boolean = false,
 			shader: RenderShader = ColouredSpriteComponent.colouredMenuShader,
 			baseTint: Vec4 = Vec4(1f),
 			hoverTint: Vec4 = Vec4(.95f),
@@ -158,7 +159,7 @@ class ButtonComponent(
 		): GameObject {
 
 			val obj = GameObject(name, 1)
-			obj.pixel(pos, size, origin)
+			obj.pixel(pos, size, origin, screenRelative)
 			val getColour = { b: ButtonComponent ->
 				when {
 					b.pressed -> clickTint

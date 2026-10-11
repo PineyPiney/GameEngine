@@ -21,7 +21,7 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 
 	companion object {
 
-		val shader = ColouredSpriteComponent.colouredMenuShader.withParameters(RenderShaderParameters(depthTestOp = null))
+		val shader = ColouredSpriteComponent.colouredMenuShader.withParameters(ResourceKey("editor_transformer"), RenderShaderParameters(depthTestOp = null))
 
 		val TRANSLATE2D = Transformers{ o, s ->
 			val head = Translator2D(o, s)
@@ -51,7 +51,10 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 			val rings = GameObject("Rotator Rings", 1)
 			rings.scale = Vec3(1.2f, 1.2f, 1f)
 			rings.components.add(object :
-				ShaderRenderedComponent(rings, ShaderLoader[ResourceKey("vertex/2D_pass_pos"), ResourceKey("fragment/editor/rotate2D"), RenderShaderParameters(depthTestOp = null)]) {
+				ShaderRenderedComponent(
+					rings,
+					ShaderLoader[ResourceKey("rotate_transformer"), ResourceKey("vertex/pass_pos_menu"), ResourceKey("fragment/editor/rotate2D"), RenderShaderParameters(depthTestOp = null)]
+				) {
 
 				override fun setUniforms() {
 					super.setUniforms()
@@ -113,7 +116,7 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 			}
 
 			obj.addChild(moveButton.parent, rotateButton.parent, scaleButton.parent, colliderButton.parent)
-			obj.pixel(Vec2i(screen.settings.objectBrowserWidth, 0), Vec2i(20), Vec2(-1f, .4f))
+			obj.pixel(Vec2i(screen.settings.objectBrowserWidth, 0), Vec2i(20), Vec2(-1f, .4f), true)
 
 			return obj
 		}

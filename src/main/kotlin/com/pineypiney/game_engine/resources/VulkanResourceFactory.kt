@@ -19,7 +19,6 @@ import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage2D
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage3D
-import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VulkanManager
@@ -36,7 +35,7 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	override fun createRenderShader(vertex: ShaderModule, fragment: ShaderModule, stages: List<ShaderModule>, parameters: RenderShaderParameters, deletionQueue: DeletionQueue): RenderShader {
+	override fun createRenderShader(id: ResourceKey, vertex: ShaderModule, fragment: ShaderModule, stages: List<ShaderModule>, parameters: RenderShaderParameters): RenderShader {
 		val builder = VulkanGraphicsPipeline.Builder()
 			.shaders(vertex as VulkanShaderModule, fragment as VulkanShaderModule, stages as List<VulkanShaderModule>)
 			.generateLayout(vulkan.device)
@@ -44,22 +43,20 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 			.colourFormat(vulkan.drawFormat.vulkan)
 			.depthFormat(vulkan.depthFormat.vulkan)
 
-		val pipeline = builder.build(vulkan.device)
+		val pipeline = builder.build(vulkan.device, id)
 
 		builder.delete()
-		deletionQueue.push(pipeline)
 		return pipeline
 	}
 
-	override fun createComputeShader(compute: ShaderModule, deletionQueue: DeletionQueue): ComputeShader {
+	override fun createComputeShader(compute: ShaderModule): ComputeShader {
 		val builder = VulkanComputePipeline.Builder()
 		val pipeline = builder
 			.setModule(compute as VulkanShaderModule)
 			.generateLayout(vulkan.device)
-			.build(vulkan.device)
+			.build(vulkan.device, ResourceKey(compute.getName()))
 
 		builder.delete()
-		deletionQueue.push(pipeline)
 		return pipeline
 	}
 

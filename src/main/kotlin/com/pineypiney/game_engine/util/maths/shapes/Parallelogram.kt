@@ -12,7 +12,11 @@ import kotlin.math.sqrt
 
 data class Parallelogram(val origin: Vec2, val side1: Vec2, val side2: Vec2) : Shape2D() {
 
-	val points get() = setOf(origin, origin + side1, origin + side1 + side2, origin + side2)
+	val points: Set<Vec2>
+		get() {
+			return if (side1 cross side2 > 0f) setOf(origin, origin + side1, origin + side1 + side2, origin + side2)
+			else setOf(origin, origin + side2, origin + side1 + side2, origin + side1)
+		}
 
 	override val min: Vec2
 	override val max: Vec2

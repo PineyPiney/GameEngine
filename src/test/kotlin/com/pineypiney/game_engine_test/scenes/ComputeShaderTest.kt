@@ -8,8 +8,10 @@ import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.MeshedTextureComponent
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
+import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
+import com.pineypiney.game_engine.rendering.GameRenderer
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.rendering.WindowRendererI
+import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlShader
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniform
@@ -36,9 +38,12 @@ import org.lwjgl.opengl.GL42C
 import org.lwjgl.opengl.GL43C
 
 @Suppress("UNUSED")
-class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<ComputeShaderTest>) : WindowGameLogic() {
+class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
-	val shader = ShaderLoader[ResourceKey("vertex/menu"), ResourceKey("fragment/texture")]
+	override val id: String = "Compute Shader Test"
+	override val renderer: GameRenderer<ComputeShaderTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(it, id) }
+
+	val shader = ShaderLoader[ResourceKey("compute_test"), ResourceKey("vertex/menu"), ResourceKey("fragment/texture")]
 	val uniformValues = mutableMapOf<String, Any>()
 	val compute = ShaderLoader[ResourceKey("compute/gradient")]
 

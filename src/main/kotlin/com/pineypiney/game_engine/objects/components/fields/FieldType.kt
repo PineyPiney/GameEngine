@@ -2,11 +2,11 @@ package com.pineypiney.game_engine.objects.components.fields
 
 import kotlin.reflect.KClass
 
-typealias FieldCreator<T> = (id: String, container: Any, getter: () -> T, setter: (T) -> Unit, annotations: Set<Annotation>) -> ComponentField<T>
+typealias FieldCreator<T> = (id: String, container: Any?, getter: () -> T, setter: (T) -> Unit, annotations: Set<Annotation>) -> ComponentField<T>
 
 class FieldType<T>(val default: () -> T, val annotations: Set<KClass<out Annotation>>, val klass: KClass<*> = default()!!::class, val fieldCreator: FieldCreator<T>) {
 
-	constructor(default: () -> T, klass: KClass<*> = default()!!::class, fieldCreator: (id: String, container: Any, getter: () -> T, setter: (T) -> Unit) -> ComponentField<T>) : this(
+	constructor(default: () -> T, klass: KClass<*> = default()!!::class, fieldCreator: (id: String, container: Any?, getter: () -> T, setter: (T) -> Unit) -> ComponentField<T>) : this(
 		default,
 		emptySet(),
 		klass,

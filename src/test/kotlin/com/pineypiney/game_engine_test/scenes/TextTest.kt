@@ -5,7 +5,9 @@ import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
-import com.pineypiney.game_engine.rendering.WindowRendererI
+import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
+import com.pineypiney.game_engine.rendering.GameRenderer
+import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.fonts.FontLoader
 import com.pineypiney.game_engine.util.GLFunc
@@ -21,7 +23,11 @@ import glm_.vec4.Vec4
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import kotlin.math.pow
 
-class TextTest(override val gameEngine: WindowedGameEngineI<*>, override val renderer: WindowRendererI<TextTest>) : WindowGameLogic() {
+class TextTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
+
+	override val id: String = "Text Test"
+
+	override val renderer: GameRenderer<TextTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(it, id) }
 
 	val ttfTextObject = Text.makeMenuText("TTF Text\nTest", Vec4(0f, 0f, 0f, 1f), 40).apply {
 		components.add(ColourRendererComponent(this, Vec4(.6f), ColourRendererComponent.menuShader, Mesh.cornerSquareShape))

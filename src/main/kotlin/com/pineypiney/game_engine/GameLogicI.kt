@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.util.input.Inputs
 
 interface GameLogicI {
 
+	val id: String
 	val gameEngine: GameEngineI<*>
 	val renderer: GameRendererI<*>
 	val gameObjects: ObjectCollection

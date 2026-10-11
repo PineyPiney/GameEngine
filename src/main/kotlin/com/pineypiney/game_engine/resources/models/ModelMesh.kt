@@ -39,6 +39,7 @@ interface ModelMesh : Mesh {
 				.vertex(1f, 1f, 0f).texture(1f, 1f)
 				.vertex(0f, 1f, 0f).texture(0f, 1f)
 			missing = builder.buildModel("missing", factory)
+
 			DeletionQueue.GLOBAL.push(missing)
 		}
 	}

@@ -2,13 +2,16 @@ package com.pineypiney.game_engine.resources.shaders
 
 import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec3.Vec3i
 
 @Suppress("UNUSED")
 interface ComputeShader : Shader {
 
 	val compute: ShaderModule
+	override val id: ResourceKey get() = ResourceKey(compute.getName())
 
 	fun dispatch(api: RenderingApi, x: Int = 1, y: Int = 1, z: Int = 1)
 
@@ -52,6 +55,7 @@ interface ComputeShader : Shader {
 
 			val compute = loader.factory.createShaderModule(loader, "missing_compute", "", ShaderStage.COMPUTE, cS)
 			missingShader = loader.factory.createComputeShader(compute)
+			DeletionQueue.GLOBAL.push(missingShader)
 		}
 	}
 }

@@ -18,7 +18,7 @@ import kotlin.math.min
 open class AtlasAnimatedSprite(
 	parent: GameObject,
 	texture: Texture2D,
-	ppu: Float,
+	ppu: Float = 64f,
 	numFrames: Int,
 	var fps: Float,
 	spriteCenter: Vec2 = Vec2(.5f),
@@ -124,7 +124,7 @@ open class AtlasAnimatedSprite(
 	}
 
 	companion object {
-		val atlasShader = ShaderLoader[ResourceKey("vertex/2D"), ResourceKey("fragment/animation_atlas")]
+		val atlasShader = ShaderLoader.loadRenderShader(ResourceKey("2d/animation_atlas"))
 	}
 
 	open class AtlasAnimationData(val texture: Texture2D, val numFrames: Int, val fps: Float, val loop: Boolean = true, val startAtBeginning: Boolean = false) {

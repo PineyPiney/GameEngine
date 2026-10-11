@@ -4,9 +4,22 @@ import glm_.i
 import glm_.pow
 import glm_.shl
 import glm_.shr
+import unsigned.Ubyte
+import unsigned.Ulong
+import unsigned.Ushort
 import kotlin.math.*
 
 const val PIF = PI.toFloat()
+
+fun Number.bytes(): Int {
+	return when (this) {
+		is Byte, Ubyte -> 1
+		is Short, Ushort -> 2
+		is Int, UInt, Float -> 4
+		is Long, Ulong, Double -> 8
+		else -> 0
+	}
+}
 
 infix fun UShort.shl(other: Int): UShort{
 	return (toShort() shl other).toUShort()

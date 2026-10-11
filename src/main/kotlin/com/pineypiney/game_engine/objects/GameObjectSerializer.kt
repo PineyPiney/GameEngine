@@ -9,17 +9,21 @@ import com.pineypiney.game_engine.objects.components.Components
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.getAllFieldsExt
 import com.pineypiney.game_engine.objects.prefabs.*
-import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.NodeTree
 import com.pineypiney.game_engine.util.extension_functions.string
 import com.pineypiney.game_engine.util.serialisation.JsonOps
 import com.pineypiney.game_engine.util.serialisation.SerialOps
-import glm_.asHexString
 import java.io.File
 
 class GameObjectSerializer {
 
 	companion object {
+
+		init {
+			// Load PrefabEdit.Companion before any of its subclasses
+			@Suppress("UnusedExpression")
+			PrefabEdit
+		}
 
 		// SERIALISATION -------------------------------------------------------------------------------
 
@@ -28,7 +32,7 @@ class GameObjectSerializer {
 			if (obj is Prefab) return serialisePrefab(obj, ops)
 
 			val head = ops.createMap()
-			ops.put(head, "type", ByteData.int2String(0xdefa, 2))
+			ops.put(head, "type", "default")
 			ops.put(head, "name", obj.name)
 			ops.put(head, "active", obj.active)
 			ops.put(head, "layer", obj.layer)
@@ -54,7 +58,7 @@ class GameObjectSerializer {
 		private fun <E> serialisePrefab(prefab: Prefab, ops: SerialOps<E>): E {
 
 			val head = ops.createMap()
-			ops.put(head, "type", ByteData.int2String(0xefab, 2))
+			ops.put(head, "type", "prefab")
 			ops.put(head, "path", prefab.file.path)
 			ops.put(head, "name", prefab.name)
 
@@ -161,7 +165,7 @@ class GameObjectSerializer {
 		}
 
 		fun <E> parse(ops: SerialOps<E>, head: E, dst: GameObject? = null): GameObject {
-			val lateParse = mutableListOf<Triple<Any, ComponentField<*>, E>>()
+			val lateParse = mutableListOf<Triple<Any?, ComponentField<*>, E>>()
 			val obj = parse(ops, head, dst, lateParse)
 			for ((_, field, data) in lateParse) field.set(ops, data)
 			return obj
@@ -179,11 +183,15 @@ class GameObjectSerializer {
 		}
 
 		fun <E> parseChild(ops: SerialOps<E>, head: E, lateParse: LateParse<E>, dest: GameObject? = null): GameObject {
-			return when (val type = ByteData.string2Int(ops.getString(head, "type"))) {
-				0xdefa -> parseDefaultObject(ops, head, lateParse, dest)
-				0xefab -> parsePrefab(ops, head, lateParse, dest)
+
+			// Empty Prefab File
+			if (!ops.hasChild(head, "type")) return GameObject("Prefab")
+
+			return when (val type = ops.getString(head, "type")) {
+				"default" -> parseDefaultObject(ops, head, lateParse, dest)
+				"prefab" -> parsePrefab(ops, head, lateParse, dest)
 				else -> {
-					GameEngineI.logger.error("Couldn't parse game object type ${type.asHexString}, should be 0xdefa for normal game object or 0xefab for a prefab")
+					GameEngineI.logger.error("Couldn't parse game object type $type, should be 'default' for normal game object or 'prefab' for a prefab")
 					dest ?: GameObject()
 				}
 			}
@@ -280,4 +288,4 @@ class GameObjectSerializer {
 	}
 }
 
-typealias LateParse<D> = MutableList<Triple<Any, ComponentField<*>, D>>
+typealias LateParse<D> = MutableList<Triple<Any?, ComponentField<*>, D>>

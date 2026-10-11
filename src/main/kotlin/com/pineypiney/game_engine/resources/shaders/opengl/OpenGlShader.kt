@@ -37,12 +37,12 @@ import java.nio.FloatBuffer
 import java.nio.IntBuffer
 import java.nio.LongBuffer
 
-abstract class OpenGlShader(private var ID: Int, val uniforms: Map<String, String>, val ssboBindings: Map<String, Int>) : Shader {
+abstract class OpenGlShader(private var program: Int, val uniforms: Map<String, String>, val ssboBindings: Map<String, Int>) : Shader {
 
 	val ssbos = mutableMapOf<String, OpenGlShaderStorageBuffer>()
 
 	override fun use(api: RenderingApi) {
-		GL20C.glUseProgram(ID)
+		GL20C.glUseProgram(program)
 	}
 
 	fun bindSSBOS() {
@@ -226,7 +226,7 @@ abstract class OpenGlShader(private var ID: Int, val uniforms: Map<String, Strin
 		func(varLocation, false, v)
 	}
 
-	override fun getBool(name: String): Boolean = GL20C.glGetUniformi(ID, getVar(name)) != 0
+	override fun getBool(name: String): Boolean = GL20C.glGetUniformi(program, getVar(name)) != 0
 
 	override fun getInt(name: String) = get1(name, GL20C::glGetUniformi)
 	override fun getInts(name: String, dst: IntBuffer) = get1s(name, dst, GL20C::glGetUniformiv)
@@ -317,34 +317,34 @@ abstract class OpenGlShader(private var ID: Int, val uniforms: Map<String, Strin
 	}
 
 	fun <E> get1(name: String, func: (Int, Int) -> E): E {
-		return func(ID, getVar(name))
+		return func(program, getVar(name))
 	}
 
 	fun <E> get1s(name: String, array: E, func: (Int, Int, E) -> Unit) {
-		func(ID, getVar(name), array)
+		func(program, getVar(name), array)
 	}
 
 	fun getIN(name: String, num: Int): IntArray {
 		val array = IntArray(num)
-		GL20C.glGetUniformiv(ID, getVar(name), array)
+		GL20C.glGetUniformiv(program, getVar(name), array)
 		return array
 	}
 
 	fun getUIN(name: String, num: Int): IntArray {
 		val array = IntArray(num)
-		GL30C.glGetUniformuiv(ID, getVar(name), array)
+		GL30C.glGetUniformuiv(program, getVar(name), array)
 		return array
 	}
 
 	fun getFN(name: String, num: Int): FloatArray {
 		val array = FloatArray(num)
-		GL20C.glGetUniformfv(ID, getVar(name), array)
+		GL20C.glGetUniformfv(program, getVar(name), array)
 		return array
 	}
 
 	fun getDN(name: String, num: Int): DoubleArray {
 		val array = DoubleArray(num)
-		GL40C.glGetUniformdv(ID, getVar(name), array)
+		GL40C.glGetUniformdv(program, getVar(name), array)
 		return array
 	}
 
@@ -356,22 +356,22 @@ abstract class OpenGlShader(private var ID: Int, val uniforms: Map<String, Strin
 		return Uniforms(set.toTypedArray())
 	}
 
-	private fun getVar(name: String): Int = GL20C.glGetUniformLocation(ID, name)
+	private fun getVar(name: String): Int = GL20C.glGetUniformLocation(program, name)
 
-	fun getNumberAttributes() = GL20C.glGetProgrami(ID, GL20C.GL_ACTIVE_ATTRIBUTES)
-	fun getNumberAttributesNew() = GL43C.glGetProgramInterfacei(ID, GL43C.GL_PROGRAM_INPUT, GL43C.GL_ACTIVE_RESOURCES)
-	fun getNumberUniforms() = GL20C.glGetProgrami(ID, GL20C.GL_ACTIVE_UNIFORMS)
-	fun getNumberUniformsNew() = GL43C.glGetProgramInterfacei(ID, GL43C.GL_UNIFORM, GL43C.GL_ACTIVE_RESOURCES)
+	fun getNumberAttributes() = GL20C.glGetProgrami(program, GL20C.GL_ACTIVE_ATTRIBUTES)
+	fun getNumberAttributesNew() = GL43C.glGetProgramInterfacei(program, GL43C.GL_PROGRAM_INPUT, GL43C.GL_ACTIVE_RESOURCES)
+	fun getNumberUniforms() = GL20C.glGetProgrami(program, GL20C.GL_ACTIVE_UNIFORMS)
+	fun getNumberUniformsNew() = GL43C.glGetProgramInterfacei(program, GL43C.GL_UNIFORM, GL43C.GL_ACTIVE_RESOURCES)
 
 	fun getAllAttributes(): Array<String> {
-		return Array(getNumberAttributes()) { i -> GL43C.glGetProgramResourceName(ID, GL43C.GL_PROGRAM_INPUT, i) }
+		return Array(getNumberAttributes()) { i -> GL43C.glGetProgramResourceName(program, GL43C.GL_PROGRAM_INPUT, i) }
 	}
 
 	fun getAllUniforms(): Array<String> {
-		return Array(getNumberUniforms()) { i -> GL43C.glGetProgramResourceName(ID, GL43C.GL_UNIFORM, i) }
+		return Array(getNumberUniforms()) { i -> GL43C.glGetProgramResourceName(program, GL43C.GL_UNIFORM, i) }
 	}
 
 	override fun delete() {
-		GL20C.glDeleteProgram(ID)
+		GL20C.glDeleteProgram(program)
 	}
 }

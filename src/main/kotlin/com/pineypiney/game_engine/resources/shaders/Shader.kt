@@ -6,6 +6,7 @@ import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.util.ResourceKey
 import glm_.mat2x2.Mat2
 import glm_.mat2x2.Mat2d
 import glm_.mat2x3.Mat2x3
@@ -33,6 +34,8 @@ import java.nio.IntBuffer
 import java.nio.LongBuffer
 
 interface Shader : Deletable {
+
+	val id: ResourceKey
 
 	fun use(api: RenderingApi)
 

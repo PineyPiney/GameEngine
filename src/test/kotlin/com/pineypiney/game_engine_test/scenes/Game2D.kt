@@ -5,7 +5,10 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.audio.AudioEngine
 import com.pineypiney.game_engine.audio.AudioSource
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.*
+import com.pineypiney.game_engine.objects.components.InteractorComponent
+import com.pineypiney.game_engine.objects.components.Movement2D
+import com.pineypiney.game_engine.objects.components.PixelTransformComponent
+import com.pineypiney.game_engine.objects.components.RelativeTransformComponent
 import com.pineypiney.game_engine.objects.components.rendering.*
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
@@ -15,7 +18,9 @@ import com.pineypiney.game_engine.objects.components.widgets.scrollList.Selectab
 import com.pineypiney.game_engine.objects.components.widgets.slider.ActionSliderComponent
 import com.pineypiney.game_engine.objects.components.widgets.slider.ColourSliderRendererComponent
 import com.pineypiney.game_engine.objects.util.Animation
+import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
 import com.pineypiney.game_engine.rendering.GameRenderer
+import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
@@ -49,17 +54,19 @@ import org.lwjgl.openal.AL10
 import kotlin.math.PI
 import kotlin.math.sign
 
-class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val renderer: GameRenderer<Game2D>) : WindowGameLogic() {
+class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameLogic() {
 
+	override val id: String = "2D Game"
+	override val renderer: GameRenderer<Game2D> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(it, id) }
 	val camera get() = renderer.camera
 
 	val standardCursors = intArrayOf(GLFW_RESIZE_EW_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).map { Cursor(it) }
 	val customCursor = Cursor.create(gameEngine, "textures/cursor.png", Vec2i(40, 2)) ?: standardCursors.first()
 
-	private val audio get() = AudioLoader[(ResourceKey("clair_de_lune"))]
+	private val audio get() = AudioLoader[(ResourceKey("clair_de_lune_test"))]
 
 
-	val movement = Movement2D(GameObject("Controller"), window, 10f) { v -> camera.translate(Vec3(v, 0f)) }.applied()
+	val movement = Movement2D.create("Controller", window, 10f) { v -> camera.translate(Vec3(v * Timer.frameDelta, 0f)) }
 
 	private val b = ButtonComponent.createTextButton("Button", Vec2i(-150, -200), Vec2i(300, 100), Vec2(0f, 1f)) {
 		val device = AudioEngine.getAllOutputDevices().random()
@@ -108,9 +115,9 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 	}
 
 	private val texture = GameObject.simpleTextureGameObject("broke texture", Texture2D.missing)
-	val modelShader = ModelRendererComponent.defaultShader.withParameters(RenderShaderParameters(cullMode = CullMode.NONE))
-	private val model1 = GameObject.simpleModelledGameObject("goblin", ModelLoader.getModel(ResourceKey("goblin")), modelShader, debug = Model.DEBUG_COLLIDER)
-	private val model2 = GameObject.simpleModelledGameObject("goblin", ModelLoader.getModel(ResourceKey("goblin")), modelShader, debug = Model.DEBUG_COLLIDER)
+	val modelShader = ModelRendererComponent.modelUnlit.withParameters(ResourceKey("nocull_model"), RenderShaderParameters(cullMode = CullMode.NONE))
+	private val model1 = GameObject.simpleModelledGameObject("Goblin Object", ModelLoader.getModel(ResourceKey("goblin")), modelShader, debug = Model.DEBUG_COLLIDER)
+	private val model2 = GameObject.simpleModelledGameObject("Goblin Object", ModelLoader.getModel(ResourceKey("goblin")), modelShader, debug = 0)
 
 	private val text = Text.makeMenuText(
 		"X Part: 0.00 \nY Part: 0.00",
@@ -141,7 +148,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>, override val 
 		Text.Params().withFontSize(28)){ _, _ -> }
 
 	val snake = GameObject("Snake").apply {
-		val animation = Animation("slither", 7f, "snake", (0..5).map { "snake_$it" })
+		val animation = Animation("test_slither", 7f, "textures/snake", (0..5).map { "snake_$it" })
 
 		scale = Vec3(4f, 4f, 1f)
 		components.add(SpriteComponent(this))

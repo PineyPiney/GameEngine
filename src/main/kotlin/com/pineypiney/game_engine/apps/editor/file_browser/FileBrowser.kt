@@ -13,6 +13,7 @@ import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRe
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.rendering.ObjectRenderer
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.resources.DirectorySource
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -32,13 +33,17 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.name
 import kotlin.math.ceil
 
-class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = File("src/main/resources")): DefaultInteractorComponent(
+class FileBrowser(
+	parent: GameObject,
+	val screen: EditorScreen,
+	root: File = File(screen.gameEngine.resourcesLoader.sources.filterIsInstance<DirectorySource>().firstNotNullOfOrNull { it.location } ?: "src/main/resources")
+) : DefaultInteractorComponent(
 	parent
 ), UpdatingAspectRatioComponent {
 
 	var currentDirectory = root
 	val loadedTextures = mutableMapOf<String, Texture2D>()
-	val prefabRenderer: ObjectRenderer = ObjectRenderer.create(screen.renderer, Vec3(0f, 0f, 0f), Vec2i(screen.settings.fileBrowserIconSize))
+	val prefabRenderer: ObjectRenderer = ObjectRenderer.create(screen.renderer.getRenderingApi(), Vec3(0f, 0f, 0f), Vec2i(screen.settings.fileBrowserIconSize))
 
 	private val filesContainer = GameObject("Files", 1)
 	private val parentFileButton =
@@ -74,7 +79,7 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 			filesContainer.addChild(child)
 			child.pixel(Vec2i(60, 166), Vec2i(screen.settings.fileBrowserIconSize), screenRelative = true)
 
-			val button = FileComponent.fileTypes[subFile.extension] ?: ::FileComponent
+			val button = FileComponent.fileTypes[subFile.extension.lowercase()] ?: ::FileComponent
 			child.components.add(button(child, subFile, this))
 
 			placeChild(child, i, cols)
@@ -144,10 +149,9 @@ class FileBrowser(parent: GameObject, val screen: EditorScreen, root: File = Fil
 		data class FileBrowserContext(val browser: FileBrowser): ContextMenu.Context(browser.screen.settings, browser.screen.renderer.viewportSize)
 		data class FileContext(val browser: FileBrowser, val file: FileComponent): ContextMenu.Context(browser.screen.settings, browser.screen.renderer.viewportSize)
 
-		val fileBrowserContextMenu = ContextMenu<FileBrowserContext>(
+		val fileBrowserContextMenu = ContextMenu(
 			arrayOf(
-				ContextMenuEntry(
-				"New", (SavableFiles.list.map { type ->
+				ContextMenuEntry("New", (SavableFiles.list.map { type ->
 					ContextMenuEntry<FileBrowserContext>("${type.name} File") {
 						val directory = browser.currentDirectory.path
 						val fileName = "$directory/${type.name.lowercase()}_"

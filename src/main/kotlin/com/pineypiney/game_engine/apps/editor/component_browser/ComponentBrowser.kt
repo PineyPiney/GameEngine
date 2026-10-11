@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.apps.editor.component_browser
 
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.apps.editor.EditorScreen
 import com.pineypiney.game_engine.apps.editor.FieldEditor
 import com.pineypiney.game_engine.apps.editor.createEditor
@@ -41,7 +42,15 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 	var scroll: Float = 0f
 
 	init {
-		parent.components.add(PixelTransformComponent(parent, Vec2i(-screen.settings.componentBrowserWidth, screen.settings.fileBrowserHeight), Vec2i(screen.settings.componentBrowserWidth, 324), Vec2(1f, -1f)))
+		parent.components.add(
+			PixelTransformComponent(
+				parent,
+				Vec2i(-screen.settings.componentBrowserWidth, screen.settings.fileBrowserHeight),
+				Vec2i(screen.settings.componentBrowserWidth, 324),
+				Vec2(1f, -1f),
+				true
+			)
+		)
 		parent.components.add(ChildContainingRenderer(parent, Mesh.cornerSquareShape, Vec3(.7f)))
 	}
 
@@ -56,7 +65,9 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		obj.components.add(comp)
 		comp.init()
 
-		addComponentFields(comp)
+		addComponentFields(comp).forAllDescendants {
+			getComponent<FieldEditor<*, *>>()?.update(screen.settings.textScale)
+		}
 		positionComponents()
 	}
 
@@ -119,6 +130,8 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 			for(c in obj.components) addComponentFields(c)
 
 			positionComponents()
+
+			for (container in componentContainer.children) updateAllFields(container)
 		}
 	}
 
@@ -142,12 +155,19 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		}
 	}
 
-	fun refreshAllFields() {
-		for (container in componentContainer.children) {
-			for (field in container.children) {
-				field.getComponent<FieldEditor<*, *>>()?.update(screen.settings.textScale)
+	fun updateAllFields(container: GameObject) {
+		for (field in container.children) {
+			val fieldEditor = field.getComponent<FieldEditor<*, *>>() ?: continue
+			try {
+				fieldEditor.update(screen.settings.textScale)
+			} catch (e: NullPointerException) {
+				GameEngineI.logger.warn("Caught NullPointerException while updating field editor for field ${fieldEditor.id} in component ${fieldEditor.field.container}")
 			}
 		}
+	}
+
+	fun refreshAllFields() {
+		for (container in componentContainer.children) updateAllFields(container)
 
 		val container = componentContainer.getChild("Object Fields") ?: return
 		val editingObject = screen.editingObject ?: return
@@ -160,7 +180,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 	/**
 	 *  Create a section in the component browser for [component]
 	 */
-	fun addComponentFields(component: ComponentI){
+	fun addComponentFields(component: ComponentI): GameObject {
 		val name = component.id
 		val compCont = GameObject("$name Container", 1)
 		val textHeight = screen.settings.textScale
@@ -190,16 +210,13 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 
 		componentContainer.addChild(compCont)
 		compCont.init()
-		compCont.forAllDescendants {
-			getComponent<FieldEditor<*, *>>()?.update(textHeight)
-		}
+		return compCont
 	}
 
 	fun <T, F: ComponentField<T>> addComponentField(component: ComponentI, f: F, compCont: GameObject, pixelY: Int, pixelHeight: Int): Int{
 		val editor = createEditor(
 			GameObject("Field Editor ${component.id}.${f.id}", 1),
 			f,
-			component,
 			Vec2i(0, -pixelY),
 			Vec2i(screen.settings.componentBrowserWidth, pixelHeight)
 		) { ov, v ->

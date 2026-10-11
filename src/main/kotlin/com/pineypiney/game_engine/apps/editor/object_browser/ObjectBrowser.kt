@@ -27,7 +27,7 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 	val colour = ChildContainingRenderer(parent, Mesh.cornerSquareShape, Vec3(.7f))
 
 	init {
-		parent.components.add(PixelTransformComponent(parent, Vec2i(0f, screen.settings.fileBrowserHeight), Vec2i(screen.settings.objectBrowserWidth, 324), Vec2(-1f)))
+		parent.components.add(PixelTransformComponent(parent, Vec2i(0f, screen.settings.fileBrowserHeight), Vec2i(screen.settings.objectBrowserWidth, 324), Vec2(-1f), true))
 		parent.components.add(colour)
 	}
 

@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine_test.testVR
 
 import com.pineypiney.game_engine.GameLogicI
-import com.pineypiney.game_engine.resources.FileResourcesLoader
 import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.vr.HMD
@@ -13,7 +12,7 @@ class TestVREngine<E : GameLogicI>(
 	val screen: (TestVREngine<E>) -> TestVRGame,
 	ups: Int,
 	fps: Int,
-	resourcesLoader: ResourcesLoader = FileResourcesLoader(OpenGlResourceFactory())
+	resourcesLoader: ResourcesLoader = ResourcesLoader.directory(OpenGlResourceFactory())
 ) :
 	VRGameEngine<TestVRGame>(resourcesLoader) {
 
@@ -28,6 +27,7 @@ class TestVREngine<E : GameLogicI>(
 
 	override fun setLogic() {
 		activeScreen = screen(this)
+		deletionQueue.push(activeScreen)
 	}
 
 	override fun handleVRInput() {

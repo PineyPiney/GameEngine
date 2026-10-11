@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.objects.prefabs
 
 import com.google.gson.JsonElement
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.LateParse
+import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.util.extension_functions.string
 import com.pineypiney.game_engine.util.serialisation.Codec
 import com.pineypiney.game_engine.util.serialisation.SerialOps
@@ -21,7 +21,7 @@ abstract class PrefabEdit {
 		return child
 	}
 
-	abstract fun execute(obj: GameObject, parentLoc: String, list: LateParse<JsonElement>)
+	abstract fun execute(obj: GameObject, parentLoc: String, list: MutableList<Triple<Any?, ComponentField<*>, JsonElement>>)
 
 	abstract fun getID(): String
 
@@ -55,6 +55,7 @@ abstract class PrefabEdit {
 	}
 
 	companion object {
+
 		val codecs: MutableMap<String, Codec<out PrefabEdit?>> = mutableMapOf(
 			"chad" to PrefabChildAddEdit.CODEC,
 			"chrm" to PrefabChildRemoveEdit.CODEC,

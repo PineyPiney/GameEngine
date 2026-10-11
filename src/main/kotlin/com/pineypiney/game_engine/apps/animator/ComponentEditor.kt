@@ -22,7 +22,7 @@ class ComponentEditor(
 	component: ComponentI,
 	origin: Vec2,
 	size: Vec2,
-	val callback: (String, InputStream, InputStream) -> Unit
+	val callback: (String, InputStream) -> Unit
 ) : GameObject("Component Editor", 1) {
 
 	var editingComponent: ComponentI = component
@@ -68,11 +68,11 @@ class ComponentEditor(
 	fun <T, F: ComponentField<T>> generateField(id: String, f: F, s: Float, i: Int){
 		val fieldID = id + editingComponent.id + '.' + f.id
 		addChild(createEditor(GameObject("Field Editor $fieldID", 1),
-			f, editingComponent, Vec2i(0f, ((s * i))), Vec2i(1f, s)
-		){ ov, v ->
-			val oldValue = f.codec.encodeBytes(ov)
+			f, Vec2i(0f, ((s * i))), Vec2i(1f, s)
+		) { _, v ->
+//			val oldValue = f.codec.encodeBytes(ov)
 			val newValue = f.codec.encodeBytes(v)
-			callback(f.id, ByteArrayInputStream(oldValue), ByteArrayInputStream(newValue))
+			callback(f.id, ByteArrayInputStream(newValue))
 		}.applied().parent)
 	}
 

@@ -56,9 +56,10 @@ void main(){
 	vec2 texIn = v.uv;
 	#endif
 
-	gl_Position = projection * view * model * vec4(posIn, 1.0);
+	vec4 worldPos = model * vec4(posIn, 1.0);
+	gl_Position = projection * view * worldPos;
 
-	fragPos = vec3(model * vec4(posIn, 1.0));
+	fragPos = vec3(worldPos);
 	texCoords = texIn;
-	normal = normalIn;
+	normal = normalize(mat3(transpose(inverse(model))) * normalIn);
 }

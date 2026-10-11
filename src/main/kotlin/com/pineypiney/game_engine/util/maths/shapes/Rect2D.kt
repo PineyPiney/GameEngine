@@ -27,7 +27,12 @@ data class Rect2D(val origin: Vec2, val length1: Float, val length2: Float, val 
 	val normal1: Vec2 get() = side2.normalize()
 	val normal2: Vec2 get() = side1.normalize()
 
-	val points: Set<Vec2> get() = setOf(origin, origin + side2, origin + side1 + side2, origin + side1)
+	// Points are Counterclockwise
+	val points: Set<Vec2>
+		get() {
+			return if (side1 cross side2 > 0f) setOf(origin, origin + side1, origin + side1 + side2, origin + side2)
+			else setOf(origin, origin + side2, origin + side1 + side2, origin + side1)
+		}
 
 	override val min: Vec2
 	override val max: Vec2

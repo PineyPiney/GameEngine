@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.shaders
 
+import com.google.gson.JsonParser
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.resources.ResourceFactory
@@ -16,7 +17,7 @@ import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.delete
-import com.pineypiney.game_engine.util.extension_functions.splitAndTrimWhitespace
+import com.pineypiney.game_engine.util.serialisation.JsonOps
 import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VulkanManager
 import glm_.bool
@@ -31,41 +32,50 @@ import org.lwjgl.util.shaderc.ShadercIncludeResult
 import org.lwjgl.util.shaderc.ShadercIncludeResultRelease
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VkShaderModuleCreateInfo
+import java.io.InputStream
 import java.nio.ByteBuffer
 
 
 class ShaderLoader private constructor() : Deletable {
 
 	// This map stores the bytebuffer codes of each shader file
-	private val shaderMap: MutableMap<ResourceKey, ShaderModule> = mutableMapOf()
+	private val shaderModuleMap: MutableMap<ResourceKey, ShaderModule> = mutableMapOf()
+	private val renderShaderMap: MutableMap<ResourceKey, RenderShader> = mutableMapOf()
 
-	fun loadShaders(streams: ResourcesLoader.Streams) {
+	fun loadShaderModule(fileName: String, stream: InputStream, loader: ResourcesLoader) {
+		val i = fileName.lastIndexOf(".")
+		if (i <= 0) return
+		val suf = fileName.substring(i + 1)
 
-		streams.useEachStream { fileName, stream ->
-
-			val i = fileName.lastIndexOf(".")
-			if (i <= 0) return@useEachStream
-			val suf = fileName.substring(i + 1)
-
-			val stage = when (suf) {
-				"vs" -> ShaderStage.VERTEX
-				"fs" -> ShaderStage.FRAGMENT
-				"tcs" -> ShaderStage.TESS_CTRL
-				"tes" -> ShaderStage.TESS_EVAL
-				"gs" -> ShaderStage.GEOMETRY
-				"cs" -> ShaderStage.COMPUTE
-				else -> return@useEachStream
-			}
-
-			val code = stream.readBytes().toString(Charsets.UTF_8)
-			streams.engine.resourcesLoader.factory.createShaderModule(streams.engine.resourcesLoader, fileName, suf, stage, code)
+		val stage = when (suf) {
+			"vs" -> ShaderStage.VERTEX
+			"fs" -> ShaderStage.FRAGMENT
+			"tcs" -> ShaderStage.TESS_CTRL
+			"tes" -> ShaderStage.TESS_EVAL
+			"gs" -> ShaderStage.GEOMETRY
+			"cs" -> ShaderStage.COMPUTE
+			else -> return
 		}
+
+		val code = stream.readBytes().toString(Charsets.UTF_8)
+		loader.factory.createShaderModule(loader, fileName, suf, stage, code)
 	}
 
 	fun loadShaderModuleOpenGl(name: String, code: String, stage: ShaderStage): OpenGlShaderModule {
-		val subshader = generateSubShaderOpenGl(name, code, stage)
-		shaderMap[ResourceKey(name)] = subshader
-		return subshader
+
+		var openglCode = addMacro(code, "OPENGL")
+		openglCode = openglCode.replace("gl_VertexIndex", "gl_VertexID")
+		openglCode = openglCode.replace("gl_InstanceIndex", "gl_InstanceID")
+
+
+		val handle = createShaderFromString(openglCode, stage, name)
+
+		val parser = OpenGlShaderParser()
+		parser.parse(code)
+
+		val shaderModule = OpenGlShaderModule(name, stage, handle, parser.uniforms.toMap(), parser.ssbos)
+		shaderModuleMap[ResourceKey(name)] = shaderModule
+		return shaderModule
 	}
 
 	fun loadShaderModuleVulkan(vulkan: VulkanManager, loader: ResourcesLoader, key: ResourceKey, fileName: String, code: String, stage: ShaderStage): ShaderModule {
@@ -86,50 +96,53 @@ class ShaderLoader private constructor() : Deletable {
 			val shaderData = VulkanShaderData(key.key, shaderBuilder.uniforms, shaderBuilder.storages, shaderBuilder.pushConstants)
 
 			val shaderModule = VulkanShaderModule(shaderData, stage, vulkan.device, pointer[0])
-			shaderMap.put(key, shaderModule)?.delete()
+			shaderModuleMap.put(key, shaderModule)?.delete()
 			return shaderModule
 		}
 	}
 
-
-	fun getSubShader(id: ResourceKey) = shaderMap[id]
-
-	fun getRenderShader(
+	fun createRenderShader(
+		id: ResourceKey,
 		vertexKey: ResourceKey,
 		fragmentKey: ResourceKey,
 		optional: Iterable<ResourceKey>,
 		parameters: RenderShaderParameters,
-		deletionQueue: DeletionQueue = DeletionQueue.GLOBAL
+		deletionQueue: DeletionQueue? = DeletionQueue.GLOBAL
 	): RenderShader {
-		val vertex: ShaderModule = shaderMap.getOrElse(vertexKey) {
+		val vertex: ShaderModule = shaderModuleMap.getOrElse(vertexKey) {
 			GameEngineI.warn("Could not find vertex shader ${vertexKey.key}")
 			return RenderShader.missing
 		}
-		val fragment: ShaderModule = shaderMap.getOrElse(fragmentKey) {
+		val fragment: ShaderModule = shaderModuleMap.getOrElse(fragmentKey) {
 			GameEngineI.warn("Could not find fragment shader ${fragmentKey.key}")
 			return RenderShader.missing
 		}
 		val optionalModules = optional.map { key ->
-			shaderMap.getOrElse(key) {
+			shaderModuleMap.getOrElse(key) {
 				GameEngineI.warn("Could not find shader ${key.key}")
 				return RenderShader.missing
 			}
 		}
 
-		return ResourceFactory.INSTANCE.createRenderShader(vertex, fragment, optionalModules, parameters, deletionQueue)
+		val shader = ResourceFactory.INSTANCE.createRenderShader(id, vertex, fragment, optionalModules, parameters)
+		deletionQueue?.push(shader)
+		return shader
 	}
 
-	fun getComputeShader(computeKey: ResourceKey): ComputeShader {
-		val compute: ShaderModule = shaderMap.getOrElse(computeKey) {
+	fun createComputeShader(computeKey: ResourceKey, deletionQueue: DeletionQueue? = DeletionQueue.GLOBAL): ComputeShader {
+		val compute: ShaderModule = shaderModuleMap.getOrElse(computeKey) {
 			GameEngineI.warn("Could not find vertex shader ${computeKey.key}")
 			return ComputeShader.missingShader
 		}
-		return ResourceFactory.INSTANCE.createComputeShader(compute)
+
+		val shader = ResourceFactory.INSTANCE.createComputeShader(compute)
+		deletionQueue?.push(shader)
+		return shader
 	}
 
 	override fun delete() {
-		shaderMap.delete()
-		shaderMap.clear()
+		shaderModuleMap.delete()
+		shaderModuleMap.clear()
 	}
 
 	companion object {
@@ -141,24 +154,32 @@ class ShaderLoader private constructor() : Deletable {
 		val versionRegex = Regex("#version\\s+\\d{3}(\\s+core)?[^\\S\\n]*\\n")
 
 		operator fun get(
+			id: ResourceKey,
 			vertexKey: ResourceKey,
 			fragmentKey: ResourceKey,
 			parameters: RenderShaderParameters = RenderShaderParameters(),
-			deletionQueue: DeletionQueue = DeletionQueue.GLOBAL
+			deletionQueue: DeletionQueue? = DeletionQueue.GLOBAL
 		): RenderShader {
-			return INSTANCE.getRenderShader(vertexKey, fragmentKey, emptyList(), parameters, deletionQueue)
+			return INSTANCE.createRenderShader(id, vertexKey, fragmentKey, emptyList(), parameters, deletionQueue)
 		}
 
-		operator fun get(vertexKey: ResourceKey, fragmentKey: ResourceKey, vararg optional: ResourceKey): RenderShader {
-			return INSTANCE.getRenderShader(vertexKey, fragmentKey, optional.toList(), RenderShaderParameters())
+		operator fun get(id: ResourceKey, vertexKey: ResourceKey, fragmentKey: ResourceKey, vararg optional: ResourceKey): RenderShader {
+			return INSTANCE.createRenderShader(id, vertexKey, fragmentKey, optional.toList(), RenderShaderParameters())
 		}
 
-		operator fun get(vertexKey: ResourceKey, fragmentKey: ResourceKey, optional: List<ResourceKey>, parameters: RenderShaderParameters = RenderShaderParameters()): RenderShader {
-			return INSTANCE.getRenderShader(vertexKey, fragmentKey, optional, parameters)
+		operator fun get(
+			id: ResourceKey,
+			vertexKey: ResourceKey,
+			fragmentKey: ResourceKey,
+			optional: List<ResourceKey>,
+			parameters: RenderShaderParameters = RenderShaderParameters(),
+			deletionQueue: DeletionQueue? = DeletionQueue.GLOBAL
+		): RenderShader {
+			return INSTANCE.createRenderShader(id, vertexKey, fragmentKey, optional, parameters, deletionQueue)
 		}
 
 		operator fun get(computeKey: ResourceKey): ComputeShader {
-			return INSTANCE.getComputeShader(computeKey)
+			return INSTANCE.createComputeShader(computeKey)
 		}
 
 		fun addMacro(code: String, name: String): String {
@@ -170,37 +191,7 @@ class ShaderLoader private constructor() : Deletable {
 			} else code
 		}
 
-		fun parseGLSLStruct(iterator: ShaderLineIterator): Map<String, String> {
-			val struct = mutableMapOf<String, String>()
-			for ((line, _) in iterator) {
-				val endBracketIndex = line.indexOf('}')
-				if (endBracketIndex == 0) return struct
-				else {
-					val parts = line.splitAndTrimWhitespace()
-					val key = if (endBracketIndex != -1) parts[1].substring(0, endBracketIndex) else parts[1].substringBefore(';')
-					struct[key] = parts[0]
-					if (endBracketIndex != -1) return struct
-				}
-			}
-			return struct
-		}
-
 		// OPENGL
-
-		fun generateSubShaderOpenGl(name: String, code: String, stage: ShaderStage): OpenGlShaderModule {
-
-			var openglCode = addMacro(code, "OPENGL")
-			openglCode = openglCode.replace("gl_VertexIndex", "gl_VertexID")
-			openglCode = openglCode.replace("gl_InstanceIndex", "gl_InstanceID")
-
-
-			val handle = createShaderFromString(openglCode, stage, name)
-
-			val (uniforms, ssbos) = compileOpenGlUniforms(code)
-
-			return OpenGlShaderModule(name, stage, handle, uniforms.toMap(), ssbos)
-
-		}
 
 		fun createShaderFromString(code: String, stage: ShaderStage, shaderName: String): Int {
 			if (!GLFunc.isLoaded) {
@@ -219,6 +210,7 @@ class ShaderLoader private constructor() : Deletable {
 		}
 
 		fun generateGraphicsShaderOpenGl(
+			id: ResourceKey,
 			vertexShader: OpenGlShaderModule,
 			fragmentShader: OpenGlShaderModule,
 			optionalShaders: List<OpenGlShaderModule>,
@@ -226,13 +218,13 @@ class ShaderLoader private constructor() : Deletable {
 		): OpenGlRenderShader {
 			if (!GLFunc.isLoaded) {
 				GameEngineI.warn("Could not generate shader because OpenGL has not been loaded")
-				return OpenGlRenderShader(0, vertexShader, fragmentShader, emptyList(), emptyMap(), emptyMap(), parameters)
+				return OpenGlRenderShader(0, id, vertexShader, fragmentShader, emptyList(), emptyMap(), emptyMap(), parameters)
 			}
-			val ID = glCreateProgram()
+			val program = glCreateProgram()
 
 			// Shader Program
-			glAttachShader(ID, vertexShader.handle)
-			glAttachShader(ID, fragmentShader.handle)
+			glAttachShader(program, vertexShader.handle)
+			glAttachShader(program, fragmentShader.handle)
 			val name = StringBuilder("${vertexShader.getName()} x ${fragmentShader.getName()}")
 
 			val uniforms = vertexShader.uniforms.toMutableMap()
@@ -240,32 +232,26 @@ class ShaderLoader private constructor() : Deletable {
 			uniforms.putAll(fragmentShader.uniforms)
 			ssbos.putAll(fragmentShader.ssbos)
 			for (subshader in optionalShaders) {
-				glAttachShader(ID, subshader.handle)
+				glAttachShader(program, subshader.handle)
 				uniforms.putAll(subshader.uniforms)
 				ssbos.putAll(subshader.ssbos)
 				name.append(" x ${subshader.getName()}")
 			}
-			glLinkProgram(ID)
+			glLinkProgram(program)
 
 			// print linking errors if any
-			checkCompileErrorsOpenGl(ID, null, name.toString())
+			checkCompileErrorsOpenGl(program, null, name.toString())
 
 
-			return OpenGlRenderShader(ID, vertexShader, fragmentShader, optionalShaders, uniforms, ssbos, parameters)
+			return OpenGlRenderShader(program, id, vertexShader, fragmentShader, optionalShaders, uniforms, ssbos, parameters)
 		}
 
 		fun generateComputeShaderOpenGl(shader: OpenGlShaderModule): OpenGlComputeShader {
-			val ID = glCreateProgram()
-			glAttachShader(ID, shader.handle)
-			glLinkProgram(ID)
-			checkCompileErrorsOpenGl(ID, null, shader.getName())
-			return OpenGlComputeShader(ID, shader, shader.uniforms, shader.ssbos)
-		}
-
-		fun compileOpenGlUniforms(code: String): Pair<Map<String, String>, Map<String, Int>> {
-			val parser = OpenGlShaderParser()
-			parser.parse(code)
-			return parser.uniforms to parser.ssbos
+			val program = glCreateProgram()
+			glAttachShader(program, shader.handle)
+			glLinkProgram(program)
+			checkCompileErrorsOpenGl(program, null, shader.getName())
+			return OpenGlComputeShader(program, shader, shader.uniforms, shader.ssbos)
 		}
 
 		fun checkCompileErrorsOpenGl(shader: Int, stage: ShaderStage?, shaderName: String) {
@@ -334,6 +320,27 @@ class ShaderLoader private constructor() : Deletable {
 			return returnBytes
 		}
 
+		fun save(key: ResourceKey, shader: RenderShader) {
+			INSTANCE.renderShaderMap[key] = shader
+		}
+
+		fun loadRenderShader(key: ResourceKey): RenderShader {
+			INSTANCE.renderShaderMap[key]?.let { return it }
+			val stream = ResourcesLoader.INSTANCE.getStream(ResourcesLoader.INSTANCE.shaderLocation + key.key + ".shader")
+			if (stream == null) {
+				GameEngineI.warn("Could not find shader ${key.key}")
+				return RenderShader.missing
+			}
+			val json = JsonParser.parseReader(stream.reader(Charsets.ISO_8859_1))
+			try {
+				val shader = RenderShader.codec(key).decode(JsonOps, json)
+				DeletionQueue.GLOBAL.push(shader)
+				return shader.save()
+			} catch (e: Exception) {
+				GameEngineI.logger.error("Could not load shader $key", e)
+				return RenderShader.missing
+			}
+		}
 	}
 
 	// For resolving #include macros
@@ -356,5 +363,3 @@ class ShaderLoader private constructor() : Deletable {
 		}
 	}
 }
-
-typealias ShaderLineIterator = Iterator<GLSLCodeSegment>

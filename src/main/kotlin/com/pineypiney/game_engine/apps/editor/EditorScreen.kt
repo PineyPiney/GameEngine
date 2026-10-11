@@ -7,7 +7,6 @@ import com.pineypiney.game_engine.apps.editor.component_browser.ComponentBrowser
 import com.pineypiney.game_engine.apps.editor.file_browser.FileBrowser
 import com.pineypiney.game_engine.apps.editor.file_browser.files.SavableFiles
 import com.pineypiney.game_engine.apps.editor.object_browser.ObjectBrowser
-import com.pineypiney.game_engine.apps.editor.renderer.VulkanEditorRenderer
 import com.pineypiney.game_engine.apps.editor.util.*
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenu
 import com.pineypiney.game_engine.apps.editor.util.context_menus.ContextMenuComponent
@@ -23,6 +22,9 @@ import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.fields.Vec3Field
 import com.pineypiney.game_engine.objects.components.rendering.TextRendererComponent
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
+import com.pineypiney.game_engine.rendering.PresentingApi
+import com.pineypiney.game_engine.rendering.WindowRendererI
+import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.Cursor
@@ -36,7 +38,6 @@ import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.serialisation.JsonOps
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
-import com.pineypiney.game_engine.window.VulkanWindowedEngine
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import glm_.pow
@@ -50,19 +51,44 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
-class EditorScreen(override val gameEngine: VulkanWindowedEngine<EditorScreen>, depth: Boolean = true, sort: GameObject.() -> Float = { transformComponent.worldPosition.z }) : WindowGameLogic() {
+class EditorScreen(
+	override val gameEngine: EditorEngine,
+	api: (WindowRendererI<EditorScreen>) -> PresentingApi,
+	depth: Boolean = true,
+	sort: GameObject.() -> Float = { transformComponent.worldPosition.z }
+) : WindowGameLogic() {
 
 	val settings = EditorSettings()
 
-	override val renderer = VulkanEditorRenderer(window, settings, sort, depth)
+	override val id: String = "Editor"
+	override val renderer = EditorRenderer(window, settings, sort, depth, api)
 
 	private val fileBrowser = FileBrowser(GameObject("File Browser", 1), this).applied()
+	var openFile = File("src/main/resources/temp")
+	val editManager = EditManager()
+
+	// What the mouse is dragging, can be anything from any of the browsers e.g. Texture, GameObject
+	var dragging: DraggedElement? = null
+	var draggedField: DraggableAcceptor? = null
+
+	private val fpsText = FPSCounter.createCounterWithText(
+		GameObject("FPS Text", 1).apply { pixel(Vec2i(293, -25), Vec2i(180, 20), Vec2(-1f, 1f)) }, 5.0, "FPS: $",
+		Text.Params().withFontSize(16).withAlignment(Text.ALIGN_TOP_LEFT)
+	)
+
+	val cursor = Cursor.create(gameEngine, "textures/cursor.png", Vec2i(39, 1)) ?: Cursor(GLFW.GLFW_ARROW_CURSOR)
+
+
+	// Object Editor
+	val objectEditor = GameObject("Object Editor", 1)
 	val objectBrowser = ObjectBrowser(GameObject("Object Browser", 1), this).applied()
 	val componentBrowser = ComponentBrowser(GameObject("Component Browser", 1), this).applied()
 
-	var openFile = File("src/main/resources/MainScene.scn")
+	val playButton: GameObject
+	val pauseButton: GameObject
+	val stopButton: GameObject
+
 	val sceneObjects = ObjectCollection()
-	val editManager = EditManager()
 
 	var editingObject: GameObject? = null
 		set(value) {
@@ -78,39 +104,33 @@ class EditorScreen(override val gameEngine: VulkanWindowedEngine<EditorScreen>, 
 		}
 	var transformer: GameObject? = null
 
-	// What the mouse is dragging, can be anything from any of the browsers e.g. Texture, GameObject
-	var dragging: DraggedElement? = null
-	var draggedField: DraggableAcceptor? = null
-
-	private val fpsText = FPSCounter.createCounterWithText(GameObject("FPS Text", 1).apply { pixel(Vec2i(293, -25), Vec2i(180, 20), Vec2(-1f, 1f)) }, 5.0, "FPS: $",
-		Text.Params().withFontSize(16).withAlignment(Text.ALIGN_TOP_LEFT))
-
-	private val properties = mutableMapOf<String, String>()
-
-	val cursor = Cursor.create(gameEngine, "textures/cursor.png", Vec2i(39, 1)) ?: Cursor(GLFW.GLFW_ARROW_CURSOR)
-
 	var playStatus = 0
-	val playButton: GameObject
-	val pauseButton: GameObject
-	val stopButton: GameObject
+
+	// Shader Editor
+	val shaderEditor = ShaderEditor(GameObject("Shader Editor", 1), this).applied()
 
 	init {
 		val iconTexture = TextureLoader[ResourceKey("editor/icons")]
-		playButton = ButtonComponent.createSpriteButton("Play Button", Sprite(iconTexture, 40f, Vec2(-1f, 1f), Vec2(.25f, 0f), Vec2(.25f, 1f)), Vec2i(-78, -20), Vec2i(20), Vec2(0f, 1f)) { _, _ ->
+		playButton =
+			ButtonComponent.createSpriteButton("Play Button", Sprite(iconTexture, 40f, Vec2(-1f, 1f), Vec2(.25f, 0f), Vec2(.25f, 1f)), Vec2i(-78, -20), Vec2i(20), Vec2(0f, 1f), true) { _, _ ->
 			playStatus = PLAYING
 		}
-		pauseButton = ButtonComponent.createSpriteButton("Pause Button", Sprite(iconTexture, 40f, Vec2(-1f, 1f), Vec2(.5f, 0f), Vec2(.25f, 1f)), Vec2i(-58, -20), Vec2i(20), Vec2(0f, 1f)) { _, _ ->
+		pauseButton =
+			ButtonComponent.createSpriteButton("Pause Button", Sprite(iconTexture, 40f, Vec2(-1f, 1f), Vec2(.5f, 0f), Vec2(.25f, 1f)), Vec2i(-58, -20), Vec2i(20), Vec2(0f, 1f), true) { _, _ ->
 			playStatus = PAUSED
 		}
-		stopButton = ButtonComponent.createSpriteButton("Stop Button", Sprite(iconTexture, 40f, Vec2(-1f, 1f), Vec2(.75f, 0f), Vec2(.25f, 1f)), Vec2i(-38, -20), Vec2i(20), Vec2(0f, 1f)) { _, _ ->
+		stopButton =
+			ButtonComponent.createSpriteButton("Stop Button", Sprite(iconTexture, 40f, Vec2(-1f, 1f), Vec2(.75f, 0f), Vec2(.25f, 1f)), Vec2i(-38, -20), Vec2i(20), Vec2(0f, 1f), true) { _, _ ->
 			playStatus = STOPPED
 			openFile(openFile)
 		}
 	}
 
 	override fun addObjects() {
-		add(fileBrowser.parent, objectBrowser.parent, componentBrowser.parent, Transformers.createSelector(this))
-		add(playButton, pauseButton, stopButton)
+		objectEditor.addChild(objectBrowser.parent, componentBrowser.parent, Transformers.createSelector(this), playButton, pauseButton, stopButton)
+		objectEditor.active = false
+		shaderEditor.parent.active = false
+		add(fileBrowser.parent, objectEditor, shaderEditor.parent)
 		add(fpsText)
 	}
 
@@ -384,13 +404,13 @@ class EditorScreen(override val gameEngine: VulkanWindowedEngine<EditorScreen>, 
 
 	fun openFile(file: File) {
 		val saveType = SavableFiles.list.firstOrNull { it.ext == file.extension } ?: return
+		editManager.delete()
 		sceneObjects.delete()
 		saveType.load(file, this)
 		loadedFile(file)
 	}
 
 	fun loadedFile(file: File){
-		editManager.delete()
 		editingObject = null
 		sceneObjects.map.flatMap { it.value }.init()
 		objectBrowser.reset()
@@ -436,8 +456,6 @@ class EditorScreen(override val gameEngine: VulkanWindowedEngine<EditorScreen>, 
 		this.editingObject = o
 		add(o)
 		o.init()
-
-		properties.clear()
 	}
 
 	fun getSceneBox(): Viewport {
@@ -482,20 +500,42 @@ class EditorScreen(override val gameEngine: VulkanWindowedEngine<EditorScreen>, 
 					file.writeText(GameObjectSerializer.serialise(it, JsonOps).toString(), Charsets.ISO_8859_1)
 				}
 			}){ file, screen ->
+				screen.shaderEditor.parent.active = false
+				screen.objectEditor.active = true
 //				screen.renderer.backgroundColour = Colour(0xFF4f4f4fu)
 				screen.sceneObjects.addObject(GameObjectSerializer.parse(file))
 			}
 
 			SavableFiles.add("Scene", "scn", ByteArray(4), { file, screen ->
-				file.outputStream().use { defaultSceneSave(it, screen) }
+				file.outputStream().use { defaultSceneSave(it, screen.sceneObjects) }
 			}){ file, screen ->
 //				screen.renderer.backgroundColour = Colour(0xFF4f4f4fu)
-				file.inputStream().use { defaultSceneParse(it, screen) }
+				screen.shaderEditor.parent.active = false
+				screen.objectEditor.active = true
+				file.inputStream().use { defaultSceneParse(it, screen.sceneObjects) }
+			}
+
+			SavableFiles.add(
+				"Render Pipeline",
+				"shader",
+				RenderShader.codec(ResourceKey("missing")).encode(JsonOps, RenderShader.missing).toString().toByteArray(Charsets.ISO_8859_1),
+				{ file, screen ->
+					val json = RenderShader.codec(ResourceKey(screen.shaderEditor.screen.id)).encode(JsonOps, screen.shaderEditor.shader)
+					file.writeText(json.toString(), Charsets.ISO_8859_1)
+				}) { file, screen ->
+				screen.shaderEditor.parent.active = true
+				screen.objectEditor.active = false
+				file.reader(Charsets.ISO_8859_1).use { reader ->
+					val id = file.path.removeSuffix(".shader")
+					val shader = RenderShader.codec(ResourceKey(id)).decode(JsonOps, JsonParser.parseReader(reader))
+					screen.shaderEditor.setRenderShader(shader)
+					screen.shaderEditor.updateFields()
+				}
 			}
 		}
 
-		fun defaultSceneSave(stream: OutputStream, scene: EditorScreen){
-			val objects = scene.sceneObjects.map.flatMap { it.value }
+		fun defaultSceneSave(stream: OutputStream, objects: ObjectCollection) {
+			val objects = objects.map.flatMap { it.value }
 			val array = JsonArray()
 			for(o in objects){
 				val s = GameObjectSerializer.serialise(o, JsonOps)
@@ -506,12 +546,12 @@ class EditorScreen(override val gameEngine: VulkanWindowedEngine<EditorScreen>, 
 			writer.close()
 		}
 
-		fun defaultSceneParse(stream: InputStream, scene: EditorScreen){
+		fun defaultSceneParse(stream: InputStream, objects: ObjectCollection) {
 			val json = JsonParser.parseReader(stream.reader(Charsets.ISO_8859_1))
-			val list = mutableListOf<Triple<Any, ComponentField<*>, JsonElement>>()
+			val list = mutableListOf<Triple<Any?, ComponentField<*>, JsonElement>>()
 			JsonOps.forEach(json) { objData ->
 				val o = GameObjectSerializer.parse(JsonOps, objData, null, list)
-				scene.sceneObjects.addObject(o)
+				objects.addObject(o)
 			}
 			for ((_, field, data) in list) field.set(JsonOps, data)
 		}

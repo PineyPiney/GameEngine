@@ -4,6 +4,7 @@ import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.vulkan.VulkanRendering
 import com.pineypiney.game_engine.resources.shaders.ComputeShader
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderModule
+import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.vulkan.VkStructs
 import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VkUtil.processResult
@@ -48,7 +49,7 @@ class VulkanComputePipeline(layout: VulkanPipelineLayout, override val compute: 
 			return this
 		}
 
-		override fun build(device: VulkanDevice): VulkanComputePipeline {
+		override fun build(device: VulkanDevice, id: ResourceKey): VulkanComputePipeline {
 
 			if (stage == null) throw Error("No Compute Shader was set for this compute pipeline")
 			else if (layout == null) throw Error("No layout was set for this pipeline")
