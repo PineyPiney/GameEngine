@@ -131,12 +131,10 @@ interface RenderShader : Shader {
 				//push constants block
 				layout(push_constant) uniform constants
 				{
-					mat4 model;
 					VertexBuffer vertexBuffer;
 				};
-				#endif
 				
-				layout (location = 0) out vec3 outColor;
+				#endif
 		 
 				void main(){
 					#ifdef VULKAN

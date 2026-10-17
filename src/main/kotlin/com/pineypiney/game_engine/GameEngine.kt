@@ -33,7 +33,7 @@ abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: Re
 
 	override fun loadResources() {
 		// Load the resources for the game
-		resourcesLoader.loadResources(this)
+		resourcesLoader.loadResources()
 	}
 
 	override fun gameLoop() {

@@ -1,0 +1,49 @@
+package com.pineypiney.game_engine.xr
+
+import com.pineypiney.game_engine.util.maths.I
+import glm_.mat4x4.Mat4
+import glm_.quat.Quat
+import glm_.vec3.Vec3
+import org.lwjgl.openxr.XrPosef
+import org.lwjgl.openxr.XrQuaternionf
+import org.lwjgl.openxr.XrRect2Di
+import org.lwjgl.openxr.XrVector3f
+
+fun XrQuaternionf.set(value: Quat) {
+	set(value.x, value.y, value.z, value.w)
+}
+
+fun XrQuaternionf.glm() = Quat(w(), x(), y(), z())
+
+fun Quat.put(value: XrQuaternionf) {
+	value.set(x, y, z, w)
+}
+
+fun XrVector3f.set(value: Vec3) {
+	set(value.x, value.y, value.z)
+}
+
+fun XrVector3f.glm() = Vec3(x(), y(), z())
+
+fun Vec3.put(value: XrVector3f) {
+	value.set(x, y, z)
+}
+
+fun XrPosef.set(rotation: Quat, position: Vec3){
+	orientation(rotation::put)
+	`position$`(position::put)
+}
+
+fun XrPosef.reset(){
+	orientation(Quat()::put)
+	`position$`(Vec3()::put)
+}
+
+fun XrPosef.mat4(): Mat4 {
+	return I.translate(`position$`().glm()) * orientation().glm().toMat4()
+}
+
+fun XrRect2Di.set(x: Int, y: Int, width: Int, height: Int) {
+	offset().set(x, y)
+	extent().set(width, height)
+}

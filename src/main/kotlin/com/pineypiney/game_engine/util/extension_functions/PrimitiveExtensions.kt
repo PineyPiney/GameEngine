@@ -29,6 +29,9 @@ infix fun UShort.shr(other: Int): UShort{
 	return (toShort() shr other).toUShort()
 }
 
+infix fun Int.hasAll(mask: Int) = and(mask) == mask
+infix fun Long.hasAll(mask: Long) = and(mask) == mask
+
 operator fun UInt.times(other: Float): Float{
 	return toLong() * other
 }

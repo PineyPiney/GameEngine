@@ -347,6 +347,13 @@ fun Mat4.rotationComponent(scale: Vec3 = getScale()): Mat4 {
 	)
 }
 
+fun Mat4.rigidInverse(res: Mat4 = Mat4()): Mat4 {
+	val rotation = this.toMat3().transposeAssign()
+	val translation = getTranslation()
+	(rotation to res).setTranslation(-(rotation * translation), res)
+	return res
+}
+
 
 fun <T: Number> Vec1Vars<T>.toString(separator: String = ", ", serialise: T.() -> String): String {
 	var s = this[0].serialise()

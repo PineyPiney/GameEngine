@@ -8,7 +8,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.openal.AL10
 import java.io.File
 
-class TestWindow(width: Int = 960, height: Int = 540, version: Vec2i) : OpenGlWindow(
+class TestWindow(width: Int = 960, height: Int = 540, version: Vec2i = Vec2i(3)) : OpenGlWindow(
 	"Example Window", width, height, defaultGLHints + mapOf(
 	GLFW.GLFW_CONTEXT_VERSION_MAJOR to version.x,
 	GLFW.GLFW_CONTEXT_VERSION_MINOR to version.y,

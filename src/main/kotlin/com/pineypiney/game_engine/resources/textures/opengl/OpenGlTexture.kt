@@ -18,7 +18,7 @@ abstract class OpenGlTexture(override val id: String, val texturePointer: Int, v
 	override val width: Int get() = parameter(GL11C.GL_TEXTURE_WIDTH)
 	override val height: Int get() = parameter(GL11C.GL_TEXTURE_HEIGHT)
 	override val depth: Int get() = parameter(GL12C.GL_TEXTURE_DEPTH)
-	val internalFormat: Int get() = parameter(GL11C.GL_TEXTURE_INTERNAL_FORMAT)
+	open val internalFormat: Int get() = parameter(GL11C.GL_TEXTURE_INTERNAL_FORMAT)
 	override val format: TextureFormat get() = TextureFormat.fromGlConst(internalFormat) ?: TextureFormat.RGBA8
 
 	fun bind(binding: Int = this.binding) {

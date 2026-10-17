@@ -17,7 +17,7 @@ import org.lwjgl.opengl.GL45C.glGetTextureSubImage
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 
-class OpenGlTexture2D(
+open class OpenGlTexture2D(
 	id: String,
 	texturePointer: Int,
 	target: Int = GL_TEXTURE_2D,

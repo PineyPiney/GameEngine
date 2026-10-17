@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine_test
 
+// i love you
 import com.pineypiney.game_engine.*
 import com.pineypiney.game_engine.apps.animator.ObjectAnimator
 import com.pineypiney.game_engine.apps.editor.EditorEngine
@@ -10,10 +11,12 @@ import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.resources.DirectorySource
 import com.pineypiney.game_engine.resources.GithubSource
+import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.fonts.TrueTypeLoader
 import com.pineypiney.game_engine.util.BitMap3D
 import com.pineypiney.game_engine.util.Colour
+import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.extension_functions.normal
@@ -30,6 +33,7 @@ import com.pineypiney.game_engine.window.OpenGlWindow
 import com.pineypiney.game_engine.window.VulkanWindow
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.xr.OpenXrManager
 import com.pineypiney.game_engine_test.scenes.*
 import com.pineypiney.game_engine_test.testVR.TestVREngine
 import com.pineypiney.game_engine_test.testVR.TestVRGame
@@ -72,6 +76,43 @@ class EngineTest{
 	@Test
 	fun testVR(){
 		runWindowEngine(::TestVREngine, ::TestVRGame)
+	}
+
+	@Test
+	fun testXR(){
+
+		LibrarySetUp.initGLFW()
+		val window = TestWindow()
+		window.init()
+
+		val resources = ResourcesLoader(OpenGlResourceFactory(), listOf(DirectorySource("src/test/resources"), DirectorySource("src/main/resources")))
+		resources.loadInitialResources()
+		resources.loadResources()
+
+		val manager = OpenXrManager(window)
+		val pressed = BooleanArray(3)
+		run@while(!window.shouldClose) {
+			if(!manager.session.pollEvents()) break@run
+			if(manager.session.running) manager.renderFrame()
+			window.update()
+			if(window.getKey(' '.code) == 1) break
+			for(b in 0..2){
+				val key = window.getKey(b + 'J'.code) == 1
+				if(pressed[b] != key){
+					pressed[b] = key
+					if(key){
+						when(b){
+							0 -> OpenXrManager.INVERT_VIEW = !OpenXrManager.INVERT_VIEW
+							1 -> OpenXrManager.NEG_PROJ = !OpenXrManager.NEG_PROJ
+							2 -> OpenXrManager.TRANS_PROJ = !OpenXrManager.TRANS_PROJ
+						}
+					}
+				}
+			}
+		}
+		manager.delete()
+		resources.cleanUp()
+		DeletionQueue.GLOBAL.flush()
 	}
 
 	@Test
@@ -146,7 +187,7 @@ class EngineTest{
 			LibrarySetUp.initGLFW()
 			val window = VulkanWindow("Vulkan Window", 960, 540)
 			window.init()
-			TestEngine(window, VulkanManager(), screen, ups, fps).run()
+			TestEngine(window, VulkanManager("Engine Test", true), screen, ups, fps).run()
 		}
 	}
 
@@ -160,7 +201,7 @@ class EngineTest{
 	fun testVulkanEditor() {
 		LibrarySetUp.initGLFW()
 		val window = VulkanWindow("Editor").apply { init() }
-		EditorEngine(window, VulkanManager(), listOf(DirectorySource("src/test/resources"), DirectorySource())).run()
+		EditorEngine(window, VulkanManager("Test Engine Editor", true), listOf(DirectorySource("src/test/resources"), DirectorySource())).run()
 	}
 
 	@Test

@@ -8,13 +8,34 @@ import com.pineypiney.game_engine.rendering.vulkan.VulkanPresentRendering
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.VulkanResourceFactory
 import com.pineypiney.game_engine.resources.textures.TextureFormat
+import kool.iterator
+import org.lwjgl.glfw.GLFWVulkan
+import org.lwjgl.system.MemoryStack
+import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.EXTDebugUtils
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VkDebugUtilsMessengerCallbackDataEXT
+import org.lwjgl.vulkan.VkInstance
 
-class VulkanManager : ApiManager {
+class VulkanManager(appName: String, glfw: Boolean) : ApiManager {
 
-	val instance = VkUtil.createInstance(true)
+	val instance: VkInstance
+
+	init {
+	    val extensions = mutableListOf<Long>()
+		MemoryStack.stackPush().use { stack ->
+			extensions.add(MemoryUtil.memAddress0(stack.UTF8(EXTDebugUtils.VK_EXT_DEBUG_UTILS_EXTENSION_NAME)))
+			if(glfw) {
+				val glfwExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions() ?: throw RuntimeException("Missing required GLFW extensions")
+				for(extension in glfwExtensions) extensions.add(extension)
+			}
+
+			val extensionsPtr = stack.mallocPointer(extensions.size)
+			for(i in extensions.indices) extensionsPtr.put(extensions[i])
+			instance = VkUtil.createInstance(appName, extensionsPtr.flip())
+		}
+
+	}
 
 	// https://www.lunarg.com/wp-content/uploads/2018/05/Vulkan-Debug-Utils_05_18_v1.pdf
 	val errorHandle = VkUtil.setupDebugger(instance, EXTDebugUtils.VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT or EXTDebugUtils.VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT, ::errorCallback)

@@ -157,9 +157,11 @@ object VkUtil {
 		return buffer
 	}
 
+
+
 	fun allocateLayerBuffer(layers: Array<String>, stack: MemoryStack): PointerBuffer {
 		val availableLayers = getAvailableLayers(stack)
-		val usedLayers = layers.filter { availableLayers.contains(it) }
+		val usedLayers = layers.filter(availableLayers::contains)
 		val enabledLayerNames = stack.mallocPointer(usedLayers.size)
 		for (layer in usedLayers) {
 			enabledLayerNames.put(stack.UTF8(layer, true))
@@ -181,35 +183,26 @@ object VkUtil {
 		return set
 	}
 
-	fun createInstance(debug: Boolean): VkInstance {
-		val extensions = arrayOf(
-			EXTDebugUtils.VK_EXT_DEBUG_UTILS_EXTENSION_NAME
-		)
+	fun createInstance(appName: String, extensions: PointerBuffer): VkInstance {
 
 		val layers = arrayOf(
 			"VK_LAYER_KHRONOS_validation",
 		)
 
-		val requiredExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions() ?: throw Error("Missing required extensions")
-
 		MemoryStack.stackPush().use { stack ->
-			val enabledExtensionNames = stack.mallocPointer(requiredExtensions.remaining() + extensions.size)
-			enabledExtensionNames.put(requiredExtensions)
-			val pExtensions = extensions.map { stack.UTF8(it) }
-			for (extension in pExtensions) enabledExtensionNames.put(extension)
-			enabledExtensionNames.flip()
-
-			val enabledLayerNames: PointerBuffer? = if (debug) allocateLayerBuffer(layers, stack) else null
 
 			val appInfo = VkApplicationInfo.calloc(stack)
 				.`sType$Default`()
+				.pApplicationName(stack.UTF8(appName))
 				.apiVersion(VK14.VK_API_VERSION_1_3)
+
+			val enabledLayerNames: PointerBuffer = allocateLayerBuffer(layers, stack)
 
 			val createInfo = VkInstanceCreateInfo.calloc(stack)
 				.`sType$Default`()
 				.pApplicationInfo(appInfo)
-				.ppEnabledExtensionNames(enabledExtensionNames)
 				.ppEnabledLayerNames(enabledLayerNames)
+				.ppEnabledExtensionNames(extensions)
 
 			val pointer = stack.mallocPointer(1)
 			processResult(VK10.vkCreateInstance(createInfo, null, pointer), "Failed to create Vulkan Instance")

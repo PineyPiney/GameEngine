@@ -52,7 +52,7 @@ class ResourcesLoader(val factory: ResourceFactory, val sources: List<Source>) {
 		ModelMesh.initDefault(factory)
 	}
 
-	fun loadResources(engine: GameEngineI<*>) {
+	fun loadResources() {
 
 
 		GameEngineI.info(
@@ -65,18 +65,18 @@ class ResourcesLoader(val factory: ResourceFactory, val sources: List<Source>) {
 			} ms", this
 		)
 
-		GameEngineI.info("Loaded Textures in ${timeActionM { loadTextures(engine) }.round(2)} ms")
+		GameEngineI.info("Loaded Textures in ${timeActionM { loadTextures() }.round(2)} ms")
 		GameEngineI.info("Loaded Audio in ${timeActionM { AudioLoader.INSTANCE.loadAudio(Streams(this, audioLocation)) }.round(2)} ms")
-		GameEngineI.info("Loaded Models in ${timeActionM { loadModels(engine) }.round(2)} ms")
+		GameEngineI.info("Loaded Models in ${timeActionM { loadModels() }.round(2)} ms")
 		GameEngineI.info("Loaded Fonts in ${timeActionM { FontLoader.INSTANCE.loadFonts(Streams(this, fontLocation)) }.round(2)} ms")
 	}
 
-	fun loadTextures(engine: GameEngineI<*>) {
+	fun loadTextures() {
 		TextureLoader.INSTANCE.loadParameters(Streams(this, textureLocation, setOf("params")))
 		TextureLoader.INSTANCE.loadTextures(Streams(this, textureLocation, TextureLoader.fileTypes))
 	}
 
-	fun loadModels(engine: GameEngineI<*>) {
+	fun loadModels() {
 		ModelLoader.INSTANCE.loadModelTextures(Streams(this, modelLocation, TextureLoader.fileTypes))
 		ModelLoader.INSTANCE.loadModels(Streams(this, modelLocation))
 	}
@@ -93,12 +93,6 @@ class ResourcesLoader(val factory: ResourceFactory, val sources: List<Source>) {
 	companion object {
 
 		lateinit var INSTANCE: ResourcesLoader; private set
-
-		fun lowercaseExtension(file: String): String {
-			val i = file.lastIndexOf('.')
-			return if (i == -1) file
-			else file.substring(0..i) + file.substring(i + 1).lowercase()
-		}
 
 		fun timeAction(action: () -> Unit): Long {
 			val start = System.nanoTime()
