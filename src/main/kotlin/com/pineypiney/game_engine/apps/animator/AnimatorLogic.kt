@@ -33,7 +33,7 @@ class AnimatorLogic(
 ) : WindowGameLogic() {
 
 	override val id: String = "Animator Logic"
-	override val renderer = object : GameRenderer<AnimatorLogic>(window, { gameEngine.manager.createPresentingApi(it, id) }) {
+	override val renderer = object : GameRenderer<AnimatorLogic>(window, { gameEngine.manager.createPresentingApi(window, id) }) {
 
 		override val camera: CameraI = OrthographicCamera(window)
 

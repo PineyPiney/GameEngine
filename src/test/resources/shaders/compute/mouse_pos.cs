@@ -2,17 +2,21 @@
 
 layout (local_size_x = 16, local_size_y = 16) in;
 
+#ifdef OPENGL
+// MANUAL
+layout(rgba16f, binding = 0) uniform image2D image;
+
+layout (location = 0) uniform ivec2 mousePos;
+#endif
+
+#ifdef VULKAN
 // MANUAL
 layout(rgba16f, set = 0, binding = 0) uniform image2D image;
 
-#ifdef VULKAN
 layout(push_constant) uniform constants
 {
 	ivec2 mousePos;
 };
-#endif
-#ifdef OPENGL
-layout (location = 0) uniform ivec2 mousePos;
 #endif
 
 void main() {

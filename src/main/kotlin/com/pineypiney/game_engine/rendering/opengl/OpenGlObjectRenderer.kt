@@ -11,19 +11,19 @@ import com.pineypiney.game_engine.util.maths.I
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
-import glm_.vec4.Vec4
+import org.lwjgl.opengl.GL11C
 
 class OpenGlObjectRenderer(override val viewPos: Vec3, viewportSize: Vec2i = Vec2i(64), override val projection: Mat4 = I) : ObjectRenderer {
 
-	private val framebuffer = OpenGlFramebuffer(viewportSize.x, viewportSize.y, TextureFormat.RGBA8)
+	private val framebuffer = OpenGlCDSFramebuffer(viewportSize, TextureFormat.RGBA8)
 
-	override val viewportSize: Vec2i get() = Vec2i(framebuffer.width, framebuffer.height)
+	override val viewportSize: Vec2i get() = framebuffer.size
 	override val view: Mat4 = I.translate(viewPos)
 	override val guiProjection: Mat4 = projection
 	override val aspectRatio: Float = viewportSize.x.toFloat() / viewportSize.y
 
 	override fun init() {
-		framebuffer.generate()
+		framebuffer.init()
 	}
 
 	override fun setSize(size: Vec2i) {
@@ -33,7 +33,7 @@ class OpenGlObjectRenderer(override val viewPos: Vec3, viewportSize: Vec2i = Vec
 	override fun render(obj: GameObject) {
 		framebuffer.bind()
 		GLFunc.viewportO = viewportSize
-		clear()
+		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT or GL11C.GL_DEPTH_BUFFER_BIT or GL11C.GL_STENCIL_BUFFER_BIT)
 
 		val des = obj.allActiveDescendants().flatMap { obj -> obj.components.filterIsInstance<RenderedComponentI>().filter { it.visible } }.sortedBy { it.parent.transformComponent.worldPosition.z }
 		for (i in des) {
@@ -46,10 +46,6 @@ class OpenGlObjectRenderer(override val viewPos: Vec3, viewportSize: Vec2i = Vec
 	}
 
 	override fun getRenderingApi(): RenderingApi = OpenGlRendering
-
-	override fun setClearColour(colour: Vec4) {
-		GLFunc.clearColour = colour
-	}
 
 	override fun delete() {
 		framebuffer.delete()

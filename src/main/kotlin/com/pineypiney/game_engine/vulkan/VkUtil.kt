@@ -4,11 +4,16 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorLayout
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipelineLayout
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPushConstantManager
+import com.pineypiney.game_engine.resources.textures.Texture2D
+import com.pineypiney.game_engine.resources.textures.Texture3D
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage2D
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage3D
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanSwapchainImage
+import com.pineypiney.game_engine.util.LwjglUtil.enumerate
+import com.pineypiney.game_engine.util.LwjglUtil.enumerateStructs
+import com.pineypiney.game_engine.util.extension_functions.stringsToPointer
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
@@ -16,14 +21,13 @@ import kool.map
 import kool.mapIndexed
 import org.lwjgl.PointerBuffer
 import org.lwjgl.glfw.GLFWVulkan
-import org.lwjgl.system.CustomBuffer
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.Struct
 import org.lwjgl.util.vma.Vma
 import org.lwjgl.util.vma.VmaAllocationCreateInfo
 import org.lwjgl.vulkan.*
-import java.nio.IntBuffer
+import java.nio.ByteBuffer
 import java.nio.LongBuffer
 
 object VkUtil {
@@ -93,116 +97,38 @@ object VkUtil {
 	}
 
 	@Throws(AssertionError::class)
-	fun <E, B : CustomBuffer<B>> getBuffer(name: String, instance: E, func: (E, IntBuffer, B?) -> Int, creator: (Int) -> B): B {
-		MemoryStack.stackPush().use { stack ->
-			return getStackBuffer(name, stack, instance, func, creator)
-		}
+	fun getAvailableLayers(stack: MemoryStack): List<String> {
+		return enumerateStructs(stack, "Vulkan API Layers", VkLayerProperties::calloc, VK10::vkEnumerateInstanceLayerProperties)?.map { it.layerNameString() } ?: emptyList()
 	}
 
-	@Throws(AssertionError::class)
-	fun <E, B : CustomBuffer<B>> getStackBuffer(name: String, stack: MemoryStack, instance: E, func: (E, IntBuffer, B?) -> Int, creator: (Int) -> B): B {
-		val count = stack.mallocInt(1)
-		processResult(func(instance, count, null), "Failed to get number of $name")
-		val buffer = creator(count[0])
-		processResult(func(instance, count, buffer), "Failed to get $name")
-		return buffer
+	fun getAvailableExtensions(stack: MemoryStack): List<String> {
+		return enumerateStructs(stack, "Vulkan Instance Extensions", null as ByteBuffer?, VkExtensionProperties::calloc, VK10::vkEnumerateInstanceExtensionProperties)?.map { it.extensionNameString() } ?: emptyList()
 	}
 
-	@Throws(AssertionError::class)
-	fun <E, B : CustomBuffer<B>> getBuffer(instance: E, func: (E, IntBuffer, B?) -> Unit, creator: (Int) -> B): B {
-		MemoryStack.stackPush().use { stack ->
-			return getStackBuffer(stack, instance, func, creator)
-		}
+	fun getAvailableDeviceExtensions(gpu: VkPhysicalDevice): List<String> {
+		return enumerateStructs("Vulkan Device Extensions", gpu, null as ByteBuffer?, VkExtensionProperties::calloc, VK10::vkEnumerateDeviceExtensionProperties)?.map { it.extensionNameString() } ?: emptyList()
 	}
 
-	@Throws(AssertionError::class)
-	fun <E, B : CustomBuffer<B>> getStackBuffer(stack: MemoryStack, instance: E, func: (E, IntBuffer, B?) -> Unit, creator: (Int) -> B): B {
-		val count = stack.mallocInt(1)
-		func(instance, count, null)
-		val buffer = creator(count[0])
-		func(instance, count, buffer)
-		return buffer
-	}
-
-
-	@Throws(AssertionError::class)
-	fun <D, E, B> getDeviceBuffer(name: String, device: D, instance: E, func: (D, E, IntBuffer, B?) -> Int, creator: (Int) -> B): B {
-		MemoryStack.stackPush().use { stack ->
-			return getStackDeviceBuffer(name, device, stack, instance, func, creator)
-		}
-	}
-
-	@Throws(AssertionError::class)
-	fun <D, E, B> getStackDeviceBuffer(name: String, device: D, stack: MemoryStack, instance: E, func: (D, E, IntBuffer, B?) -> Int, creator: (Int) -> B): B {
-		val count = stack.mallocInt(1)
-		processResult(func(device, instance, count, null), "Failed to get number of $name")
-		val buffer = creator(count[0])
-		processResult(func(device, instance, count, buffer), "Failed to get $name")
-		return buffer
-	}
-
-	@Throws(AssertionError::class)
-	fun <D, E, B> getDeviceBuffer(device: D, instance: E, func: (D, E, IntBuffer, B?) -> Unit, creator: (Int) -> B): B {
-		MemoryStack.stackPush().use { stack ->
-			return getStackDeviceBuffer(device, stack, instance, func, creator)
-		}
-	}
-
-	@Throws(AssertionError::class)
-	fun <D, E, B> getStackDeviceBuffer(device: D, stack: MemoryStack, instance: E, func: (D, E, IntBuffer, B?) -> Unit, creator: (Int) -> B): B {
-		val sizeBuffer = stack.mallocInt(1)
-		func(device, instance, sizeBuffer, null)
-		val buffer = creator(sizeBuffer[0])
-		func(device, instance, sizeBuffer, buffer)
-		return buffer
-	}
-
-
-
-	fun allocateLayerBuffer(layers: Array<String>, stack: MemoryStack): PointerBuffer {
-		val availableLayers = getAvailableLayers(stack)
-		val usedLayers = layers.filter(availableLayers::contains)
-		val enabledLayerNames = stack.mallocPointer(usedLayers.size)
-		for (layer in usedLayers) {
-			enabledLayerNames.put(stack.UTF8(layer, true))
-		}
-		return enabledLayerNames.flip()
-	}
-
-	fun getAvailableLayers(stack: MemoryStack): Set<String> {
-		val set = mutableSetOf<String>()
-		val buffer = stack.mallocInt(1)
-		VK10.vkEnumerateInstanceLayerProperties(buffer, null)
-		val count = buffer[0]
-
-		if (count > 0) {
-			val instanceLayers = VkLayerProperties.malloc(count, stack)
-			VK10.vkEnumerateInstanceLayerProperties(buffer, instanceLayers)
-			for (i in 0 until count) set.add(instanceLayers[i].layerNameString())
-		}
-		return set
-	}
-
-	fun createInstance(appName: String, extensions: PointerBuffer): VkInstance {
-
-		val layers = arrayOf(
-			"VK_LAYER_KHRONOS_validation",
-		)
+	fun createInstance(appName: String, version: Int, layers: MutableList<String>, extensions: MutableList<String>): VkInstance {
 
 		MemoryStack.stackPush().use { stack ->
 
 			val appInfo = VkApplicationInfo.calloc(stack)
 				.`sType$Default`()
 				.pApplicationName(stack.UTF8(appName))
-				.apiVersion(VK14.VK_API_VERSION_1_3)
+				.apiVersion(version)
 
-			val enabledLayerNames: PointerBuffer = allocateLayerBuffer(layers, stack)
+			layers.retainAll(getAvailableLayers(stack))
+			extensions.retainAll(getAvailableExtensions(stack))
+
+			val enabledLayerNames: PointerBuffer = stack.stringsToPointer(layers)
+			val enabledExtensionNames: PointerBuffer = stack.stringsToPointer(extensions)
 
 			val createInfo = VkInstanceCreateInfo.calloc(stack)
 				.`sType$Default`()
 				.pApplicationInfo(appInfo)
 				.ppEnabledLayerNames(enabledLayerNames)
-				.ppEnabledExtensionNames(extensions)
+				.ppEnabledExtensionNames(enabledExtensionNames)
 
 			val pointer = stack.mallocPointer(1)
 			processResult(VK10.vkCreateInstance(createInfo, null, pointer), "Failed to create Vulkan Instance")
@@ -223,10 +149,10 @@ object VkUtil {
 		}
 	}
 
-	fun getPhysicalDevices(instance: VkInstance): List<VulkanPhysicalDevice> {
+	fun getPhysicalDevices(instance: VkInstance): List<Long> {
 		MemoryStack.stackPush().use { stack ->
-			val physicalDevices = getStackBuffer("GPUs", stack, instance, VK10::vkEnumeratePhysicalDevices, stack::mallocPointer)
-			return physicalDevices.map { VulkanPhysicalDevice(instance, it) }
+			val physicalDevices = enumerate(stack, "GPUs", instance, MemoryStack::mallocPointer, VK10::vkEnumeratePhysicalDevices) ?: stack.mallocPointer(0)
+			return physicalDevices.map { it }
 		}
 	}
 
@@ -290,7 +216,7 @@ object VkUtil {
 			processResult(KHRSwapchain.vkCreateSwapchainKHR(device.device, swapchainCreateInfo, null, longBuffer), "Failed to create Swapchain")
 
 			oldSwapchain?.delete()
-			val swapchainImages = getStackDeviceBuffer(device.device, stack, longBuffer[0], KHRSwapchain::vkGetSwapchainImagesKHR, stack::mallocLong)
+			val swapchainImages = enumerate(stack, "Swapchain Images", device.device, longBuffer[0], MemoryStack::mallocLong, KHRSwapchain::vkGetSwapchainImagesKHR)
 
 			val viewCreateInfo = VkImageViewCreateInfo.calloc(stack)
 				.`sType$Default`()
@@ -300,25 +226,28 @@ object VkUtil {
 
 			val viewBuffer = stack.mallocLong(1)
 			val format = TextureFormat.fromVulkanConst(colourFormat) ?: throw Error("Unknown Colour Format: $colourFormat")
-			val images = swapchainImages.mapIndexed { index, image ->
+			val images = swapchainImages?.mapIndexed { index, image ->
 				viewCreateInfo.image(image)
 				processResult(VK10.vkCreateImageView(device.device, viewCreateInfo, null, viewBuffer), "Failed to create Image View")
 				device.nameObject(image, VK10.VK_OBJECT_TYPE_IMAGE, "$name Image $index")
 				device.nameObject(viewBuffer[0], VK10.VK_OBJECT_TYPE_IMAGE_VIEW, "$name Image $index View")
 				VulkanSwapchainImage(device, image, viewBuffer[0], format, width, height)
-			}
+			} ?: emptyList()
 
 			device.nameObject(longBuffer[0], KHRSwapchain.VK_OBJECT_TYPE_SWAPCHAIN_KHR, name)
 			return VulkanSwapchainHandler(device, longBuffer, images)
 		}
 	}
 
-	fun createVmaImage(device: VulkanDevice, type: Int, format: TextureFormat, usage: Int, aspect: Int, size: Vec3i): Triple<Long, Long, Long> {
+	fun createVmaImage(device: VulkanDevice, type: Int, format: TextureFormat, usage: Int, aspect: Int, size: Vec3i): Triple<Long, Long, Long>? {
 		val tiling = VK10.VK_IMAGE_TILING_OPTIMAL
 		val flags = 0
 		val samples = 1 //if(type == VK10.VK_IMAGE_TYPE_2D && (usage and VK10.VK_IMAGE_USAGE_SAMPLED_BIT) > 0) VK10.VK_SAMPLE_COUNT_4_BIT else VK10.VK_SAMPLE_COUNT_1_BIT
 
+		if(device.physicalDevice.getImageFormatProperties(format.vulkan, type, tiling, usage, flags) == null) return null
+
 		MemoryStack.stackPush().use { stack ->
+
 			val extents = VkExtent3D.calloc(stack).set(size)
 
 			val imageCreateInfo = VkStructs.createImageInfo(stack, type, format.vulkan, extents, samples, tiling, usage, flags)
@@ -328,26 +257,29 @@ object VkUtil {
 
 			val longBuffer = stack.mallocLong(1)
 			val pointerBuffer = stack.mallocPointer(1)
-			var err = Vma.vmaCreateImage(device.allocator, imageCreateInfo, vmaInfo, longBuffer, pointerBuffer, null)
-			val handle = longBuffer[0]
-			processResult(err, "Failed to create Vulkan Image")
 
-			val viewCreateInfo = VkStructs.createImageViewInfo(stack, type, handle, format.vulkan, VkStructs.createImageRange(stack, aspect, 0, 1, 0, 1))
-			err = VK10.vkCreateImageView(device.device, viewCreateInfo, null, longBuffer)
-			processResult(err, "Failed to create Vulkan Image View")
-			return Triple(handle, longBuffer[0], pointerBuffer[0])
+			processResult(Vma.vmaCreateImage(device.allocator, imageCreateInfo, vmaInfo, longBuffer, pointerBuffer, null), "Failed to create Vulkan Image")
+			val handle = longBuffer[0]
+
+			val view = createImageView(stack, device, type, handle, format, aspect)
+			return Triple(handle, view, pointerBuffer[0])
 		}
 	}
 
+	fun createImageView(stack: MemoryStack, device: VulkanDevice, type: Int, image: Long, format: TextureFormat, aspect: Int): Long {
+		val viewCreateInfo = VkStructs.createImageViewInfo(stack, type, image, format.vulkan, VkStructs.createImageRange(stack, aspect, 0, 1, 0, 1))
+		return getLong("Vulkan Image View", device, stack, viewCreateInfo, VK10::vkCreateImageView)
+	}
+
 	fun createImage(device: VulkanDevice, id: String, format: TextureFormat, usage: Int, aspect: Int, size: Vec2i, parameters: TextureParameters = TextureParameters()): VulkanImage2D {
-		val (handle, view, allocation) = createVmaImage(device, VK10.VK_IMAGE_TYPE_2D, format, usage, aspect, Vec3i(size, 1))
+		val (handle, view, allocation) = createVmaImage(device, VK10.VK_IMAGE_TYPE_2D, format, usage, aspect, Vec3i(size, 1)) ?: return Texture2D.missing as VulkanImage2D
 		device.nameObject(handle, VK10.VK_OBJECT_TYPE_IMAGE, "$id image")
 		device.nameObject(view, VK10.VK_OBJECT_TYPE_IMAGE_VIEW, "$id image view")
 		return VulkanImage2D(device, id, handle, view, format, allocation, size.x, size.y, parameters)
 	}
 
 	fun createImage3D(device: VulkanDevice, id: String, format: TextureFormat, usage: Int, aspect: Int, size: Vec3i, parameters: TextureParameters = TextureParameters()): VulkanImage3D {
-		val (handle, view, allocation) = createVmaImage(device, VK10.VK_IMAGE_TYPE_3D, format, usage, aspect, size)
+		val (handle, view, allocation) = createVmaImage(device, VK10.VK_IMAGE_TYPE_3D, format, usage, aspect, size) ?: return Texture3D.missing as VulkanImage3D
 		device.nameObject(handle, VK10.VK_OBJECT_TYPE_IMAGE, "$id image")
 		device.nameObject(view, VK10.VK_OBJECT_TYPE_IMAGE_VIEW, "$id image view")
 		return VulkanImage3D(device, id, handle, view, format, allocation, size.x, size.y, size.z, parameters)
@@ -394,5 +326,25 @@ object VkUtil {
 			.pPushConstantRanges(pushConstants.createRanges(stack))
 
 		return createPipelineLayout(device, stack, descriptorLayouts, pipelineLayoutCreateInfo, pushConstants)
+	}
+
+	fun submitQueue(stack: MemoryStack, queue: VkQueue, cmd: PoolAndBuffer, fence: VulkanFence? = null, waitSemaphore: VulkanSemaphoreHandler? = null, signalSemaphore: VulkanSemaphoreHandler? = null){
+		if(queue.capabilities.apiVersion >= VK13.VK_API_VERSION_1_3) {
+			val cmdInfo = VkStructs.createBufferSubmits(stack, cmd.buffer, 0)
+			// Wait for the swapchain semaphore
+			val waitInfo = waitSemaphore?.let {
+				VkStructs.createSemaphoreSubmits(stack, it, VK13.VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 1L)
+			}
+			// Signal the render semaphore
+			val signalInfo = signalSemaphore?.let {
+				VkStructs.createSemaphoreSubmits(stack, it, VK13.VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, 0, 1L)
+			}
+			val submitInfo = VkStructs.createSubmitInfo2s(stack, cmdInfo, waitInfo, signalInfo)
+			VK13.vkQueueSubmit2(queue, submitInfo, fence?.handle ?: 0L)
+		}
+		else {
+			val submitInfos = VkStructs.createSubmitInfos(stack, cmd.buffer, waitSemaphore?.handle, VK10.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, signalSemaphore?.handle)
+			VK10.vkQueueSubmit(queue, submitInfos, fence?.handle ?: 0L)
+		}
 	}
 }

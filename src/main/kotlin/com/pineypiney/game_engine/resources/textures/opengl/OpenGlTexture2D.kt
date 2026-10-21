@@ -35,14 +35,14 @@ open class OpenGlTexture2D(
 		// Apparently OpenGL can randomly reset this value.
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
-		glTexImage2D(target, 0, this.format.opengl, width, height, 0, format.openglLayout, format.pixelType, buf)
+		glTexImage2D(target, 0, this.format.opengl, width, height, 0, format.openglLayout, format.pixelType.opengl, buf)
 		MemoryUtil.memFree(buf)
 	}
 
 	override fun getSubData(x: Int, y: Int, width: Int, height: Int, format: TextureFormat): ByteBuffer {
 		val buffer = BufferUtils.createByteBuffer(bytes)
 		glPixelStorei(GL_PACK_ALIGNMENT, 1)
-		glGetTextureSubImage(texturePointer, 0, x, y, 0, width, height, 1, format.openglLayout, format.pixelType, buffer)
+		glGetTextureSubImage(texturePointer, 0, x, y, 0, width, height, 1, format.openglLayout, format.pixelType.opengl, buffer)
 		return buffer
 	}
 
@@ -57,20 +57,20 @@ open class OpenGlTexture2D(
 		// Apparently OpenGL can randomly reset this value.
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
-		glTexSubImage2D(target, 0, x, y, width, height, format.openglLayout, format.pixelType, buf)
+		glTexSubImage2D(target, 0, x, y, width, height, format.openglLayout, format.pixelType.opengl, buf)
 		MemoryUtil.memFree(buf)
 	}
 
 	fun setSize(size: Vec2i, params: TextureParameters = TextureParameters()) {
 		bind()
 		params.loadOpenGL()
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, size.x, size.y, 0, format.openglLayout, format.pixelType, null as ByteBuffer?)
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, size.x, size.y, 0, format.openglLayout, format.pixelType.opengl, null as ByteBuffer?)
 	}
 
 	fun setFormat(format: TextureFormat, params: TextureParameters = TextureParameters()) {
 		bind()
 		params.loadOpenGL()
-		glTexImage2D(GL_TEXTURE_2D, 0, format.opengl, width, height, 0, format.openglLayout, format.pixelType, null as ByteBuffer?)
+		glTexImage2D(GL_TEXTURE_2D, 0, format.opengl, width, height, 0, format.openglLayout, format.pixelType.opengl, null as ByteBuffer?)
 	}
 
 	override fun clear() {
@@ -95,7 +95,7 @@ open class OpenGlTexture2D(
 			}
 
 			try {
-				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat.openglLayout, dataFormat.pixelType, data)
+				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat.openglLayout, dataFormat.pixelType.opengl, data)
 			} catch (_: Exception) {
 				GameEngineI.error("Failed to create texture")
 			}

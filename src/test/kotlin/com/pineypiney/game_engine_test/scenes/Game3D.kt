@@ -46,7 +46,7 @@ import kotlin.math.PI
 class Game3D(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
 	override val id: String = "3D Game"
-	override val renderer: GameRenderer<Game3D> = DefaultWindowGameRenderer(window, ::PerspectiveCamera) { gameEngine.manager.createPresentingApi(it, id) }
+	override val renderer: GameRenderer<Game3D> = DefaultWindowGameRenderer(window, ::PerspectiveCamera) { gameEngine.manager.createPresentingApi(window, id) }
 	private val camera get() = renderer.camera
 
 	private val pressedKeys = mutableSetOf<Short>()
@@ -106,7 +106,6 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic(
 	override fun init() {
 		super.init()
 		window.setCursorMode(GLFW_CURSOR_DISABLED)
-		renderer.setClearColour(Vec4(1f, 0f, 0f, 1f))
 
 		input.getInput<GamepadInput>().setDefaultController(movement::gamepadID) {
 			movement.gamepadID = it?.id ?: -1

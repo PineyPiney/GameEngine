@@ -35,7 +35,7 @@ interface RenderingApi : Deletable {
 
 	fun setViewport(viewport: Viewport)
 	fun setDepthTest(compare: CompareOp?)
-	fun clearStencil(value: Int)
+	fun clearStencil(value: Int, viewport: Viewport)
 	fun disableStencil()
 	fun setStencil(enabled: Boolean, reference: Int, mask: Int, failOp: StencilOp, passOp: StencilOp, depthFailOp: StencilOp, compare: CompareOp)
 	fun setStencilComparison(reference: Int, mask: Int, compare: CompareOp)
@@ -54,8 +54,7 @@ interface RenderingApi : Deletable {
 	fun updateGui(mat: Mat4, aspectRatio: Float)
 
 	fun createFramebuffer(
-		width: Int,
-		height: Int,
+		size: Vec2i,
 		colourFormat: TextureFormat = TextureFormat.RGBA8,
 		depthStencilFormat: TextureFormat = TextureFormat.DEPTH24_STENCIL8,
 		usage: Collection<TextureUsage> = emptySet()

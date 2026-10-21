@@ -10,7 +10,6 @@ import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.ResourceFactory
-import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureUsage
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.window.WindowI
@@ -30,7 +29,7 @@ open class EditorRenderer(
 
 	init {
 		val sceneBox = EditorScreen.getSceneBox(settings, window)
-		sceneFramebuffer = getRenderingApi().createFramebuffer(sceneBox.size.x, sceneBox.size.y, TextureFormat.RGBA8, usage = setOf(TextureUsage.SAMPLER))
+		sceneFramebuffer = getRenderingApi().createFramebuffer(sceneBox.size, usage = setOf(TextureUsage.SAMPLER))
 	}
 
 	var backgroundColour = Colour(0, 255, 0)

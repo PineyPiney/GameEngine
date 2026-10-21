@@ -2,21 +2,21 @@ package com.pineypiney.game_engine.rendering.vulkan
 
 import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.PresentingApi
-import com.pineypiney.game_engine.rendering.WindowRendererI
+import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorAllocator
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage2D
 import com.pineypiney.game_engine.util.extension_functions.deleteArray
 import com.pineypiney.game_engine.vulkan.*
-import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.vulkan.*
+import org.lwjgl.vulkan.KHRSurface
+import org.lwjgl.vulkan.KHRSwapchain
+import org.lwjgl.vulkan.VK10
+import org.lwjgl.vulkan.VkQueue
 
-class VulkanPresentRendering(val window: WindowI, val name: String, device: VulkanDevice, viewport: () -> Viewport) : VulkanRendering(viewport), PresentingApi {
-
-	constructor(renderer: WindowRendererI<*>, name: String, device: VulkanDevice) : this(renderer.window, name, device, renderer::getViewport)
+class VulkanWindowRendering(val window: WindowI, val name: String, device: VulkanDevice) : VulkanRendering(), PresentingApi {
 
 	val surface = VkUtil.createSurface(device.instance, window)
 	val colourFormatSpace = device.physicalDevice.getSurfaceColour(surface)
@@ -52,7 +52,7 @@ class VulkanPresentRendering(val window: WindowI, val name: String, device: Vulk
 		return true
 	}
 
-	override fun copyFramebuffer(framebuffer: Framebuffer, renderer: WindowRendererI<*>) {
+	override fun copyFramebuffer(framebuffer: Framebuffer, window: WindowI, renderer: RendererI) {
 
 		// Copy the Draw Image to the Swapchain Image
 		val drawImage = framebuffer.colour as VulkanImage2D
@@ -66,8 +66,8 @@ class VulkanPresentRendering(val window: WindowI, val name: String, device: Vulk
 	}
 
 	override fun present() {
-		val queue = device.getQueue(0)
 		cmd.end()
+		val queue = device.getQueue(0)
 		submit(queue)
 		present(queue)
 		VK10.vkQueueWaitIdle(queue)
@@ -77,13 +77,7 @@ class VulkanPresentRendering(val window: WindowI, val name: String, device: Vulk
 
 	fun submit(queue: VkQueue) {
 		MemoryStack.stackPush().use { stack ->
-			val cmdInfo = VkStructs.createBufferSubmits(stack, cmd.buffer, 0)
-			// Wait for the swapchain semaphore
-			val waitInfo = VkStructs.createSemaphoreSubmits(stack, frameObjects.swapchainSemaphore, KHRSynchronization2.VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, 0, 1L)
-			// Signal the render semaphore
-			val signalInfo = VkStructs.createSemaphoreSubmits(stack, frameObjects.renderSemaphore, VK13.VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, 0, 1L)
-			val submitInfo = VkStructs.createSubmitInfo2s(stack, cmdInfo, signalInfo, waitInfo)
-			VK13.vkQueueSubmit2(queue, submitInfo, frameObjects.renderFence.handle)
+			VkUtil.submitQueue(stack, queue, cmd, frameObjects.renderFence, frameObjects.swapchainSemaphore, frameObjects.renderSemaphore)
 		}
 	}
 

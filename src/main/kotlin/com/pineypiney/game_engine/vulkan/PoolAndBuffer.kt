@@ -6,7 +6,6 @@ import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipeli
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
 import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.window.Viewport
-import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4i
 import kool.free
@@ -19,11 +18,13 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 
 	val currentOps = Vec4i()
 
+	fun versionAtLeast(version: Int) = buffer.capabilities.apiVersion >= version
+
 	fun begin(info: VkCommandBufferBeginInfo) {
 		VkUtil.processResult(VK10.vkBeginCommandBuffer(buffer, info), "Failed to begin Command Buffer")
 
 		// For error https://vulkan.lunarg.com/doc/view/1.3.296.0/windows/1.3-extensions/vkspec.html#VUID-vkCmdDrawIndexed-None-07847
-		setStencil(false)
+		runCatching { setStencil(false) }
 	}
 
 	fun begin(flags: Int) {
@@ -36,7 +37,8 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 	}
 
 	fun beginRendering(info: VkRenderingInfo) {
-		VK13.vkCmdBeginRendering(buffer, info)
+		if(versionAtLeast(VK13.VK_API_VERSION_1_3)) VK13.vkCmdBeginRendering(buffer, info)
+		else KHRDynamicRendering.vkCmdBeginRenderingKHR(buffer, info)
 	}
 
 	fun setViewport(stack: MemoryStack, viewport: Viewport) {
@@ -56,7 +58,8 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 	}
 
 	fun setStencil(enabled: Boolean) {
-		VK13.vkCmdSetStencilTestEnable(buffer, enabled)
+		if(versionAtLeast(VK13.VK_API_VERSION_1_3)) VK13.vkCmdSetStencilTestEnable(buffer, enabled)
+		else EXTExtendedDynamicState.vkCmdSetStencilTestEnableEXT(buffer, enabled)
 	}
 
 	/**
@@ -110,12 +113,6 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 		VK10.vkCmdBindIndexBuffer(this.buffer, buffer, offset, type)
 	}
 
-	fun bindDescriptorSet(pipeline: VulkanPipeline, set: VulkanDescriptorSet) {
-		val buf = MemoryUtil.memAllocLong(1).put(set.handle).flip()
-		VK10.vkCmdBindDescriptorSets(buffer, pipeline.getBindPoint(), pipeline.layout.handle, 0, buf, null)
-		buf.free()
-	}
-
 	fun bindDescriptorSets(pipeline: VulkanPipeline, sets: Iterable<VulkanDescriptorSet>) {
 		val buf = MemoryUtil.memAllocLong(sets.count())
 		for (set in sets) buf.put(set.handle)
@@ -136,7 +133,8 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 	}
 
 	fun endRendering() {
-		VK13.vkCmdEndRendering(buffer)
+		if(versionAtLeast(VK13.VK_API_VERSION_1_3)) VK13.vkCmdEndRendering(buffer)
+		else KHRDynamicRendering.vkCmdEndRenderingKHR(buffer)
 	}
 
 	fun clearColourImage(stack: MemoryStack, colour: Vec4, image: VulkanImage) {
@@ -149,28 +147,67 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 		VK10.vkCmdDispatch(buffer, x, y, z)
 	}
 
-	fun dispatch(size: Vec3i) {
-		dispatch(size.x, size.y, size.z)
-	}
-
-	fun copyBuffer(src: Long, dst: Long, regions: VkBufferCopy.Buffer) {
-		VK10.vkCmdCopyBuffer(buffer, src, dst, regions)
-	}
-
 	fun copyBuffer(src: Long, dst: Long, srcOffset: Long, dstOffset: Long, size: Long) {
-		val regions = VkBufferCopy.calloc(1)
-			.srcOffset(srcOffset)
-			.dstOffset(dstOffset)
-			.size(size)
-		VK10.vkCmdCopyBuffer(buffer, src, dst, regions)
+		if(versionAtLeast(VK13.VK_API_VERSION_1_3)){
+			val regions = VkBufferCopy2.calloc(1).`sType$Default`()
+				.srcOffset(srcOffset)
+				.dstOffset(dstOffset)
+				.size(size)
+
+			val copyInfo = VkCopyBufferInfo2.calloc().`sType$Default`()
+				.srcBuffer(src)
+				.dstBuffer(dst)
+				.pRegions(regions)
+
+			VK13.vkCmdCopyBuffer2(buffer, copyInfo)
+			regions.free()
+			copyInfo.free()
+		}
+		else {
+			val regions = VkBufferCopy.calloc(1)
+				.srcOffset(srcOffset)
+				.dstOffset(dstOffset)
+				.size(size)
+
+			VK10.vkCmdCopyBuffer(buffer, src, dst, regions)
+			regions.free()
+		}
+
 	}
 
-	fun copyBufferToImage(src: Long, dst: Long, layout: Int, regions: VkBufferImageCopy.Buffer) {
-		VK10.vkCmdCopyBufferToImage(buffer, src, dst, layout, regions)
-	}
+	fun copyBufferToImage(src: VmaBuffer, image: VulkanImage, bufferOffset: Long, rowLength: Int, imageHeight: Int, layers: VkImageSubresourceLayers, offset: VkOffset3D, extents: VkExtent3D) {
+		if(versionAtLeast(VK13.VK_API_VERSION_1_3)){
 
-	fun copyBufferToImage(src: VmaBuffer, image: VulkanImage, regions: VkBufferImageCopy.Buffer) {
-		VK10.vkCmdCopyBufferToImage(buffer, src.buffer, image.image, image.layout, regions)
+			val regions = VkBufferImageCopy2.calloc(1).`sType$Default`()
+				.bufferOffset(bufferOffset)
+				.bufferRowLength(rowLength)
+				.bufferImageHeight(imageHeight)
+				.imageSubresource(layers)
+				.imageOffset(offset)
+				.imageExtent(extents)
+
+			val info = VkCopyBufferToImageInfo2.calloc().`sType$Default`()
+				.srcBuffer(src.buffer)
+				.dstImage(image.image)
+				.dstImageLayout(image.layout)
+				.pRegions(regions)
+
+			VK14.vkCmdCopyBufferToImage2(buffer, info)
+			regions.free()
+			info.free()
+		}
+		else {
+			val regions = VkBufferImageCopy.calloc(1)
+				.bufferOffset(bufferOffset)
+				.bufferRowLength(rowLength)
+				.bufferImageHeight(imageHeight)
+				.imageSubresource(layers)
+				.imageOffset(offset)
+				.imageExtent(extents)
+
+			VK10.vkCmdCopyBufferToImage(buffer, src.buffer, image.image, image.layout, regions)
+			regions.free()
+		}
 	}
 
 	fun copyImageToBuffer(src: VmaBuffer, image: VulkanImage, regions: VkBufferImageCopy.Buffer) {

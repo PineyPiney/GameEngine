@@ -17,7 +17,7 @@ class OpenGlTexture3D(id: String, texturePointer: Int, target: Int = GL_TEXTURE_
 	override fun getSubData(x: Int, y: Int, z: Int, width: Int, height: Int, depth: Int, format: TextureFormat): ByteBuffer {
 		val buffer = BufferUtils.createByteBuffer(bytes)
 		glPixelStorei(GL_PACK_ALIGNMENT, 1)
-		glGetTextureSubImage(texturePointer, 0, x, y, z, width, height, depth, format.openglLayout, format.pixelType, buffer)
+		glGetTextureSubImage(texturePointer, 0, x, y, z, width, height, depth, format.openglLayout, format.pixelType.opengl, buffer)
 		return buffer
 	}
 
@@ -31,7 +31,7 @@ class OpenGlTexture3D(id: String, texturePointer: Int, target: Int = GL_TEXTURE_
 		// https://stackoverflow.com/questions/9950546/c-opengl-glteximage2d-access-violation
 		// Apparently OpenGL can randomly reset this value.
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-		glTexImage3D(target, 0, this.format.opengl, width, height, depth, 0, format.openglLayout, format.pixelType, buf)
+		glTexImage3D(target, 0, this.format.opengl, width, height, depth, 0, format.openglLayout, format.pixelType.opengl, buf)
 
 		MemoryUtil.memFree(buf)
 	}
@@ -46,7 +46,7 @@ class OpenGlTexture3D(id: String, texturePointer: Int, target: Int = GL_TEXTURE_
 		// https://stackoverflow.com/questions/9950546/c-opengl-glteximage2d-access-violation
 		// Apparently OpenGL can randomly reset this value.
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-		glTexSubImage3D(target, 0, x, y, z, width, height, depth, format.openglLayout, format.pixelType, buf)
+		glTexSubImage3D(target, 0, x, y, z, width, height, depth, format.openglLayout, format.pixelType.opengl, buf)
 
 		MemoryUtil.memFree(buf)
 	}
@@ -74,7 +74,7 @@ class OpenGlTexture3D(id: String, texturePointer: Int, target: Int = GL_TEXTURE_
 
 			if (debug) GameEngineI.debug("Calling texImage3D with internalFormat: $internalFormat, width: $width, height: $height, depth: $depth, dataFormat: $dataFormat and data: $data")
 			try {
-				glTexImage3D(GL_TEXTURE_3D, 0, internalFormat, width, height, depth, 0, dataFormat.openglLayout, dataFormat.pixelType, data)
+				glTexImage3D(GL_TEXTURE_3D, 0, internalFormat, width, height, depth, 0, dataFormat.openglLayout, dataFormat.pixelType.opengl, data)
 			} catch (_: Exception) {
 				GameEngineI.error("Failed to create texture")
 			}

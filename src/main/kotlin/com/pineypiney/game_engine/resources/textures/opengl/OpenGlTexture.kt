@@ -35,7 +35,7 @@ abstract class OpenGlTexture(override val id: String, val texturePointer: Int, v
 		bind()
 		val buffer = BufferUtils.createByteBuffer(width * height * depth * format.pixelSize)
 		GL11C.glFinish()
-		GL11C.glGetTexImage(target, 0, format.openglLayout, format.pixelType, buffer)
+		GL11C.glGetTexImage(target, 0, format.openglLayout, format.pixelType.opengl, buffer)
 		return buffer
 	}
 

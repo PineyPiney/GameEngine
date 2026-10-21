@@ -39,8 +39,8 @@ fun XrPosef.reset(){
 	`position$`(Vec3()::put)
 }
 
-fun XrPosef.mat4(): Mat4 {
-	return I.translate(`position$`().glm()) * orientation().glm().toMat4()
+fun XrPosef.mat4(res: Mat4 = I): Mat4 {
+	return I.translate(`position$`().glm()).times(orientation().glm().toMat4(), res)
 }
 
 fun XrRect2Di.set(x: Int, y: Int, width: Int, height: Int) {

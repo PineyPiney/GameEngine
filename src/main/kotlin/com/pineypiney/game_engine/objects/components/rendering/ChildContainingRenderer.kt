@@ -38,7 +38,7 @@ class ChildContainingRenderer(
 
 		val api = renderer.getRenderingApi()
 		api.setStencilWriteMask(255)
-		api.clearStencil(0)
+		api.clearStencil(0, renderer.getViewport())
 
 		// If the stencil fails keep the old value, otherwise write 1 to the stencil
 		api.setStencil(true, 1, 255, StencilOp.KEEP, StencilOp.REPLACE, StencilOp.REPLACE, CompareOp.ALWAYS)

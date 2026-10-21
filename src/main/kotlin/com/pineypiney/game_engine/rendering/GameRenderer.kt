@@ -11,12 +11,11 @@ import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
-import glm_.vec4.Vec4
 
 abstract class GameRenderer<in E : GameLogicI>(override val window: WindowI, apiFact: (GameRenderer<E>) -> PresentingApi) : WindowRendererI<E> {
 
 	private val api = apiFact(this)
-	open val framebuffer = api.createFramebuffer(window.width, window.height)
+	open val framebuffer = api.createFramebuffer(window.framebufferSize)
 
 	override val viewPos: Vec3 get() = camera.cameraPos
 	override var aspectRatio: Float = 1f
@@ -64,10 +63,6 @@ abstract class GameRenderer<in E : GameLogicI>(override val window: WindowI, api
 		viewportSize = window.framebufferSize
 		aspectRatio = window.aspectRatio
 		getRenderingApi().updateGui(guiProjection, aspectRatio)
-	}
-
-	override fun setClearColour(colour: Vec4) {
-//		GLFunc.clearColour = colour
 	}
 
 	open fun deleteFrameBuffers() {

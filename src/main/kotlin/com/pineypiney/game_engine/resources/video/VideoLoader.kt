@@ -104,11 +104,9 @@ class VideoLoader private constructor() {
 
 		fun formatFromFfmpeg(ffmpeg: Int): TextureFormat {
 			return when (ffmpeg) {
+				AV_PIX_FMT_GRAY8 -> TextureFormat.R8
 				AV_PIX_FMT_RGB24 -> TextureFormat.RGB8
 				AV_PIX_FMT_BGR24 -> TextureFormat.BGR8
-				AV_PIX_FMT_RGB8 -> TextureFormat.RGB332
-				AV_PIX_FMT_BGR8 -> TextureFormat.BGR332
-				AV_PIX_FMT_GRAY8 -> TextureFormat.R8
 				AV_PIX_FMT_RGBA -> TextureFormat.RGBA8
 				AV_PIX_FMT_BGRA -> TextureFormat.BGRA8
 				else -> TextureFormat.RGB8

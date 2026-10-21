@@ -12,8 +12,10 @@ import com.pineypiney.game_engine.resources.textures.parameters.TextureUsage
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
 import com.pineypiney.game_engine.util.extension_functions.getVec3i
 import com.pineypiney.game_engine.util.extension_functions.orOfInt
+import com.pineypiney.game_engine.vulkan.GrowableVulkanDescriptorAllocator
 import com.pineypiney.game_engine.vulkan.PoolAndBuffer
 import com.pineypiney.game_engine.vulkan.VkStructs
+import com.pineypiney.game_engine.vulkan.VulkanDevice
 import com.pineypiney.game_engine.window.Viewport
 import glm_.detail.GLM_DEPTH_CLIP_SPACE
 import glm_.detail.GlmDepthClipSpace
@@ -23,12 +25,11 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK13
 import org.lwjgl.vulkan.VkClearAttachment
 import org.lwjgl.vulkan.VkClearRect
 
-abstract class VulkanRendering(val viewport: () -> Viewport) : RenderingApi {
+abstract class VulkanRendering : RenderingApi {
 
 	init {
 		GLM_DEPTH_CLIP_SPACE = GlmDepthClipSpace.ZERO_TO_ONE
@@ -60,8 +61,7 @@ abstract class VulkanRendering(val viewport: () -> Viewport) : RenderingApi {
 	override fun bindFramebuffer(framebuffer: Framebuffer, colour: Vec4, depth: Float, stencil: Int, viewport: Viewport) {
 		if (framebuffer !is VulkanFramebuffer) return
 
-		framebuffer.colour.transition(cmd, VK10.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, false)
-		framebuffer.depthStencil.transition(cmd, VK10.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, false)
+		framebuffer.begin(cmd)
 
 		MemoryStack.stackPush().use { stack ->
 			val colourAttachments = VkStructs.createColourAttachmentInfos(stack, framebuffer.colour, colour)
@@ -76,8 +76,7 @@ abstract class VulkanRendering(val viewport: () -> Viewport) : RenderingApi {
 
 	override fun endFramebuffer(framebuffer: Framebuffer) {
 		cmd.endRendering()
-		val usage = (framebuffer as VulkanFramebuffer).colourUsage
-		if (usage and VK10.VK_IMAGE_USAGE_SAMPLED_BIT > 0) (framebuffer.colour as VulkanImage).transition(cmd, VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		(framebuffer as VulkanFramebuffer).end(cmd)
 	}
 
 	override fun bindVertices(handle: Int) {
@@ -120,11 +119,11 @@ abstract class VulkanRendering(val viewport: () -> Viewport) : RenderingApi {
 		}
 	}
 
-	override fun clearStencil(value: Int) {
+	override fun clearStencil(value: Int, viewport: Viewport) {
 		MemoryStack.stackPush().use { stack ->
 			val clearValue = VkStructs.clear(stack, Vec4(0f), 0f, value)
 			val attachments = VkClearAttachment.calloc(1, stack).aspectMask(VK13.VK_IMAGE_ASPECT_STENCIL_BIT).clearValue(clearValue)
-			val rects = VkClearRect.calloc(1, stack).rect(VkStructs.rect(stack, viewport())).layerCount(1)
+			val rects = VkClearRect.calloc(1, stack).rect(VkStructs.rect(stack, viewport)).layerCount(1)
 			VK13.vkCmdClearAttachments(cmd.buffer, attachments, rects)
 		}
 	}
@@ -177,18 +176,41 @@ abstract class VulkanRendering(val viewport: () -> Viewport) : RenderingApi {
 		glm.orthoLhZo(-aspectRatio, aspectRatio, -1f, 1f, 1f, 0f, mat)
 	}
 
-	override fun createFramebuffer(width: Int, height: Int, colourFormat: TextureFormat, depthStencilFormat: TextureFormat, usage: Collection<TextureUsage>): Framebuffer {
+	override fun createFramebuffer(
+		size: Vec2i,
+		colourFormat: TextureFormat,
+		depthStencilFormat: TextureFormat,
+		usage: Collection<TextureUsage>
+	): Framebuffer {
 		val usage = usage.orOfInt(TextureUsage::vulkan)
-		return VulkanFramebuffer(device, Vec2i(width, height), colourFormat, depthStencilFormat, usage)
+		return VulkanCDSFramebuffer(device, size, colourFormat, depthStencilFormat, usage)
 	}
 
 	companion object {
-		fun create(cmd: PoolAndBuffer, descriptorAllocator: VulkanDescriptorAllocator, viewport: () -> Viewport): VulkanRendering {
-			return object : VulkanRendering(viewport) {
+		fun create(cmd: PoolAndBuffer, descriptorAllocator: VulkanDescriptorAllocator): VulkanRendering {
+			return object : VulkanRendering() {
 				override val cmd: PoolAndBuffer = cmd
 				override val descriptorAllocator: VulkanDescriptorAllocator = descriptorAllocator
 
 				override fun delete() {}
+			}
+		}
+
+		fun create(device: VulkanDevice, name: String): VulkanRendering {
+			return object : VulkanRendering() {
+				override val cmd: PoolAndBuffer
+				override val descriptorAllocator: VulkanDescriptorAllocator = GrowableVulkanDescriptorAllocator(device)
+
+				init {
+					MemoryStack.stackPush().use { stack ->
+						cmd = PoolAndBuffer.create(device, stack, name)
+					}
+				}
+
+				override fun delete() {
+					cmd.delete()
+					descriptorAllocator.delete()
+				}
 			}
 		}
 	}

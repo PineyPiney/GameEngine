@@ -9,19 +9,19 @@ import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
 import com.pineypiney.game_engine.util.vulkanMask
 import com.pineypiney.game_engine.vulkan.*
 import glm_.vec2.Vec2i
+import glm_.vec2.Vec2l
 import glm_.vec3.Vec3i
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.VK10
-import org.lwjgl.vulkan.VK13
-import org.lwjgl.vulkan.VkBlitImageInfo2
-import org.lwjgl.vulkan.VkImageBlit2
+import org.lwjgl.vulkan.VkImageBlit
 
 class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 
-	lateinit var blitInfo: VkBlitImageInfo2
-
 	val cmd: PoolAndBuffer
 	val fence: VulkanFence
+
+	val images = Vec2l()
+	val layouts = Vec2i()
 
 	init {
 		MemoryStack.stackPush().use { stack ->
@@ -30,10 +30,11 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 		}
 	}
 
-	val layouts = mutableMapOf<VulkanImage, Int>()
+	// This allows the copier to reset the textures at the end
+	val oldLayouts = mutableMapOf<VulkanImage, Int>()
 
 	override fun init() {
-		blitInfo = VkBlitImageInfo2.calloc().`sType$Default`()
+
 	}
 
 	override fun start() {
@@ -43,7 +44,7 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 	}
 
 	fun setLayout(img: VulkanImage, layout: Int) {
-		if (!layouts.containsKey(img)) layouts[img] = img.layout
+		if (!oldLayouts.containsKey(img)) oldLayouts[img] = img.layout
 		img.transition(cmd, layout)
 	}
 
@@ -51,9 +52,8 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 		if (src is VulkanImage) {
 			setLayout(src, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
 			srcSize = Vec3i(src.size, 1)
-			blitInfo
-				.srcImage(src.image)
-				.srcImageLayout(src.layout)
+			images.x = src.image
+			layouts.x = src.layout
 		}
 	}
 
@@ -61,9 +61,8 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 		if (src is VulkanImage) {
 			setLayout(src, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
 			srcSize = src.size
-			blitInfo
-				.srcImage(src.image)
-				.srcImageLayout(src.layout)
+			images.x = src.image
+			layouts.x = src.layout
 		}
 	}
 
@@ -71,9 +70,8 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 		if (dst is VulkanImage) {
 			setLayout(dst, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 			dstSize = Vec3i(dst.size, 1)
-			blitInfo
-				.dstImage(dst.image)
-				.dstImageLayout(dst.layout)
+			images.y = dst.image
+			layouts.y = dst.layout
 		}
 	}
 
@@ -81,16 +79,14 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 		if (dst is VulkanImage) {
 			setLayout(dst, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 			dstSize = dst.size
-			blitInfo
-				.dstImage(dst.image)
-				.dstImageLayout(dst.layout)
+			images.y = dst.image
+			layouts.y = dst.layout
 		}
 	}
 
 	override fun copyTexture(srcOrigin: Vec2i, srcTR: Vec2i, dstOrigin: Vec2i, dstTR: Vec2i, mask: Collection<TextureAspect>, filter: TextureFilter) {
 		MemoryStack.stackPush().use { stack ->
-			val blitRegion = VkImageBlit2.calloc(1, stack)
-				.`sType$Default`()
+			val blitRegion = VkImageBlit.calloc(1, stack)
 				.srcOffsets(0) { it.set(srcOrigin, 0) }
 				.srcOffsets(1) { it.set(srcTR, 1) }
 				.dstOffsets(0) { it.set(dstOrigin, 0) }
@@ -98,18 +94,14 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 				.srcSubresource(VkStructs.createImageLayers(stack, mask.vulkanMask(), 0, 0, 1))
 				.dstSubresource(VkStructs.createImageLayers(stack, mask.vulkanMask(), 0, 0, 1))
 
-			blitInfo
-				.filter(filter.vulkanImage)
-				.pRegions(blitRegion)
 
-			VK13.vkCmdBlitImage2(cmd.buffer, blitInfo)
+			VK10.vkCmdBlitImage(cmd.buffer, images.x, layouts.x, images.y, layouts.y, blitRegion, filter.vulkanImage)
 		}
 	}
 
 	override fun copyTexture(srcOrigin: Vec3i, srcTR: Vec3i, dstOrigin: Vec3i, dstTR: Vec3i, mask: Collection<TextureAspect>, filter: TextureFilter) {
 		MemoryStack.stackPush().use { stack ->
-			val blitRegion = VkImageBlit2.calloc(1, stack)
-				.`sType$Default`()
+			val blitRegion = VkImageBlit.calloc(1, stack)
 				.srcOffsets(0) { it.set(srcOrigin) }
 				.srcOffsets(1) { it.set(srcTR) }
 				.dstOffsets(0) { it.set(dstOrigin) }
@@ -117,29 +109,22 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 				.srcSubresource(VkStructs.createImageLayers(stack, mask.vulkanMask(), 0, 0, 1))
 				.dstSubresource(VkStructs.createImageLayers(stack, mask.vulkanMask(), 0, 0, 1))
 
-			blitInfo
-				.filter(filter.vulkanImage)
-				.pRegions(blitRegion)
-
-			VK13.vkCmdBlitImage2(cmd.buffer, blitInfo)
+			VK10.vkCmdBlitImage(cmd.buffer, images.x, layouts.x, images.y, layouts.y, blitRegion, filter.vulkanImage)
 		}
 	}
 
 	override fun execute() {
-		for ((img, layout) in layouts) img.transition(cmd, layout)
+		for ((img, layout) in oldLayouts) img.transition(cmd, layout)
 		cmd.end()
 
 		MemoryStack.stackPush().use { stack ->
-			val cmdInfo = VkStructs.createBufferSubmits(stack, cmd.buffer, 0)
-			val submitInfo = VkStructs.createSubmitInfo2s(stack, cmdInfo, null, null)
 			val queue = fence.device.getQueue(0)
-			VK13.vkQueueSubmit2(queue, submitInfo, fence.handle)
+			VkUtil.submitQueue(stack, queue, cmd, fence)
 		}
 		fence.wait(1e9)
 	}
 
 	override fun delete() {
-		blitInfo.free()
 		cmd.delete()
 		fence.delete()
 	}

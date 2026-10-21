@@ -2,9 +2,11 @@ package com.pineypiney.game_engine.resources.textures.vulkan
 
 import com.pineypiney.game_engine.rendering.TextureCopier
 import com.pineypiney.game_engine.rendering.vulkan.VulkanTextureCopier
+import com.pineypiney.game_engine.rendering.vulkan.VulkanTextureCopier2
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
+import com.pineypiney.game_engine.util.vulkanMask
 import com.pineypiney.game_engine.vulkan.*
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
@@ -69,22 +71,41 @@ interface VulkanImage : Texture {
 	fun transition(cmd: PoolAndBuffer, newLayout: Int, keepData: Boolean = true, aspectMask: Int = getImageAspect(newLayout)) {
 
 		MemoryStack.stackPush().use { stack ->
-			val imageBarrier = VkImageMemoryBarrier2.calloc(1, stack)
-				.`sType$Default`()
-				.srcStageMask(VK13.VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT)
-				.srcAccessMask(VK13.VK_ACCESS_2_MEMORY_WRITE_BIT)
-				.dstStageMask(VK13.VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT)
-				.dstAccessMask(VK13.VK_ACCESS_2_MEMORY_WRITE_BIT or VK13.VK_ACCESS_2_MEMORY_READ_BIT)
-				.oldLayout(if (keepData) layout else VK10.VK_IMAGE_LAYOUT_UNDEFINED)
-				.newLayout(newLayout)
-				.image(image)
-				.subresourceRange(VkStructs.createImageRange(stack, aspectMask))
+			if(device.versionAtLeast(VK13.VK_API_VERSION_1_3)) {
+				val imageBarrier = VkImageMemoryBarrier2.calloc(1, stack).`sType$Default`()
+					.srcStageMask(VK13.VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT)
+					.srcAccessMask(VK13.VK_ACCESS_2_MEMORY_WRITE_BIT)
+					.dstStageMask(VK13.VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT)
+					.dstAccessMask(VK13.VK_ACCESS_2_MEMORY_WRITE_BIT or VK13.VK_ACCESS_2_MEMORY_READ_BIT)
+					.oldLayout(if (keepData) layout else VK10.VK_IMAGE_LAYOUT_UNDEFINED)
+					.newLayout(newLayout)
+					.image(image)
+					.subresourceRange(VkStructs.createImageRange(stack, aspectMask))
 
-			val dependInfo = VkDependencyInfo.calloc(stack)
-				.`sType$Default`()
-				.pImageMemoryBarriers(imageBarrier)
+				val dependInfo = VkDependencyInfo.calloc(stack)
+					.`sType$Default`()
+					.pImageMemoryBarriers(imageBarrier)
 
-			VK13.vkCmdPipelineBarrier2(cmd.buffer, dependInfo)
+				VK13.vkCmdPipelineBarrier2(cmd.buffer, dependInfo)
+			}
+			else {
+
+				val imageBarrier = VkImageMemoryBarrier.calloc(1, stack).`sType$Default`()
+					.srcAccessMask(VK10.VK_ACCESS_MEMORY_WRITE_BIT)
+					.dstAccessMask(VK10.VK_ACCESS_MEMORY_WRITE_BIT or VK10.VK_ACCESS_MEMORY_READ_BIT)
+					.oldLayout(if (keepData) layout else VK10.VK_IMAGE_LAYOUT_UNDEFINED)
+					.newLayout(newLayout)
+					.image(image)
+					.subresourceRange(VkStructs.createImageRange(stack, aspectMask))
+
+				VK13.vkCmdPipelineBarrier(
+					cmd.buffer,
+					VK10.VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+					VK10.VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+					0, null, null,
+					imageBarrier
+				)
+			}
 			layout = newLayout
 		}
 	}
@@ -92,25 +113,39 @@ interface VulkanImage : Texture {
 	fun copyTo(cmd: PoolAndBuffer, dst: VulkanImage, srcOff: Vec3i = Vec3i(0), srcTR: Vec3i = extents, dstOff: Vec3i = Vec3i(0), dstTR: Vec3i = dst.extents) {
 
 		MemoryStack.stackPush().use { stack ->
-			val blitRegion = VkImageBlit2.calloc(1, stack)
-				.`sType$Default`()
-				.srcOffsets(0) { it.set(srcOff) }
-				.srcOffsets(1) { it.set(srcTR) }
-				.dstOffsets(0) { it.set(dstOff) }
-				.dstOffsets(1) { it.set(dstTR) }
-				.srcSubresource(VkStructs.createImageLayers(stack, VK13.VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1))
-				.dstSubresource(VkStructs.createImageLayers(stack, VK13.VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1))
+			if(device.versionAtLeast(VK13.VK_API_VERSION_1_3)) {
+				val blitRegion = VkImageBlit2.calloc(1, stack)
+					.`sType$Default`()
+					.srcOffsets(0) { it.set(srcOff) }
+					.srcOffsets(1) { it.set(srcTR) }
+					.dstOffsets(0) { it.set(dstOff) }
+					.dstOffsets(1) { it.set(dstTR) }
+					.srcSubresource(VkStructs.createImageLayers(stack, VK13.VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1))
+					.dstSubresource(VkStructs.createImageLayers(stack, VK13.VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1))
 
-			val blitInfo = VkBlitImageInfo2.calloc(stack)
-				.`sType$Default`()
-				.srcImage(image)
-				.srcImageLayout(layout)
-				.dstImage(dst.image)
-				.dstImageLayout(dst.layout)
-				.filter(VK13.VK_FILTER_LINEAR)
-				.pRegions(blitRegion)
+				val blitInfo = VkBlitImageInfo2.calloc(stack)
+					.`sType$Default`()
+					.srcImage(image)
+					.srcImageLayout(layout)
+					.dstImage(dst.image)
+					.dstImageLayout(dst.layout)
+					.filter(VK13.VK_FILTER_LINEAR)
+					.pRegions(blitRegion)
 
-			VK13.vkCmdBlitImage2(cmd.buffer, blitInfo)
+				VK13.vkCmdBlitImage2(cmd.buffer, blitInfo)
+			}
+
+			else{
+				val blitRegion = VkImageBlit.calloc(1, stack)
+					.srcOffsets(0) { it.set(srcOff) }
+					.srcOffsets(1) { it.set(srcTR) }
+					.dstOffsets(0) { it.set(dstOff) }
+					.dstOffsets(1) { it.set(dstTR) }
+					.srcSubresource(VkStructs.createImageLayers(stack, VK13.VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1))
+					.dstSubresource(VkStructs.createImageLayers(stack, VK13.VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1))
+
+				VK10.vkCmdBlitImage(cmd.buffer, image, layout, dst.image, dst.layout, blitRegion, VK10.VK_FILTER_LINEAR)
+			}
 		}
 	}
 
@@ -122,32 +157,19 @@ interface VulkanImage : Texture {
 		uploadBuffer.getBuffer(dataSize).put(0, data, 0, data.limit())
 
 		transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+		val aspect = format.getAspects().vulkanMask()
 
-		if (format == this.format) {
-			MemoryStack.stackPush().use { stack ->
-				val regions = VkBufferImageCopy.calloc(1, stack)
-					.bufferOffset(0)
-					.bufferRowLength(0)
-					.bufferImageHeight(0)
+		MemoryStack.stackPush().use { stack ->
+			val layers = VkStructs.createImageLayers(stack, aspect, 0, 0, 1)
+			val offset = VkOffset3D.calloc(stack).set(x, y, z)
+			val extents = VkExtent3D.calloc(stack).set(w, h, d)
+			if (format == this.format) {
+				cmd.copyBufferToImage(uploadBuffer, this, 0, 0, 0, layers, offset, extents)
 
-					.imageSubresource(VkStructs.createImageLayers(stack, VK10.VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1))
-					.imageOffset(VkOffset3D.calloc(stack).set(x, y, z))
-					.imageExtent(VkExtent3D.calloc(stack).set(w, h, d))
-
-				cmd.copyBufferToImage(uploadBuffer, this, regions)
 			}
-		} else {
-			MemoryStack.stackPush().use { stack ->
-				val blitImage = VkUtil.createImage3D(device, "Blit Image", format, 19, VK10.VK_IMAGE_ASPECT_COLOR_BIT, Vec3i(w, h, d))
-				val regions = VkBufferImageCopy.calloc(1, stack)
-					.bufferOffset(0)
-					.bufferRowLength(0)
-					.bufferImageHeight(0)
-
-					.imageSubresource(VkStructs.createImageLayers(stack, VK10.VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1))
-					.imageOffset(VkOffset3D.calloc(stack).set(0, 0, 0))
-					.imageExtent(VkExtent3D.calloc(stack).set(w, h, d))
-				cmd.copyBufferToImage(uploadBuffer, blitImage, regions)
+			else {
+				val blitImage = VkUtil.createImage3D(device, "Blit Image", format, 19, aspect, Vec3i(w, h, d))
+				cmd.copyBufferToImage(uploadBuffer, this, 0, 0, 0, layers, offset, extents)
 				blitImage.copyTo(cmd, this, Vec3i(), Vec3i(w, h, d), Vec3i(x, y, z), Vec3i(x + w, y + h, z + d))
 				cmd.deletion.push(blitImage)
 			}
@@ -211,7 +233,7 @@ interface VulkanImage : Texture {
 
 	fun getSampler() = device.getOrCreateSampler(parameters)
 
-	override fun createCopier(): TextureCopier = VulkanTextureCopier(device)
+	override fun createCopier(): TextureCopier = if(device.versionAtLeast(VK13.VK_API_VERSION_1_3)) VulkanTextureCopier2(device) else VulkanTextureCopier(device)
 
 	companion object {
 		fun getImageAspect(layout: Int) = when (layout) {

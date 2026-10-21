@@ -55,13 +55,39 @@ abstract class ResourceFactory {
 			return Texture2D.missing
 		}
 
-		val (data, vec) = TextureLoader.loadTextureData(buffer, parameters.flip, 0)
+		val (fileData, vec) = TextureLoader.loadTextureData(buffer, parameters.flip, 0)
 		buffer.free()
 
-		if (data != null) {
-			val format = TextureLoader.channelsToStbiFormat(vec.z)
-			val texture = createTexture2D(fileName.substringBeforeLast('.'), vec.x, vec.y, format, format, data, parameters)
-			STBImage.stbi_image_free(data)
+		if (fileData != null) {
+			val textureData: ByteBuffer
+			var format = TextureLoader.channelsToStbiFormat(vec.z)
+			if(!format.supported){
+				when(format){
+					TextureFormat.RG8 -> {
+						val pixels = fileData.remaining() / 2
+						textureData = ByteBuffer.allocateDirect(4 * pixels)
+						format = TextureFormat.RGBA8
+						repeat(pixels){ i ->
+							textureData.put(i * 4, fileData, i * 2, 2)
+						}
+					}
+					TextureFormat.RGB8 -> {
+						val pixels = fileData.remaining() / 3
+						textureData = ByteBuffer.allocateDirect(4 * pixels)
+						format = TextureFormat.RGBA8
+						repeat(pixels){ i ->
+							textureData.put(i * 4, fileData, i * 3, 3)
+						}
+					}
+					else -> {
+						STBImage.stbi_image_free(fileData)
+						return Texture2D.missing
+					}
+				}
+			}
+			else textureData = fileData
+			val texture = createTexture2D(fileName.substringBeforeLast('.'), vec.x, vec.y, format, format, textureData, parameters)
+			STBImage.stbi_image_free(fileData)
 			return texture
 		}
 		GameEngineI.warn("\nSTB failed to load texture $fileName")

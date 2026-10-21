@@ -1,8 +1,12 @@
 package com.pineypiney.game_engine.xr
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.util.LwjglUtil
+import com.pineypiney.game_engine.util.LwjglUtil.enumerate
+import com.pineypiney.game_engine.util.LwjglUtil.enumerateStructs
+import com.pineypiney.game_engine.util.extension_functions.stringsToPointer
 import com.pineypiney.game_engine.vulkan.VulkanManager
-import com.pineypiney.game_engine.window.GLFWWindow
+import com.pineypiney.game_engine.window.WindowI
 import glm_.detail.GLM_DEPTH_CLIP_SPACE
 import glm_.detail.GlmDepthClipSpace
 import glm_.mat4x4.Mat4
@@ -10,18 +14,14 @@ import glm_.quat.Quat
 import glm_.vec3.Vec3
 import glm_.vec3.Vec3i
 import kool.map
-import org.lwjgl.PointerBuffer
 import org.lwjgl.glfw.GLFWNativeWGL
 import org.lwjgl.glfw.GLFWNativeWayland
 import org.lwjgl.glfw.GLFWNativeWin32
 import org.lwjgl.openxr.*
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
-import org.lwjgl.system.Struct
-import org.lwjgl.system.StructBuffer
 import org.lwjgl.system.windows.User32
 import java.nio.ByteBuffer
-import java.nio.IntBuffer
 import kotlin.math.min
 import kotlin.math.tan
 
@@ -177,31 +177,6 @@ object XrUtil {
 		}
 	}
 
-	fun <E> enumerate(stack: MemoryStack, name: String, creator: (MemoryStack, Int) -> E, func: (IntBuffer, E?) -> Int) : E? {
-		val b = stack.callocInt(1)
-		processResult(func(b, null), "Failed to get the number of $name")
-
-		if (b[0] > 0) {
-			val result = creator(stack, b[0])
-			processResult(func(b, result), "Failed to get $name")
-			return  result
-		}
-		return null
-	}
-
-	fun <S: Struct<S>, E: StructBuffer<S, E>> enumerateStack(stack: MemoryStack, name: String, setType: S.() -> Unit, creator: (Int, MemoryStack) -> E, func: (IntBuffer, E?) -> Int) : E? {
-		val b = stack.callocInt(1)
-		processResult(func(b, null), "Failed to get the number of $name")
-
-		if (b[0] > 0) {
-			val result = creator(b[0], stack)
-			for(s in result) setType(s)
-			processResult(func(b, result), "Failed to get $name")
-			return  result
-		}
-		return null
-	}
-
 	fun getAvailableLayers(stack: MemoryStack): List<String> {
 		val b = stack.mallocInt(1)
 		processResult(XR10.xrEnumerateApiLayerProperties(b, null), "Failed to get the number of available layers")
@@ -230,57 +205,55 @@ object XrUtil {
 	}
 
 	fun getViewConfigurations(stack: MemoryStack, instance: XrInstance, systemId: Long): List<Int> {
-		val result = enumerate(stack, "View Configurations", MemoryStack::mallocInt){ b, res ->
-			XR10.xrEnumerateViewConfigurations(instance, systemId, b, res)
-		} ?: return emptyList()
+		val result = enumerate(stack, "View Configurations", instance, systemId, MemoryStack::mallocInt, XR10::xrEnumerateViewConfigurations) ?: return emptyList()
 
 		return result.map{ it }
 	}
 
 	fun getViewConfigurationViews(stack: MemoryStack, instance: XrInstance, systemId: Long, viewConfiguration: Int): List<XrViewConfigurationView> {
-		val result = enumerateStack(stack, "View Configuration Views", XrViewConfigurationView::`type$Default`, XrViewConfigurationView::calloc){ b, res ->
+		val result = enumerateStructs(stack, "View Configuration Views", XrViewConfigurationView::`type$Default`, XrViewConfigurationView::calloc){ b, res ->
 			XR10.xrEnumerateViewConfigurationViews(instance, systemId, viewConfiguration, b, res)
 		} ?: return emptyList()
 
+		return result.map{ XrViewConfigurationView.malloc().set(it) }
+	}
+
+	fun getBlendModes(stack: MemoryStack, instance: XrInstance, systemId: Long, viewType: Int): List<Int> {
+		val result = enumerate(stack, "Blend Modes", instance, systemId, MemoryStack::mallocInt){ ins, sys, b, res ->
+			XR10.xrEnumerateEnvironmentBlendModes(ins, sys, viewType, b, res)
+		} ?: return emptyList()
 		return result.map{ it }
 	}
 
 	fun getSwapchainFormats(stack: MemoryStack, session: XrSession): List<Long> {
-		val result = enumerate(stack, "Swapchain Formats", MemoryStack::mallocLong){ b, res ->
-			XR10.xrEnumerateSwapchainFormats(session, b, res)
-		} ?: return emptyList()
+		val result = enumerate(stack, "Swapchain Formats", session, MemoryStack::mallocLong, XR10::xrEnumerateSwapchainFormats) ?: return emptyList()
 		return result.map{ it }
 	}
 
 	fun getOpenGlSwapchainImages(stack: MemoryStack, swapchain: XrSwapchain): List<XrSwapchainImageOpenGLKHR> {
-		val result = enumerateStack(stack, "Swapchain Images", XrSwapchainImageOpenGLKHR::`type$Default`, XrSwapchainImageOpenGLKHR::calloc){ b, res ->
+		val result = enumerateStructs(stack, "Swapchain Images", XrSwapchainImageOpenGLKHR::`type$Default`, XrSwapchainImageOpenGLKHR::calloc){ b, res ->
 			XR10.xrEnumerateSwapchainImages(swapchain, b, res?.let(XrSwapchainImageBaseHeader::create))
 		} ?: return emptyList()
 		return result.map{ it }
 	}
 
-	fun getBlendModes(stack: MemoryStack, instance: XrInstance, systemId: Long, viewType: Int): List<Int> {
-		val result = enumerate(stack, "Blend Modes", MemoryStack::mallocInt){ b, res ->
-			XR10.xrEnumerateEnvironmentBlendModes(instance, systemId, viewType, b, res)
+	fun getVulkanSwapchainImages(stack: MemoryStack, swapchain: XrSwapchain): List<XrSwapchainImageVulkanKHR> {
+		val result = enumerateStructs(stack, "Swapchain Images", XrSwapchainImageVulkanKHR::`type$Default`, XrSwapchainImageVulkanKHR::calloc){ b, res ->
+			XR10.xrEnumerateSwapchainImages(swapchain, b, res?.let(XrSwapchainImageBaseHeader::create))
 		} ?: return emptyList()
 		return result.map{ it }
 	}
 
-	fun filterAvailableToPointer(stack: MemoryStack, requested: List<String>, available: List<String>): PointerBuffer {
-		val filtered = requested.filter(available::contains)
-		val pointer = stack.mallocPointer(filtered.size)
-		for(str in filtered) pointer.put(stack.UTF8(str, true))
-		return pointer.flip()
-	}
-
-
-	fun createInstance(stack: MemoryStack, name: String = "Piney's GameEngine", version: Int = 0): XrInstance{
+	fun createInstance(stack: MemoryStack, name: String = "Piney's GameEngine", layers: MutableList<String>, extensions: MutableList<String>, version: Int = 0): XrInstance{
 		val appName = if(name.length > XR10.XR_MAX_APPLICATION_NAME_SIZE) name.substring(0, XR10.XR_MAX_APPLICATION_NAME_SIZE) else name
 		val engineName = "Piney's GameEngine"
 //		if(engineName.length > XR10.XR_MAX_ENGINE_NAME_SIZE) return null
 
-		val layersPointer = filterAvailableToPointer(stack, listOf("XR_APILAYER_LUNARG_core_validation"), getAvailableLayers(stack))
-		val extensionsPointer = filterAvailableToPointer(stack, listOf(KHROpenGLEnable.XR_KHR_OPENGL_ENABLE_EXTENSION_NAME, EXTDebugUtils.XR_EXT_DEBUG_UTILS_EXTENSION_NAME), getAvailableExtensions(stack))
+		layers.retainAll(getAvailableLayers(stack))
+		extensions.retainAll(getAvailableExtensions(stack))
+
+		val layersPointer = stack.stringsToPointer(layers)
+		val extensionsPointer = stack.stringsToPointer(extensions)
 
 		val createInfo = XrInstanceCreateInfo.calloc(stack).`type$Default`()
 			.createFlags(0)
@@ -289,17 +262,14 @@ object XrUtil {
 			.enabledExtensionNames(extensionsPointer)
 
 		val b = stack.mallocPointer(1)
-		processResult(XR10.xrCreateInstance(createInfo, b), "Failed to create OpenXR Instance")
+   		processResult(XR10.xrCreateInstance(createInfo, b), "Failed to create OpenXR Instance")
 		return XrInstance(b[0], createInfo)
 	}
 
 	fun getInstanceProperties(stack: MemoryStack, instance: XrInstance): Pair<String, Vec3i> {
 		val props = XrInstanceProperties.calloc(stack).`type$Default`()
 		processResult(XR10.xrGetInstanceProperties(instance, props), "Failed to get instance properties")
-		val name = props.runtimeNameString()
-		val long = props.runtimeVersion()
-		val version = Vec3i(long shr 48, (long shr 32) and 0xffff, long and 0xffffffff)
-		return name to version
+		return props.runtimeNameString() to LwjglUtil.version(props.runtimeVersion())
 	}
 
 	fun setupDebugger(stack: MemoryStack, instance: XrInstance, severities: Int, callback: XrDebugUtilsMessengerCallbackEXTI): XrDebugUtilsMessengerEXT {
@@ -329,7 +299,8 @@ object XrUtil {
 		val api = XrGraphicsBindingVulkan2KHR.calloc(stack).`type$Default`()
 			.instance(vulkan.instance)
 			.physicalDevice(vulkan.gpu.physicalDevice)
-			.device(vulkan.device.device)
+			.device(vulkan.device.device).queueFamilyIndex(vulkan.device.queueFamilyIndex)
+			.queueIndex(0)
 
 		val createInfo = XrStructs.sessionInfo(stack, manager.systemID)
 			.next(api)
@@ -337,10 +308,7 @@ object XrUtil {
 		return createSession(stack, createInfo, manager)
 	}
 
-	fun createOpenGlWin32Session(stack: MemoryStack, manager: OpenXrManager, window: GLFWWindow): OpenXrSession {
-
-		val requirements = XrGraphicsRequirementsOpenGLKHR.calloc(stack).`type$Default`()
-		KHROpenGLEnable.xrGetOpenGLGraphicsRequirementsKHR(manager.instance, manager.systemID, requirements)
+	fun createOpenGlWin32Session(stack: MemoryStack, manager: OpenXrManager, window: WindowI): OpenXrSession {
 
 		// https://medium.com/@javiercarranzaburgueno/an-easy-openxr-vr-implementation-for-c-games-93c161321a3b#3bda
 		val hWND = GLFWNativeWin32.glfwGetWin32Window(window.windowHandle)
@@ -377,7 +345,7 @@ object XrUtil {
 		return OpenXrSession(XrSession(b[0], manager.instance), manager)
 	}
 
-	fun createSwapchains(stack: MemoryStack, session: XrSession, views: List<XrViewConfigurationView>, colourFormat: Long, depthFormat: Long): List<OpenXrSwapchain> {
+	fun createSwapchains(stack: MemoryStack, session: OpenXrSession, views: List<XrViewConfigurationView>, colourFormat: Long, depthFormat: Long): List<OpenXrSwapchain> {
 		val createInfo = XrSwapchainCreateInfo.calloc(stack).`type$Default`()
 		return views.map { view ->
 			createInfo.createFlags(1)
@@ -391,8 +359,8 @@ object XrUtil {
 				.mipCount(1)
 
 			val swapchainPtr = stack.mallocPointer(1)
-			processResult(XR10.xrCreateSwapchain(session, createInfo, swapchainPtr), "Failed to create Colour Swapchain")
-			val colourSwapchain = XrSwapchain(swapchainPtr[0], session)
+			processResult(XR10.xrCreateSwapchain(session.session, createInfo, swapchainPtr), "Failed to create Colour Swapchain")
+			val colourSwapchain = XrSwapchain(swapchainPtr[0], session.session)
 
 			createInfo.createFlags(1)
 				.usageFlags((XR10.XR_SWAPCHAIN_USAGE_SAMPLED_BIT or XR10.XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT).toLong())
@@ -404,22 +372,18 @@ object XrUtil {
 				.arraySize(1)
 				.mipCount(1)
 
-			processResult(XR10.xrCreateSwapchain(session, createInfo, swapchainPtr), "Failed to create Depth Swapchain")
-			val depthSwapchain = XrSwapchain(swapchainPtr[0], session)
+			processResult(XR10.xrCreateSwapchain(session.session, createInfo, swapchainPtr), "Failed to create Depth Swapchain")
+			val depthSwapchain = XrSwapchain(swapchainPtr[0], session.session)
 
-			val colourImages = getOpenGlSwapchainImages(stack, colourSwapchain)
-			val depthImages = getOpenGlSwapchainImages(stack, depthSwapchain)
-
-			val framebuffer = OpenXrGlFramebuffer(colourImages.mapIndexed { i, image -> OpenXrGlTexture("OpenXR Swapchain colour texture $i", image.image(), colourFormat.toInt()) }, depthImages.mapIndexed { i, image -> OpenXrGlTexture("OpenXR Swapchain depth texture $i", image.image(), depthFormat.toInt()) })
-
+			val framebuffer = session.manager.graphicsApi.createFramebuffer(stack, session.manager.manager, createInfo.width(), createInfo.height(), colourSwapchain, depthSwapchain, colourFormat.toInt(), depthFormat.toInt())
 			OpenXrSwapchain(view, colourSwapchain, depthSwapchain, framebuffer)
 		}
 	}
 
-	fun createReferenceSpace(stack: MemoryStack, session: XrSession): XrSpace {
+	fun createReferenceSpace(stack: MemoryStack, session: XrSession, type: Int, initialPos: Vec3 = Vec3(0f), initialRot: Quat = Quat()): XrSpace {
 		val createInfo = XrReferenceSpaceCreateInfo.calloc(stack).`type$Default`()
-			.referenceSpaceType(XR10.XR_REFERENCE_SPACE_TYPE_LOCAL)
-			.poseInReferenceSpace{ it.set(Quat(), Vec3()) }
+			.referenceSpaceType(type)
+			.poseInReferenceSpace{ it.set(initialRot, initialPos) }
 		val space = stack.mallocPointer(1)
 		processResult(XR10.xrCreateReferenceSpace(session, createInfo, space), "Failed to create Reference Space")
 		return XrSpace(space[0], session)
@@ -432,11 +396,8 @@ object XrUtil {
 	}
 
 	fun readPath(stack: MemoryStack, instance: XrInstance, path: Long): String {
-		val bytes = enumerate(stack, "XrPath", MemoryStack::malloc){ b, res ->
-			XR10.xrPathToString(instance, path, b, res)
-		} ?: return "Empty Path"
-
-		return MemoryUtil.memUTF8(bytes)
+		val bytes = enumerate(stack, "XrPath", instance, path, MemoryStack::malloc, XR10::xrPathToString) ?: return "Empty Path"
+		return MemoryUtil.memUTF8(bytes, bytes.remaining() - 1)
 	}
 
 	fun createActionSet(stack: MemoryStack, instance: XrInstance, name: String, localizedName: String, priority: Int = 0): XrActionSet {
@@ -450,9 +411,9 @@ object XrUtil {
 		return XrActionSet(b[0], instance)
 	}
 
-	fun createAction(stack: MemoryStack, set: XrActionSet, type: Int, subActionPaths: List<String>, name: String, localizedName: String): XrAction {
+	fun createAction(stack: MemoryStack, set: XrActionSet, type: Int, subActionPaths: Collection<Long>, name: String, localizedName: String): XrAction {
 		val l = stack.mallocLong(subActionPaths.size)
-		for(path in subActionPaths) l.put(createPath(stack, set.instance, path))
+		for(path in subActionPaths) l.put(path)
 		val createInfo = XrActionCreateInfo.calloc(stack).`type$Default`()
 			.actionType(type)
 			.subactionPaths(l.flip())
@@ -498,12 +459,7 @@ object XrUtil {
 		return XrSpace(b[0], session)
 	}
 
-	fun createActionPoseSpace(stack: MemoryStack, session: XrSession, action: XrAction, str: String?) : XrSpace {
-		val path = if(str != null) createPath(stack, session.instance, str) else 0L
-		return createActionPoseSpace(stack, session, action, path)
-	}
-
-	fun createProjection(fov: XrFovf, near: Float, far: Float, invertY: Boolean): Mat4 {
+	fun createProjection(fov: XrFovf, near: Float, far: Float, invertY: Boolean, res: Mat4 = Mat4()): Mat4 {
 		val tanLeft = tan(fov.angleLeft())
 		val tanRight = tan(fov.angleRight())
 		val tanUp = tan(fov.angleUp())
@@ -515,8 +471,8 @@ object XrUtil {
 
 		val m22: Float
 		val m23: Float
-		// Place far plane at invinity
-		if(far <= near){
+		// Place far plane at infinity
+		if(false){
 			m22 = -1f
 			m23 = -(near + zOffset)
 		}
@@ -526,7 +482,7 @@ object XrUtil {
 			m23 = far * (near + zOffset) * invSpan
 		}
 
-		return Mat4(
+		return res(
 			2f / tanWidth, 					0f, 							0f, 0f,
 			0f, 								2f / tanHeight, 				0f, 0f,
 			(tanLeft + tanRight) / tanWidth, 	(tanDown + tanUp) / tanHeight, m22, -1f,

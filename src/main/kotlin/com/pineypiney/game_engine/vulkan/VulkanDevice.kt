@@ -37,7 +37,8 @@ class VulkanDevice(val device: VkDevice, val physicalDevice: VulkanPhysicalDevic
 		val deviceAddressInfo = VkBufferDeviceAddressInfo.calloc(stack)
 			.`sType$Default`()
 			.buffer(buffer.buffer)
-		return VK12.vkGetBufferDeviceAddress(device, deviceAddressInfo)
+		return if(device.capabilities.apiVersion >= VK12.VK_API_VERSION_1_2) VK12.vkGetBufferDeviceAddress(device, deviceAddressInfo)
+		else KHRBufferDeviceAddress.vkGetBufferDeviceAddressKHR(device, deviceAddressInfo)
 	}
 
 	fun getQueue(index: Int): VkQueue {
@@ -84,6 +85,7 @@ class VulkanDevice(val device: VkDevice, val physicalDevice: VulkanPhysicalDevic
 	}
 
 	fun nameObject(ptr: Long, type: Int, name: String) {
+		if(!VulkanManager.debugEnabled) return
 		val name = MemoryUtil.memUTF8(name)
 		MemoryStack.stackPush().use { stack ->
 			val info = VkDebugUtilsObjectNameInfoEXT.calloc(stack).`sType$Default`()
@@ -95,6 +97,8 @@ class VulkanDevice(val device: VkDevice, val physicalDevice: VulkanPhysicalDevic
 	}
 
 	fun waitIdle() = VK10.vkDeviceWaitIdle(device)
+
+	fun versionAtLeast(version: Int) = device.capabilities.apiVersion >= version
 
 	override fun delete() {
 		samplers.forEach { (_, value) ->

@@ -15,6 +15,7 @@ abstract class WindowedGameEngine<E : WindowGameLogic>(override val manager: Api
 	override val input; get() = window.input
 
 	override fun init() {
+		manager.init()
 		super.init()
 
 		activeScreen.open()

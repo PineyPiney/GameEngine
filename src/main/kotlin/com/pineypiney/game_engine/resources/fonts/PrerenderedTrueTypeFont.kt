@@ -116,8 +116,9 @@ class PrerenderedTrueTypeFont(
 
 //				texture.setSubData(t.getData(), x, 0, t.width, t.height, t.format)
 			}
-			catch (_: Exception){
+			catch (e: Exception){
 				GameEngineI.logger.error("Couldn't get texture data for TrueTypeFont $name, character $c")
+				e.printStackTrace()
 			}
 
 			val glyph = font.createGlyphVector(ctx, c.toString())

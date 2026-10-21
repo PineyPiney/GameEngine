@@ -92,7 +92,7 @@ interface Texture3D : Texture {
 
 		fun initDefaultTextures(factory: ResourceFactory) {
 			none = factory.nullTexture3D()
-			missing = factory.createTexture3D("missing", 32, 32, 1, TextureFormat.RGB8, TextureFormat.RGBA8, Texture2D.createErrorData(), TextureParameters())
+			missing = factory.createTexture3D("missing", 32, 32, 1, TextureFormat.RGBA8, TextureFormat.RGBA8, Texture2D.createErrorData(), TextureParameters())
 
 			DeletionQueue.GLOBAL.push(missing)
 		}

@@ -96,9 +96,12 @@ object OpenGlRendering : RenderingApi {
 		}
 	}
 
-	override fun clearStencil(value: Int) {
+	override fun clearStencil(value: Int, viewport: Viewport) {
+		GLFunc.scissorBox = Vec4i(viewport.bl, viewport.size)
+		GLFunc.scissor = true
 		GLFunc.stencilClear = value
 		GL11C.glClear(GL11C.GL_STENCIL_BUFFER_BIT)
+		GLFunc.scissor = false
 	}
 
 	override fun disableStencil() {
@@ -147,8 +150,13 @@ object OpenGlRendering : RenderingApi {
 		glm.ortho(-aspectRatio, aspectRatio, -1f, 1f, mat)
 	}
 
-	override fun createFramebuffer(width: Int, height: Int, colourFormat: TextureFormat, depthStencilFormat: TextureFormat, usage: Collection<TextureUsage>): Framebuffer {
-		return OpenGlFramebuffer(width, height, colourFormat, depthStencilFormat)
+	override fun createFramebuffer(
+		size: Vec2i,
+		colourFormat: TextureFormat,
+		depthStencilFormat: TextureFormat,
+		usage: Collection<TextureUsage>
+	): Framebuffer {
+		return OpenGlCDSFramebuffer(size, colourFormat, depthStencilFormat)
 	}
 
 	override fun delete() {}

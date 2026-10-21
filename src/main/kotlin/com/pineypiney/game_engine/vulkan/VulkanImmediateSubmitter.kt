@@ -3,7 +3,6 @@ package com.pineypiney.game_engine.vulkan
 import com.pineypiney.game_engine.objects.Deletable
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.VK10
-import org.lwjgl.vulkan.VK13
 import org.lwjgl.vulkan.VkQueue
 
 class VulkanImmediateSubmitter(device: VulkanDevice, val queue: VkQueue = device.getQueue(0)) : Deletable {
@@ -24,9 +23,7 @@ class VulkanImmediateSubmitter(device: VulkanDevice, val queue: VkQueue = device
 		immediateFence.reset()
 		immediateCommands.execute(func)
 		MemoryStack.stackPush().use { stack ->
-			val cmdInfo = VkStructs.createBufferSubmits(stack, immediateCommands.buffer, 0)
-			val submitInfo = VkStructs.createSubmitInfo2s(stack, cmdInfo, null, null)
-			VK13.vkQueueSubmit2(queue, submitInfo, immediateFence.handle)
+			VkUtil.submitQueue(stack, queue, immediateCommands, immediateFence)
 		}
 		immediateFence.wait(1e9)
 	}
@@ -35,9 +32,7 @@ class VulkanImmediateSubmitter(device: VulkanDevice, val queue: VkQueue = device
 		immediateFence.reset()
 		val ret = immediateCommands.execute(func)
 		MemoryStack.stackPush().use { stack ->
-			val cmdInfo = VkStructs.createBufferSubmits(stack, immediateCommands.buffer, 0)
-			val submitInfo = VkStructs.createSubmitInfo2s(stack, cmdInfo, null, null)
-			VK13.vkQueueSubmit2(queue, submitInfo, immediateFence.handle)
+			VkUtil.submitQueue(stack, queue, immediateCommands, immediateFence)
 		}
 		immediateFence.wait(1e9)
 		return ret

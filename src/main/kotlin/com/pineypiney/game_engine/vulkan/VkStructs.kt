@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.vulkan
 
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderModule
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
+import com.pineypiney.game_engine.util.extension_functions.longOrEmpty
 import com.pineypiney.game_engine.window.Viewport
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
@@ -180,15 +181,6 @@ object VkStructs {
 			.pStencilAttachment(stencilAttachment)
 	}
 
-	fun createViewport(stack: MemoryStack, viewport: Viewport): VkViewport {
-		return VkViewport.calloc(stack)
-			.set(
-				viewport.bl.x.toFloat(), viewport.bl.y.toFloat(),
-				viewport.size.x.toFloat(), viewport.size.y.toFloat(),
-				0f, 1f
-			)
-	}
-
 	fun createViewports(stack: MemoryStack, viewports: Iterable<Viewport>): VkViewport.Buffer {
 		val res = VkViewport.calloc(viewports.count(), stack)
 		for (viewport in viewports) {
@@ -225,34 +217,35 @@ object VkStructs {
 			.value(value)
 	}
 
-	fun createSubmitInfo(
+	fun createSubmitInfos(
 		stack: MemoryStack,
-		cmd: PoolAndBuffer,
-		signalSemaphore: VulkanSemaphoreHandler?,
-		waitSemaphore: VulkanSemaphoreHandler?,
-		waitMask: Int = VK10.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-	): VkSubmitInfo {
-		val buffer = stack.mallocPointer(1).put(0, cmd.buffer)
-		val maskBuffer = stack.mallocInt(1).put(0, waitMask)
-		return VkSubmitInfo.calloc(stack)
+		cmd: VkCommandBuffer,
+		waitSemaphore: Long?,
+		waitMask: Int,
+		signalSemaphore: Long?
+	): VkSubmitInfo.Buffer {
+		val waitSemaphores = stack.longOrEmpty(waitSemaphore)
+		val signalSemaphores = stack.longOrEmpty(signalSemaphore)
+		return VkSubmitInfo.calloc(1, stack)
 			.`sType$Default`()
-			.pCommandBuffers(buffer)
-			.pSignalSemaphores(signalSemaphore?.buffer)
-			.pWaitDstStageMask(maskBuffer)
-			.pWaitSemaphores(waitSemaphore?.buffer)
+			.pCommandBuffers(stack.pointers(cmd))
+			.pWaitSemaphores(waitSemaphores)
+			.waitSemaphoreCount(waitSemaphores.remaining())
+			.pWaitDstStageMask(stack.ints(waitMask))
+			.pSignalSemaphores(signalSemaphores)
 	}
 
 	fun createSubmitInfo2s(
 		stack: MemoryStack,
 		cmd: VkCommandBufferSubmitInfo.Buffer,
-		signalSemaphore: VkSemaphoreSubmitInfo.Buffer?,
-		waitSemaphore: VkSemaphoreSubmitInfo.Buffer?
+		waitSemaphore: VkSemaphoreSubmitInfo.Buffer?,
+		signalSemaphore: VkSemaphoreSubmitInfo.Buffer?
 	): VkSubmitInfo2.Buffer {
 		return VkSubmitInfo2.calloc(1, stack)
 			.`sType$Default`()
 			.pCommandBufferInfos(cmd)
-			.pSignalSemaphoreInfos(signalSemaphore)
 			.pWaitSemaphoreInfos(waitSemaphore)
+			.pSignalSemaphoreInfos(signalSemaphore)
 	}
 
 	fun createPresentInfo(stack: MemoryStack, swapchain: VulkanSwapchainHandler, waitSemaphore: VulkanSemaphoreHandler?): VkPresentInfoKHR {

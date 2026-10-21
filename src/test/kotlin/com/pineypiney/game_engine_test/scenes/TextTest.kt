@@ -27,7 +27,7 @@ class TextTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogi
 
 	override val id: String = "Text Test"
 
-	override val renderer: GameRenderer<TextTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(it, id) }
+	override val renderer: GameRenderer<TextTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(window, id) }
 
 	val ttfTextObject = Text.makeMenuText("TTF Text\nTest", Vec4(0f, 0f, 0f, 1f), 40).apply {
 		components.add(ColourRendererComponent(this, Vec4(.6f), ColourRendererComponent.menuShader, Mesh.cornerSquareShape))

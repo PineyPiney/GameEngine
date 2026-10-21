@@ -33,7 +33,7 @@ import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 class ShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
 	override val id: String = "Render Shader Test"
-	override val renderer: GameRenderer<ShaderTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(it, id) }
+	override val renderer: GameRenderer<ShaderTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(window, id) }
 
 	val shader = ShaderLoader[ResourceKey("menu_squircle"), ResourceKey("vertex/menu"), ResourceKey("fragment/squircle")]
 	val uniformValues = mutableMapOf<String, Any>()

@@ -57,7 +57,7 @@ import kotlin.math.sign
 class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameLogic() {
 
 	override val id: String = "2D Game"
-	override val renderer: GameRenderer<Game2D> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(it, id) }
+	override val renderer: GameRenderer<Game2D> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(window, id) }
 	val camera get() = renderer.camera
 
 	val standardCursors = intArrayOf(GLFW_RESIZE_EW_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).map { Cursor(it) }
@@ -191,8 +191,6 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameL
 		model1 resize Vec3(3f)
 		model2 translate Vec3(3, -4, 0f)
 		snake translate Vec3(-2, -5, 0f)
-
-		renderer.setClearColour(Vec4(1f, 0f, 0f, 1f))
 
 		input.getInput<GamepadInput>().setDefaultController(movement::gamepadID) {
 			movement.gamepadID = it?.id ?: -1

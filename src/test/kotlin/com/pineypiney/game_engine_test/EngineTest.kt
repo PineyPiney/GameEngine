@@ -11,12 +11,10 @@ import com.pineypiney.game_engine.objects.components.rendering.SpriteComponent
 import com.pineypiney.game_engine.objects.util.Animation
 import com.pineypiney.game_engine.resources.DirectorySource
 import com.pineypiney.game_engine.resources.GithubSource
-import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.fonts.TrueTypeLoader
 import com.pineypiney.game_engine.util.BitMap3D
 import com.pineypiney.game_engine.util.Colour
-import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.extension_functions.normal
@@ -34,9 +32,8 @@ import com.pineypiney.game_engine.window.VulkanWindow
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.xr.OpenXrManager
+import com.pineypiney.game_engine.xr.VulkanXr
 import com.pineypiney.game_engine_test.scenes.*
-import com.pineypiney.game_engine_test.testVR.TestVREngine
-import com.pineypiney.game_engine_test.testVR.TestVRGame
 import glm_.asHexString
 import glm_.f
 import glm_.has
@@ -45,6 +42,7 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.junit.Test
+import org.lwjgl.vulkan.VK13
 import java.io.FileInputStream
 import kotlin.math.PI
 import kotlin.math.max
@@ -74,45 +72,24 @@ class EngineTest{
 	}
 
 	@Test
-	fun testVR(){
-		runWindowEngine(::TestVREngine, ::TestVRGame)
-	}
-
-	@Test
 	fun testXR(){
 
 		LibrarySetUp.initGLFW()
-		val window = TestWindow()
+		val window = VulkanWindow("OpenXR Test")
+//		val window = TestWindow(version = Vec2i(4, 3))
 		window.init()
 
-		val resources = ResourcesLoader(OpenGlResourceFactory(), listOf(DirectorySource("src/test/resources"), DirectorySource("src/main/resources")))
-		resources.loadInitialResources()
-		resources.loadResources()
-
-		val manager = OpenXrManager(window)
-		val pressed = BooleanArray(3)
+		val openxr = OpenXrManager(window, VulkanXr)
+		val timer = Timer()
+		timer.init()
 		run@while(!window.shouldClose) {
-			if(!manager.session.pollEvents()) break@run
-			if(manager.session.running) manager.renderFrame()
+			timer.tickFrame()
+			if(!openxr.session.pollEvents()) break@run
+			if(openxr.session.running) openxr.renderer.render()
 			window.update()
 			if(window.getKey(' '.code) == 1) break
-			for(b in 0..2){
-				val key = window.getKey(b + 'J'.code) == 1
-				if(pressed[b] != key){
-					pressed[b] = key
-					if(key){
-						when(b){
-							0 -> OpenXrManager.INVERT_VIEW = !OpenXrManager.INVERT_VIEW
-							1 -> OpenXrManager.NEG_PROJ = !OpenXrManager.NEG_PROJ
-							2 -> OpenXrManager.TRANS_PROJ = !OpenXrManager.TRANS_PROJ
-						}
-					}
-				}
-			}
 		}
-		manager.delete()
-		resources.cleanUp()
-		DeletionQueue.GLOBAL.flush()
+		openxr.delete()
 	}
 
 	@Test
@@ -187,7 +164,7 @@ class EngineTest{
 			LibrarySetUp.initGLFW()
 			val window = VulkanWindow("Vulkan Window", 960, 540)
 			window.init()
-			TestEngine(window, VulkanManager("Engine Test", true), screen, ups, fps).run()
+			TestEngine(window, VulkanManager.validated("Engine Test", VK13.VK_API_VERSION_1_3, true), screen, ups, fps).run()
 		}
 	}
 
@@ -201,7 +178,7 @@ class EngineTest{
 	fun testVulkanEditor() {
 		LibrarySetUp.initGLFW()
 		val window = VulkanWindow("Editor").apply { init() }
-		EditorEngine(window, VulkanManager("Test Engine Editor", true), listOf(DirectorySource("src/test/resources"), DirectorySource())).run()
+		EditorEngine(window, VulkanManager.validated("Test Engine Editor", VK13.VK_API_VERSION_1_3, true), listOf(DirectorySource("src/test/resources"), DirectorySource())).run()
 	}
 
 	@Test

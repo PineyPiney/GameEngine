@@ -41,7 +41,7 @@ import org.lwjgl.opengl.GL43C
 class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
 	override val id: String = "Compute Shader Test"
-	override val renderer: GameRenderer<ComputeShaderTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(it, id) }
+	override val renderer: GameRenderer<ComputeShaderTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(window, id) }
 
 	val shader = ShaderLoader[ResourceKey("compute_test"), ResourceKey("vertex/menu"), ResourceKey("fragment/texture")]
 	val uniformValues = mutableMapOf<String, Any>()

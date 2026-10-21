@@ -10,7 +10,7 @@ val ver: String = "1.0-SNAPSHOT"
 group = "com.pineypiney.game_engine"
 version = ver
 
-val lwjglVersion = "3.3.6"
+val lwjglVersion = "3.4.3"
 
 // Use https://www.lwjgl.org/customize to set natives
 val lwjglNatives: String = run {
@@ -73,7 +73,6 @@ dependencies {
     implementation("org.lwjgl:lwjgl-jemalloc")
     implementation("org.lwjgl:lwjgl-openal")
     implementation("org.lwjgl:lwjgl-opengl")
-    implementation("org.lwjgl:lwjgl-openvr")
     implementation("org.lwjgl:lwjgl-openxr")
     implementation("org.lwjgl:lwjgl-shaderc")
     implementation("org.lwjgl:lwjgl-spvc")
@@ -86,7 +85,6 @@ dependencies {
     implementation("org.lwjgl", "lwjgl-jemalloc", classifier = lwjglNatives)
     implementation("org.lwjgl", "lwjgl-openal", classifier = lwjglNatives)
     implementation("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
-    implementation("org.lwjgl", "lwjgl-openvr", classifier = lwjglNatives)
     implementation("org.lwjgl", "lwjgl-openxr", classifier = lwjglNatives)
     implementation("org.lwjgl", "lwjgl-shaderc", classifier = lwjglNatives)
     implementation("org.lwjgl", "lwjgl-spvc", classifier = lwjglNatives)

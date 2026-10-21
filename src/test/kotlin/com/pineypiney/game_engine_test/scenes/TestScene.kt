@@ -11,7 +11,7 @@ import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 
 abstract class TestScene(override val id: String, override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
-	override val renderer: GameRenderer<TestScene> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(it, id) }
+	override val renderer: GameRenderer<TestScene> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(window, id) }
 
 	override fun render(tickDelta: Double) {
 		renderer.render(this, tickDelta)

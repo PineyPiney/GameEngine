@@ -38,7 +38,13 @@ interface ComputeShader : Shader {
 				
 				layout (local_size_x = 16, local_size_y = 16) in;
 
+				#ifdef OPENGL
+				layout(rgba16f, binding = 0) uniform image2D imgOutput;
+				#endif
+
+				#ifdef VULKAN
 				layout(rgba16f, set = 0, binding = 0) uniform image2D imgOutput;
+				#endif
 
 				void main(){
 					uvec4 value = uvec4(0, 0, 0, 255);

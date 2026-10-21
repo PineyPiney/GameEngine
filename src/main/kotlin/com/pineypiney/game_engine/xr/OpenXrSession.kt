@@ -1,9 +1,11 @@
 package com.pineypiney.game_engine.xr
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.Deletable
-import com.pineypiney.game_engine.util.LwjglUtil
-import com.pineypiney.game_engine.util.extension_functions.hasAll
+import com.pineypiney.game_engine.util.extension_functions.getRotation
+import com.pineypiney.game_engine.util.extension_functions.ptr
+import glm_.vec3.Vec3
 import org.lwjgl.openxr.*
 import org.lwjgl.system.MemoryStack
 
@@ -14,27 +16,20 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 	var state = XR10.XR_SESSION_STATE_UNKNOWN
 	val active get() = state in XR10.XR_SESSION_STATE_SYNCHRONIZED..XR10.XR_SESSION_STATE_FOCUSED
 
-	val leftHandPath: Long
-	val rightHandPath: Long
-	val leftHandPoseSpace: XrSpace
-	val rightHandPoseSpace: XrSpace
-	val leftHandPose: XrPosef = XrPosef.calloc()
-	val rightHandPose: XrPosef = XrPosef.calloc()
-	val leftHandState = XrActionStatePose.calloc().`type$Default`()
-	val rightHandState = XrActionStatePose.calloc().`type$Default`()
-	val leftHandGrabState = XrActionStateFloat.calloc().`type$Default`()
-	val rightHandGrabState = XrActionStateFloat.calloc().`type$Default`()
+	val space: XrSpace
+	val viewSpace: XrSpace
+
+	val leftHandPath: Long get() = manager.actionSet.leftHandPath
+	val rightHandPath: Long get() = manager.actionSet.rightHandPath
 
 	init {
 		MemoryStack.stackPush().use { stack ->
-			leftHandPath = XrUtil.createPath(stack, session.instance, "/user/hand/left")
-			rightHandPath = XrUtil.createPath(stack, session.instance, "/user/hand/right")
-
-			leftHandPoseSpace = XrUtil.createActionPoseSpace(stack, session, manager.palmPoseAction, leftHandPath)
-			rightHandPoseSpace = XrUtil.createActionPoseSpace(stack, session, manager.palmPoseAction, rightHandPath)
-
-			attachActionSet(stack, listOf(manager.actionSet))
+			space = XrUtil.createReferenceSpace(stack, session, XR10.XR_REFERENCE_SPACE_TYPE_LOCAL, Vec3(0f, 0f, 0f))
+			viewSpace = XrUtil.createReferenceSpace(stack, session, XR10.XR_REFERENCE_SPACE_TYPE_VIEW)
 		}
+
+		manager.nameObject(space.address(), XR10.XR_OBJECT_TYPE_SPACE, "OpenXR Local Space")
+		manager.nameObject(viewSpace.address(), XR10.XR_OBJECT_TYPE_SPACE, "OpenXR View Space")
 	}
 
 	fun begin(viewConfiguration: Int){
@@ -63,9 +58,9 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 		}
 	}
 
-	fun attachActionSet(stack: MemoryStack, actionSets: List<XrActionSet>){
+	fun attachActionSets(stack: MemoryStack, actionSets: List<XrActionSet>){
 		val attachInfo = XrSessionActionSetsAttachInfo.calloc(stack).`type$Default`()
-			.actionSets(LwjglUtil.createPointerBuffer(stack, actionSets))
+			.actionSets(stack.ptr(actionSets))
 
 		XrUtil.processResult(XR10.xrAttachSessionActionSets(session, attachInfo), "Failed to attach action sets.")
 	}
@@ -85,7 +80,7 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 				// Log that the interaction profile has changed.
 				XR10.XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED -> {
 					val interactionProfileChanged = XrEventDataInteractionProfileChanged.create(eventData.address())
-					GameEngineI.logger.warn("OPENXR: Interaction Profile changed for Session: ${interactionProfileChanged.session()}")
+					GameEngineI.logger.info("OPENXR: Interaction Profile changed for Session: ${interactionProfileChanged.session()}")
 					if (interactionProfileChanged.session() != manager.session.session.address()) {
 						GameEngineI.logger.warn("XrEventDataInteractionProfileChanged for unknown Session")
 						return true
@@ -117,55 +112,31 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 	fun pollActions(predictedTime: Long) {
 		MemoryStack.stackPush().use { stack ->
 
-			val activeSet = XrActiveActionSet.malloc(1, stack)
-				.actionSet(manager.actionSet)
+			val activeSets = XrActiveActionSet.malloc(1, stack)
+				.actionSet(manager.actionSet.actionSet)
 				.subactionPath(XR10.XR_NULL_PATH)
 
 			val syncInfo = XrActionsSyncInfo.calloc(stack).`type$Default`()
-				.activeActionSets(activeSet)
+				.activeActionSets(activeSets)
 				.countActiveActionSets(1)
 
 			XrUtil.processResult(XR10.xrSyncActions(session, syncInfo), "Failed to sync action sets")
 
 			val getInfo = XrActionStateGetInfo.calloc(stack).`type$Default`()
-				.action(manager.palmPoseAction)
+			for(action in manager.actionSet.inputActions) action.update(getInfo, session, predictedTime)
 
-			pollPoseAction(stack, predictedTime, getInfo, leftHandPath, leftHandPoseSpace, leftHandPose, leftHandState)
-			pollPoseAction(stack, predictedTime, getInfo, rightHandPath, rightHandPoseSpace, rightHandPose, rightHandState)
-
-			getInfo.action(manager.grabAction)
-
-			pollFloatAction(getInfo, leftHandPath, leftHandGrabState)
-			pollFloatAction(getInfo, rightHandPath, rightHandGrabState)
-
-			val vibration = XrStructs.hapticVibration(stack, leftHandGrabState.currentState() * .5f)
-			val actionInfo = XrHapticActionInfo.calloc(stack).`type$Default`().action(manager.hapticAction)
-			hapticFeedback(actionInfo, leftHandPath, XrHapticBaseHeader.create(vibration))
-			hapticFeedback(actionInfo, rightHandPath, XrHapticBaseHeader.create(vibration.amplitude(rightHandGrabState.currentState() * .5f)))
-		}
-	}
-
-	fun pollPoseAction(stack: MemoryStack, predictedTime: Long, getInfo: XrActionStateGetInfo, path: Long, space: XrSpace, pose: XrPosef, poseState: XrActionStatePose){
-		getInfo.subactionPath(path)
-		XrUtil.processResult(XR10.xrGetActionStatePose(session, getInfo, poseState), "Failed to get pose")
-		if(poseState.isActive) {
 			val location = XrSpaceLocation.calloc(stack).`type$Default`()
-			val res = XR10.xrLocateSpace(space, manager.space, predictedTime, location)
-			if(res == 0 && location.locationFlags().toInt() hasAll (XR10.XR_SPACE_LOCATION_POSITION_VALID_BIT or XR10.XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)) {
-				pose.set(location.pose())
-			}
-			else poseState.isActive(false)
+			XR10.xrLocateSpace(viewSpace, space, predictedTime, location)
+			val headMat = location.pose().mat4()
+			val rotation = headMat.getRotation()
+			val moveState = manager.actionSet.moveAction.getValue(leftHandPath)
+			val direction = rotation * Vec3(moveState.x, 0f, -moveState.y)
+			manager.renderer.viewOffset += (direction * Timer.frameDelta)
+
+			val vibration = XrStructs.hapticVibration(stack, manager.actionSet.grabAction.getValue(leftHandPath) * .5f)
+			manager.actionSet.hapticAction.setValue(this, leftHandPath, XrHapticBaseHeader.create(vibration))
+			manager.actionSet.hapticAction.setValue(this, rightHandPath, XrHapticBaseHeader.create(vibration.amplitude(manager.actionSet.grabAction.getValue(rightHandPath) * .5f)))
 		}
-	}
-
-	fun pollFloatAction(getInfo: XrActionStateGetInfo, path: Long, state: XrActionStateFloat) {
-		getInfo.subactionPath(path).subactionPath(path)
-		XrUtil.processResult(XR10.xrGetActionStateFloat(session, getInfo, state), "Failed to get float")
-	}
-
-	fun hapticFeedback(actionInfo: XrHapticActionInfo, path: Long, vibration: XrHapticBaseHeader){
-		actionInfo.subactionPath(path)
-		XrUtil.processResult(XR10.xrApplyHapticFeedback(session, actionInfo, vibration), "Failed to apply haptic feedback")
 	}
 
 	fun onStateChange(state: Int): Boolean {
@@ -176,7 +147,7 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 			XR10.XR_SESSION_STATE_READY -> {
 				// SessionState is ready. Begin the XrSession using the XrViewConfigurationType.
 				GameEngineI.logger.info("Starting OpenXR Session")
-				begin(manager.viewConfiguration)
+				begin(manager.renderer.viewConfiguration)
 				true
 			}
 			XR10.XR_SESSION_STATE_STOPPING -> {
@@ -201,12 +172,9 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 	}
 
 	override fun delete() {
-		leftHandPose.free()
-		rightHandPose.free()
-		leftHandState.free()
-		rightHandState.free()
-		leftHandGrabState.free()
-		rightHandGrabState.free()
+
+		XrUtil.processResult(XR10.xrDestroySpace(space), "Failed to destroy Reference Space")
+		XrUtil.processResult(XR10.xrDestroySpace(viewSpace), "Failed to destroy Reference Space")
 
 		eventData.free()
 		XrUtil.processResult(XR10.xrDestroySession(session), "Failed to destroy Session")

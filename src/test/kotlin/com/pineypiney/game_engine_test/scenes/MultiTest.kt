@@ -18,7 +18,7 @@ import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 
 abstract class MultiTest(override val id: String, override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
-	override val renderer: GameRenderer<MultiTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(it, id) }
+	override val renderer: GameRenderer<MultiTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(window, id) }
 
 	val camera get() = renderer.camera as OrthographicCamera
 

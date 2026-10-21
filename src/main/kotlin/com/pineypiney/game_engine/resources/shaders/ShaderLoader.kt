@@ -261,7 +261,7 @@ class ShaderLoader private constructor() : Deletable {
 				success = glGetProgrami(shader, GL_LINK_STATUS).bool
 				if (!success) {
 					infoLog = glGetProgramInfoLog(shader)
-					GameEngineI.warn("Could not link shaders $shaderName \n$infoLog")
+					GameEngineI.logger.warn("Could not link shaders $shaderName \n$infoLog")
 				}
 			} else {
 
@@ -271,7 +271,7 @@ class ShaderLoader private constructor() : Deletable {
 				success = glGetShaderi(shader, GL_COMPILE_STATUS).bool
 				if (!success) {
 					infoLog = glGetShaderInfoLog(shader)
-					GameEngineI.warn("Could not compile $type shader $shaderName \n$infoLog")
+					GameEngineI.logger.warn("Could not compile $type shader $shaderName \n$infoLog")
 				}
 			}
 		}

@@ -13,7 +13,6 @@ import com.pineypiney.game_engine.window.WindowI
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
-import glm_.vec4.Vec4
 import java.io.File
 import kotlin.math.max
 import kotlin.math.min
@@ -61,7 +60,6 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		val offset = Vec3((minPos.x+maxPos.x) * .5f * scale, (minPos.y+maxPos.y) * .5f * scale, maxPos.z + .01f)
 		prefab translate -offset
 
-		browser.prefabRenderer.setClearColour(Vec4(0f))
 		if (browser.prefabRenderer.viewportSize != Vec2i(size)) {
 			browser.prefabRenderer.setSize(Vec2i(size))
 		}

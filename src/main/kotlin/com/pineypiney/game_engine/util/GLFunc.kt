@@ -211,6 +211,15 @@ object GLFunc {
 	val readFramebuffer: Int get() = getInts(GL_READ_FRAMEBUFFER_BINDING, 1)[0]
 //	val drawAttachment: Int get() = glGetFramebufferParameteriv()
 
+	/** Maximum supported 1D and 2D Texture size */
+	val maxTextureSize: Int get() = glGetInteger(GL_MAX_TEXTURE_SIZE)
+
+	/** Maximum supported 3D Texture size */
+	val maxTextureSize3D: Int get() = glGetInteger(GL_MAX_3D_TEXTURE_SIZE)
+
+	/** Maximum supported 3D Texture size */
+	val maxVertexAttribs: Int get() = glGetInteger(GL_MAX_VERTEX_ATTRIBS)
+
 	/** Maximum amount of atomic counters available in fragment shaders */
 	val maxAtomicCounterFragment: Int get() = glGetInteger(GL_MAX_FRAGMENT_ATOMIC_COUNTERS)
 

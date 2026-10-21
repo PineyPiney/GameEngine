@@ -40,7 +40,7 @@ class EditorEngine(
 	}
 
 	override fun setLogic() {
-		activeScreen = editorScreen(this) { manager.createPresentingApi(it, "Editor") }
+		activeScreen = editorScreen(this) { manager.createPresentingApi(window, "Editor") }
 		deletionQueue.push(activeScreen)
 	}
 }

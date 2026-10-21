@@ -28,7 +28,7 @@ import org.lwjgl.glfw.GLFW
 class TesselationShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
 	override val id: String = "Tesselation Shader Test"
-	override val renderer: GameRenderer<TesselationShaderTest> = DefaultWindowGameRenderer(window, ::PerspectiveCamera) { gameEngine.manager.createPresentingApi(it, id) }
+	override val renderer: GameRenderer<TesselationShaderTest> = DefaultWindowGameRenderer(window, ::PerspectiveCamera) { gameEngine.manager.createPresentingApi(window, id) }
 
 	init {
 		val api = renderer.getRenderingApi()

@@ -13,8 +13,8 @@ import com.pineypiney.game_engine.util.extension_functions.popFirst
 import com.pineypiney.game_engine.vulkan.VkStructs
 import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VulkanDevice
+import org.lwjgl.BufferUtils
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
 
 class VulkanGraphicsPipeline(
@@ -212,12 +212,17 @@ class VulkanGraphicsPipeline(
 		fun colourFormat(format: Int): Builder {
 
 			renderInfo.colorAttachmentCount(1)
-				.pColorAttachmentFormats(MemoryUtil.memAllocInt(1).put(format).flip())
+				.pColorAttachmentFormats(BufferUtils.createIntBuffer(1).put(format).flip())
 			return this
 		}
 
 		fun depthFormat(format: Int): Builder {
 			renderInfo.depthAttachmentFormat(format)
+			return this
+		}
+
+		fun stencilFormat(format: Int): Builder {
+			renderInfo.stencilAttachmentFormat(format)
 			return this
 		}
 
@@ -241,16 +246,18 @@ class VulkanGraphicsPipeline(
 
 				val vertexInput = VkPipelineVertexInputStateCreateInfo.calloc(stack).`sType$Default`()
 
-				val dynamicStatesArray = intArrayOf(
+				val dynamicStatesArray = mutableListOf(
 					VK10.VK_DYNAMIC_STATE_VIEWPORT,
 					VK10.VK_DYNAMIC_STATE_SCISSOR,
 					VK10.VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
 					VK10.VK_DYNAMIC_STATE_STENCIL_WRITE_MASK,
 					VK10.VK_DYNAMIC_STATE_STENCIL_REFERENCE,
-					VK13.VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE,
-					VK13.VK_DYNAMIC_STATE_STENCIL_OP,
 				)
-				val dynamicStates = stack.mallocInt(dynamicStatesArray.size).put(dynamicStatesArray).flip()
+				if(device.versionAtLeast(VK13.VK_API_VERSION_1_3)){
+					dynamicStatesArray.addAll(VK13.VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE, VK13.VK_DYNAMIC_STATE_STENCIL_OP)
+				}
+
+				val dynamicStates = stack.mallocInt(dynamicStatesArray.size).put(dynamicStatesArray.toIntArray()).flip()
 				val dynamicState = VkPipelineDynamicStateCreateInfo.calloc(stack)
 					.`sType$Default`()
 					.pDynamicStates(dynamicStates)

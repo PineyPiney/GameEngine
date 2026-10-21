@@ -127,7 +127,7 @@ class TextureLoader private constructor() : DeletableResourceLoader<Texture2D>()
 		): Int {
 			val pointer = OpenGlTexture2D.createPointer(null, dataFormat, width * textures.count(), height, internalFormat)
 			textures.forEachIndexed { i, data ->
-				glTexSubImage2D(GL_TEXTURE_2D, 0, width * i, 0, width, height, dataFormat.openglLayout, dataFormat.pixelType, data)
+				glTexSubImage2D(GL_TEXTURE_2D, 0, width * i, 0, width, height, dataFormat.openglLayout, dataFormat.pixelType.opengl, data)
 			}
 			return pointer
 		}
@@ -159,8 +159,8 @@ class TextureLoader private constructor() : DeletableResourceLoader<Texture2D>()
 			4 -> TextureFormat.RGBA8
 			3 -> TextureFormat.RGB8
 			2 -> TextureFormat.RG8
-			1 -> TextureFormat.R_DEFAULT
-			else -> TextureFormat.RGB8
+			1 -> TextureFormat.R8
+			else -> TextureFormat.RGBA8
 		}
 
 		fun setFlags(name: String, flip: Boolean, numChannels: Int = 0) {

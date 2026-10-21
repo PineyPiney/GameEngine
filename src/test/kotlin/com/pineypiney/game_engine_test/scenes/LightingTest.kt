@@ -56,7 +56,7 @@ import kotlin.math.sqrt
 class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
 
 	override val id: String = "Lighting Test"
-	override val renderer: GameRenderer<LightingTest> = DefaultWindowGameRenderer(window, ::PerspectiveCamera) { gameEngine.manager.createPresentingApi(it, id) }
+	override val renderer: GameRenderer<LightingTest> = DefaultWindowGameRenderer(window, ::PerspectiveCamera) { gameEngine.manager.createPresentingApi(window, id) }
 	private val camera get() = renderer.camera
 	val vel = Vec3(0f)
 

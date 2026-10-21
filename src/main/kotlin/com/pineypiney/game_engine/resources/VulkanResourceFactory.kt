@@ -40,7 +40,7 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 			.shaders(vertex as VulkanShaderModule, fragment as VulkanShaderModule, stages as List<VulkanShaderModule>)
 			.generateLayout(vulkan.device)
 			.parameters(parameters)
-			.colourFormat(vulkan.drawFormat.vulkan)
+			.colourFormat(vulkan.colourFormat.vulkan)
 			.depthFormat(vulkan.depthFormat.vulkan)
 
 		val pipeline = builder.build(vulkan.device, id)
@@ -82,7 +82,7 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 				params.usage.vulkan
 
 		val image = VkUtil.createImage3D(vulkan.device, name, format, usage, VK10.VK_IMAGE_ASPECT_COLOR_BIT, Vec3i(width, height, depth), params)
-		if (data != null) vulkan.submitter.submitImmediate { cmd -> image.uploadData(cmd, format, data) }
+		if (data != null) vulkan.submitter.submitImmediate { cmd -> image.uploadData(cmd, dataFormat, data) }
 		return image
 	}
 
