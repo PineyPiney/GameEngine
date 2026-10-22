@@ -1,10 +1,12 @@
-package com.pineypiney.game_engine.xr
+package com.pineypiney.game_engine.rendering.openxr
 
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VulkanDevice
 import com.pineypiney.game_engine.vulkan.VulkanManager
 import com.pineypiney.game_engine.vulkan.VulkanPhysicalDevice
+import com.pineypiney.game_engine.xr.VulkanXr
+import com.pineypiney.game_engine.xr.XrUtil
 import kool.iterator
 import org.lwjgl.glfw.GLFWVulkan
 import org.lwjgl.openxr.KHRVulkanEnable2

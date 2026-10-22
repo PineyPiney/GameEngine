@@ -79,6 +79,7 @@ open class VulkanManager(appName: String, version: Int, layers: Collection<Strin
 			EXTDebugUtils.VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT -> {
 				GameEngineI.logger.warn("Vulkan Warning Occurred: " + data.pMessageString())
 			}
+
 		}
 		return 0
 	}

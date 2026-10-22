@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.xr
+package com.pineypiney.game_engine.rendering.openxr
 
 import com.pineypiney.game_engine.rendering.vulkan.VulkanFramebuffer
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanSwapchainImage

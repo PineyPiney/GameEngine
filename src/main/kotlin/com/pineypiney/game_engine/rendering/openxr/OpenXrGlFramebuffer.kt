@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.xr
+package com.pineypiney.game_engine.rendering.openxr
 
 import com.pineypiney.game_engine.rendering.opengl.OpenGlFramebuffer
 import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture2D

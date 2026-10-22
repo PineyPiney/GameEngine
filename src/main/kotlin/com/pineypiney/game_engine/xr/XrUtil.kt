@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.xr
 
 import com.pineypiney.game_engine.GameEngineI
+import com.pineypiney.game_engine.rendering.openxr.OpenXrSwapchain
 import com.pineypiney.game_engine.util.LwjglUtil
 import com.pineypiney.game_engine.util.LwjglUtil.enumerate
 import com.pineypiney.game_engine.util.LwjglUtil.enumerateStructs

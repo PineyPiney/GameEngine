@@ -1,7 +1,9 @@
 package com.pineypiney.game_engine_test
 
 // i love you
-import com.pineypiney.game_engine.*
+import com.pineypiney.game_engine.LibrarySetUp
+import com.pineypiney.game_engine.OpenGlManager
+import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.apps.animator.ObjectAnimator
 import com.pineypiney.game_engine.apps.editor.EditorEngine
 import com.pineypiney.game_engine.objects.GameObject
@@ -30,10 +32,9 @@ import com.pineypiney.game_engine.vulkan.VulkanManager
 import com.pineypiney.game_engine.window.OpenGlWindow
 import com.pineypiney.game_engine.window.VulkanWindow
 import com.pineypiney.game_engine.window.WindowGameLogic
-import com.pineypiney.game_engine.window.WindowI
-import com.pineypiney.game_engine.xr.OpenXrManager
-import com.pineypiney.game_engine.xr.VulkanXr
+import com.pineypiney.game_engine.xr.OpenGlXr
 import com.pineypiney.game_engine_test.scenes.*
+import com.pineypiney.game_engine_test.xr.TestOpenXrEngine
 import glm_.asHexString
 import glm_.f
 import glm_.has
@@ -75,21 +76,11 @@ class EngineTest{
 	fun testXR(){
 
 		LibrarySetUp.initGLFW()
-		val window = VulkanWindow("OpenXR Test")
-//		val window = TestWindow(version = Vec2i(4, 3))
+//		val window = VulkanWindow("OpenXR Test")
+		val window = TestWindow(version = Vec2i(4, 3))
 		window.init()
 
-		val openxr = OpenXrManager(window, VulkanXr)
-		val timer = Timer()
-		timer.init()
-		run@while(!window.shouldClose) {
-			timer.tickFrame()
-			if(!openxr.session.pollEvents()) break@run
-			if(openxr.session.running) openxr.renderer.render()
-			window.update()
-			if(window.getKey(' '.code) == 1) break
-		}
-		openxr.delete()
+		TestOpenXrEngine(window, OpenGlXr).run()
 	}
 
 	@Test
@@ -135,14 +126,6 @@ class EngineTest{
 	}
 
 	companion object {
-
-		fun <G : GameLogicI, E : GameEngineI<G>> runWindowEngine(engine: (WindowI, (E) -> G, Int, Int) -> E, screen: (E) -> G, ups: Int = 20, fps: Int = 2000, version: Vec2i = Vec2i(3)) {
-			LibrarySetUp.initGLFW()
-
-			val window = TestWindow(version = version)
-			window.init()
-			engine(window, screen, ups, fps).run()
-		}
 
 		fun <G : WindowGameLogic> runOpenGlEngine(
 			screen: (TestEngine<G>) -> G,

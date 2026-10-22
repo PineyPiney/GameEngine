@@ -2,6 +2,8 @@ package com.pineypiney.game_engine.xr
 
 import com.pineypiney.game_engine.ApiManager
 import com.pineypiney.game_engine.OpenGlManager
+import com.pineypiney.game_engine.rendering.openxr.OpenXrFramebuffer
+import com.pineypiney.game_engine.rendering.openxr.OpenXrGlFramebuffer
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.util.LwjglUtil
 import com.pineypiney.game_engine.window.WindowI
@@ -42,8 +44,20 @@ object OpenGlXr : XrGraphicsApi {
 		val depthImages = getOpenGlSwapchainImages(stack, depthSwapchain)
 
 		return OpenXrGlFramebuffer(
-			colourImages.mapIndexed { i, image -> OpenXrGlTexture("OpenXR Swapchain colour texture $i", image.image(), colourFormat) },
-			depthImages.mapIndexed { i, image -> OpenXrGlTexture("OpenXR Swapchain depth texture $i", image.image(), depthFormat) }
+			colourImages.mapIndexed { i, image ->
+				OpenXrGlTexture(
+					"OpenXR Swapchain colour texture $i",
+					image.image(),
+					colourFormat
+				)
+			},
+			depthImages.mapIndexed { i, image ->
+				OpenXrGlTexture(
+					"OpenXR Swapchain depth texture $i",
+					image.image(),
+					depthFormat
+				)
+			}
 		)
 	}
 

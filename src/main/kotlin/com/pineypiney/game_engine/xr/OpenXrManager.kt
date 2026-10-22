@@ -3,14 +3,14 @@ package com.pineypiney.game_engine.xr
 import com.pineypiney.game_engine.ApiManager
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deletable
-import com.pineypiney.game_engine.resources.DirectorySource
-import com.pineypiney.game_engine.resources.ResourcesLoader
-import com.pineypiney.game_engine.util.DeletionQueue
+import com.pineypiney.game_engine.rendering.openxr.OpenXrRenderManager
+import com.pineypiney.game_engine.rendering.openxr.OpenXrVulkanManager
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.toString
-import com.pineypiney.game_engine.window.GLFWWindow
+import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.xr.actions.ActionBindingManager
+import com.pineypiney.game_engine.xr.actions.OpenXrActionSet
 import glm_.vec2.Vec2i
-import org.lwjgl.glfw.GLFW
 import org.lwjgl.openxr.*
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
@@ -19,7 +19,7 @@ import org.lwjgl.system.MemoryUtil
 // Run ../OpenXR-Simulator/scripts/register-runtime.ps1 to set it as OpenXR Runtime
 
 // This class is used to handle cross-api OpenXR runtime, with GraphicsApi-specific functionality handled by the graphicsApi
-class OpenXrManager(val window: GLFWWindow, val graphicsApi: XrGraphicsApi) : Deletable {
+class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val actionSet: OpenXrActionSet) : Deletable {
 
 	init {
 		graphicsApi
@@ -31,13 +31,9 @@ class OpenXrManager(val window: GLFWWindow, val graphicsApi: XrGraphicsApi) : De
 
 	val systemID: Long
 
-	val actionSet = TestActions()
-
 	val manager: ApiManager
 	val session: OpenXrSession
-	val renderer: OpenXrRenderer
-
-	val resources: ResourcesLoader
+	val renderManager: OpenXrRenderManager
 
 	init {
 
@@ -65,7 +61,9 @@ class OpenXrManager(val window: GLFWWindow, val graphicsApi: XrGraphicsApi) : De
 
 
 			var successfulSuggestion = false
-			for((profile, bindings) in actionSet.bindActions(stack, instance)) successfulSuggestion = XrUtil.suggestBindings(stack, instance, profile, bindings) || successfulSuggestion
+			val bindings = ActionBindingManager(instance)
+			actionSet.bindActions(bindings)
+			for((profile, bindings) in bindings.bind(stack)) successfulSuggestion = XrUtil.suggestBindings(stack, instance, profile, bindings) || successfulSuggestion
 			if(!successfulSuggestion){
 				GameEngineI.logger.error("Failed to suggest bindings")
 			}
@@ -74,18 +72,12 @@ class OpenXrManager(val window: GLFWWindow, val graphicsApi: XrGraphicsApi) : De
 			actionSet.bindToSession(stack, session)
 			session.attachActionSets(stack, listOf(actionSet.actionSet))
 
-			renderer = OpenXrRenderer(window, session)
+			renderManager = OpenXrRenderManager(session)
 
 			if(manager is OpenXrVulkanManager){
-				manager.colourFormat = renderer.colourFormat
-				manager.depthFormat = renderer.depthFormat
+				manager.colourFormat = renderManager.colourFormat
+				manager.depthFormat = renderManager.depthFormat
 			}
-
-			resources = ResourcesLoader(manager.createResourceFactory(), listOf(DirectorySource("src/test/resources"), DirectorySource("src/main/resources")))
-			resources.loadInitialResources()
-			resources.loadResources()
-
-			renderer.init()
 		}
 
 		nameObject(instance.address(), XR10.XR_OBJECT_TYPE_INSTANCE, "OpenXR Instance")
@@ -125,14 +117,10 @@ class OpenXrManager(val window: GLFWWindow, val graphicsApi: XrGraphicsApi) : De
 	}
 
 	override fun delete() {
-		renderer.delete()
+		renderManager.delete()
 		session.delete()
 		actionSet.delete()
 
-		manager.waitIdle()
-		resources.cleanUp()
-		DeletionQueue.GLOBAL.flush()
-		GLFW.glfwTerminate()
 		manager.delete()
 
 		errorHandle?.let { XrUtil.processResult(EXTDebugUtils.xrDestroyDebugUtilsMessengerEXT(it), "Failed to destroy Debug Messenger") }

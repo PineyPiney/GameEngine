@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.xr
 
 import com.pineypiney.game_engine.ApiManager
+import com.pineypiney.game_engine.rendering.openxr.OpenXrFramebuffer
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.window.WindowI
 import glm_.vec3.Vec3i

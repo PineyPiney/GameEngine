@@ -9,8 +9,8 @@ import com.pineypiney.game_engine.util.input.knm.MouseInput
 import glm_.c
 import org.lwjgl.glfw.GLFW
 
-abstract class WindowedGameEngine<E : WindowGameLogic>(override val manager: ApiManager, resourcesLoader: ResourcesLoader = ResourcesLoader.directoryAndEngine(manager.createResourceFactory())) :
-	GameEngine<E>(resourcesLoader), WindowedGameEngineI<E> {
+abstract class WindowedGameEngine<E : WindowGameLogic>(final override val manager: ApiManager, override val resourcesLoader: ResourcesLoader = ResourcesLoader.directoryAndEngine(manager.createResourceFactory())) :
+	GameEngine<E>(), WindowedGameEngineI<E> {
 
 	override val input; get() = window.input
 

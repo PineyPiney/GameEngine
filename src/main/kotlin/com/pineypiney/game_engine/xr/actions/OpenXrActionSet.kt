@@ -7,7 +7,6 @@ import com.pineypiney.game_engine.xr.OpenXrSession
 import com.pineypiney.game_engine.xr.XrUtil
 import org.lwjgl.openxr.XR10
 import org.lwjgl.openxr.XrActionSet
-import org.lwjgl.openxr.XrActionSuggestedBinding
 import org.lwjgl.openxr.XrInstance
 import org.lwjgl.system.MemoryStack
 
@@ -46,7 +45,7 @@ open class OpenXrActionSet(val name: String, val displayName: String, val priori
 		return action
 	}
 
-	open fun bindActions(stack: MemoryStack, instance: XrInstance): Map<String, XrActionSuggestedBinding.Buffer> = emptyMap()
+	open fun bindActions(bindings: ActionBindingManager){}
 
 	open fun bindToSession(stack: MemoryStack, session: OpenXrSession) {
 		for(action in inputActions) action.bindToSession(stack, session)

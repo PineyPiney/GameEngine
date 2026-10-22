@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.resources.textures
 
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.DeletableResourceLoader
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture2D
@@ -31,9 +32,13 @@ class TextureLoader private constructor() : DeletableResourceLoader<Texture2D>()
 
 		streams.useEachStream { fileName, stream ->
 			val keyName = fileName.substringBefore('.')
-			val params = flags[keyName] ?: flags["*"] ?: TextureParameters()
-			val texture = streams.loader.factory.loadTexture2DFromFile(fileName, stream, params)
-			map[ResourceKey(keyName)] = texture
+			val key = ResourceKey(keyName)
+			if(map.containsKey(key)) GameEngineI.logger.warn("Skipping Texture $keyName, another texture with the same id has already been loaded")
+			else {
+				val params = flags[keyName] ?: flags["*"] ?: TextureParameters()
+				val texture = streams.loader.factory.loadTexture2DFromFile(fileName, stream, params)
+				map[key] = texture
+			}
 		}
 	}
 
@@ -178,7 +183,7 @@ class TextureLoader private constructor() : DeletableResourceLoader<Texture2D>()
 		inline fun <reified E : Enum<E>> parse(string: String, default: E): E {
 			return try {
 				enumValueOf<E>(string.uppercase())
-			} catch (e: Error) {
+			} catch (_: Error) {
 				default
 			}
 		}

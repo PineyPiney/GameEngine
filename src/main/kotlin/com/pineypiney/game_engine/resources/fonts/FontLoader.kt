@@ -12,7 +12,9 @@ import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.length
-import glm_.*
+import glm_.c
+import glm_.i
+import glm_.int
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
@@ -21,10 +23,7 @@ import java.awt.font.FontRenderContext
 import java.awt.image.BufferedImage
 import java.io.InputStream
 import java.nio.ByteBuffer
-import javax.imageio.ImageIO
 import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
 import java.awt.Font as JavaFont
 
 class FontLoader private constructor() : DeletableResourceLoader<Font>() {
@@ -33,134 +32,13 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 
 	fun loadFonts(streams: ResourcesLoader.Streams){
 		streams.useEachStream { fileName, stream ->
-			when (fileName.substringAfter('.')) {
+			val keyName = fileName.substringAfter('.')
+			if(map.containsKey(ResourceKey(keyName))) GameEngineI.logger.warn("Skipping Font $keyName, another font with the same id has already been loaded")
+			else when (keyName) {
 				"bff" -> loadFontFromBFF(streams.loader.factory, fileName, stream)
 //				"ttf" -> loadBeziersFromTTF(stream)
 			}
 		}
-	}
-
-	/**
-	 * Load and save a BitMap font from an image file
-	 *
-	 * @param fontName The location of the font from the fontLocation defined in [resourcesLoader]
-	 * @param resourcesLoader The ResourcesLoader containing the InputStream for the font file
-	 * @param letterWidth The width reserved for each character in the texture, in pixels
-	 * @param letterHeight The height reserved for each character in the texture, in pixels
-	 * @param charSpacing The space to be left between each character,
-	 * where 1 is the maximum width of a character according to [letterWidth]
-	 * @param shader The default shader used to render the text,
-	 * this can be changed for individual uses and is just the default
-	 */
-	fun loadFontFromTexture(
-		fontName: String,
-		resourcesLoader: ResourcesLoader,
-		letterWidth: Int,
-		letterHeight: Int,
-		charSpacing: Float,
-		loadBold: Boolean = false,
-		firstLetter: Int = 32,
-		lineSpacing: Float = 1.2f,
-		shader: RenderShader = Font.fontShader
-	) {
-
-		val location = resourcesLoader.textureLocation + "fonts/" + fontName
-		val stream: InputStream = resourcesLoader.getStream(location) ?: return
-
-		if (stream.available() < 1) {
-			GameEngineI.warn("Font $fontName does not exist")
-			return
-		}
-
-		val image = ImageIO.read(stream)
-		if (image == null) {
-			GameEngineI.warn("$fontName Font File is not an image type")
-			return
-		}
-
-		val texWidth = image.width
-		val texHeight = image.height
-
-		val rows = texWidth / letterWidth
-		val columns = texHeight / letterHeight
-
-		val a = image.getRGB(0, 0, image.width, image.height, null, 0, image.width)
-		val charMap = getCharDimensions(
-			ByteArray(a.size) { (a[it] and 255).b },
-			rows,
-			columns,
-			letterWidth,
-			letterHeight,
-			firstLetter
-		)
-
-
-		val boldTexture: Texture2D?
-		val boldMap: Map<Char, Vec4i>?
-		when (loadBold) {
-			true -> {
-				boldTexture = loadBoldFromTexture(fontName, image, resourcesLoader.factory, columns, rows, 3, 5)
-				boldMap = charMap.mapValues { it.value + Vec4i(-4, -4, 4, 4) }
-				//boldTexture.savePNG("src/main/resources/${resourcesLoader.fontLocation}${boldTexture.fileName}.png")
-			}
-
-			false -> {
-				boldTexture = null
-				boldMap = null
-			}
-		}
-
-		val key = fontName.substringBefore('.')
-		val texture = TextureLoader[ResourceKey("fonts/${key}")]
-		map[ResourceKey(key)] = BitMapFont(
-			key,
-			texture,
-			boldTexture,
-			charMap,
-			boldMap,
-			letterWidth,
-			letterHeight,
-			charSpacing,
-			lineSpacing,
-			firstLetter,
-			shader
-		)
-	}
-
-	fun getCharDimensions(image: ByteArray, rows: Int, columns: Int,
-		letterWidth: Int, letterHeight: Int, firstLetter: Int
-	): Map<Char, Vec4i> {
-
-		var index = firstLetter
-		val charMap = mutableMapOf<Char, Vec4i>()
-		// Iterate through every row of letters
-		for (y in 0 until rows) {
-			val textureY = y * letterHeight
-			// Iterate through every column of that row
-			for (x in 0 until columns) {
-				val textureX = x * letterWidth
-
-				var charDim = Vec4i(letterWidth, letterHeight, 0, 0)
-				for (i in textureX until textureX + letterWidth) {
-					for (j in textureY until textureY + letterHeight) {
-						val pixel = image[i + (j * columns * letterWidth)] and 0x7f
-						if (pixel > 0) {
-							charDim.x = min(charDim.x, i - textureX)
-							charDim.y = min(charDim.y, j - textureY)
-							charDim.z = max(charDim.z, i - textureX)
-							charDim.w = max(charDim.w, j - textureY)
-						}
-					}
-				}
-
-				// If no pixels were detected in this character, set the width to 1/8th of the total space
-				if (charDim == Vec4i(letterWidth, letterHeight, 0, 0))
-					charDim = Vec4i(0, letterHeight / 2, letterWidth / 8, letterHeight / 2)
-				charMap[index.c] = charDim// + offset.run { Vec4i(x, y, x, y) }
-				index++
-			}
-		}
-		return charMap.toMap()
 	}
 
 	fun loadFontFromBFF(factory: ResourceFactory, fontName: String, stream: InputStream) {

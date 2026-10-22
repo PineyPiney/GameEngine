@@ -1,4 +1,4 @@
-package com.pineypiney.game_engine.xr
+package com.pineypiney.game_engine.rendering.openxr
 
 import com.pineypiney.game_engine.rendering.Framebuffer
 import glm_.vec2.Vec2i

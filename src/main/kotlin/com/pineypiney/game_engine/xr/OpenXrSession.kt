@@ -1,9 +1,7 @@
 package com.pineypiney.game_engine.xr
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.Deletable
-import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.extension_functions.ptr
 import glm_.vec3.Vec3
 import org.lwjgl.openxr.*
@@ -19,11 +17,13 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 	val space: XrSpace
 	val viewSpace: XrSpace
 
-	val leftHandPath: Long get() = manager.actionSet.leftHandPath
-	val rightHandPath: Long get() = manager.actionSet.rightHandPath
+	val leftHandPath: Long
+	val rightHandPath: Long
 
 	init {
 		MemoryStack.stackPush().use { stack ->
+			leftHandPath = XrUtil.createPath(stack, manager.instance, "/user/hand/left")
+			rightHandPath = XrUtil.createPath(stack, manager.instance, "/user/hand/right")
 			space = XrUtil.createReferenceSpace(stack, session, XR10.XR_REFERENCE_SPACE_TYPE_LOCAL, Vec3(0f, 0f, 0f))
 			viewSpace = XrUtil.createReferenceSpace(stack, session, XR10.XR_REFERENCE_SPACE_TYPE_VIEW)
 		}
@@ -81,7 +81,7 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 				XR10.XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED -> {
 					val interactionProfileChanged = XrEventDataInteractionProfileChanged.create(eventData.address())
 					GameEngineI.logger.info("OPENXR: Interaction Profile changed for Session: ${interactionProfileChanged.session()}")
-					if (interactionProfileChanged.session() != manager.session.session.address()) {
+					if (interactionProfileChanged.session() != session.address()) {
 						GameEngineI.logger.warn("XrEventDataInteractionProfileChanged for unknown Session")
 						return true
 					}
@@ -91,18 +91,18 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 				XR10.XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING -> {
 					val referenceSpaceChangePending = XrEventDataReferenceSpaceChangePending.create(eventData.address())
 					GameEngineI.logger.warn("OPENXR: Reference Space Change pending for Session: ${referenceSpaceChangePending.session()}")
-					if (referenceSpaceChangePending.session() != manager.session.session.address()) {
+					if (referenceSpaceChangePending.session() != session.address()) {
 						GameEngineI.logger.warn("XrEventDataReferenceSpaceChangePending for unknown Session")
 					}
 				}
 				// Session State changes:
 				XR10.XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED -> {
 					val sessionStateChanged = XrEventDataSessionStateChanged.create(eventData.address())
-					if (sessionStateChanged.session() != manager.session.session.address()) {
+					if (sessionStateChanged.session() != session.address()) {
 						GameEngineI.logger.warn("XrEventDataSessionStateChanged for unknown Session")
 						continue
 					}
-					if (!manager.session.onStateChange(sessionStateChanged.state())) return false
+					if (!onStateChange(sessionStateChanged.state())) return false
 				}
 			}
 		}
@@ -124,18 +124,6 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 
 			val getInfo = XrActionStateGetInfo.calloc(stack).`type$Default`()
 			for(action in manager.actionSet.inputActions) action.update(getInfo, session, predictedTime)
-
-			val location = XrSpaceLocation.calloc(stack).`type$Default`()
-			XR10.xrLocateSpace(viewSpace, space, predictedTime, location)
-			val headMat = location.pose().mat4()
-			val rotation = headMat.getRotation()
-			val moveState = manager.actionSet.moveAction.getValue(leftHandPath)
-			val direction = rotation * Vec3(moveState.x, 0f, -moveState.y)
-			manager.renderer.viewOffset += (direction * Timer.frameDelta)
-
-			val vibration = XrStructs.hapticVibration(stack, manager.actionSet.grabAction.getValue(leftHandPath) * .5f)
-			manager.actionSet.hapticAction.setValue(this, leftHandPath, XrHapticBaseHeader.create(vibration))
-			manager.actionSet.hapticAction.setValue(this, rightHandPath, XrHapticBaseHeader.create(vibration.amplitude(manager.actionSet.grabAction.getValue(rightHandPath) * .5f)))
 		}
 	}
 
@@ -147,7 +135,7 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 			XR10.XR_SESSION_STATE_READY -> {
 				// SessionState is ready. Begin the XrSession using the XrViewConfigurationType.
 				GameEngineI.logger.info("Starting OpenXR Session")
-				begin(manager.renderer.viewConfiguration)
+				begin(manager.renderManager.viewConfiguration)
 				true
 			}
 			XR10.XR_SESSION_STATE_STOPPING -> {

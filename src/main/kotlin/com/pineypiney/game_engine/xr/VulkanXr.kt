@@ -1,6 +1,9 @@
 package com.pineypiney.game_engine.xr
 
 import com.pineypiney.game_engine.ApiManager
+import com.pineypiney.game_engine.rendering.openxr.OpenXrFramebuffer
+import com.pineypiney.game_engine.rendering.openxr.OpenXrVkFramebuffer
+import com.pineypiney.game_engine.rendering.openxr.OpenXrVulkanManager
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanSwapchainImage
 import com.pineypiney.game_engine.util.LwjglUtil
@@ -44,7 +47,8 @@ object VulkanXr : XrGraphicsApi {
 		}
 	}
 
-	override fun createApi(name: String, xrInstance: XrInstance, systemId: Long): ApiManager = OpenXrVulkanManager(name, xrInstance, systemId)
+	override fun createApi(name: String, xrInstance: XrInstance, systemId: Long): ApiManager =
+		OpenXrVulkanManager(name, xrInstance, systemId)
 
 	fun createSwapchainImage(stack: MemoryStack, device: VulkanDevice, width: Int, height: Int, i: Int, image: Long, format: Int, aspect: Int): VulkanSwapchainImage{
 		val format = TextureFormat.fromVulkanConst(format) ?: TextureFormat.RGBA8
@@ -69,9 +73,32 @@ object VulkanXr : XrGraphicsApi {
 		val colourImages = getVulkanSwapchainImages(stack, colourSwapchain)
 		val depthImages = getVulkanSwapchainImages(stack, depthSwapchain)
 
-		return OpenXrVkFramebuffer(device,
-			colourImages.mapIndexed { i, image -> createSwapchainImage(stack, device, width, height, i, image.image(), colourFormat, VK10.VK_IMAGE_ASPECT_COLOR_BIT)},
-			depthImages.mapIndexed { i, image -> createSwapchainImage(stack, device, width, height, i, image.image(), depthFormat, VK10.VK_IMAGE_ASPECT_DEPTH_BIT)}
+		return OpenXrVkFramebuffer(
+			device,
+			colourImages.mapIndexed { i, image ->
+				createSwapchainImage(
+					stack,
+					device,
+					width,
+					height,
+					i,
+					image.image(),
+					colourFormat,
+					VK10.VK_IMAGE_ASPECT_COLOR_BIT
+				)
+			},
+			depthImages.mapIndexed { i, image ->
+				createSwapchainImage(
+					stack,
+					device,
+					width,
+					height,
+					i,
+					image.image(),
+					depthFormat,
+					VK10.VK_IMAGE_ASPECT_DEPTH_BIT
+				)
+			}
 		)
 	}
 

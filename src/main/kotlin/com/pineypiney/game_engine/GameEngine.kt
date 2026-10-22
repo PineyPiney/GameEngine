@@ -1,10 +1,9 @@
 package com.pineypiney.game_engine
 
-import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.EngineDeletionQueue
 
-abstract class GameEngine<E : GameLogicI>(final override val resourcesLoader: ResourcesLoader) : GameEngineI<E> {
+abstract class GameEngine<E : GameLogicI>() : GameEngineI<E> {
 
 	override val TARGET_FPS: Int = 2000
 	override val TARGET_UPS: Int = 20
