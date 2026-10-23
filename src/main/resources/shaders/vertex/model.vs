@@ -1,7 +1,7 @@
 // VERTEX SHADER INFORMATION
 #version 430 core
 
-const int MAX_BONES = 25;
+const int MAX_BONES = 26;
 const int MAX_WEIGHTS = 4;
 
 #ifdef OPENGL

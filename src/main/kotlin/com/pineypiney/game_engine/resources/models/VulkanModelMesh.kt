@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
 class VulkanModelMesh(
 	vulkan: VulkanManager,
 	override var id: String,
-	override val vertices: Array<out MeshVertex>,
+	override val vertices: List<MeshVertex>,
 	indices: ByteBuffer,
 	override val material: ModelMaterial = PhongMaterial(id, emptyMap())
 ) :

@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.xr.actions
 
 import com.pineypiney.game_engine.util.extension_functions.hasAll
-import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.xr.OpenXrSession
 import com.pineypiney.game_engine.xr.XrUtil
 import com.pineypiney.game_engine.xr.mat4
@@ -13,7 +12,8 @@ class PoseAction(override val name: String, override val displayName: String, su
 
 	override lateinit var action: XrAction private set
 	override val states: Map<Long, XrActionStatePose> = subActionPaths.associateWith { XrActionStatePose.calloc().`type$Default`() }
-	lateinit var spaces: Map<Long, Pair<XrSpace, Mat4>>
+	lateinit var spaces: Map<Long, XrSpace>
+	var time: Long = 0L
 	lateinit var baseSpace: XrSpace
 
 	override fun init(stack: MemoryStack, actionSet: XrActionSet) {
@@ -21,32 +21,36 @@ class PoseAction(override val name: String, override val displayName: String, su
 	}
 
 	override fun bindToSession(stack: MemoryStack, session: OpenXrSession) {
-		spaces = states.keys.associateWith { path -> XrUtil.createActionPoseSpace(stack, session.session, action, path) to I }
+		spaces = states.keys.associateWith { path -> XrUtil.createActionPoseSpace(stack, session.session, action, path) }
 	}
 
 	override fun update(info: XrActionStateGetInfo, session: XrSession, time: Long) {
 		info.action(action)
+
+		this.time = time
 		for((path, state) in states) {
 			XrUtil.processResult(XR10.xrGetActionStatePose(session, info.subactionPath(path), state), "Failed to get Pose Action $name")
-			if(state.isActive) {
-				val (space, mat4) = spaces[path]!!
-				val location = XrSpaceLocation.calloc().`type$Default`()
-				val res = XR10.xrLocateSpace(space, baseSpace, time, location)
-				if(res == 0 && location.locationFlags().toInt() hasAll (XR10.XR_SPACE_LOCATION_POSITION_VALID_BIT or XR10.XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)) {
-					location.pose().mat4(mat4)
-				}
-				else state.isActive(false)
-				location.free()
-			}
 		}
 	}
 
 	override fun getValue(subActionPath: Long): Mat4 {
-		return spaces[subActionPath]!!.second
+		val mat = Mat4()
+		val state = states[subActionPath] ?: return mat
+		if(state.isActive) {
+			val space = spaces[subActionPath]!!
+			val location = XrSpaceLocation.calloc().`type$Default`()
+			val res = XR10.xrLocateSpace(space, baseSpace, time, location)
+			if(res == 0 && location.locationFlags().toInt() hasAll (XR10.XR_SPACE_LOCATION_POSITION_VALID_BIT or XR10.XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)) {
+				location.pose().mat4(mat)
+			}
+			else state.isActive(false)
+			location.free()
+		}
+		return mat
 	}
 
 	override fun delete() {
+		for((_, pair) in spaces) XR10.xrDestroySpace(pair)
 		super.delete()
-		for((_, pair) in spaces) XR10.xrDestroySpace(pair.first)
 	}
 }

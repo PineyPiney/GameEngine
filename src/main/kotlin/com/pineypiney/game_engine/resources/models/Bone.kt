@@ -5,8 +5,6 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
-import com.pineypiney.game_engine.util.extension_functions.getRotation
-import com.pineypiney.game_engine.util.extension_functions.getTranslation
 import com.pineypiney.game_engine.util.maths.I
 import glm_.mat4x4.Mat4
 import glm_.quat.Quat
@@ -24,13 +22,13 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 
 	private val children: MutableList<Bone> = mutableListOf()
 
-	var translation: Vec3 = defaultRelativeTransform.getTranslation()
+	var translation: Vec3 = Vec3(0f)
 		set(value) {
 			field = value
 			updateModel()
 		}
 
-	var rotation: Quat = defaultRelativeTransform.getRotation()
+	var rotation: Quat = Quat()
 		set(value) {
 			field = value
 			updateModel()
@@ -44,7 +42,27 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 		return listOf(this) + children.flatMap { it.getAllChildren() }
 	}
 
-	fun getChild(name: String) = getAllChildren().firstOrNull { it.name == name }
+	fun getAllChildrenSorted(list: MutableList<Bone> = mutableListOf()): List<Bone> {
+		list.add(this)
+		for(child in children) child.addToList(list)
+		list.sortBy(Bone::id)
+		return list
+	}
+
+	fun addToList(list: MutableList<Bone>) {
+		list.add(this)
+		for(child in children) child.addToList(list)
+	}
+
+	fun getChild(name: String): Bone? {
+		if(this.name == name) return this
+		return children.firstNotNullOfOrNull { it.getChild(name) }
+	}
+
+	fun getChild(id: Int): Bone? {
+		if(this.id == id) return this
+		return children.firstNotNullOfOrNull { it.getChild(id) }
+	}
 
 	fun getRoot(): Bone {
 		return this.parent ?: this
@@ -57,7 +75,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 		}
 	}
 
-	private fun updateModel() {
+	fun updateModel() {
 		relativeTransform = defaultRelativeTransform.translate(translation) * rotation.toMat4()
 		modelTransform = parentTransform * relativeTransform
 		for (it in children) {
@@ -70,7 +88,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 	}
 
 	fun rotate(quat: Quat) {
-		rotation = rotation * quat
+		rotation = quat * rotation
 	}
 
 	fun render(renderer: RendererI, shader: RenderShader, model: Mat4) {

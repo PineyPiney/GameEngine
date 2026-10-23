@@ -3,7 +3,6 @@ package com.pineypiney.game_engine.rendering.openxr
 import com.pineypiney.game_engine.rendering.PresentingApi
 import com.pineypiney.game_engine.util.extension_functions.rigidInverse
 import com.pineypiney.game_engine.util.maths.I
-import com.pineypiney.game_engine.util.maths.up
 import com.pineypiney.game_engine.window.Viewport
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.xr.OpenXrGameLogicI
@@ -17,9 +16,6 @@ import glm_.vec4.Vec4
 import org.lwjgl.openxr.XrView
 
 open class DefaultOpenXrRenderer<in E: OpenXrGameLogicI>(window: WindowI, val renderManager: OpenXrRenderManager) : OpenXrRendererI<E> {
-
-	val viewOffset = Vec3(0f)
-	var rotationOffset = 0f
 
 	override val viewPos: Vec3 = Vec3(0f)
 	override val view: Mat4 = I
@@ -51,10 +47,10 @@ open class DefaultOpenXrRenderer<in E: OpenXrGameLogicI>(window: WindowI, val re
 	}
 
 	override fun updateView(view: XrView) {
-		view.pose().`position$`().glm().plus(viewOffset, viewPos)
+		viewPos(view.pose().`position$`().glm())
 		XrUtil.createProjection(view.fov(), 100f, .05f, renderManager.session.manager.manager.invertY(), projection)
 		guiProjection(projection)
-		(I.translateAssign(viewOffset).rotateAssign(rotationOffset, up) * view.pose().mat4()).rigidInverse(this.view)
+		view.pose().mat4().rigidInverse(this.view)
 	}
 
 	override fun getRenderingApi(): PresentingApi = api

@@ -7,16 +7,16 @@ import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.xr.actions.OpenXrActionSet
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.openxr.XR10
 
 abstract class OpenXrGameEngine<E: OpenXrGameLogicI>(val window: WindowI, val xrGraphicsApi: XrGraphicsApi) : GameEngine<E>() {
 
-	lateinit var openxr: OpenXrManager
 	final override lateinit var resourcesLoader: ResourcesLoader private set
 
 	abstract val actionSet: OpenXrActionSet
+	abstract var openxr: OpenXrManager
 
 	override fun init() {
-		openxr = OpenXrManager(window, xrGraphicsApi, actionSet)
 		resourcesLoader = createResourcesLoader(openxr.manager.createResourceFactory())
 		super.init()
 		activeScreen.open()
@@ -40,10 +40,10 @@ abstract class OpenXrGameEngine<E: OpenXrGameLogicI>(val window: WindowI, val xr
 	}
 
 	override fun input() {
-		if(!openxr.session.pollEvents()) window.shouldClose = true
+		if(!openxr.session.pollEvents()) openxr.session.exit()
 	}
 
-	override fun shouldRun(): Boolean = !window.shouldClose
+	override fun shouldRun(): Boolean = openxr.session.state <= XR10.XR_SESSION_STATE_STOPPING
 
 	override fun cleanUp() {
 		openxr.manager.waitIdle()

@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.xr
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.util.extension_functions.ptr
+import glm_.quat.Quat
 import glm_.vec3.Vec3
 import org.lwjgl.openxr.*
 import org.lwjgl.system.MemoryStack
@@ -14,17 +15,17 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 	var state = XR10.XR_SESSION_STATE_UNKNOWN
 	val active get() = state in XR10.XR_SESSION_STATE_SYNCHRONIZED..XR10.XR_SESSION_STATE_FOCUSED
 
-	val space: XrSpace
-	val viewSpace: XrSpace
-
 	val leftHandPath: Long
 	val rightHandPath: Long
+
+	var space: XrSpace private set
+	val viewSpace: XrSpace
 
 	init {
 		MemoryStack.stackPush().use { stack ->
 			leftHandPath = XrUtil.createPath(stack, manager.instance, "/user/hand/left")
 			rightHandPath = XrUtil.createPath(stack, manager.instance, "/user/hand/right")
-			space = XrUtil.createReferenceSpace(stack, session, XR10.XR_REFERENCE_SPACE_TYPE_LOCAL, Vec3(0f, 0f, 0f))
+			space = XrUtil.createReferenceSpace(stack, session, XR10.XR_REFERENCE_SPACE_TYPE_LOCAL)
 			viewSpace = XrUtil.createReferenceSpace(stack, session, XR10.XR_REFERENCE_SPACE_TYPE_VIEW)
 		}
 
@@ -39,6 +40,14 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 			XrUtil.processResult(XR10.xrBeginSession(session, sessionBeginInfo), "Failed to begin Session.")
 		}
 		running = true
+	}
+
+	fun setSpaceOffset(pos: Vec3, rot: Quat){
+		XR10.xrDestroySpace(space)
+		MemoryStack.stackPush().use { stack ->
+			space = XrUtil.createReferenceSpace(stack, session, XR10.XR_REFERENCE_SPACE_TYPE_LOCAL, pos, rot)
+		}
+		manager.actionSet.setSpace(space)
 	}
 
 	fun end(){
@@ -146,12 +155,13 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 			}
 			XR10.XR_SESSION_STATE_EXITING -> {
 				// SessionState is exiting. Exit the application.
+				GameEngineI.logger.info("Exiting OpenXR Session")
 				running = false
 				false
 			}
 			XR10.XR_SESSION_STATE_LOSS_PENDING -> {
 				// SessionState is loss pending. Exit the application.
-				// It's possible to try a reestablish an XrInstance and XrSession, but we will simply exit here.
+				// It's possible to try and reestablish an XrInstance and XrSession, but we will simply exit here.
 				running = false
 				false
 			}
@@ -159,8 +169,12 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 		}
 	}
 
-	override fun delete() {
+	fun exit(){
+		if(running) XrUtil.processResult(XR10.xrRequestExitSession(session), "Failed to quest session exit")
+		else state = 9
+	}
 
+	override fun delete() {
 		XrUtil.processResult(XR10.xrDestroySpace(space), "Failed to destroy Reference Space")
 		XrUtil.processResult(XR10.xrDestroySpace(viewSpace), "Failed to destroy Reference Space")
 

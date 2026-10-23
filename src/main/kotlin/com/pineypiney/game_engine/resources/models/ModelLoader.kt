@@ -85,7 +85,7 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 
 				"o" -> {
 					if (vertices.isNotEmpty()) {
-						val mesh = loader.factory.createModelMesh(name, vertices.toTypedArray(), indices.toIntArray(), material = material)
+						val mesh = loader.factory.createModelMesh(name, vertices, indices.toIntArray(), material = material)
 						meshes.add(mesh)
 					}
 					name = parts[1]
@@ -138,7 +138,7 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 				}
 			}
 		}
-		meshes.add(loader.factory.createModelMesh(name, vertices.toTypedArray(), indices.toIntArray(), material = material))
+		meshes.add(loader.factory.createModelMesh(name, vertices, indices.toIntArray(), material = material))
 		DeletionQueue.GLOBAL.pushAll(meshes)
 
 		return Model(fileName, meshes.toTypedArray())
@@ -228,7 +228,7 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 
 			val mesh = factory.createModelMesh(
 				geo.name,
-				vertices.toTypedArray(),
+				vertices,
 				geo.indices,
 				PhongMaterial(
 					"${geo.name} material",

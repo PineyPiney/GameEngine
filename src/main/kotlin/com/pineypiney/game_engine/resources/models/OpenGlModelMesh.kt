@@ -8,7 +8,7 @@ import glm_.quat.Quat
 import glm_.vec3.Vec3
 
 open class OpenGlModelMesh(
-	override var id: String, override val vertices: Array<out MeshVertex>, override val indices: IntArray,
+	override var id: String, override val vertices: List<MeshVertex>, override val indices: IntArray,
 	override val material: ModelMaterial = PhongMaterial(id, emptyMap())
 ) : OpenGlIndexedMesh(MeshVertex.compile(vertices), vertices.firstOrNull()?.attributes ?: emptyList(), indices), ModelMesh {
 

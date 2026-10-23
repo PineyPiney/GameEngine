@@ -333,7 +333,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 
 		return OpenGlModelMesh(
 			"icosahedron",
-			points.map { MeshVertex.builder(it.normal * radius).normal(it.normal).tex(it.tex).build() }.toTypedArray(),
+			points.map { MeshVertex.builder(it.normal * radius).normal(it.normal).tex(it.tex).build() },
 			indices.toIntArray(),
 			material = PBRMaterial("icosphere", mapOf("baseColour" to TextureLoader[ResourceKey("ico_texture")]))
 		)
@@ -444,7 +444,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 				//if(it.second.isEmpty()) Vec3(0f, 0f, 1f) else (it.second.fold(Vec3()) { v, t -> v + t } / it.second.size).normalize().cross(it.first.normal).cross(it.first.normal)
 				if(abs(it.first.normal.y) == 1f) Vec3(1f, 0f, 0f) else (it.first.normal.cross(Vec3(0f, 1f, 0f))).normalize()
 			).fillBones().build()
-		}.toTypedArray()
+		}
 		return OpenGlModelMesh(
 			"icosahedron", floats, indices.toIntArray(), material = PBRMaterial(
 				"icosphere", mapOf(
@@ -502,9 +502,9 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 			}
 		}
 
-		val vertices = Array((divisions * sectionDivisions) + 2) { bottom }
+		val vertices = MutableList((divisions * sectionDivisions) + 2) { bottom }
 		for((i, a) in rings.withIndex()){
-			a.copyInto(vertices, (i * sectionDivisions) + 1)
+			for((j, element) in a.withIndex()) vertices[i + j + 1] = element
 		}
 		vertices[vertices.size - 1] = top
 		return OpenGlModelMesh(
@@ -586,7 +586,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 		}
 		intArrayOf(37, 36, 44, 39, 38, 45, 41, 40, 46, 43, 42, 47).copyInto(indices, 60)
 
-		return OpenGlModelMesh("Inverted Cuboid", topVerts.toTypedArray(), indices, material = PBRMaterial("invCub Mat", mapOf()))
+		return OpenGlModelMesh("Inverted Cuboid", topVerts, indices, material = PBRMaterial("invCub Mat", mapOf()))
 	}
 
 	companion object {

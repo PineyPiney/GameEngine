@@ -19,7 +19,7 @@ import org.lwjgl.system.MemoryUtil
 // Run ../OpenXR-Simulator/scripts/register-runtime.ps1 to set it as OpenXR Runtime
 
 // This class is used to handle cross-api OpenXR runtime, with GraphicsApi-specific functionality handled by the graphicsApi
-class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val actionSet: OpenXrActionSet) : Deletable {
+class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val actionSet: OpenXrActionSet, extensions: Collection<String>) : Deletable {
 
 	init {
 		graphicsApi
@@ -39,7 +39,7 @@ class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val act
 
 		enabledLayers.addAll("XR_APILAYER_LUNARG_core_validation", "XR_APILAYER_KHRONOS_best_practices_validation")
 		enabledExtensions.addAll(graphicsApi.getExtensions())
-		enabledExtensions.add(EXTDebugUtils.XR_EXT_DEBUG_UTILS_EXTENSION_NAME)
+		enabledExtensions.addAll(extensions)
 
 	    MemoryStack.stackPush().use { stack ->
 			instance = XrUtil.createInstance(stack, "Piney's Game Engine", enabledLayers, enabledExtensions)
@@ -70,6 +70,7 @@ class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val act
 
 			session = graphicsApi.createSession(stack, this, manager, window)
 			actionSet.bindToSession(stack, session)
+			actionSet.setSpace(session.space)
 			session.attachActionSets(stack, listOf(actionSet.actionSet))
 
 			renderManager = OpenXrRenderManager(session)
@@ -106,6 +107,7 @@ class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val act
 	}
 
 	fun nameObject(ptr: Long, type: Int, name: String) {
+		if(EXTDebugUtils.XR_EXT_DEBUG_UTILS_EXTENSION_NAME !in enabledExtensions) return
 		val name = MemoryUtil.memUTF8(name)
 		MemoryStack.stackPush().use { stack ->
 			val info = XrDebugUtilsObjectNameInfoEXT.calloc(stack).`type$Default`()

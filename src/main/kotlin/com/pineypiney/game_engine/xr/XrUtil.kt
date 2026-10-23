@@ -273,6 +273,11 @@ object XrUtil {
 		return props.runtimeNameString() to LwjglUtil.version(props.runtimeVersion())
 	}
 
+	fun getSystemProperties(instance: XrInstance, systemId: Long, props: XrSystemProperties): XrSystemProperties {
+		processResult(XR10.xrGetSystemProperties(instance, systemId, props), "Failed to get instance properties")
+		return props
+	}
+
 	fun setupDebugger(stack: MemoryStack, instance: XrInstance, severities: Int, callback: XrDebugUtilsMessengerCallbackEXTI): XrDebugUtilsMessengerEXT {
 		val b = stack.mallocPointer(1)
 		val createInfo = XrDebugUtilsMessengerCreateInfoEXT.calloc(stack).`type$Default`()
@@ -292,6 +297,7 @@ object XrUtil {
 		processResult(XR10.xrGetSystem(instance, getInfo, b), "Failed to get System Id")
 		val properties = XrSystemProperties.malloc(stack).`type$Default`()
 		processResult(XR10.xrGetSystemProperties(instance, b[0], properties), "Failed to get System Properties")
+		GameEngineI.logger.info("OpenXR using system ${properties.systemNameString()}")
 		return b[0]
 	}
 
@@ -489,5 +495,17 @@ object XrUtil {
 			(tanLeft + tanRight) / tanWidth, 	(tanDown + tanUp) / tanHeight, m22, -1f,
 			0f, 								0f, 							m23, 0f
 		)
+	}
+
+	fun createHandTrackers(stack: MemoryStack, openxr: OpenXrManager): Array<HandTracker> {
+		val createInfo = XrHandTrackerCreateInfoEXT.calloc(stack).`type$Default`()
+			.hand(EXTHandTracking.XR_HAND_LEFT_EXT)
+			.handJointSet(EXTHandTracking.XR_HAND_JOINT_SET_DEFAULT_EXT)
+
+		val b = stack.callocPointer(1)
+		processResult(EXTHandTracking.xrCreateHandTrackerEXT(openxr.session.session, createInfo, b), "Failed to create Left Hand Tracker")
+		val left = HandTracker(XrHandTrackerEXT(b[0], openxr.session.session), openxr)
+		processResult(EXTHandTracking.xrCreateHandTrackerEXT(openxr.session.session, createInfo.hand(EXTHandTracking.XR_HAND_RIGHT_EXT), b), "Failed to create Right Hand Tracker")
+		return arrayOf(left, HandTracker(XrHandTrackerEXT(b[0], openxr.session.session), openxr))
 	}
 }

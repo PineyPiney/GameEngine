@@ -4,18 +4,35 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.util.extension_functions.delete
 import com.pineypiney.game_engine.util.extension_functions.deleteArray
+import org.lwjgl.system.CustomBuffer
+import org.lwjgl.system.Struct
 
 open class DeletionQueue {
 
 	val deletables = mutableListOf<Deletable>()
 
-	fun push(function: () -> Unit): DeletionQueue {
-		deletables.add(Container(function))
+	fun push(deletable: Deletable): DeletionQueue {
+		deletables.add(deletable)
 		return this
 	}
 
-	fun push(deletable: Deletable): DeletionQueue {
-		deletables.add(deletable)
+	fun push(struct: Struct<*>): DeletionQueue {
+		deletables.add(StructContainer(struct))
+		return this
+	}
+
+	fun push(buffer: CustomBuffer<*>): DeletionQueue {
+		deletables.add(StructBufferContainer(buffer))
+		return this
+	}
+
+	fun <E> push(obj: E, function: (E) -> Unit): DeletionQueue {
+		deletables.add(Container(obj, function))
+		return this
+	}
+
+	fun push(function: () -> Unit): DeletionQueue {
+		deletables.add(FuncContainer(function))
 		return this
 	}
 
@@ -46,9 +63,27 @@ open class DeletionQueue {
 		}
 	}
 
-	class Container(val func: () -> Unit) : Deletable {
+	class Container<E>(val obj: E, val func: (E) -> Unit) : Deletable {
+		override fun delete() {
+			func(obj)
+		}
+	}
+
+	class FuncContainer(val func: () -> Unit) : Deletable {
 		override fun delete() {
 			func()
+		}
+	}
+
+	class StructContainer(val struct: Struct<*>) : Deletable {
+		override fun delete() {
+			struct.free()
+		}
+	}
+
+	class StructBufferContainer(val buffer: CustomBuffer<*>) : Deletable {
+		override fun delete() {
+			buffer.free()
 		}
 	}
 

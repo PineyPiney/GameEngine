@@ -68,13 +68,13 @@ class MeshVertex(val map: Set<VertexAttribute.Pair<*, *>>) {
 		fun builder(pos: Vec3) = Builder(pos)
 		fun builder(x: Float, y: Float, z: Float) = Builder(Vec3(x, y, z))
 
-		fun compile(vertices: Array<out MeshVertex>): ByteBuffer{
+		fun compile(vertices: Collection<MeshVertex>): ByteBuffer{
 			if(vertices.isEmpty()) return emptyByteBuffer()
 
 			val stride = vertices.first().attributes.sumOf { it.bytes }
 			val buffer = BufferUtils.createByteBuffer(vertices.size * stride)
-			for(i in 0..<vertices.size){
-				vertices[i].putData(buffer, i * stride)
+			for((i, element) in vertices.withIndex()){
+				element.putData(buffer, i * stride)
 			}
 			return buffer
 		}

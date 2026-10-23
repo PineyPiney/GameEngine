@@ -1,9 +1,9 @@
 package com.pineypiney.game_engine_test.xr
 
-import com.pineypiney.game_engine.xr.OpenXrSession
 import com.pineypiney.game_engine.xr.XrUtil
 import com.pineypiney.game_engine.xr.actions.*
 import org.lwjgl.openxr.XrInstance
+import org.lwjgl.openxr.XrSpace
 import org.lwjgl.system.MemoryStack
 
 class TestActions : OpenXrActionSet("test_action_set", "Test Action Set") {
@@ -48,8 +48,7 @@ class TestActions : OpenXrActionSet("test_action_set", "Test Action Set") {
 			.bindHaptic(hapticAction)
 	}
 
-	override fun bindToSession(stack: MemoryStack, session: OpenXrSession) {
-		super.bindToSession(stack, session)
-		palmPoseAction.baseSpace = session.space
+	override fun setSpace(space: XrSpace) {
+		palmPoseAction.baseSpace = space
 	}
 }

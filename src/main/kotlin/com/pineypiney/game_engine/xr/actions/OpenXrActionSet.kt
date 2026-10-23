@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.xr.XrUtil
 import org.lwjgl.openxr.XR10
 import org.lwjgl.openxr.XrActionSet
 import org.lwjgl.openxr.XrInstance
+import org.lwjgl.openxr.XrSpace
 import org.lwjgl.system.MemoryStack
 
 open class OpenXrActionSet(val name: String, val displayName: String, val priority: Int = 0) : Deletable {
@@ -50,6 +51,8 @@ open class OpenXrActionSet(val name: String, val displayName: String, val priori
 	open fun bindToSession(stack: MemoryStack, session: OpenXrSession) {
 		for(action in inputActions) action.bindToSession(stack, session)
 	}
+
+	open fun setSpace(space: XrSpace){}
 
 	override fun delete() {
 		inputActions.delete()

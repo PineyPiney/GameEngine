@@ -267,7 +267,7 @@ class GLTFModelLoader {
             }
         }
 
-        val vertices = Array(maxIndex + 1) {
+        val vertices = List(maxIndex + 1) {
 
             val values = attributeMap.map { (att, arr) ->
                 try {

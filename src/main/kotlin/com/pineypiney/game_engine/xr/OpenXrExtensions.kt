@@ -3,11 +3,11 @@ package com.pineypiney.game_engine.xr
 import com.pineypiney.game_engine.util.maths.I
 import glm_.mat4x4.Mat4
 import glm_.quat.Quat
+import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import org.lwjgl.openxr.XrPosef
-import org.lwjgl.openxr.XrQuaternionf
-import org.lwjgl.openxr.XrRect2Di
-import org.lwjgl.openxr.XrVector3f
+import glm_.vec4.Vec4
+import glm_.vec4.Vec4s
+import org.lwjgl.openxr.*
 
 fun XrQuaternionf.set(value: Quat) {
 	set(value.x, value.y, value.z, value.w)
@@ -23,7 +23,13 @@ fun XrVector3f.set(value: Vec3) {
 	set(value.x, value.y, value.z)
 }
 
+fun XrVector2f.glm() = Vec2(x(), y())
+
 fun XrVector3f.glm() = Vec3(x(), y(), z())
+
+fun XrVector4f.glm() = Vec4(x(), y(), z(), w())
+
+fun XrVector4sFB.glm() = Vec4s(x(), y(), z(), w())
 
 fun Vec3.put(value: XrVector3f) {
 	value.set(x, y, z)

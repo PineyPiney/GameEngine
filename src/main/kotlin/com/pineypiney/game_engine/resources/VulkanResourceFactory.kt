@@ -100,7 +100,7 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 		return createIndexedMesh(name, vertices.toBuffer(), indices, attributes)
 	}
 
-	override fun createModelMesh(id: String, vertices: Array<out MeshVertex>, indices: IntArray, material: ModelMaterial): ModelMesh {
+	override fun createModelMesh(id: String, vertices: List<MeshVertex>, indices: IntArray, material: ModelMaterial): ModelMesh {
 		val mesh = VulkanModelMesh(vulkan, id, vertices, indices.toBuffer(), material)
 		return mesh
 	}

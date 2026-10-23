@@ -156,7 +156,7 @@ class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
 	fun buildModel(id: String, factory: ResourceFactory, material: ModelMaterial = PBRMaterial("$id Mesh Material", emptyMap())): ModelMesh {
 		addVertex()
 		started = false
-		return factory.createModelMesh(id, vertices.toTypedArray(), indices.toIntArray(), material)
+		return factory.createModelMesh(id, vertices, indices.toIntArray(), material)
 	}
 
 	companion object {

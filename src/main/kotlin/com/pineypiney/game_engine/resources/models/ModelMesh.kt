@@ -20,7 +20,7 @@ interface ModelMesh : Mesh {
 	var translation: Vec3
 	var rotation: Quat
 
-	val vertices: Array<out MeshVertex>
+	val vertices: List<MeshVertex>
 	val indices: IntArray
 
 	val transform: Mat4 get() = I.translate(translation) * rotation.toMat4()
