@@ -33,7 +33,7 @@ open class DefaultOpenXrRenderer<in E: OpenXrGameLogicI>(window: WindowI, val re
 	override fun render(game: E, tickDelta: Double) {
 		if (!api.beginPresentation()) return
 
-		api.bindFramebuffer(renderManager.swapchain.framebuffer, Vec4(.8f, .2f, .8f, 1f), -1f)
+		api.bindFramebuffer(renderManager.swapchain.framebuffer, Vec4(.8f, .2f, .8f, 0f), renderManager.session.manager.manager.minDepth())
 
 		renderLayer(0, game, tickDelta)
 		renderLayer(1, game, tickDelta) { transformComponent.worldPosition.z }

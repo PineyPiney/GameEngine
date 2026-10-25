@@ -86,7 +86,8 @@ open class VulkanManager(appName: String, version: Int, layers: Collection<Strin
 
 	override val getEnum: (ApiEnum) -> Int = ApiEnum::vulkan
 
-	override fun invertY(): Boolean  = true
+	override fun invertY(): Boolean = true
+	override fun minDepth(): Float = 0f
 
 	override fun createResourceFactory(): VulkanResourceFactory = VulkanResourceFactory(this)
 

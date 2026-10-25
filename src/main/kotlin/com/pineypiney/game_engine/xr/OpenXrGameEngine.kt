@@ -17,6 +17,7 @@ abstract class OpenXrGameEngine<E: OpenXrGameLogicI>(val window: WindowI, val xr
 	abstract var openxr: OpenXrManager
 
 	override fun init() {
+		openxr.init()
 		resourcesLoader = createResourcesLoader(openxr.manager.createResourceFactory())
 		super.init()
 		activeScreen.open()

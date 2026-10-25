@@ -57,5 +57,6 @@ open class OpenXrActionSet(val name: String, val displayName: String, val priori
 	override fun delete() {
 		inputActions.delete()
 		outputActions.delete()
+		XrUtil.processResult(XR10.xrDestroyActionSet(actionSet), "Failed to destroy OpenXR Action Set $displayName")
 	}
 }

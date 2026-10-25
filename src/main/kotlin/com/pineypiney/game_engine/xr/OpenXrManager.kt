@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.xr
 
 import com.pineypiney.game_engine.ApiManager
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.objects.Deletable
+import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.rendering.openxr.OpenXrRenderManager
 import com.pineypiney.game_engine.rendering.openxr.OpenXrVulkanManager
 import com.pineypiney.game_engine.util.extension_functions.addAll
@@ -19,15 +19,18 @@ import org.lwjgl.system.MemoryUtil
 // Run ../OpenXR-Simulator/scripts/register-runtime.ps1 to set it as OpenXR Runtime
 
 // This class is used to handle cross-api OpenXR runtime, with GraphicsApi-specific functionality handled by the graphicsApi
-class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val actionSet: OpenXrActionSet, extensions: Collection<String>) : Deletable {
+class OpenXrManager(
+	val window: WindowI,
+	val graphicsApi: XrGraphicsApi,
+	val actionSet: OpenXrActionSet,
+	extensions: Collection<String>,
+	renderManagerFact: (session: OpenXrSession, List<Int>) -> OpenXrRenderManager = ::OpenXrRenderManager,
+	blendModes: List<Int> = listOf(XR10.XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
+) : Initialisable {
 
-	init {
-		graphicsApi
-	}
+	val deletionQueue = OpenXrDeletionQueue()
 
 	val instance: XrInstance
-
-	val errorHandle: XrDebugUtilsMessengerEXT?
 
 	val systemID: Long
 
@@ -43,7 +46,11 @@ class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val act
 
 	    MemoryStack.stackPush().use { stack ->
 			instance = XrUtil.createInstance(stack, "Piney's Game Engine", enabledLayers, enabledExtensions)
-			errorHandle = if(debugEnabled) XrUtil.setupDebugger(stack, instance, EXTDebugUtils.XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT or EXTDebugUtils.XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT, ::errorCallback) else null
+			deletionQueue.pushHandle(instance, XR10::xrDestroyInstance)
+			if(debugEnabled) {
+				val errorHandle = XrUtil.setupDebugger(stack, instance, EXTDebugUtils.XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT or EXTDebugUtils.XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT, ::errorCallback)
+				deletionQueue.pushHandle(errorHandle, EXTDebugUtils::xrDestroyDebugUtilsMessengerEXT)
+			}
 
 			val (name, version) = XrUtil.getInstanceProperties(stack, instance)
 			GameEngineI.logger.info("Started OpenXR Runtime $name ${version.toString(".", Int::toString)}")
@@ -54,10 +61,12 @@ class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val act
 			GameEngineI.logger.info("OpenXR requires ${graphicsApi.getName()} ${Vec2i(minVersion).toString(".", Int::toString)} to ${Vec2i(maxVersion).toString(".", Int::toString)}")
 
 			actionSet.init(stack, this)
+			deletionQueue.push(actionSet)
 
 			manager = graphicsApi.createApi("OpenXR Test", instance, systemID)
 			manager.init()
 			println(manager.printInfo())
+			deletionQueue.push(manager)
 
 
 			var successfulSuggestion = false
@@ -72,8 +81,10 @@ class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val act
 			actionSet.bindToSession(stack, session)
 			actionSet.setSpace(session.space)
 			session.attachActionSets(stack, listOf(actionSet.actionSet))
+			deletionQueue.push(session)
 
-			renderManager = OpenXrRenderManager(session)
+			renderManager = renderManagerFact(session, blendModes)
+			deletionQueue.push(renderManager)
 
 			if(manager is OpenXrVulkanManager){
 				manager.colourFormat = renderManager.colourFormat
@@ -81,9 +92,14 @@ class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val act
 			}
 		}
 
+
 		nameObject(instance.address(), XR10.XR_OBJECT_TYPE_INSTANCE, "OpenXR Instance")
 //		nameObject(errorHandle.address(), EXTDebugUtils.XR_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT, "Error Messenger")
 		nameObject(session.session.address(), XR10.XR_OBJECT_TYPE_SESSION, "OpenXR Session")
+	}
+
+	override fun init() {
+		renderManager.init()
 	}
 
 	@Suppress("unused")
@@ -119,19 +135,14 @@ class OpenXrManager(val window: WindowI, val graphicsApi: XrGraphicsApi, val act
 	}
 
 	override fun delete() {
-		renderManager.delete()
-		session.delete()
-		actionSet.delete()
-
-		manager.delete()
-
-		errorHandle?.let { XrUtil.processResult(EXTDebugUtils.xrDestroyDebugUtilsMessengerEXT(it), "Failed to destroy Debug Messenger") }
-		XrUtil.processResult(XR10.xrDestroyInstance(instance), "Failed to destroy Instance")
+		deletionQueue.flush()
 	}
 
 	companion object {
 		val enabledLayers = mutableListOf<String>()
 		val enabledExtensions = mutableListOf<String>()
-		val debugEnabled get() = enabledExtensions.contains(EXTDebugUtils.XR_EXT_DEBUG_UTILS_EXTENSION_NAME)
+
+		val debugEnabled get() = EXTDebugUtils.XR_EXT_DEBUG_UTILS_EXTENSION_NAME in enabledExtensions
+		val depthEnabled get() = KHRCompositionLayerDepth.XR_KHR_COMPOSITION_LAYER_DEPTH_EXTENSION_NAME in enabledExtensions
 	}
 }

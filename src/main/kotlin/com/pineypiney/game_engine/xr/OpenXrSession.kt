@@ -43,7 +43,7 @@ class OpenXrSession(val session: XrSession, val manager: OpenXrManager) : Deleta
 	}
 
 	fun setSpaceOffset(pos: Vec3, rot: Quat){
-		XR10.xrDestroySpace(space)
+		XrUtil.processResult(XR10.xrDestroySpace(space), "Failed to destroy XrSpace $space")
 		MemoryStack.stackPush().use { stack ->
 			space = XrUtil.createReferenceSpace(stack, session, XR10.XR_REFERENCE_SPACE_TYPE_LOCAL, pos, rot)
 		}

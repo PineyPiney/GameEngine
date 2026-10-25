@@ -13,6 +13,7 @@ interface ApiManager : Initialisable {
 
 	val getEnum: (ApiEnum) -> Int
 	fun invertY(): Boolean
+	fun minDepth(): Float
 
 	fun createResourceFactory(): ResourceFactory
 	fun createRenderingApi(name: String): RenderingApi

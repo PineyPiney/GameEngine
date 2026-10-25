@@ -97,6 +97,19 @@ object LwjglUtil {
 		return null
 	}
 
+	fun <A, S: Struct<S>, SB: StructBuffer<S, SB>> enumerateStructs(stack: MemoryStack, name: String, instance: A, setType: S.() -> Unit, creator: (Int, MemoryStack) -> SB, func: (A, IntBuffer, SB?) -> Int) : SB? {
+		val b = stack.callocInt(1)
+		processResult(func(instance, b, null), "Failed to get the number of $name")
+
+		if (b[0] > 0) {
+			val result = creator(b[0], stack)
+			for(s in result) setType(s)
+			processResult(func(instance, b, result), "Failed to get $name")
+			return result
+		}
+		return null
+	}
+
 	fun <A, B, S: Struct<S>, SB: StructBuffer<S, SB>> enumerateStructs(stack: MemoryStack, name: String, instance: A, device: B, creator: (Int, MemoryStack) -> SB, func: (A, B, IntBuffer, SB?) -> Int) : SB? {
 		val b = stack.callocInt(1)
 		processResult(func(instance, device, b, null), "Failed to get the number of $name")

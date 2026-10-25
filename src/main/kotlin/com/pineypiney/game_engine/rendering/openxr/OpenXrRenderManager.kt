@@ -1,19 +1,17 @@
 package com.pineypiney.game_engine.rendering.openxr
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.objects.Deletable
+import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.resources.textures.TextureFormat
-import com.pineypiney.game_engine.util.extension_functions.delete
-import com.pineypiney.game_engine.xr.OpenXrGameLogicI
-import com.pineypiney.game_engine.xr.OpenXrSession
-import com.pineypiney.game_engine.xr.XrUtil
-import com.pineypiney.game_engine.xr.set
+import com.pineypiney.game_engine.xr.*
 import kool.set
 import org.lwjgl.PointerBuffer
 import org.lwjgl.openxr.*
 import org.lwjgl.system.MemoryStack
 
-class OpenXrRenderManager(val session: OpenXrSession) : Deletable {
+open class OpenXrRenderManager(val session: OpenXrSession, blendModes: List<Int>) : Initialisable {
+
+	val deletionQueue = OpenXrDeletionQueue()
 
 	val instance get() = session.manager.instance
 	val systemID get() = session.manager.systemID
@@ -46,6 +44,7 @@ class OpenXrRenderManager(val session: OpenXrSession) : Deletable {
 			depthFormat = depthFormats.first { formats.contains(it) }
 
 			swapchains = XrUtil.createSwapchains(stack, session, viewConfigurationViews, session.manager.manager.getEnum(colourFormat).toLong(), session.manager.manager.getEnum(depthFormat).toLong())
+			deletionQueue.pushAll(swapchains)
 		}
 
 		for((i, swapchain) in swapchains.withIndex()) {
@@ -53,6 +52,8 @@ class OpenXrRenderManager(val session: OpenXrSession) : Deletable {
 			session.manager.nameObject(swapchain.depth.address(), XR10.XR_OBJECT_TYPE_SWAPCHAIN, "OpenXR Depth Swapchain $i")
 		}
 	}
+
+	override fun init() {}
 
 	fun <E: OpenXrGameLogicI> render(game: E, tickDelta: Double){
 		MemoryStack.stackPush().use { stack ->
@@ -72,6 +73,7 @@ class OpenXrRenderManager(val session: OpenXrSession) : Deletable {
 				if(renderLayer(game, tickDelta, frameState.predictedDisplayTime(), pointer)){
 					layerPointers.add(pointer[0])
 				}
+				addLayers(layerPointers)
 			}
 
 			val layers = stack.mallocPointer(layerPointers.size)
@@ -86,6 +88,10 @@ class OpenXrRenderManager(val session: OpenXrSession) : Deletable {
 
 			XrUtil.processResult(XR10.xrEndFrame(session.session, endInfo), "Failed to end frame")
 		}
+	}
+
+	open fun addLayers(layers: MutableList<Long>){
+
 	}
 
 	fun <E: OpenXrGameLogicI> renderLayer(game: E, tickDelta: Double, displayTime: Long, compositionLayerPtr: PointerBuffer): Boolean {
@@ -142,14 +148,25 @@ class OpenXrRenderManager(val session: OpenXrSession) : Deletable {
 		val renderer = game.renderer
 		renderer.viewportSize(swapchain.view.recommendedImageRectWidth(), swapchain.view.recommendedImageRectHeight())
 
+		val imageRect = XrRect2Di.calloc(stack).set(0, 0, renderer.viewportSize.x, renderer.viewportSize.y)
+
+		val depthInfo = XrCompositionLayerDepthInfoKHR.calloc(stack).`type$Default`()
+			.nearZ(100f).farZ(.05f)
+			.minDepth(-1f).maxDepth(1f)
+			.subImage { subimage ->
+				subimage.swapchain(swapchain.depth)
+					.imageRect(imageRect)
+			}
+
 		compositionLayerView.`type$Default`()
 			.pose(xrView.pose())
 			.fov(xrView.fov())
 			.subImage { subimage ->
 				subimage.swapchain(swapchain.colour)
-					.imageRect { rect -> rect.set(0, 0, renderer.viewportSize.x, renderer.viewportSize.y) }
+					.imageRect(imageRect)
 					.imageArrayIndex(0)
 			}
+			.next(depthInfo)
 
 		game.renderer.updateView(xrView)
 
@@ -163,12 +180,11 @@ class OpenXrRenderManager(val session: OpenXrSession) : Deletable {
 	}
 
 	override fun delete() {
-		swapchains.delete()
+		deletionQueue.flush()
 	}
 
 	companion object {
 		// https://openxr-tutorial.com//linux/opengl/3-graphics.html#create-the-swapchains
 		val depthFormats = listOf(TextureFormat.DEPTH32F, TextureFormat.DEPTH32, TextureFormat.DEPTH24, TextureFormat.DEPTH16)
-		val blendModes = listOf(XR10.XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
 	}
 }

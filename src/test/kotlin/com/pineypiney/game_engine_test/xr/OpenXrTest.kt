@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine_test.xr
 
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.GameLogic
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
@@ -7,6 +8,10 @@ import com.pineypiney.game_engine.objects.components.rendering.ColourRendererCom
 import com.pineypiney.game_engine.objects.components.rendering.ModelRendererComponent
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.openxr.DefaultOpenXrRenderer
+import com.pineypiney.game_engine.resources.models.GLTFModelLoader
+import com.pineypiney.game_engine.resources.models.Model
+import com.pineypiney.game_engine.util.LwjglUtil
+import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
 import com.pineypiney.game_engine.util.extension_functions.hasAll
@@ -19,6 +24,8 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.openxr.*
 import org.lwjgl.system.MemoryStack
+import java.io.ByteArrayInputStream
+import kotlin.concurrent.thread
 
 class OpenXrTest(override val gameEngine: TestOpenXrEngine) : GameLogic(), OpenXrGameLogicI {
 
@@ -30,9 +37,13 @@ class OpenXrTest(override val gameEngine: TestOpenXrEngine) : GameLogic(), OpenX
 	val viewOffset = Vec3(0f, 0f, -2f)
 	var rotationOffset = 0f
 
+	var lastLoadAttempt = 0.0
+	private var loadedModels = false
+	val controllerModels = mutableMapOf<ResourceKey, Model>()
+
 	override fun addObjects() {
-		if(gameEngine.supportsHandTracking){
-			val handCuboids = if(gameEngine.supportsHandTracking) EXTHandTracking.XR_HAND_JOINT_COUNT_EXT else 1
+		if(TestOpenXrEngine.supportsHandTracking){
+			val handCuboids = if(TestOpenXrEngine.supportsHandTracking) EXTHandTracking.XR_HAND_JOINT_COUNT_EXT else 1
 
 			if(FBHandTrackingMesh.XR_FB_HAND_TRACKING_MESH_EXTENSION_NAME in OpenXrManager.enabledExtensions){
 				val leftHandMesh = gameEngine.hands[0].getMesh(gameEngine.resourcesLoader.factory)
@@ -123,6 +134,7 @@ class OpenXrTest(override val gameEngine: TestOpenXrEngine) : GameLogic(), OpenX
 	override fun processActions(session: OpenXrSession, time: Long) {
 
 		if(gameEngine.window.getKey(' '.code) == 1) session.exit()
+		if(gameEngine.window.getKey('L'.code) == 1 && Timer.time - lastLoadAttempt > 2.0) loadControllerModels()
 
 		MemoryStack.stackPush().use { stack ->
 			val lookState = gameEngine.actionSet.lookAction.getValue(session.rightHandPath)
@@ -145,12 +157,50 @@ class OpenXrTest(override val gameEngine: TestOpenXrEngine) : GameLogic(), OpenX
 			gameEngine.actionSet.hapticAction.setValue(session, session.leftHandPath, XrHapticBaseHeader.create(vibration))
 			gameEngine.actionSet.hapticAction.setValue(session, session.rightHandPath, XrHapticBaseHeader.create(vibration.amplitude(gameEngine.actionSet.grabAction.getValue(session.rightHandPath) * .5f)))
 
-			if(gameEngine.supportsHandTracking) {
+			if(TestOpenXrEngine.supportsHandTracking) {
 				for(hand in gameEngine.hands){
 					hand.poll(stack, session, time)
 				}
 			}
 			updateHands()
 		}
+	}
+
+	// This is throwing XR_ERROR_RUNTIME_FAILURE on xrLoadRenderModelFB, not sure why
+	fun loadControllerModels(){
+		lastLoadAttempt = Timer.time
+		if(FBRenderModel.XR_FB_RENDER_MODEL_EXTENSION_NAME in OpenXrManager.enabledExtensions){
+			thread {
+				MemoryStack.stackPush().use { stack ->
+					val paths = LwjglUtil.enumerateStructs(stack, "FB Render Model Paths", gameEngine.openxr.session.session, XrRenderModelPathInfoFB::`type$Default`, XrRenderModelPathInfoFB::calloc, FBRenderModel::xrEnumerateRenderModelPathsFB) ?: return@use
+					val properties = XrRenderModelPropertiesFB.calloc(stack).`type$Default`()
+					val loadInfo = XrRenderModelLoadInfoFB.calloc(stack).`type$Default`()
+					val modelBuffer = XrRenderModelBufferFB.calloc(stack).`type$Default`()
+					for(path in paths) {
+						val pathString = XrUtil.readPath(stack, gameEngine.openxr.instance, path.path())
+						if(!XrUtil.processResult(FBRenderModel.xrGetRenderModelPropertiesFB(gameEngine.openxr.session.session, path.path(), properties), "Failed to get FB Render Model Properties for model $pathString")) continue
+						GameEngineI.logger.info("Found FB Render Model ${properties.modelNameString()} version ${properties.modelVersion()} key ${properties.modelKey()}")
+						if(properties.modelKey() == FBRenderModel.XR_NULL_RENDER_MODEL_KEY_FB) continue
+						try {
+							XrUtil.processResult(FBRenderModel.xrLoadRenderModelFB(gameEngine.openxr.session.session, loadInfo.modelKey(properties.modelKey()), modelBuffer.bufferCapacityInput(0)), "Failed to load FB Render Model ${properties.modelNameString()}")
+							val buffer = stack.malloc(modelBuffer.bufferCountOutput())
+							XrUtil.processResult(FBRenderModel.xrLoadRenderModelFB(gameEngine.openxr.session.session, loadInfo, modelBuffer.bufferCapacityInput(modelBuffer.bufferCountOutput()).buffer(buffer)), "Failed to load FB Render Model ${properties.modelNameString()}")
+							val bytes = ByteArray(buffer.capacity())
+							buffer.get(bytes, 0, bytes.size)
+							val stream = ByteArrayInputStream(bytes)
+							GLTFModelLoader().loadGLBFile(gameEngine.resourcesLoader.factory, properties.modelNameString(), stream, controllerModels)
+						}
+						catch(e: AssertionError) {
+							GameEngineI.logger.error(e.message)
+						}
+					}
+					loadedModels = true
+				}
+			}
+		}
+	}
+
+	companion object {
+//		val upRotation = glm.angleAxi
 	}
 }

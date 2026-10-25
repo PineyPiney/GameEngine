@@ -11,7 +11,7 @@ class OpenXrSwapchain(val view: XrViewConfigurationView, val colour: XrSwapchain
 	override fun delete() {
 		framebuffer.delete()
 		view.free()
-		XrUtil.processResult(XR10.xrDestroySwapchain(colour), "Could not destroy OpenXR Swapchain")
-		XrUtil.processResult(XR10.xrDestroySwapchain(depth), "Could not destroy OpenXR Swapchain")
+		XrUtil.processResult(XR10.xrDestroySwapchain(colour), "Could not destroy Colour OpenXR Swapchain")
+		XrUtil.processResult(XR10.xrDestroySwapchain(depth), "Could not destroy Depth OpenXR Swapchain")
 	}
 }

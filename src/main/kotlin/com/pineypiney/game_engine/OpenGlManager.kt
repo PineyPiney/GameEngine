@@ -21,7 +21,8 @@ object OpenGlManager : ApiManager {
 
 	override val getEnum: (ApiEnum) -> Int = ApiEnum::opengl
 
-	override fun invertY(): Boolean  = false
+	override fun invertY(): Boolean = false
+	override fun minDepth(): Float = -1f
 
 	override fun createResourceFactory(): ResourceFactory {
 		return OpenGlResourceFactory()

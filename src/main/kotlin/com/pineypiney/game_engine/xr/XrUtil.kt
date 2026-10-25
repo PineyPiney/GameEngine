@@ -170,12 +170,11 @@ object XrUtil {
 	fun isFail(res: Int) = res != XR10.XR_SUCCESS
 
 	@Throws(AssertionError::class)
-	fun processResult(res: Int, message: String) {
-		if (res > XR10.XR_SUCCESS) {
+	fun processResult(res: Int, message: String): Boolean {
+		return res == 0 || if (res > XR10.XR_SUCCESS) {
 			GameEngineI.logger.warn("$message: ${translateOpenXrResult(res)}")
-		} else if (res < XR10.XR_SUCCESS) {
-			throw AssertionError("$message: ${translateOpenXrResult(res)}")
-		}
+			false
+		} else throw AssertionError("$message: ${translateOpenXrResult(res)}")
 	}
 
 	fun getAvailableLayers(stack: MemoryStack): List<String> {

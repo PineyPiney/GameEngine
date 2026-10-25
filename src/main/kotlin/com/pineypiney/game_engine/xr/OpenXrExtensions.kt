@@ -49,7 +49,8 @@ fun XrPosef.mat4(res: Mat4 = I): Mat4 {
 	return I.translate(`position$`().glm()).times(orientation().glm().toMat4(), res)
 }
 
-fun XrRect2Di.set(x: Int, y: Int, width: Int, height: Int) {
+fun XrRect2Di.set(x: Int, y: Int, width: Int, height: Int): XrRect2Di {
 	offset().set(x, y)
 	extent().set(width, height)
+	return this
 }

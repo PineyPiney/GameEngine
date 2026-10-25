@@ -43,7 +43,7 @@ import java.nio.ByteOrder
 
 class GLTFModelLoader {
 
-	fun loadModel(factory: ResourceFactory, fileName: String, json: JsonObject, buffers: List<ByteArray>, map: MutableMap<ResourceKey, Model>) {
+	fun loadModel(factory: ResourceFactory, modelName: String, json: JsonObject, buffers: List<ByteArray>, map: MutableMap<ResourceKey, Model>) {
 
 		if (json.isEmpty) return
 		if(!json.has("nodes")) return
@@ -128,7 +128,7 @@ class GLTFModelLoader {
 			val primitives = meshJson.getAsJsonArray("primitives")
 			val meshes = mutableListOf<ModelMesh>()
             for ((_, primitive) in primitives.objects) {
-				loadPrimitive(factory, fileName, name, primitive, meshes, accessors, materials)
+				loadPrimitive(factory, modelName, name, primitive, meshes, accessors, materials)
             }
 
 			DeletionQueue.GLOBAL.pushAll(meshes)
@@ -142,7 +142,7 @@ class GLTFModelLoader {
         if(json.has("skins")) {
 			val skinJson = json.getAsJsonArray("skins")
             skinJson.forEachObject { skin, _ ->
-                loadBones(fileName, nodesArray, skin, bones)
+                loadBones(nodesArray, skin, bones)
             }
         }
 
@@ -210,9 +210,9 @@ class GLTFModelLoader {
 				val collider =
 					if (min.z == max.z) Collider2D(Rect2D(Vec2(min), Vec2(max - min)))
 					else Collider3D(Cuboid((min + max) * .5f, Quat.identity, max - min))
-				val objectName = nodeJson.getStringOrNull("name") ?: fileName
+				val objectName = nodeJson.getStringOrNull("name") ?: modelName
 
-				val root = fileName.substringUntilLast('/', "")
+				val root = modelName.substringUntilLast('/', "")
 				map[ResourceKey(root + objectName)] = Model(objectName, meshes.toTypedArray(), bones.firstOrNull(), animations.toTypedArray(), collider)
 			}
 		}
@@ -220,7 +220,7 @@ class GLTFModelLoader {
 
 	fun loadPrimitive(
 		factory: ResourceFactory,
-		fileName: String,
+		modelName: String,
 		name: String,
 		primitive: JsonObject,
 		meshes: MutableCollection<ModelMesh>,
@@ -262,7 +262,7 @@ class GLTFModelLoader {
         val maxIndex = indArray.max()
         for((att, arr) in attributeMap) {
             if (arr.size < maxIndex) {
-                GameEngineI.error("$att in primitive $name of mesh $name in GLTF model $fileName is too small. It has ${arr.size} entries, but the index attribute requires at least $maxIndex entries")
+                GameEngineI.error("$att in primitive $name of mesh $name in GLTF model $modelName is too small. It has ${arr.size} entries, but the index attribute requires at least $maxIndex entries")
                 continue
             }
         }
@@ -284,7 +284,7 @@ class GLTFModelLoader {
 		meshes.add(factory.createModelMesh(name, vertices, indArray.toIntArray(), materials.getOrElse(material) { PBRMaterial.default }))
     }
 
-	fun loadBones(fileName: String, nodesJson: JsonArray, boneJson: JsonObject, bones: MutableSet<Bone>) {
+	fun loadBones(nodesJson: JsonArray, boneJson: JsonObject, bones: MutableSet<Bone>) {
 //        val bindMatrix = boneJson.getIntOrNull("inverseBindMatrices")
 		val jointIndices = boneJson.getAsJsonArray("joints").map { it.asInt }
 

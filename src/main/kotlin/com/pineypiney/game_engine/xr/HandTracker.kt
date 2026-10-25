@@ -7,11 +7,12 @@ import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.models.Bone
 import com.pineypiney.game_engine.resources.models.ModelMesh
-import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.extension_functions.getRotation
 import com.pineypiney.game_engine.util.extension_functions.getTranslation
+import com.pineypiney.game_engine.util.extension_functions.hasAll
 import glm_.hasnt
 import glm_.mat4x4.Mat4
+import glm_.quat.Quat
 import glm_.vec4.Vec4i
 import kool.map
 import kool.toIntArray
@@ -127,6 +128,12 @@ class HandTracker(val hand: XrHandTrackerEXT, val openxr: OpenXrManager) : Delet
 		return rootBone.getAllChildrenSorted().map {
 			it.getMeshTransform()
 		}.toTypedArray()
+	}
+
+	fun jointActive(joint: Int) = joints[joint].locationFlags() hasAll ALL_FLAGS
+
+	fun getRotation(joint: Int): Quat {
+		return joints[joint].pose().orientation().glm()
 	}
 
 	override fun delete() {

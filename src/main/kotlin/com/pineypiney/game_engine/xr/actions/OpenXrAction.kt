@@ -38,6 +38,6 @@ interface OpenXrAction<T, S: Struct<S>> : Deletable{
 
 	override fun delete() {
 		for((_, state) in states) state.free()
-		XR10.xrDestroyAction(action)
+		XrUtil.processResult(XR10.xrDestroyAction(action), "Failed to destroy OpenXR Action $displayName")
 	}
 }

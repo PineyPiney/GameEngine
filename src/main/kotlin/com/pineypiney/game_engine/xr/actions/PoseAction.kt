@@ -12,7 +12,10 @@ class PoseAction(override val name: String, override val displayName: String, su
 
 	override lateinit var action: XrAction private set
 	override val states: Map<Long, XrActionStatePose> = subActionPaths.associateWith { XrActionStatePose.calloc().`type$Default`() }
+
+	// These Spaces should not be destroyed
 	lateinit var spaces: Map<Long, XrSpace>
+	// The time of the last update
 	var time: Long = 0L
 	lateinit var baseSpace: XrSpace
 
@@ -47,10 +50,5 @@ class PoseAction(override val name: String, override val displayName: String, su
 			location.free()
 		}
 		return mat
-	}
-
-	override fun delete() {
-		for((_, pair) in spaces) XR10.xrDestroySpace(pair)
-		super.delete()
 	}
 }
