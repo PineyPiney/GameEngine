@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.rendering.cameras
 
 import com.pineypiney.game_engine.util.raycasting.Ray
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.func.rad
 import glm_.glm
 import glm_.mat4x4.Mat4
@@ -16,7 +16,7 @@ open class PerspectiveCamera(
 ) : Camera(aspectRatio, pos, up) {
 
 	constructor(
-		window: WindowI,
+		window: Window,
 		pos: Vec3 = Vec3(0, 0, 5),
 		up: Vec3 = Vec3(0, 1, 0),
 		fov: Float = 60f

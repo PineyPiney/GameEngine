@@ -5,11 +5,11 @@ import com.pineypiney.game_engine.objects.ObjectCollection
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.I
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 
-abstract class GameRenderer<in E : GameLogicI>(override val window: WindowI, apiFact: (GameRenderer<E>) -> PresentingApi) : WindowRendererI<E> {
+abstract class GameRenderer<in E : GameLogicI>(override val window: Window, apiFact: (GameRenderer<E>) -> PresentingApi) : WindowRendererI<E> {
 
 	private val api = apiFact(this)
 	open val framebuffer = api.createFramebuffer(window.framebufferSize)
@@ -30,7 +30,7 @@ abstract class GameRenderer<in E : GameLogicI>(override val window: WindowI, api
 
 	override fun getRenderingApi(): PresentingApi = api
 
-	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
+	override fun updateAspectRatio(window: Window, objects: ObjectCollection) {
 		camera.updateAspectRatio(window.aspectRatio)
 		framebuffer.setSize(window.framebufferSize)
 		viewportSize = window.framebufferSize

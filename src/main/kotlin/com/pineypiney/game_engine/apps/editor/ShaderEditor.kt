@@ -14,14 +14,14 @@ import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderStage
 import com.pineypiney.game_engine.resources.shaders.parameters.*
-import com.pineypiney.game_engine.util.ApiEnum
+import com.pineypiney.game_engine.util.GraphicsEnum
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.serialisation.Codec
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -99,7 +99,7 @@ class ShaderEditor(parent: GameObject, val screen: EditorScreen) : DefaultIntera
 		if (newShader != RenderShader.missing) setRenderShader(newShader)
 	}
 
-	fun <E : ApiEnum> updateShaderBlending(createSeparate: (Blending.() -> Blending.Separate<E>)?, params: Blending.(Blending.ColourAndAlpha<E>) -> Blending = { this }) {
+	fun <E : GraphicsEnum> updateShaderBlending(createSeparate: (Blending.() -> Blending.Separate<E>)?, params: Blending.(Blending.ColourAndAlpha<E>) -> Blending = { this }) {
 		if (createSeparate != null) {
 			val value = blending.createSeparate()
 			blending = blending.params(if (value.a == value.rgb) Blending.Same(value.rgb) else value)
@@ -209,7 +209,7 @@ class ShaderEditor(parent: GameObject, val screen: EditorScreen) : DefaultIntera
 		componentContainer.position = Vec3(0f, scroll, 0f)
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onSecondary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		if (action == 1) {
 //			screen.setContextMenu(ComponentBrowserContext(this), componentBrowserContextMenu, cursorPos.position)
 			return INTERRUPT
@@ -217,7 +217,7 @@ class ShaderEditor(parent: GameObject, val screen: EditorScreen) : DefaultIntera
 		return super.onSecondary(window, action, mods, cursorPos)
 	}
 
-	override fun onScroll(window: WindowI, scrollDelta: Vec2): Int {
+	override fun onScroll(window: Window, scrollDelta: Vec2): Int {
 		super.onScroll(window, scrollDelta)
 
 		scroll = if (height <= 1) 0f

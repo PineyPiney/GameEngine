@@ -21,7 +21,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -94,7 +94,7 @@ class FileBrowser(
 		maxScroll = maxOf(0, (ceil(files.size.toFloat() / cols).toInt() * screen.settings.fileBrowserIconSpace) - screen.settings.fileBrowserHeight)
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onSecondary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onSecondary(window, action, mods, cursorPos)
 		if(action == 1) {
 			screen.setContextMenu(FileBrowserContext(this), fileBrowserContextMenu, cursorPos.position)
@@ -103,7 +103,7 @@ class FileBrowser(
 		return action
 	}
 
-	override fun onScroll(window: WindowI, scrollDelta: Vec2): Int {
+	override fun onScroll(window: Window, scrollDelta: Vec2): Int {
 		super.onScroll(window, scrollDelta)
 
 		scroll = (scroll - scrollDelta.y * 30).toInt().coerceIn(0, maxScroll)

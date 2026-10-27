@@ -16,7 +16,7 @@ import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -61,7 +61,7 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 		parent.addChild(closeButton, searchBar.parent, componentList.parent)
 	}
 
-	override fun onInput(window: WindowI, state: InputState, action: Int, cursorPos: CursorPosition): Int {
+	override fun onInput(window: Window, state: InputState, action: Int, cursorPos: CursorPosition): Int {
 		if(super.onInput(window, state, action, cursorPos) == INTERRUPT) return INTERRUPT
 
 		if(action == GLFW.GLFW_PRESS && state.i == GLFW.GLFW_KEY_ESCAPE){
@@ -72,7 +72,7 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 		return action
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		val origin = transform?.origin
 		if(origin != null){
@@ -86,7 +86,7 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 		return action
 	}
 
-	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onCursorMove(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 
 		if(grab.x != -1f){

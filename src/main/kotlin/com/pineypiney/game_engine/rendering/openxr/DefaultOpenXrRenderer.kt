@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.rendering.PresentingApi
 import com.pineypiney.game_engine.util.extension_functions.rigidInverse
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.window.Viewport
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.xr.OpenXrGameLogicI
 import com.pineypiney.game_engine.xr.XrUtil
 import com.pineypiney.game_engine.xr.glm
@@ -15,7 +15,7 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.openxr.XrView
 
-open class DefaultOpenXrRenderer<in E: OpenXrGameLogicI>(window: WindowI, val renderManager: OpenXrRenderManager) : OpenXrRendererI<E> {
+open class DefaultOpenXrRenderer<in E: OpenXrGameLogicI>(window: Window, val renderManager: OpenXrRenderManager) : OpenXrRendererI<E> {
 
 	override val viewPos: Vec3 = Vec3(0f)
 	override val view: Mat4 = I

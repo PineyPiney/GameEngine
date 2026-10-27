@@ -34,19 +34,19 @@ abstract class WindowedGameEngine<E : WindowGameLogic>(final override val manage
 	}
 
 	override fun setInputCallbacks() {
-		input.getInput<MouseInput>().cursorMoveCallback = { screenPos, cursorOffset ->
+		input.getInputOrNull<MouseInput>()?.cursorMoveCallback = { screenPos, cursorOffset ->
 			activeScreen.onCursorMove(screenPos, cursorOffset)
 		}
-		input.getInput<MouseInput>().mouseScrollCallback = { scrollOffset ->
+		input.getInputOrNull<MouseInput>()?.mouseScrollCallback = { scrollOffset ->
 			activeScreen.onScroll(scrollOffset)
 		}
-		input.getInput<MouseInput>().mouseButtonCallback = { bind, action ->
+		input.getInputOrNull<MouseInput>()?.mouseButtonCallback = { bind, action ->
 			activeScreen.onInput(bind, action)
 		}
-		input.getInput<KeyboardInput>().keyCallback = { bind, action ->
+		input.getInputOrNull<KeyboardInput>()?.keyCallback = { bind, action ->
 			activeScreen.onInput(bind, action)
 		}
-		input.getInput<KeyboardInput>().charCallback = { codepoint ->
+		input.getInputOrNull<KeyboardInput>()?.charCallback = { codepoint ->
 			activeScreen.onType(codepoint.c)
 		}
 		input.getInputOrNull<GamepadInput>()?.gamepadButtonCallback = { input, action ->

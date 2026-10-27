@@ -32,15 +32,16 @@ import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.vectorToEuler
 import com.pineypiney.game_engine.util.text.Text
+import com.pineypiney.game_engine.window.CursorMode
+import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.window.WindowGameLogic
-import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
-import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import kotlin.math.PI
 
 class Game3D(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
@@ -105,9 +106,9 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic(
 
 	override fun init() {
 		super.init()
-		window.setCursorMode(GLFW_CURSOR_DISABLED)
+		window.setCursorMode(CursorMode.DISABLED)
 
-		input.getInput<GamepadInput>().setDefaultController(movement::gamepadID) {
+		input.getInputOrNull<GamepadInput>()?.setDefaultController(movement::gamepadID) {
 			movement.gamepadID = it?.id ?: -1
 		}
 	}
@@ -138,7 +139,7 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic(
 		}
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte) {
+	override fun onPrimary(window: Window, action: Int, mods: Byte) {
 		super.onPrimary(window, action, mods)
 		if(action == 1) updateRay = !updateRay
 	}
@@ -152,10 +153,11 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic(
 			}
 			else when(state.c){
 				'F' -> toggleFullscreen()
-				'Z' -> window.size = Vec2i(window.videoMode.width(), window.videoMode.height())
+				'Z' -> window.size = Vec2i(window.videoMode.width, window.videoMode.height)
 				'X' -> window.setCursorMode(
-					when (glfwGetInputMode(window.windowHandle, GLFW_CURSOR)) {
-						GLFW_CURSOR_NORMAL -> GLFW_CURSOR_DISABLED; else -> GLFW_CURSOR_NORMAL
+					when (window.getCursorMode()) {
+						CursorMode.NORMAL -> CursorMode.DISABLED
+						else -> CursorMode.NORMAL
 					}
 				)
 				'C' -> input.getInput<MouseInput>().setCursorAt(Vec2(0.75))
@@ -188,6 +190,6 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic(
 
 	private fun toggleMouse(){
 		movement.look = !movement.look
-		window.setCursorMode(if (movement.look) GLFW_CURSOR_DISABLED else GLFW_CURSOR_CAPTURED)
+		window.setCursorMode(if (movement.look) CursorMode.DISABLED else CursorMode.CAPTURED)
 	}
 }

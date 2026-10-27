@@ -8,7 +8,7 @@ import com.pineypiney.game_engine.util.input.Inputs
 
 interface WindowedGameEngineI<E : GameLogicI> : GameEngineI<E> {
 
-	val window: WindowI
+	val window: Window
 	val manager: ApiManager
 	val input: Inputs
 

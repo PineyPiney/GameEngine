@@ -3,13 +3,13 @@ package com.pineypiney.game_engine_test.xr
 import com.pineypiney.game_engine.resources.DirectorySource
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.xr.*
 import glm_.has
 import org.lwjgl.openxr.*
 import org.lwjgl.system.MemoryStack
 
-class TestOpenXrEngine(window: WindowI, api: XrGraphicsApi, val screen: (TestOpenXrEngine) -> OpenXrTest = ::OpenXrTest): OpenXrGameEngine<OpenXrTest>(window, api) {
+class TestOpenXrEngine(window: Window, api: XrGraphicsApi, val screen: (TestOpenXrEngine) -> OpenXrTest = ::OpenXrTest): OpenXrGameEngine<OpenXrTest>(window, api) {
 
 	override val actionSet: TestActions = TestActions()
 	override var openxr: OpenXrManager

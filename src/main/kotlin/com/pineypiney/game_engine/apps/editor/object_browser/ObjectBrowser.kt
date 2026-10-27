@@ -13,7 +13,7 @@ import com.pineypiney.game_engine.util.extension_functions.firstNotNullOfOrNull
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -146,7 +146,7 @@ class ObjectBrowser(parent: GameObject, val screen: EditorScreen): DefaultIntera
 		positionNodes()
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onSecondary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		if(action == 1) {
 			val obj = GameObject()
 			addRootObject(obj)

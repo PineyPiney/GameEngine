@@ -13,7 +13,7 @@ import com.pineypiney.game_engine.util.maths.eulerToVector
 import com.pineypiney.game_engine.util.maths.up
 import com.pineypiney.game_engine.util.maths.vectorToEuler
 import com.pineypiney.game_engine.util.raycasting.Ray
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.f
 import glm_.quat.Quat
 import glm_.vec2.Vec2
@@ -21,7 +21,7 @@ import glm_.vec2.Vec2d
 import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW
 
-class Movement3D(parent: GameObject, val camera: CameraI, val window: WindowI, var speed: Float, val boost: Float = 5f, val defaultYawPitch: Vec2d = Vec2d(180.0, 0.0)) :
+class Movement3D(parent: GameObject, val camera: CameraI, val window: Window, var speed: Float, val boost: Float = 5f, val defaultYawPitch: Vec2d = Vec2d(180.0, 0.0)) :
 	DefaultInteractorComponent(parent), PreRenderComponent {
 
 	override val whenVisible: Boolean = false
@@ -57,11 +57,11 @@ class Movement3D(parent: GameObject, val camera: CameraI, val window: WindowI, v
 
 				sprint = window.getKey(GLFW.GLFW_KEY_LEFT_SHIFT).toFloat()
 			} else {
-				x = pad.axesStates[GamePad.AXIS_LEFT_X]
-				y = pad.getButton(GamePad.BUTTON_A).f - pad.getButton(GamePad.BUTTON_B).f
-				z = pad.axesStates[GamePad.AXIS_LEFT_Y]
+				x = pad.axesStates[Gamepad.AXIS_LEFT_X]
+				y = pad.getButton(Gamepad.BUTTON_A).f - pad.getButton(Gamepad.BUTTON_B).f
+				z = pad.axesStates[Gamepad.AXIS_LEFT_Y]
 
-				sprint = pad.axesStates[GamePad.AXIS_RIGHT_TRIGGER]
+				sprint = pad.axesStates[Gamepad.AXIS_RIGHT_TRIGGER]
 			}
 
 			travel += camera.cameraRight * x
@@ -90,7 +90,7 @@ class Movement3D(parent: GameObject, val camera: CameraI, val window: WindowI, v
 		}
 	}
 
-	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onCursorMove(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		if (look && gamepadID == -1) {
 			window.input.getInput<MouseInput>().setCursorAt(Vec2(0))
 			yaw += cursorDelta.position.x * 20
@@ -122,7 +122,7 @@ class Movement3D(parent: GameObject, val camera: CameraI, val window: WindowI, v
 	}
 
 	companion object {
-		fun default(window: WindowI, camera: CameraI, speed: Float, boost: Float = 5f, defaultYawPitch: Vec2d = Vec2d(180.0, 0.0)) =
+		fun default(window: Window, camera: CameraI, speed: Float, boost: Float = 5f, defaultYawPitch: Vec2d = Vec2d(180.0, 0.0)) =
 			Movement3D(GameObject("Movement 3D"), camera, window, speed, boost, defaultYawPitch).applied()
 	}
 }

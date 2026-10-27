@@ -13,7 +13,7 @@ import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.text.Text
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.c
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -60,7 +60,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		caretObject.getComponent<RenderedComponent>()?.visible = this.forceUpdate && Timer.time % 1.0 > 0.5
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if (!this.hover) {
 			if(action == 1) finish()
@@ -71,7 +71,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		return action
 	}
 
-	override fun onInput(window: WindowI, state: InputState, action: Int, cursorPos: CursorPosition): Int {
+	override fun onInput(window: Window, state: InputState, action: Int, cursorPos: CursorPosition): Int {
 		super.onInput(window, state, action, cursorPos)
 
 		if (state.controlType == ControlType.KEYBOARD && this.forceUpdate) {
@@ -82,7 +82,7 @@ open class TextFieldComponent(parent: GameObject, startText: String = "", textSi
 		return action
 	}
 
-	override fun onType(window: WindowI, char: Char): Int {
+	override fun onType(window: Window, char: Char): Int {
 		if (this.forceUpdate) {
 			if (allowed.contains(char)) type(char)
 			return INTERRUPT

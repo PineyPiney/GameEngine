@@ -10,7 +10,8 @@ import com.pineypiney.game_engine.util.LwjglUtil
 import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VulkanDevice
 import com.pineypiney.game_engine.vulkan.VulkanManager
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
+import com.pineypiney.game_engine.window.WindowApi
 import com.pineypiney.game_engine.xr.XrUtil.getVulkanSwapchainImages
 import glm_.vec3.Vec3i
 import org.lwjgl.openxr.*
@@ -47,8 +48,8 @@ object VulkanXr : XrGraphicsApi {
 		}
 	}
 
-	override fun createApi(name: String, xrInstance: XrInstance, systemId: Long): ApiManager =
-		OpenXrVulkanManager(name, xrInstance, systemId)
+	override fun createApi(name: String, xrInstance: XrInstance, systemId: Long, windowApi: WindowApi): ApiManager =
+		OpenXrVulkanManager(name, xrInstance, systemId, windowApi)
 
 	fun createSwapchainImage(stack: MemoryStack, device: VulkanDevice, width: Int, height: Int, i: Int, image: Long, format: Int, aspect: Int): VulkanSwapchainImage{
 		val format = TextureFormat.fromVulkanConst(format) ?: TextureFormat.RGBA8
@@ -102,7 +103,7 @@ object VulkanXr : XrGraphicsApi {
 		)
 	}
 
-	override fun createSession(stack: MemoryStack, openxr: OpenXrManager, graphicsApi: ApiManager, window: WindowI): OpenXrSession {
+	override fun createSession(stack: MemoryStack, openxr: OpenXrManager, graphicsApi: ApiManager, window: Window): OpenXrSession {
 		return XrUtil.createVulkanSession(stack, openxr, graphicsApi as VulkanManager)
 	}
 }

@@ -27,7 +27,6 @@ import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.init
 import com.pineypiney.game_engine.util.extension_functions.isBetween
@@ -35,17 +34,18 @@ import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
+import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.serialisation.JsonOps
 import com.pineypiney.game_engine.util.text.Text
+import com.pineypiney.game_engine.window.SystemCursor
 import com.pineypiney.game_engine.window.Viewport
+import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.window.WindowGameLogic
-import com.pineypiney.game_engine.window.WindowI
 import glm_.pow
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
-import org.lwjgl.glfw.GLFW
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
@@ -76,8 +76,7 @@ class EditorScreen(
 		Text.Params().withFontSize(16).withAlignment(Text.ALIGN_TOP_LEFT)
 	)
 
-	val cursor = Cursor.create(gameEngine, "textures/cursor.png", Vec2i(39, 1)) ?: Cursor(GLFW.GLFW_ARROW_CURSOR)
-
+	val cursor = window.createCursor("textures/cursor.png", Vec2i(39, 1)) ?: window.createSystemCursor(SystemCursor.DEFAULT)
 
 	// Object Editor
 	val objectEditor = GameObject("Object Editor", 1)
@@ -240,7 +239,7 @@ class EditorScreen(
 		}
 		if(super.onInput(state, action) == InteractorComponent.INTERRUPT) return InteractorComponent.INTERRUPT
 		transformer?.getComponent<InteractorComponent>()?.let {
-			val sceneCursor = getSceneCursorPosition(input.mouse.lastPos)
+			val sceneCursor = getSceneCursorPosition(input.getInput<MouseInput>().lastPos)
 			if(componentInput(it, state, action, sceneCursor, false)) return InteractorComponent.INTERRUPT
 		}
 		if (action == 1 && state.triggers(InputState(0, ControlType.MOUSE))) {
@@ -255,7 +254,7 @@ class EditorScreen(
 		val allObjects = sceneObjects.map.flatMap { it.value.flatMap(GameObject::catchRenderingComponents) }
 		var closest: GameObject? = null
 		var minDist: Float = Float.MAX_VALUE
-		val sceneCursor = getSceneCursorPosition(input.mouse.lastPos)
+		val sceneCursor = getSceneCursorPosition(input.getInput<MouseInput>().lastPos)
 		if(sceneCursor.pixels.x == -1) return
 		val ray = renderer.camera.getRay(sceneCursor.screenSpace)
 		for(obj in allObjects){
@@ -275,7 +274,7 @@ class EditorScreen(
 
 	override fun onScroll(scrollDelta: Vec2): Int {
 		if(super.onScroll(scrollDelta) == InteractorComponent.INTERRUPT) return -1
-		val mousePos = getSceneCursorPosition(input.mouse.lastPos).screenSpace
+		val mousePos = getSceneCursorPosition(input.getInput<MouseInput>().lastPos).screenSpace
 		val initialMousePos = Vec2(renderer.camera.screenToWorld(mousePos))
 		renderer.camera.height *= .9f.pow(scrollDelta.y)
 		val newMousePos = Vec2(renderer.camera.screenToWorld(mousePos))
@@ -308,7 +307,7 @@ class EditorScreen(
 
 	fun setDragging(element: Draggable, cursor: CursorPosition): GameObject{
 		val o = GameObject("Dragged Element", 1)
-		o.position = Vec3(input.mouse.lastPos.position, .5f)
+		o.position = Vec3(input.getInput<MouseInput>().lastPos.position, .5f)
 		val comp = DraggedElement(o, this, element).applied()
 		element.addRenderer(o, cursor)
 		o.getChild("Scene Renderer")?.active = false
@@ -556,7 +555,7 @@ class EditorScreen(
 			for ((_, field, data) in list) field.set(JsonOps, data)
 		}
 
-		fun getSceneBox(settings: EditorSettings, window: WindowI): Viewport {
+		fun getSceneBox(settings: EditorSettings, window: Window): Viewport {
 			return Viewport(settings.objectBrowserWidth, settings.fileBrowserHeight, window.width - settings.componentBrowserWidth, window.height)
 		}
 	}

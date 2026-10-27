@@ -1,11 +1,11 @@
 package com.pineypiney.game_engine.resources.shaders
 
-import com.pineypiney.game_engine.util.ApiEnum
+import com.pineypiney.game_engine.util.GraphicsEnum
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL14C
 import org.lwjgl.vulkan.VK10
 
-enum class StencilOp(override val opengl: Int, override val vulkan: Int) : ApiEnum {
+enum class StencilOp(override val opengl: Int, override val vulkan: Int) : GraphicsEnum {
 	KEEP(GL11C.GL_KEEP, VK10.VK_STENCIL_OP_KEEP),
 	ZERO(GL11C.GL_ZERO, VK10.VK_STENCIL_OP_ZERO),
 	REPLACE(GL11C.GL_REPLACE, VK10.VK_STENCIL_OP_REPLACE),

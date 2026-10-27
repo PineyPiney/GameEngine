@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.util.input
 
-import com.pineypiney.game_engine.util.input.gamepads.GamePad
+import com.pineypiney.game_engine.util.input.gamepads.Gamepad
 import glm_.*
 import org.lwjgl.glfw.GLFW.*
 
@@ -233,20 +233,20 @@ class InputState(val key: Short, val controlType: ControlType = ControlType.KEYB
 
 		// Game Pad Control Names
 		val gamepadKeyNames: Map<Short, String> = mapOf(
-			Pair(GamePad.BUTTON_A, "GAMEPAD_BUTTON_A"),
-			Pair(GamePad.BUTTON_B, "GAMEPAD_BUTTON_B"),
-			Pair(GamePad.BUTTON_X, "GAMEPAD_BUTTON_X"),
-			Pair(GamePad.BUTTON_Y, "GAMEPAD_BUTTON_Y"),
-			Pair(GamePad.BUTTON_DPAD_UP, "GAMEPAD_BUTTON_DPAD_UP"),
-			Pair(GamePad.BUTTON_DPAD_RIGHT, "GAMEPAD_BUTTON_DPAD_RIGHT"),
-			Pair(GamePad.BUTTON_DPAD_DOWN, "GAMEPAD_BUTTON_DPAD_DOWN"),
-			Pair(GamePad.BUTTON_DPAD_LEFT, "GAMEPAD_BUTTON_DPAD_LEFT"),
-			Pair(GamePad.BUTTON_LEFT_BUMPER, "GAMEPAD_BUTTON_LEFT_BUMPER"),
-			Pair(GamePad.BUTTON_RIGHT_BUMPER, "GAMEPAD_BUTTON_RIGHT_BUMPER"),
-			Pair(GamePad.BUTTON_LEFT_THUMB, "GAMEPAD_BUTTON_LEFT_THUMB"),
-			Pair(GamePad.BUTTON_RIGHT_THUMB, "GAMEPAD_BUTTON_RIGHT_THUMB"),
-			Pair(GamePad.BUTTON_OPTIONS, "GAMEPAD_BUTTON_START"),
-			Pair(GamePad.BUTTON_GUIDE, "GAMEPAD_BUTTON_GUIDE"),
+			Pair(Gamepad.BUTTON_A, "GAMEPAD_BUTTON_A"),
+			Pair(Gamepad.BUTTON_B, "GAMEPAD_BUTTON_B"),
+			Pair(Gamepad.BUTTON_X, "GAMEPAD_BUTTON_X"),
+			Pair(Gamepad.BUTTON_Y, "GAMEPAD_BUTTON_Y"),
+			Pair(Gamepad.BUTTON_DPAD_UP, "GAMEPAD_BUTTON_DPAD_UP"),
+			Pair(Gamepad.BUTTON_DPAD_RIGHT, "GAMEPAD_BUTTON_DPAD_RIGHT"),
+			Pair(Gamepad.BUTTON_DPAD_DOWN, "GAMEPAD_BUTTON_DPAD_DOWN"),
+			Pair(Gamepad.BUTTON_DPAD_LEFT, "GAMEPAD_BUTTON_DPAD_LEFT"),
+			Pair(Gamepad.BUTTON_LEFT_BUMPER, "GAMEPAD_BUTTON_LEFT_BUMPER"),
+			Pair(Gamepad.BUTTON_RIGHT_BUMPER, "GAMEPAD_BUTTON_RIGHT_BUMPER"),
+			Pair(Gamepad.BUTTON_LEFT_THUMB, "GAMEPAD_BUTTON_LEFT_THUMB"),
+			Pair(Gamepad.BUTTON_RIGHT_THUMB, "GAMEPAD_BUTTON_RIGHT_THUMB"),
+			Pair(Gamepad.BUTTON_OPTIONS, "GAMEPAD_BUTTON_START"),
+			Pair(Gamepad.BUTTON_GUIDE, "GAMEPAD_BUTTON_GUIDE"),
 		).mapKeys { it.key.s }
 
 		// Gamepad Axis Control Names

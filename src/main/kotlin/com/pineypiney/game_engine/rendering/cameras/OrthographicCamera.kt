@@ -2,7 +2,7 @@ package com.pineypiney.game_engine.rendering.cameras
 
 import com.pineypiney.game_engine.util.extension_functions.projectOn
 import com.pineypiney.game_engine.util.raycasting.Ray
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -17,7 +17,7 @@ open class OrthographicCamera(
 ) : Camera(aspectRatio, pos, up) {
 
 	constructor(
-		window: WindowI,
+		window: Window,
 		pos: Vec3 = Vec3(0, 0, 5),
 		up: Vec3 = Vec3(0, 1, 0),
 		height: Float = 10f

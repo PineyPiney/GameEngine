@@ -3,13 +3,13 @@ package com.pineypiney.game_engine.objects.components
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.rendering.PreRenderComponent
 import com.pineypiney.game_engine.rendering.RendererI
-import com.pineypiney.game_engine.util.input.gamepads.GamePad
+import com.pineypiney.game_engine.util.input.gamepads.Gamepad
 import com.pineypiney.game_engine.util.input.gamepads.GamepadInput
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
 
-open class Movement2D(parent: GameObject, val window: WindowI, var speed: Float = 4f, var sprintBoost: Float = 2f, val set: (Vec2) -> Unit) : Component(parent), PreRenderComponent {
+open class Movement2D(parent: GameObject, val window: Window, var speed: Float = 4f, var sprintBoost: Float = 2f, val set: (Vec2) -> Unit) : Component(parent), PreRenderComponent {
 
 	var keyboardRatio: Float = 1f
 	var gamepadID = -1
@@ -38,14 +38,14 @@ open class Movement2D(parent: GameObject, val window: WindowI, var speed: Float 
 
 		} else {
 			move += pad.leftJoystick
-			move *= (1f + sprintBoost * pad.axesStates[GamePad.AXIS_RIGHT_TRIGGER])
+			move *= (1f + sprintBoost * pad.axesStates[Gamepad.AXIS_RIGHT_TRIGGER])
 		}
 
 		return move
 	}
 
 	companion object {
-		fun create(name: String, window: WindowI, speed: Float = 4f, sprintBoost: Float = 2f, set: (Vec2) -> Unit): Movement2D {
+		fun create(name: String, window: Window, speed: Float = 4f, sprintBoost: Float = 2f, set: (Vec2) -> Unit): Movement2D {
 			val obj = GameObject(name)
 			val mov = Movement2D(obj, window, speed, sprintBoost, set)
 			obj.components.add(mov)

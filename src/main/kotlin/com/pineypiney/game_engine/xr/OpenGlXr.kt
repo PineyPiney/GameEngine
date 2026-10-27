@@ -6,7 +6,8 @@ import com.pineypiney.game_engine.rendering.openxr.OpenXrFramebuffer
 import com.pineypiney.game_engine.rendering.openxr.OpenXrGlFramebuffer
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.util.LwjglUtil
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
+import com.pineypiney.game_engine.window.WindowApi
 import com.pineypiney.game_engine.xr.XrUtil.getOpenGlSwapchainImages
 import glm_.vec3.Vec3i
 import org.lwjgl.openxr.KHROpenGLEnable
@@ -28,7 +29,7 @@ object OpenGlXr : XrGraphicsApi {
 
 	override fun getColourFormats(): List<TextureFormat> = listOf(TextureFormat.RGB10A2, TextureFormat.RGBA16F, TextureFormat.RGBA8, TextureFormat.RGBA8S)
 
-	override fun createApi(name: String, xrInstance: XrInstance, systemId: Long): ApiManager = OpenGlManager
+	override fun createApi(name: String, xrInstance: XrInstance, systemId: Long, windowApi: WindowApi): ApiManager = OpenGlManager
 	override fun createFramebuffer(
 		stack: MemoryStack,
 		api: ApiManager,
@@ -65,7 +66,7 @@ object OpenGlXr : XrGraphicsApi {
 		stack: MemoryStack,
 		openxr: OpenXrManager,
 		graphicsApi: ApiManager,
-		window: WindowI
+		window: Window
 	): OpenXrSession {
 		return XrUtil.createOpenGlWin32Session(stack, openxr, window)
 	}

@@ -6,9 +6,7 @@ import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.fonts.FontLoader
-import com.pineypiney.game_engine.window.OpenGlWindow
-import com.pineypiney.game_engine.window.WindowI
-import com.pineypiney.game_engine.window.WindowedGameEngine
+import com.pineypiney.game_engine.window.*
 
 class ObjectAnimator(
 	manager: ApiManager,
@@ -22,7 +20,7 @@ class ObjectAnimator(
 		override lateinit var activeScreen: AnimatorLogic
 
 		var lastFrameTime = 0.0
-		override val window: WindowI get() = Companion.window
+		override val window: Window get() = Companion.window
 
 		override fun loadResources() {
 			super.loadResources()
@@ -61,11 +59,20 @@ class ObjectAnimator(
 
 	companion object {
 
+		val window: Window
+		init {
+			val windowApi = GLFWManager
+			windowApi.init()
+			val properties = WindowProperties().opengl(4, 1)
+				.addFlag(WindowFlags.RESIZABLE).addFlag(WindowFlags.TRANSPARENT)
+				.visible(true).decorated(true).vSync(true)
+
+			window = windowApi.createWindow("OpenXR Test", 1920, 1080, properties)
+		}
+
 		fun init() {
 			window.init()
 		}
-
-		val window = OpenGlWindow("Animator", 960, 540)
 
 		fun run(manager: ApiManager, creator: () -> GameObject, tweaker: (GameObject) -> Unit = {}) {
 			init()

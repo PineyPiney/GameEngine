@@ -1,10 +1,10 @@
 package com.pineypiney.game_engine.resources.shaders.parameters
 
-import com.pineypiney.game_engine.util.ApiEnum
+import com.pineypiney.game_engine.util.GraphicsEnum
 import org.lwjgl.opengl.GL14C
 import org.lwjgl.vulkan.VK10
 
-enum class BlendOp(override val opengl: Int, override val vulkan: Int) : ApiEnum {
+enum class BlendOp(override val opengl: Int, override val vulkan: Int) : GraphicsEnum {
 	ADD(GL14C.GL_FUNC_ADD, VK10.VK_BLEND_OP_ADD),
 	SUBTRACT(GL14C.GL_FUNC_SUBTRACT, VK10.VK_BLEND_OP_SUBTRACT),
 	REVERSE_SUBTRACT(GL14C.GL_FUNC_REVERSE_SUBTRACT, VK10.VK_BLEND_OP_REVERSE_SUBTRACT),

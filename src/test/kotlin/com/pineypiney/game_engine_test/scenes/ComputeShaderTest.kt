@@ -25,8 +25,9 @@ import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import com.pineypiney.game_engine.util.text.Text
+import com.pineypiney.game_engine.window.SystemCursor
+import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.window.WindowGameLogic
-import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
@@ -122,7 +123,7 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>) : Windo
 			val shape = obj.getShape() as? Shape2D ?: return
 
 			grabState = ResizeState.fromPointInBounds(cursorPos.position, shape.min, shape.max)
-			window.setCursor(GLFW.glfwCreateStandardCursor(grabState.glfwCursor))
+			window.setCursor(window.createSystemCursor(grabState.systemCursor))
 		}
 		else {
 			when(grabState) {
@@ -157,7 +158,7 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>) : Windo
 		}
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte) {
+	override fun onPrimary(window: Window, action: Int, mods: Byte) {
 		super.onPrimary(window, action, mods)
 
 		when(action){
@@ -196,17 +197,17 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>) : Windo
 		val defaultUniforms = setOf("model", "view", "projection", "guiProjection", "viewport", "viewPos")
 	}
 
-	enum class ResizeState(val glfwCursor: Int) {
-		N(GLFW.GLFW_RESIZE_NS_CURSOR),
-		E(GLFW.GLFW_RESIZE_EW_CURSOR),
-		S(GLFW.GLFW_RESIZE_NS_CURSOR),
-		W(GLFW.GLFW_RESIZE_EW_CURSOR),
-		NE(GLFW.GLFW_RESIZE_NESW_CURSOR),
-		SE(GLFW.GLFW_RESIZE_NWSE_CURSOR),
-		SW(GLFW.GLFW_RESIZE_NESW_CURSOR),
-		NW(GLFW.GLFW_RESIZE_NWSE_CURSOR),
-		CENTER(GLFW.GLFW_RESIZE_ALL_CURSOR),
-		NONE(GLFW.GLFW_ARROW_CURSOR);
+	enum class ResizeState(val systemCursor: SystemCursor) {
+		N(SystemCursor.RESIZE_NS),
+		E(SystemCursor.RESIZE_EW),
+		S(SystemCursor.RESIZE_NS),
+		W(SystemCursor.RESIZE_EW),
+		NE(SystemCursor.RESIZE_NESW),
+		SE(SystemCursor.RESIZE_NWSE),
+		SW(SystemCursor.RESIZE_NESW),
+		NW(SystemCursor.RESIZE_NWSE),
+		CENTER(SystemCursor.RESIZE_ALL),
+		NONE(SystemCursor.DEFAULT);
 
 		companion object {
 			fun fromPointInBounds(pos: Vec2, min: Vec2, max: Vec2, hoverWidth: Float = 0.02f): ResizeState{

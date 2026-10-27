@@ -5,7 +5,7 @@ import com.sun.jna.Pointer
 import glm_.getInt
 import glm_.has
 
-class NativeXboxController(override val input: NativeGamepadInput, val controller: GameInput.Controller) : GamePad(), RumbleGamepad {
+class NativeXboxController(override val input: NativeGamepadInput, val controller: GameInput.Controller) : Gamepad(), RumbleGamepad, TriggerRumbleGamepad {
 
 	override val name: String get() = controller.info.displayName
 	override val id: Int get() = controller.info.deviceId.getInt(0)
@@ -44,10 +44,10 @@ class NativeXboxController(override val input: NativeGamepadInput, val controlle
 		GameInput.INSTANCE.setRumble(p, lowFrequency, highFrequency, leftTrigRumble, rightTrigRumble)
 	}
 
-	fun setTrigger(leftTrigger: Float, rightTrigger: Float) {
-		this.leftTrigRumble = leftTrigger
-		this.rightTrigRumble = rightTrigger
-		GameInput.INSTANCE.setRumble(p, lowFrequency, highFrequency, leftTrigger, rightTrigger)
+	override fun setTriggerRumble(leftRumble: Float, rightRumble: Float) {
+		this.leftTrigRumble = leftRumble
+		this.rightTrigRumble = rightRumble
+		GameInput.INSTANCE.setRumble(p, lowFrequency, highFrequency, leftRumble, rightRumble)
 	}
 
 	override fun delete() {

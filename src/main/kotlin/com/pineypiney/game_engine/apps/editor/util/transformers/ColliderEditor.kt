@@ -7,13 +7,13 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.colliders.Collider2DComponent
 import com.pineypiney.game_engine.objects.components.fields.Shape2DField
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionPolygonRenderer
-import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.extension_functions.*
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.util.maths.shapes.*
 import com.pineypiney.game_engine.util.raycasting.Ray
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.SystemCursor
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -34,18 +34,20 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 
 	val rotateDist2 = .08f
 
-	val moveCursor = Cursor(GLFW.GLFW_RESIZE_ALL_CURSOR)
+	val moveCursor = screen.window.createSystemCursor(SystemCursor.RESIZE_ALL)
+
 	val resizeCursors = listOf(
-		Cursor(GLFW.GLFW_RESIZE_NS_CURSOR),
-		Cursor(GLFW.GLFW_RESIZE_NESW_CURSOR),
-		Cursor(GLFW.GLFW_RESIZE_EW_CURSOR),
-		Cursor(GLFW.GLFW_RESIZE_NWSE_CURSOR),
+		screen.window.createSystemCursor(SystemCursor.RESIZE_NS),
+		screen.window.createSystemCursor(SystemCursor.RESIZE_NESW),
+		screen.window.createSystemCursor(SystemCursor.RESIZE_EW),
+		screen.window.createSystemCursor(SystemCursor.RESIZE_NWSE),
 	)
+
 	val rotateCursors = listOfNotNull(
-		Cursor.create(screen.gameEngine, "textures/editor/rotate_ne.png", Vec2i(0, 32)),
-		Cursor.create(screen.gameEngine, "textures/editor/rotate_se.png", Vec2i(0)),
-		Cursor.create(screen.gameEngine, "textures/editor/rotate_sw.png", Vec2i(32, 0)),
-		Cursor.create(screen.gameEngine, "textures/editor/rotate_nw.png", Vec2i(32)),
+		screen.window.createCursor("textures/editor/rotate_ne.png", Vec2i(0, 32)),
+		screen.window.createCursor("textures/editor/rotate_se.png", Vec2i(0)),
+		screen.window.createCursor("textures/editor/rotate_sw.png", Vec2i(32, 0)),
+		screen.window.createCursor("textures/editor/rotate_nw.png", Vec2i(32)),
 	)
 	var oldShape: Shape2D? = null
 
@@ -60,7 +62,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 		}
 	}
 
-	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onCursorMove(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		if (pressed) return
 
@@ -111,7 +113,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 		} else window.setCursor(screen.cursor)
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 
 		// Time since last press, used for double clicks
@@ -179,7 +181,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 		return action
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onSecondary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onSecondary(window, action, mods, cursorPos)
 
 		val obj = screen.editingObject ?: return action
@@ -206,7 +208,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 		return action
 	}
 
-	override fun onDrag(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onDrag(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 
 		val obj = screen.editingObject ?: return
 		val collider = obj.getComponent<Collider2DComponent>() ?: return
@@ -346,20 +348,6 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 		}
 	}
 
-	fun dragShape(shape: Shape2D, movement: Vec2): Shape2D? {
-		return when (shape) {
-			is Polygon -> {
-				val points = shape.vertices.toMutableList()
-				for (point in points) {
-					point += movement
-				}
-				Polygon(points)
-			}
-
-			else -> null
-		}
-	}
-
 	fun rotateShape(shape: Shape2D, angle: Float): Shape2D? {
 		val ctrl = screen.input.getMod(GLFW.GLFW_MOD_CONTROL)
 		return when (shape) {
@@ -410,7 +398,7 @@ class ColliderEditor(parent: GameObject, screen: EditorScreen) : Transformer(par
 		return screen.renderer.camera.screenToWorld(point)
 	}
 
-	fun setResizeCursor(window: WindowI, vec: Vec2) {
+	fun setResizeCursor(window: Window, vec: Vec2) {
 		val angle = (vec.angle() * 4f / PIF).roundToInt() % 4
 		window.setCursor(resizeCursors[angle])
 	}

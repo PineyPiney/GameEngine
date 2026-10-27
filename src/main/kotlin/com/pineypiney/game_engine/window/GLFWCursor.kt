@@ -1,7 +1,5 @@
-package com.pineypiney.game_engine.util
+package com.pineypiney.game_engine.window
 
-import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import glm_.vec2.Vec2i
@@ -12,17 +10,9 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWImage
 import java.io.InputStream
 
-class Cursor(val handle: Long) : Deletable {
+class GLFWCursor(override val handle: Long) : Cursor {
 
 	constructor(texture: InputStream, point: Vec2i) : this(createHandle(texture, point))
-
-	/**
-	 * Create a standard cursor
-	 *
-	 * @param shape One of the standard GLFW cursors. One of:
-	 * <br><table><tr><td>[GLFW.GLFW_ARROW_CURSOR]</td><td>[GLFW.GLFW_IBEAM_CURSOR]</td><td>[GLFW.GLFW_CROSSHAIR_CURSOR]</td><td>[GLFW.GLFW_POINTING_HAND_CURSOR]</td><td>[GLFW.GLFW_RESIZE_EW_CURSOR]</td><td>[GLFW.GLFW_RESIZE_NS_CURSOR]</td><td>[GLFW.GLFW_RESIZE_NWSE_CURSOR]</td><td>[GLFW.GLFW_RESIZE_NESW_CURSOR]</td><td>[GLFW.GLFW_RESIZE_ALL_CURSOR]</td><td>[GLFW.GLFW_NOT_ALLOWED_CURSOR]</td></tr></table>
-	 */
-	constructor(shape: Int) : this(GLFW.glfwCreateStandardCursor(shape))
 
 	override fun delete() = GLFW.glfwDestroyCursor(handle)
 
@@ -38,11 +28,6 @@ class Cursor(val handle: Long) : Deletable {
 
 			val image = GLFWImage.create().set(info.x, info.y, rgba.toByteArray().toBuffer())
 			return GLFW.glfwCreateCursor(image, point.x, point.y)
-		}
-
-		fun create(engine: GameEngineI<*>, texture: String, point: Vec2i): Cursor? {
-			val stream = engine.resourcesLoader.getStream(texture) ?: return null
-			return Cursor(stream, point)
 		}
 	}
 }

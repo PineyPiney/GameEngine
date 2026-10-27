@@ -11,7 +11,7 @@ import kool.getOrNull
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWGamepadState
 
-open class GLFWGamePad(val jid: Int, override val input: GamepadInput) : GamePad() {
+open class GLFWGamepad(val jid: Int, override val input: GamepadInput) : Gamepad() {
 
 	override val name: String? = GLFW.glfwGetGamepadName(jid)
 	override val id: Int get() = jid

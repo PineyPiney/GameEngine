@@ -1,13 +1,13 @@
 package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.rendering.cameras.CameraI
+import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.window.WindowGameLogic
-import com.pineypiney.game_engine.window.WindowI
 import glm_.vec4.Vec4
 
-open class DefaultWindowGameRenderer<in G : WindowGameLogic, C : CameraI>(window: WindowI, override val camera: C, api: (GameRenderer<G>) -> PresentingApi) : GameRenderer<G>(window, api) {
+open class DefaultWindowGameRenderer<in G : WindowGameLogic, C : CameraI>(window: Window, override val camera: C, api: (GameRenderer<G>) -> PresentingApi) : GameRenderer<G>(window, api) {
 
-	constructor(window: WindowI, camera: (WindowI) -> C, api: (GameRenderer<G>) -> PresentingApi) : this(window, camera(window), api)
+	constructor(window: Window, camera: (Window) -> C, api: (GameRenderer<G>) -> PresentingApi) : this(window, camera(window), api)
 
 	override fun init() {
 		super.init()

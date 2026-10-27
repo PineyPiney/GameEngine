@@ -11,7 +11,7 @@ class NativeGamepadInput(inputs: Inputs) : GamepadInput(inputs) {
 	val psGamepads = mutableListOf<NativePsController>()
 	lateinit var psGamepad: NativePsController
 
-	override val connectedGamepads: Set<GamePad> get() = xboxGamepads + psGamepads
+	override val connectedGamepads: Set<Gamepad> get() = xboxGamepads + psGamepads
 
 	val connectCb = GameInput.ConnectCallback { p ->
 		val controller = GameInput.Controller(p)
@@ -50,6 +50,7 @@ class NativeGamepadInput(inputs: Inputs) : GamepadInput(inputs) {
 		synchronized(xboxGamepads) {
 			xboxGamepads.remove(gamepad)
 		}
+		gamepad.delete()
 	}
 
 	init {
@@ -104,6 +105,7 @@ class NativeGamepadInput(inputs: Inputs) : GamepadInput(inputs) {
 	}
 
 	override fun delete() {
+		super.delete()
 		try {
 			GameInput.INSTANCE.releaseInput()
 		} catch (e: Exception) {

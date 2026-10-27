@@ -5,7 +5,7 @@ import org.lwjgl.glfw.GLFW.*
 
 open class GLFWGamepadInput(inputs: Inputs, key: ((Int, Int) -> Unit)? = null) : GamepadInput(inputs) {
 
-	override val connectedGamepads: MutableSet<GLFWGamePad> = mutableSetOf()
+	override val connectedGamepads: MutableSet<GLFWGamepad> = mutableSetOf()
 
 	// This callback is called whenever a gamepad is connected
 	private val joystickCallback: (Int, Int) -> Unit = key ?: { jid: Int, event: Int ->
@@ -34,13 +34,10 @@ open class GLFWGamepadInput(inputs: Inputs, key: ((Int, Int) -> Unit)? = null) :
 		val gamepad = connectedGamepads.firstOrNull { it.jid == jid } ?: return
 		connectedGamepads.remove(gamepad)
 		gamepadDisconnectCallback(gamepad)
+		gamepad.delete()
 	}
 
-	fun createController(id: Int): GLFWGamePad {
-		return GLFWGamePad(id, this)
-	}
-
-	override fun delete() {
-
+	fun createController(id: Int): GLFWGamepad {
+		return GLFWGamepad(id, this)
 	}
 }

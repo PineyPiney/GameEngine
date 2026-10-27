@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.util.extension_functions.angle
 import com.pineypiney.game_engine.util.extension_functions.rotationComponent
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -32,7 +32,7 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 		parent.rotation = obj.transformComponent.worldRotation
 	}
 
-	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onCursorMove(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		if(pressed) return
 
@@ -68,7 +68,7 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 
 	fun getAngle(cursor: CursorPosition) = (getCursorPos(cursor) - Vec2(parent.position)).angle()
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if(action == 1) {
 			selected = when (1f) {
@@ -97,7 +97,7 @@ class Rotate2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, s
 		return INTERRUPT
 	}
 
-	override fun onDrag(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onDrag(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		when(selected){
 			0 -> return
 			//1 -> parent.translate(Vec3(cursorDelta.x, 0f, 0f))

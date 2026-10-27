@@ -1,21 +1,15 @@
 package com.pineypiney.game_engine.util
 
-import glm_.vec2.Vec2
 import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4i
-import kool.DoubleBuffer
-import kool.FloatBuffer
-import kool.IntBuffer
 import kool.pos
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL43C.*
 import java.nio.ByteBuffer
-import java.nio.DoubleBuffer
-import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
 @Suppress("UNUSED")
@@ -292,38 +286,6 @@ object GLFunc {
 	}
 
 	fun setBool(param: Int, value: Boolean) = if (value) glEnable(param) else glDisable(param)
-
-	fun getVec2i(handle: Long, func: (Long, IntBuffer, IntBuffer) -> Unit): Vec2i {
-		val (wa, ha) = arrayOf(IntBuffer(1), IntBuffer(1))
-		func(handle, wa, ha)
-		return Vec2i(wa[0], ha[0])
-	}
-
-	fun setVec2i(handle: Long, func: (Long, Int, Int) -> Unit, value: Vec2i) {
-		func(handle, value.x, value.y)
-	}
-
-	fun getVec2d(handle: Long, func: (Long, DoubleBuffer, DoubleBuffer) -> Unit): Vec2d {
-		val (wa, ha) = arrayOf(DoubleBuffer(1), DoubleBuffer(1))
-		func(handle, wa, ha)
-		return Vec2d(wa[0], ha[0])
-	}
-
-	fun setVec2d(handle: Long, func: (Long, Double, Double) -> Unit, value: Vec2d) {
-		func(handle, value.x, value.y)
-	}
-
-	fun getVec2(handle: Long, func: (Long, FloatBuffer, FloatBuffer) -> Unit): Vec2 {
-		val (wa, ha) = arrayOf(FloatBuffer(1), FloatBuffer(1))
-		func(handle, wa, ha)
-		return Vec2(wa[0], ha[0])
-	}
-
-	fun getVec4i(handle: Long, func: (Long, IntBuffer, IntBuffer, IntBuffer, IntBuffer) -> Unit): Vec4i {
-		val a = Array(4) { IntBuffer(1) }
-		func(handle, a[0], a[1], a[2], a[3])
-		return Vec4i(a[0][0], a[1][0], a[2][0], a[3][0])
-	}
 
 	fun versionAtLeast(major: Int, minor: Int): Boolean {
 		val version = version

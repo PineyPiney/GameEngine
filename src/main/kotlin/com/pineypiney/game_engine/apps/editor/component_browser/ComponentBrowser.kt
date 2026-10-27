@@ -22,7 +22,7 @@ import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.serialisation.Codec
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.i
 import glm_.parseInt
 import glm_.vec2.Vec2
@@ -162,6 +162,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 				fieldEditor.update(screen.settings.textScale)
 			} catch (e: NullPointerException) {
 				GameEngineI.logger.warn("Caught NullPointerException while updating field editor for field ${fieldEditor.id} in component ${fieldEditor.field.container}")
+				e.printStackTrace()
 			}
 		}
 	}
@@ -244,7 +245,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		componentContainer.position = Vec3(0f, scroll, 0f)
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onSecondary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		if(action == 1){
 			screen.setContextMenu(ComponentBrowserContext(this), componentBrowserContextMenu, cursorPos.position)
 			return INTERRUPT
@@ -252,7 +253,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		return super.onSecondary(window, action, mods, cursorPos)
 	}
 
-	override fun onScroll(window: WindowI, scrollDelta: Vec2): Int {
+	override fun onScroll(window: Window, scrollDelta: Vec2): Int {
 		super.onScroll(window, scrollDelta)
 
 		scroll = if(height <= 1) 0f
@@ -271,7 +272,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 	}
 
 	class Container(parent: GameObject, val browser: ComponentBrowser, val component: ComponentI): DefaultInteractorComponent(parent){
-		override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+		override fun onSecondary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 			if(action == 1){
 				browser.screen.setContextMenu(ComponentContext(browser, this), componentContextMenu, cursorPos.position)
 				return INTERRUPT

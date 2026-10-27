@@ -4,5 +4,6 @@ import com.pineypiney.game_engine.objects.Deletable
 
 interface Input : Deletable {
 
+	val inputs: Inputs
 	fun update()
 }

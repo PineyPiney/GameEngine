@@ -5,12 +5,12 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.DirectorySource
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.fonts.FontLoader
+import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.window.WindowGameLogic
-import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngine
 
 class TestEngine<E : WindowGameLogic>(
-	override val window: WindowI,
+	override val window: Window,
 	manager: ApiManager,
 	val screen: (TestEngine<E>) -> E,
 	ups: Int,

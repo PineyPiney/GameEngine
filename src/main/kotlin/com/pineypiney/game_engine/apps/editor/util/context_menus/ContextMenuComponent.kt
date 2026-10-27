@@ -11,7 +11,7 @@ import com.pineypiney.game_engine.util.extension_functions.sumOf
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.util.text.Text
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -35,7 +35,7 @@ class ContextMenuComponent<C: ContextMenu.Context>(parent: GameObject, val conte
 		createNewSection(menu.entries.map { it.name }, "Sub Menu Root", Vec2(0f))
 	}
 
-	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onCursorMove(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		if(hoveredSection == -1) {
 			hoveredIndex = -1
@@ -122,7 +122,7 @@ class ContextMenuComponent<C: ContextMenu.Context>(parent: GameObject, val conte
 		return rootChild
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if(action == 0) {
 			if(hover) hoveredEntry?.action(context)

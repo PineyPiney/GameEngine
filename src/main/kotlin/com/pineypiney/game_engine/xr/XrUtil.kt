@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.util.LwjglUtil.enumerate
 import com.pineypiney.game_engine.util.LwjglUtil.enumerateStructs
 import com.pineypiney.game_engine.util.extension_functions.stringsToPointer
 import com.pineypiney.game_engine.vulkan.VulkanManager
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.detail.GLM_DEPTH_CLIP_SPACE
 import glm_.detail.GlmDepthClipSpace
 import glm_.mat4x4.Mat4
@@ -15,9 +15,7 @@ import glm_.quat.Quat
 import glm_.vec3.Vec3
 import glm_.vec3.Vec3i
 import kool.map
-import org.lwjgl.glfw.GLFWNativeWGL
 import org.lwjgl.glfw.GLFWNativeWayland
-import org.lwjgl.glfw.GLFWNativeWin32
 import org.lwjgl.openxr.*
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
@@ -314,12 +312,12 @@ object XrUtil {
 		return createSession(stack, createInfo, manager)
 	}
 
-	fun createOpenGlWin32Session(stack: MemoryStack, manager: OpenXrManager, window: WindowI): OpenXrSession {
+	fun createOpenGlWin32Session(stack: MemoryStack, manager: OpenXrManager, window: Window): OpenXrSession {
 
 		// https://medium.com/@javiercarranzaburgueno/an-easy-openxr-vr-implementation-for-c-games-93c161321a3b#3bda
-		val hWND = GLFWNativeWin32.glfwGetWin32Window(window.windowHandle)
+		val hWND = window.getHWND()
 		val hDC = User32.GetDC(hWND)
-		val hGLRC = GLFWNativeWGL.glfwGetWGLContext(window.windowHandle)
+		val hGLRC = window.getHGLRC()
 
 		val api = XrGraphicsBindingOpenGLWin32KHR.calloc(stack).`type$Default`()
 			.hDC(hDC)

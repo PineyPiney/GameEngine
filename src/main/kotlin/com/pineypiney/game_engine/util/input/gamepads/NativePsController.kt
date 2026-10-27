@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.util.input.gamepads
 
 import com.pineypiney.game_engine.Timer
-import com.pineypiney.game_engine.util.extension_functions.coerceIn
 import com.pineypiney.game_engine.util.extension_functions.rotate
 import com.pineypiney.game_engine.util.jna.LibScePad
 import com.pineypiney.game_engine.util.jna.StdC
@@ -9,8 +8,9 @@ import glm_.has
 import glm_.quat.Quat
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
+import glm_.vec3.Vec3b
 
-class NativePsController(override val input: NativeGamepadInput, val userId: Int, val pad: Int) : GamePad(), RumbleGamepad, LightBarGamepad, TriggerEffectGamepad {
+class NativePsController(override val input: NativeGamepadInput, val userId: Int, val pad: Int) : Gamepad(), RumbleGamepad, LightBarGamepad, TriggerEffectGamepad, SensorGamepad {
 
 	override val name: String
 	override val id: Int get() = pad
@@ -19,8 +19,8 @@ class NativePsController(override val input: NativeGamepadInput, val userId: Int
 	val touchPad = mutableMapOf<Byte, Vec2>()
 
 	var orientation: Quat = Quat()
-	var acceleration: Vec3 = Vec3()
-	var angularVelocity: Vec3 = Vec3()
+	override var acceleration: Vec3 = Vec3(); private set
+	override var angularVelocity: Vec3 = Vec3(); private set
 
 	var gravityCalibration: Vec3 = Vec3(0f, -1f, 0f)
 	var orientationCalibration: Quat = Quat()
@@ -55,12 +55,12 @@ class NativePsController(override val input: NativeGamepadInput, val userId: Int
 			updateButton(k, data.buttonBitmask has v)
 		}
 
-		updateAxis(AXIS_LEFT_TRIGGER, data.l2Analogue.toUByte().toInt() * _255)
-		updateAxis(AXIS_RIGHT_TRIGGER, data.r2Analogue.toUByte().toInt() * _255)
-		updateAxis(AXIS_LEFT_X, (data.leftStick.x.toUByte().toInt() * _127) - 1f)
-		updateAxis(AXIS_LEFT_Y, 1f - (data.leftStick.y.toUByte().toInt() * _127))
-		updateAxis(AXIS_RIGHT_X, (data.rightStick.x.toUByte().toInt() * _127) - 1f)
-		updateAxis(AXIS_RIGHT_Y, 1f - (data.rightStick.y.toUByte().toInt() * _127))
+		updateAxis(AXIS_LEFT_TRIGGER, data.l2Analogue.toUByte().toInt() * UB)
+		updateAxis(AXIS_RIGHT_TRIGGER, data.r2Analogue.toUByte().toInt() * UB)
+		updateAxis(AXIS_LEFT_X, (data.leftStick.x.toUByte().toInt() * SB) - 1f)
+		updateAxis(AXIS_LEFT_Y, 1f - (data.leftStick.y.toUByte().toInt() * SB))
+		updateAxis(AXIS_RIGHT_X, (data.rightStick.x.toUByte().toInt() * SB) - 1f)
+		updateAxis(AXIS_RIGHT_Y, 1f - (data.rightStick.y.toUByte().toInt() * SB))
 
 		updateTouchPad()
 
@@ -99,8 +99,8 @@ class NativePsController(override val input: NativeGamepadInput, val userId: Int
 		rumble.delete()
 	}
 
-	override fun setLightBar(colour: Vec3) {
-		val light = LibScePad.LightBar(colour.coerceIn(Vec3(0f), Vec3(1f)))
+	override fun setLightBar(colour: Vec3b) {
+		val light = LibScePad.LightBar(colour.x, colour.y, colour.z)
 		LibScePad.INSTANCE.scePadSetLightBar(pad, light.p)
 		light.delete()
 	}
@@ -145,8 +145,8 @@ class NativePsController(override val input: NativeGamepadInput, val userId: Int
 
 	companion object {
 
-		const val _255 = 1f / 255f
-		const val _127 = 2f / 255f
+		const val UB = 1f / 255f
+		const val SB = 2f / 255f
 
 		val mapping = mapOf(
 			BUTTON_A to LibScePad.BUTTON_CROSS,

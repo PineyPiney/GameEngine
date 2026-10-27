@@ -6,14 +6,12 @@ import com.pineypiney.game_engine.rendering.vulkan.VulkanRendering
 import com.pineypiney.game_engine.rendering.vulkan.VulkanWindowRendering
 import com.pineypiney.game_engine.resources.VulkanResourceFactory
 import com.pineypiney.game_engine.resources.textures.TextureFormat
-import com.pineypiney.game_engine.util.ApiEnum
+import com.pineypiney.game_engine.util.GraphicsEnum
 import com.pineypiney.game_engine.util.extension_functions.addAll
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
+import com.pineypiney.game_engine.window.WindowApi
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
-import kool.iterator
-import org.lwjgl.glfw.GLFWVulkan
-import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
 
 open class VulkanManager(appName: String, version: Int, layers: Collection<String>, extensions: Collection<String>) : ApiManager {
@@ -84,7 +82,7 @@ open class VulkanManager(appName: String, version: Int, layers: Collection<Strin
 		return 0
 	}
 
-	override val getEnum: (ApiEnum) -> Int = ApiEnum::vulkan
+	override val getEnum: (GraphicsEnum) -> Int = GraphicsEnum::vulkan
 
 	override fun invertY(): Boolean = true
 	override fun minDepth(): Float = 0f
@@ -93,7 +91,7 @@ open class VulkanManager(appName: String, version: Int, layers: Collection<Strin
 
 	override fun createRenderingApi(name: String): VulkanRendering = VulkanRendering.create(device, name)
 
-	override fun createPresentingApi(window: WindowI, name: String): VulkanWindowRendering = VulkanWindowRendering(window, name, device)
+	override fun createPresentingApi(window: Window, name: String): VulkanWindowRendering = VulkanWindowRendering(window, name, device)
 
 	override fun waitIdle() {
 		device.waitIdle()
@@ -126,14 +124,10 @@ open class VulkanManager(appName: String, version: Int, layers: Collection<Strin
 		val enabledExtensions = mutableListOf<String>()
 		val debugEnabled get() = enabledExtensions.contains(EXTDebugUtils.VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
 
-		fun validated(appName: String, version: Int, glfw: Boolean): VulkanManager {
+		fun validated(appName: String, version: Int, windowApi: WindowApi): VulkanManager {
 			val layers = listOf("VK_LAYER_KHRONOS_validation")
 			val exts = mutableListOf(EXTDebugUtils.VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
-
-			if(glfw) {
-				val glfwExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions() ?: throw RuntimeException("Missing required GLFW extensions")
-				for(extension in glfwExtensions) enabledExtensions.add(MemoryUtil.memUTF8(extension))
-			}
+			exts.addAll(windowApi.getVulkanExtensions())
 
 			return VulkanManager(appName, version, layers, exts)
 		}

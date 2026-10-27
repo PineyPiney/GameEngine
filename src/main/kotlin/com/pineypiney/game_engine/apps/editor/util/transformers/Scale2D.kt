@@ -5,7 +5,7 @@ import com.pineypiney.game_engine.apps.editor.util.edits.ComponentFieldEdit
 import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -30,7 +30,7 @@ class Scale2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, sc
 
 	fun relativePos(pos: CursorPosition) = (getCursorPos(pos) - Vec2(parent.position)).rotate(-parent.rotation.eulerAngles().z)
 
-	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onCursorMove(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		if(pressed) return
 
@@ -59,7 +59,7 @@ class Scale2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, sc
 		}
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if(action == 1) {
 			selected = when (1f) {
@@ -91,7 +91,7 @@ class Scale2D(parent: GameObject, screen: EditorScreen) : Transformer(parent, sc
 		return INTERRUPT
 	}
 
-	override fun onDrag(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onDrag(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		val scale = when(selected){
 			1 -> Vec2(initScale.x * relativePos(cursorPos).x * grabPoint.x, initScale.y)
 			2 -> Vec2(initScale.x, initScale.y * relativePos(cursorPos).y * grabPoint.y)

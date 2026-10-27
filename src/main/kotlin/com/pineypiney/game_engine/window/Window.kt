@@ -2,7 +2,8 @@ package com.pineypiney.game_engine.window
 
 import com.pineypiney.game_engine.audio.AudioInputDevice
 import com.pineypiney.game_engine.audio.AudioOutputDevice
-import com.pineypiney.game_engine.util.Cursor
+import com.pineypiney.game_engine.objects.Initialisable
+import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import glm_.vec2.Vec2
@@ -10,14 +11,15 @@ import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.glfw.GLFWImage
-import org.lwjgl.glfw.GLFWVidMode
 import org.lwjgl.openal.AL10
+import org.lwjgl.vulkan.VkInstance
 import java.io.InputStream
+import java.nio.LongBuffer
 
 
-interface WindowI {
+interface Window: Initialisable {
 
+	val api: WindowApi
 	val input: Inputs
 	val windowHandle: Long
 	val audioOutputDevice: AudioOutputDevice?
@@ -38,12 +40,12 @@ interface WindowI {
 	 * - [height]: The height of the window in pixels
 	 * - [aspectRatio]: The ratio of the width to the height of the window
 	 * - [focused]: Whether the window has input focus
-	 * - [iconified]: Whether the window is iconified
-	 * - [decorated]: Whether the window is decorated
-	 * - [autoIconify]: Whether the window should auto iconify. This is means that if the window is fullscreen,
-	 *                  then when it is iconified the monitors Video Mode is set back to default. If making a
-	 *                  full screen window, this should normally be set to true
+	 * - [minimised]: Whether the window is minimised
 	 * - [maximised]: Whether the window is maximised
+	 * - [autoMinimise]: Whether the window should auto minimised. This is means that if the window is fullscreen,
+	 *                  then when it is minimised the monitors Video Mode is set back to default. If making a
+	 *                  full screen window, this should normally be set to true
+	 * - [decorated]: Whether the window is decorated
 	 * - [fullScreen]: Whether the window is attached to a monitor and is in fullscreen or not
 	 * - [shouldClose]: Whether the window should close
 	 * - [vSync]: Whether the video is vSynced
@@ -61,16 +63,17 @@ interface WindowI {
 	var width: Int
 	var height: Int
 	val aspectRatio: Float
+
 	val focused: Boolean
-	val iconified: Boolean
+	val minimised: Boolean
+	val maximised: Boolean
+	var autoMinimise: Boolean
 	var decorated: Boolean
-	var autoIconify: Boolean
-	var maximised: Boolean
 	val fullScreen: Boolean
 	var shouldClose: Boolean
 	var vSync: Boolean
-	var monitor: GLFWMonitor?
-	val videoMode: GLFWVidMode
+	val monitor: Monitor?
+	val videoMode: VideoMode
 
 	fun setAudioOutput(name: String? = null)
 	fun setAudioInput(
@@ -82,14 +85,45 @@ interface WindowI {
 
 	fun focus()
 
-	fun iconify()
+	fun minimise()
+
+	fun maximise()
+
+	fun restore()
 
 	fun getKey(key: Int): Int
 
 	/**
 	 * Get the pixel position of the cursor on this window from the bottom left
 	 */
-	fun getCursorPos(): CursorPosition
+	fun getCursorPos(): CursorPosition {
+		val (xf, yf) = Vec2(cursorPos)
+
+		val screenSpace = Vec2(xf * 2f / size.x - 1f, 1f - yf * 2f / size.y)
+		val newPos = CursorPosition(Vec2(screenSpace.x * aspectRatio, screenSpace.y), screenSpace, Vec2i(xf, size.y - yf))
+		return newPos
+	}
+
+	fun center() {
+		videoMode.let {
+			pos = Vec2i(it.width - width, it.height - height) / 2
+		}
+	}
+
+	fun moveToMonitor(monitor: Monitor){
+		pos = monitor.pos
+	}
+
+	fun setFullScreen(fullScreen: Boolean, monitor: Monitor = getPrimaryMonitor())
+
+	fun createSystemCursor(systemCursor: SystemCursor): Cursor
+
+	fun createCursor(texture: InputStream, point: Vec2i): Cursor
+
+	fun createCursor(texture: String, point: Vec2i): Cursor? {
+		val stream = ResourcesLoader.INSTANCE.getStream(texture) ?: return null
+		return createCursor(stream, point)
+	}
 
 	/**
 	 * Set the cursor for the window
@@ -105,19 +139,15 @@ interface WindowI {
 	 */
 	fun setCursor(cursor: Cursor)
 
+	fun getCursorMode(): CursorMode
+
 	/**
 	 * Set the cursor mode
 	 *
 	 * @param mode One of [GLFW.GLFW_CURSOR_NORMAL], [GLFW.GLFW_CURSOR_HIDDEN], [GLFW.GLFW_CURSOR_DISABLED] or [GLFW.GLFW_CURSOR_CAPTURED]
 	 */
-	fun setCursorMode(mode: Int)
+	fun setCursorMode(mode: CursorMode)
 
-	/**
-	 * Set the window icon
-	 *
-	 * @param icon The pixel data for the new icon
-	 */
-	fun setIcon(icon: GLFWImage.Buffer)
 
 	/**
 	 * Set the window icon
@@ -125,13 +155,20 @@ interface WindowI {
 	 * @param icon The input stream for the data for the new icon
 	 */
 	fun setIcon(icon: InputStream)
-	fun setResizeCallback(callback: WindowI.() -> Unit)
-	fun setFrameBufferResizeCallback(callback: WindowI.() -> Unit)
-	fun setIconifyCallback(callback: WindowI.() -> Unit)
-	fun setMaximiseCallback(callback: WindowI.() -> Unit)
-	fun setFocusCallback(callback: WindowI.() -> Unit)
-	fun setRefreshCallback(callback: WindowI.() -> Unit)
-	fun setContentScaleCallback(callback: WindowI.() -> Unit)
+	fun setResizeCallback(callback: Window.() -> Unit)
+	fun setFrameBufferResizeCallback(callback: Window.() -> Unit)
+	fun setFocusCallback(callback: Window.(Boolean) -> Unit)
+	fun setMinimiseCallback(callback: Window.() -> Unit)
+	fun setMaximiseCallback(callback: Window.() -> Unit)
+	fun setContentScaleCallback(callback: Window.() -> Unit)
 	fun update()
-	fun close(handle: Long = windowHandle)
+	fun close()
+
+	fun getHWND(): Long
+	fun getHGLRC(): Long
+
+	fun getPrimaryMonitor(): Monitor
+	fun getAllMonitors(): List<Monitor>
+
+	fun createVulkanSurface(instance: VkInstance, buffer: LongBuffer): Int
 }

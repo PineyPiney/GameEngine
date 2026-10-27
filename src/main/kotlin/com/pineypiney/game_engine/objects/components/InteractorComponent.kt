@@ -8,7 +8,7 @@ import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.maths.shapes.Shape2D
 import com.pineypiney.game_engine.util.raycasting.Ray
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import org.lwjgl.glfw.GLFW
 
@@ -44,16 +44,16 @@ interface InteractorComponent : ComponentI {
 		else -1f
 	}
 
-	fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	fun onCursorMove(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		if (pressed) onDrag(window, cursorPos, cursorDelta, ray)
 	}
 
-	fun onCursorEnter(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {}
-	fun onCursorExit(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {}
-	fun onDrag(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {}
-	fun onScroll(window: WindowI, scrollDelta: Vec2): Int = 0
+	fun onCursorEnter(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {}
+	fun onCursorExit(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {}
+	fun onDrag(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {}
+	fun onScroll(window: Window, scrollDelta: Vec2): Int = 0
 
-	fun onInput(window: WindowI, state: InputState, action: Int, cursorPos: CursorPosition): Int {
+	fun onInput(window: Window, state: InputState, action: Int, cursorPos: CursorPosition): Int {
 		return when (state.i) {
 			0 if state.controlType == ControlType.MOUSE -> onPrimary(window, action, state.mods, cursorPos)
 			1 if state.controlType == ControlType.MOUSE -> onSecondary(window, action, state.mods, cursorPos)
@@ -61,16 +61,16 @@ interface InteractorComponent : ComponentI {
 		}
 	}
 
-	fun onType(window: WindowI, char: Char): Int = 0
+	fun onType(window: Window, char: Char): Int = 0
 
 	// This is the default action when an item is clicked
-	fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		// Continue pressing if already pressed, or start pressing on first click
 		pressed = (pressed && action == GLFW.GLFW_REPEAT) || action == GLFW.GLFW_PRESS
 		return action
 	}
 
-	fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int = action
+	fun onSecondary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int = action
 
 	fun shouldInteract(): Boolean {
 		return this.hover || this.pressed || this.forceUpdate

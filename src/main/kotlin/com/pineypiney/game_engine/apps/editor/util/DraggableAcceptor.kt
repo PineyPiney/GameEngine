@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.apps.editor.EditorScreen
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 
 interface DraggableAcceptor : InteractorComponent {
@@ -15,13 +15,13 @@ interface DraggableAcceptor : InteractorComponent {
 	fun onHoverElement(element: Any, cursorPos: Vec2): Boolean = false
 	fun onDropElement(element: Any, cursorPos: Vec2, screen: EditorScreen){}
 
-	override fun onCursorMove(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onCursorMove(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		super.onCursorMove(window, cursorPos, cursorDelta, ray)
 		val dragging = getDragging() ?: return
 		canDrop = onHoverElement(dragging.element.getElement(), cursorPos.position)
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 //		val dragging = getDragging() ?: return action
 //		if(action == 0 && canDrop) {

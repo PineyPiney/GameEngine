@@ -9,7 +9,7 @@ import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.objects.prefabs.Prefab
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -71,7 +71,7 @@ class PrefabFile(parent: GameObject, file: File, browser: FileBrowser): FileComp
 		return Sprite(texture, size.toFloat(), center)
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if(action == 0 && Timer.time - fileSelect > .5){
 			val obj = Prefab(file).parseAndEdit()

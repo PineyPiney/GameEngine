@@ -1,11 +1,11 @@
 package com.pineypiney.game_engine.resources.textures
 
-import com.pineypiney.game_engine.util.ApiEnum
+import com.pineypiney.game_engine.util.GraphicsEnum
 import org.lwjgl.opengl.GL46C.*
 import org.lwjgl.vulkan.VK10
 
 // https://gist.github.com/Kos/4739337
-enum class TextureFormat(override val opengl: Int, val openglLayout: Int, val pixelType: ChannelFormat, override val vulkan: Int, val pixelSize: Int) : ApiEnum {
+enum class TextureFormat(override val opengl: Int, val openglLayout: Int, val pixelType: ChannelFormat, override val vulkan: Int, val pixelSize: Int) : GraphicsEnum {
 
 	R8(GL_R8, GL_RED, ChannelFormat.UNORM8, VK10.VK_FORMAT_R8_UNORM, 1),
 	R16(GL_R16, GL_RED, ChannelFormat.UNORM16, VK10.VK_FORMAT_R16_UNORM, 2),

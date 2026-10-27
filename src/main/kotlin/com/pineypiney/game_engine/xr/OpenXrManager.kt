@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.rendering.openxr.OpenXrRenderManager
 import com.pineypiney.game_engine.rendering.openxr.OpenXrVulkanManager
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.toString
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.xr.actions.ActionBindingManager
 import com.pineypiney.game_engine.xr.actions.OpenXrActionSet
 import glm_.vec2.Vec2i
@@ -20,7 +20,7 @@ import org.lwjgl.system.MemoryUtil
 
 // This class is used to handle cross-api OpenXR runtime, with GraphicsApi-specific functionality handled by the graphicsApi
 class OpenXrManager(
-	val window: WindowI,
+	val window: Window,
 	val graphicsApi: XrGraphicsApi,
 	val actionSet: OpenXrActionSet,
 	extensions: Collection<String>,
@@ -63,7 +63,7 @@ class OpenXrManager(
 			actionSet.init(stack, this)
 			deletionQueue.push(actionSet)
 
-			manager = graphicsApi.createApi("OpenXR Test", instance, systemID)
+			manager = graphicsApi.createApi("OpenXR Test", instance, systemID, window.api)
 			manager.init()
 			println(manager.printInfo())
 			deletionQueue.push(manager)

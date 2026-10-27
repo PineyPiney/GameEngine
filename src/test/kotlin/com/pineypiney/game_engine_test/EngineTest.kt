@@ -29,9 +29,7 @@ import com.pineypiney.game_engine.util.maths.shapes.Cuboid
 import com.pineypiney.game_engine.util.maths.shapes.Parallelogram
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.vulkan.VulkanManager
-import com.pineypiney.game_engine.window.OpenGlWindow
-import com.pineypiney.game_engine.window.VulkanWindow
-import com.pineypiney.game_engine.window.WindowGameLogic
+import com.pineypiney.game_engine.window.*
 import com.pineypiney.game_engine.xr.OpenGlXr
 import com.pineypiney.game_engine_test.scenes.*
 import com.pineypiney.game_engine_test.xr.TestOpenXrEngine
@@ -44,6 +42,7 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.junit.Test
 import org.lwjgl.vulkan.VK13
+import java.io.File
 import java.io.FileInputStream
 import kotlin.math.PI
 import kotlin.math.max
@@ -59,12 +58,12 @@ class EngineTest{
 
 	@Test
 	fun test2D() {
-		runOpenGlEngine(::Game2D)
+		runOpenGlEngine(::Game2D, SDLManager)
 	}
 
 	@Test
 	fun test3D(){
-		runVulkanEngine(::Game3D)
+		runVulkanEngine(::Game3D, SDLManager)
 	}
 
 	@Test
@@ -74,10 +73,14 @@ class EngineTest{
 
 	@Test
 	fun testXR(){
+		val windowApi = SDLManager
+		windowApi.init()
+//		val properties = WindowProperties().vulkan()
+		val properties = WindowProperties().opengl(4, 3)
+			.addFlag(WindowFlags.RESIZABLE).addFlag(WindowFlags.TRANSPARENT)
+			.visible(true).decorated(true).vSync(true)
 
-		LibrarySetUp.initGLFW()
-//		val window = VulkanWindow("OpenXR Test")
-		val window = TestWindow(version = Vec2i(4, 3))
+		val window = windowApi.createWindow("OpenXR Test", 1920, 1080, properties)
 		window.init()
 
 		TestOpenXrEngine(window, OpenGlXr).run()
@@ -85,12 +88,12 @@ class EngineTest{
 
 	@Test
 	fun testCollisionVisual(){
-		runOpenGlEngine(::CollisionTest, 100)
+		runOpenGlEngine(::CollisionTest, GLFWManager, 100)
 	}
 
 	@Test
 	fun testCollision3DVisual(){
-		runOpenGlEngine(::Collision3DTest, 100)
+		runOpenGlEngine(::Collision3DTest, GLFWManager, 100)
 	}
 
 	@Test
@@ -129,25 +132,47 @@ class EngineTest{
 
 		fun <G : WindowGameLogic> runOpenGlEngine(
 			screen: (TestEngine<G>) -> G,
+			windowApi: WindowApi = GLFWManager,
 			ups: Int = 20,
 			fps: Int = 2000,
 			version: Vec2i = Vec2i(3)
 		) {
-			LibrarySetUp.initGLFW()
-			val window = TestWindow(version = version)
+			windowApi.init()
+			val properties = WindowProperties().opengl(version.x, version.y)
+				.addFlag(WindowFlags.RESIZABLE).addFlag(WindowFlags.FOCUSED).addFlag(WindowFlags.TRANSPARENT)
+				.visible(true).decorated(true).vSync(true)
+
+			val window = windowApi.createWindow("OpenGL Window", 1920, 1080, properties)
+
+			window.setIcon(File("src/main/resources/textures/menu_items/slider/pointer.png").inputStream())
+			window.center()
 			window.init()
+
 			TestEngine(window, OpenGlManager, screen, ups, fps).run()
+
+			window.close()
 		}
 
 		fun <G : WindowGameLogic> runVulkanEngine(
 			screen: (TestEngine<G>) -> G,
+			windowApi: WindowApi = GLFWManager,
 			ups: Int = 20,
 			fps: Int = 2000
 		) {
-			LibrarySetUp.initGLFW()
-			val window = VulkanWindow("Vulkan Window", 960, 540)
+			windowApi.init()
+			val properties = WindowProperties().vulkan()
+				.addFlag(WindowFlags.RESIZABLE).addFlag(WindowFlags.TRANSPARENT)
+				.visible(true).decorated(true).vSync(true)
+
+			val window = windowApi.createWindow("Vulkan Window", 1920, 1080, properties)
+
+			window.setIcon(File("src/main/resources/textures/menu_items/slider/pointer.png").inputStream())
+			window.center()
 			window.init()
-			TestEngine(window, VulkanManager.validated("Engine Test", VK13.VK_API_VERSION_1_3, true), screen, ups, fps).run()
+
+			TestEngine(window, VulkanManager.validated("Engine Test", VK13.VK_API_VERSION_1_3, windowApi), screen, ups, fps).run()
+
+			window.close()
 		}
 	}
 
@@ -159,15 +184,25 @@ class EngineTest{
 
 	@Test
 	fun testVulkanEditor() {
-		LibrarySetUp.initGLFW()
-		val window = VulkanWindow("Editor").apply { init() }
-		EditorEngine(window, VulkanManager.validated("Test Engine Editor", VK13.VK_API_VERSION_1_3, true), listOf(DirectorySource("src/test/resources"), DirectorySource())).run()
+		val windowApi = SDLManager
+		windowApi.init()
+		val properties = WindowProperties().vulkan()
+			.addFlag(WindowFlags.RESIZABLE).addFlag(WindowFlags.TRANSPARENT)
+			.visible(true).decorated(true).vSync(true)
+
+		val window = windowApi.createWindow("Editor", 1920, 1080, properties).apply { init() }
+		EditorEngine(window, VulkanManager.validated("Test Engine Editor", VK13.VK_API_VERSION_1_3, windowApi), listOf(DirectorySource("src/test/resources"), DirectorySource())).run()
 	}
 
 	@Test
 	fun testOpenGlEditor() {
-		LibrarySetUp.initGLFW()
-		val window = OpenGlWindow("Editor").apply { init() }
+		val windowApi = SDLManager
+		windowApi.init()
+		val properties = WindowProperties().opengl(4, 1)
+			.addFlag(WindowFlags.RESIZABLE).addFlag(WindowFlags.TRANSPARENT)
+			.visible(true).decorated(true).vSync(true)
+
+		val window = windowApi.createWindow("Editor", 1920, 1080, properties).apply { init() }
 		EditorEngine(window, OpenGlManager, listOf(DirectorySource("src/test/resources"), DirectorySource())).run()
 	}
 

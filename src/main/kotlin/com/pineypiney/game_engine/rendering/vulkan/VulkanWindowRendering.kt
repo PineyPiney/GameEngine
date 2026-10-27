@@ -7,7 +7,7 @@ import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorAlloc
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage2D
 import com.pineypiney.game_engine.util.extension_functions.deleteArray
 import com.pineypiney.game_engine.vulkan.*
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import org.lwjgl.system.MemoryStack
@@ -16,7 +16,7 @@ import org.lwjgl.vulkan.KHRSwapchain
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VkQueue
 
-class VulkanWindowRendering(val window: WindowI, val name: String, device: VulkanDevice) : VulkanRendering(), PresentingApi {
+class VulkanWindowRendering(val window: Window, val name: String, device: VulkanDevice) : VulkanRendering(), PresentingApi {
 
 	val surface = VkUtil.createSurface(device.instance, window)
 	val colourFormatSpace = device.physicalDevice.getSurfaceColour(surface)
@@ -34,7 +34,7 @@ class VulkanWindowRendering(val window: WindowI, val name: String, device: Vulka
 	override val descriptorAllocator: VulkanDescriptorAllocator get() = frameObjects.frameDescriptorAllocator
 
 	override fun beginPresentation(): Boolean {
-		if (window.iconified) return false
+		if (window.minimised) return false
 		// Clear old frame data
 		frameObjects.refresh()
 		// Wait until the fence is ready, it will be signalled by the previous render cycle
@@ -52,7 +52,7 @@ class VulkanWindowRendering(val window: WindowI, val name: String, device: Vulka
 		return true
 	}
 
-	override fun copyFramebuffer(framebuffer: Framebuffer, window: WindowI, renderer: RendererI) {
+	override fun copyFramebuffer(framebuffer: Framebuffer, window: Window, renderer: RendererI) {
 
 		// Copy the Draw Image to the Swapchain Image
 		val drawImage = framebuffer.colour as VulkanImage2D
@@ -87,7 +87,7 @@ class VulkanWindowRendering(val window: WindowI, val name: String, device: Vulka
 			val presentInfo = VkStructs.createPresentInfo(stack, swapchain, frameObjects.renderSemaphore)
 			val err = KHRSwapchain.vkQueuePresentKHR(queue, presentInfo)
 			if (err == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR || err == KHRSwapchain.VK_SUBOPTIMAL_KHR) {
-				if (!window.iconified) {
+				if (!window.minimised) {
 					VK10.vkQueueWaitIdle(queue)
 					updateSwapchain(window.framebufferSize)
 				}

@@ -5,18 +5,16 @@ import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VulkanDevice
 import com.pineypiney.game_engine.vulkan.VulkanManager
 import com.pineypiney.game_engine.vulkan.VulkanPhysicalDevice
+import com.pineypiney.game_engine.window.WindowApi
 import com.pineypiney.game_engine.xr.VulkanXr
 import com.pineypiney.game_engine.xr.XrUtil
-import kool.iterator
-import org.lwjgl.glfw.GLFWVulkan
 import org.lwjgl.openxr.KHRVulkanEnable2
 import org.lwjgl.openxr.XrInstance
 import org.lwjgl.openxr.XrVulkanGraphicsDeviceGetInfoKHR
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
 
-class OpenXrVulkanManager(appName: String, val xrInstance: XrInstance, val systemId: Long) : VulkanManager(appName, TARGET_VERSION, listOf("VK_LAYER_KHRONOS_validation"), createInstanceExtensions(xrInstance, systemId)) {
+class OpenXrVulkanManager(appName: String, val xrInstance: XrInstance, val systemId: Long, windowApi: WindowApi) : VulkanManager(appName, TARGET_VERSION, listOf("VK_LAYER_KHRONOS_validation"), createInstanceExtensions(xrInstance, systemId, windowApi)) {
 
 	override var colourFormat: TextureFormat = super.colourFormat
 	override var depthFormat: TextureFormat = super.depthFormat
@@ -56,11 +54,10 @@ class OpenXrVulkanManager(appName: String, val xrInstance: XrInstance, val syste
 	companion object {
 		val TARGET_VERSION = VK12.VK_API_VERSION_1_1
 
-		fun createInstanceExtensions(xrInstance: XrInstance, systemId: Long): List<String>{
+		fun createInstanceExtensions(xrInstance: XrInstance, systemId: Long, windowApi: WindowApi): List<String>{
 			val extensions = VulkanXr.getApiExtensions(xrInstance, systemId).toMutableList()
 			extensions.add(EXTDebugUtils.VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
-			val glfwExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions() ?: throw RuntimeException("Missing required GLFW extensions")
-			for(extension in glfwExtensions) extensions.add(MemoryUtil.memUTF8(extension))
+			extensions.addAll(windowApi.getVulkanExtensions())
 			return extensions
 		}
 	}

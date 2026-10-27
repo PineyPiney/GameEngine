@@ -1,11 +1,11 @@
 package com.pineypiney.game_engine.resources.shaders.parameters
 
-import com.pineypiney.game_engine.util.ApiEnum
+import com.pineypiney.game_engine.util.GraphicsEnum
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL40C
 import org.lwjgl.vulkan.VK10
 
-enum class InputTopology(override val opengl: Int, override val vulkan: Int) : ApiEnum {
+enum class InputTopology(override val opengl: Int, override val vulkan: Int) : GraphicsEnum {
 	POINTS(GL11C.GL_POINTS, VK10.VK_PRIMITIVE_TOPOLOGY_POINT_LIST),
 	LINES(GL11C.GL_LINES, VK10.VK_PRIMITIVE_TOPOLOGY_LINE_LIST),
 	LINE_LOOP(GL11C.GL_LINE_LOOP, -1),

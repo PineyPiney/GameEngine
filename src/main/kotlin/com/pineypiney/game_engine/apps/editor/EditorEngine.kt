@@ -8,11 +8,11 @@ import com.pineypiney.game_engine.resources.DirectorySource
 import com.pineypiney.game_engine.resources.GithubSource
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.Source
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.window.WindowedGameEngine
 
 class EditorEngine(
-	override val window: WindowI,
+	override val window: Window,
 	manager: ApiManager,
 	resources: ResourcesLoader,
 	ups: Int = 20,
@@ -21,7 +21,7 @@ class EditorEngine(
 ) : WindowedGameEngine<EditorScreen>(manager, resources) {
 
 	constructor(
-		window: WindowI,
+		window: Window,
 		manager: ApiManager,
 		sources: List<Source> = listOf(DirectorySource(), GithubSource.ENGINE),
 		ups: Int = 20,

@@ -6,9 +6,9 @@ import com.pineypiney.game_engine.rendering.opengl.OpenGlPresentRendering
 import com.pineypiney.game_engine.rendering.opengl.OpenGlRendering
 import com.pineypiney.game_engine.resources.OpenGlResourceFactory
 import com.pineypiney.game_engine.resources.ResourceFactory
-import com.pineypiney.game_engine.util.ApiEnum
 import com.pineypiney.game_engine.util.GLFunc
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.util.GraphicsEnum
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import org.lwjgl.opengl.GL11C
@@ -19,7 +19,7 @@ object OpenGlManager : ApiManager {
 
 	}
 
-	override val getEnum: (ApiEnum) -> Int = ApiEnum::opengl
+	override val getEnum: (GraphicsEnum) -> Int = GraphicsEnum::opengl
 
 	override fun invertY(): Boolean = false
 	override fun minDepth(): Float = -1f
@@ -30,7 +30,7 @@ object OpenGlManager : ApiManager {
 
 	override fun createRenderingApi(name: String): RenderingApi = OpenGlRendering
 
-	override fun createPresentingApi(window: WindowI, name: String): PresentingApi {
+	override fun createPresentingApi(window: Window, name: String): PresentingApi {
 		return OpenGlPresentRendering(window)
 	}
 

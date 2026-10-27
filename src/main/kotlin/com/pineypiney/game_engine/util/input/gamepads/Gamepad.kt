@@ -10,8 +10,7 @@ import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW
 import kotlin.math.abs
 
-abstract class GamePad : Deletable {
-
+abstract class Gamepad : Deletable {
 
 	abstract val name: String?
 	abstract val id: Int
@@ -90,6 +89,7 @@ abstract class GamePad : Deletable {
 		const val BUTTON_RIGHT_THUMB = 0x800
 		const val BUTTON_OPTIONS = 0x1000
 		const val BUTTON_GUIDE = 0x2000
+		const val BUTTON_BACK = 0x4000
 		const val BUTTON_CROSS = BUTTON_A
 		const val BUTTON_CIRCLE = BUTTON_B
 		const val BUTTON_SQUARE = BUTTON_X

@@ -16,7 +16,7 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.util.text.Text
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec3.swizzle.xy
@@ -31,7 +31,7 @@ class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(pare
 
 	override var canDrop: Boolean = false
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super<DraggableAcceptor>.onPrimary(window, action, mods, cursorPos)
 
 		when(action){
@@ -57,7 +57,7 @@ class ObjectNode(parent: GameObject, obj: GameObject): MenuNode<GameObject>(pare
 		return action
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onSecondary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		if(action == 1) {
 			browser?.let { browser ->
 				browser.screen.setContextMenu(ObjectNodeContext(browser, this), objectNodeContextMenu, cursorPos.position)

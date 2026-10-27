@@ -2,19 +2,17 @@ package com.pineypiney.game_engine.window
 
 import com.pineypiney.game_engine.audio.AudioInputDevice
 import com.pineypiney.game_engine.audio.AudioOutputDevice
-import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.resources.ResourcesLoader
 import com.pineypiney.game_engine.resources.textures.TextureLoader
-import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.GLFunc
-import com.pineypiney.game_engine.util.GLFunc.getVec2
-import com.pineypiney.game_engine.util.GLFunc.getVec2d
-import com.pineypiney.game_engine.util.GLFunc.getVec2i
-import com.pineypiney.game_engine.util.GLFunc.getVec4i
-import com.pineypiney.game_engine.util.GLFunc.setVec2d
-import com.pineypiney.game_engine.util.GLFunc.setVec2i
+import com.pineypiney.game_engine.util.NativeFuncs.getVec2
+import com.pineypiney.game_engine.util.NativeFuncs.getVec2d
+import com.pineypiney.game_engine.util.NativeFuncs.getVec2i
+import com.pineypiney.game_engine.util.NativeFuncs.getVec4i
+import com.pineypiney.game_engine.util.NativeFuncs.setVec2d
+import com.pineypiney.game_engine.util.NativeFuncs.setVec2i
 import com.pineypiney.game_engine.util.extension_functions.delete
-import com.pineypiney.game_engine.util.input.knm.CursorPosition
+import com.pineypiney.game_engine.util.input.Inputs
 import glm_.bool
 import glm_.f
 import glm_.i
@@ -23,33 +21,28 @@ import glm_.vec2.Vec2d
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4i
 import kool.free
-import org.lwjgl.glfw.GLFW
-import org.lwjgl.glfw.GLFW.GLFW_CURSOR
-import org.lwjgl.glfw.GLFW.glfwSetInputMode
-import org.lwjgl.glfw.GLFWImage
-import org.lwjgl.glfw.GLFWVidMode
+import org.lwjgl.glfw.*
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
 import org.lwjgl.stb.STBImage
-import org.lwjgl.system.MemoryStack
+import org.lwjgl.vulkan.VkInstance
 import java.io.InputStream
+import java.nio.LongBuffer
 
-abstract class GLFWWindow(
+open class GLFWWindow(
 	title: String,
 	width: Int,
 	height: Int,
 	fullScreen: Boolean,
 	vSync: Boolean,
+	input: (Window) -> Inputs,
+	val opengl: Boolean,
 	hints: Map<Int, Int> = defaultHints
-) : WindowI, Initialisable {
+) : Window {
 
-	override var vSync: Boolean = vSync
-		set(value) {
-			field = value
-			if (GLFunc.isLoaded) GLFW.glfwSwapInterval(field.i)
-		}
-
+	override val api: WindowApi get() = GLFWManager
 	final override val windowHandle: Long = createWindow(title, width, height, fullScreen, hints)
+	override val input: Inputs = input(this)
 	final override var audioOutputDevice: AudioOutputDevice? = null
 	final override var audioInputDevice: AudioInputDevice? = null
 
@@ -99,23 +92,19 @@ abstract class GLFWWindow(
 	override val focused: Boolean
 		get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_FOCUSED).bool
 
-	override val iconified: Boolean
+	override val minimised: Boolean
 		get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_ICONIFIED).bool
+
+	override val maximised: Boolean
+		get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_MAXIMIZED).bool
+
+	override var autoMinimise: Boolean
+		get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_AUTO_ICONIFY).bool
+		set(value) = GLFW.glfwSetWindowAttrib(windowHandle, GLFW.GLFW_AUTO_ICONIFY, value.i)
 
 	override var decorated: Boolean
 		get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_DECORATED).bool
 		set(value) = GLFW.glfwSetWindowAttrib(windowHandle, GLFW.GLFW_DECORATED, value.i)
-
-	override var autoIconify: Boolean
-		get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_AUTO_ICONIFY).bool
-		set(value) = GLFW.glfwSetWindowAttrib(windowHandle, GLFW.GLFW_AUTO_ICONIFY, value.i)
-
-	override var maximised: Boolean
-		get() = GLFW.glfwGetWindowAttrib(windowHandle, GLFW.GLFW_MAXIMIZED).bool
-		set(value) {
-			if (value) GLFW.glfwMaximizeWindow(windowHandle)
-			else GLFW.glfwRestoreWindow(windowHandle)
-		}
 
 	override val fullScreen: Boolean
 		get() = GLFW.glfwGetWindowMonitor(windowHandle) != 0L
@@ -124,14 +113,16 @@ abstract class GLFWWindow(
 		get() = GLFW.glfwWindowShouldClose(windowHandle)
 		set(value) = GLFW.glfwSetWindowShouldClose(windowHandle, value)
 
-	override var monitor: GLFWMonitor?
-		get() = GLFW.glfwGetWindowMonitor(windowHandle).let { if (it == 0L) null else GLFWMonitor(it) }
+	override var vSync: Boolean = vSync
 		set(value) {
-			val mode = value?.videoMode
-			GLFW.glfwSetWindowMonitor(windowHandle, value?.handle ?: 0L, 0, 0, mode?.width() ?: width, mode?.height() ?: height, GLFW.GLFW_DONT_CARE)
-			center()
+			field = value
+			if (GLFunc.isLoaded) GLFW.glfwSwapInterval(field.i)
 		}
-	override val videoMode: GLFWVidMode get() = (monitor ?: GLFWMonitor.primary).videoMode
+
+	override val monitor: GLFWMonitor?
+		get() = GLFW.glfwGetWindowMonitor(windowHandle).let { if (it == 0L) null else GLFWMonitor(it) }
+
+	override val videoMode: GLFWVideoMode get() = (monitor ?: GLFWMonitor.primary).videoMode
 
 	init {
 		GLFW.glfwSetWindowCloseCallback(windowHandle) {
@@ -183,61 +174,50 @@ abstract class GLFWWindow(
 		GLFW.glfwFocusWindow(windowHandle)
 	}
 
-	override fun iconify() {
+	override fun minimise() {
 		GLFW.glfwIconifyWindow(windowHandle)
 	}
 
-	override fun getKey(key: Int) = GLFW.glfwGetKey(windowHandle, key)
-
-	override fun getCursorPos(): CursorPosition {
-		MemoryStack.stackPush().use { stack ->
-			val x = stack.mallocDouble(1)
-			val y = stack.mallocDouble(1)
-			GLFW.glfwGetCursorPos(windowHandle, x, y)
-
-			val xf = x[0].toFloat()
-			val yf = y[0].toFloat()
-
-			val screenSpace = Vec2(xf * 2f / size.x - 1f, 1f - yf * 2f / size.y)
-			val newPos = CursorPosition(Vec2(screenSpace.x * aspectRatio, screenSpace.y), screenSpace, Vec2i(xf, size.y - yf))
-			return newPos
-		}
+	override fun maximise() {
+		GLFW.glfwMaximizeWindow(windowHandle)
 	}
 
-	fun center() {
-		videoMode.let {
-			pos = Vec2i(it.width() - width, it.height() - height) / 2
-		}
+	override fun restore() {
+		GLFW.glfwRestoreWindow(windowHandle)
 	}
 
-	/**
-	 * Set the cursor for the window
-	 *
-	 * @param cursor The handle for the new cursor
-	 */
+	override fun getKey(key: Int): Int = GLFW.glfwGetKey(windowHandle, key)
+
+	override fun setFullScreen(fullScreen: Boolean, monitor: Monitor) {
+		val monitor = if(fullScreen) monitor as? GLFWMonitor else null
+		val mode = monitor?.videoMode
+		if(fullScreen) maximise()
+		GLFW.glfwSetWindowMonitor(windowHandle, monitor?.handle ?: 0L, 0, 0, mode?.width ?: width, mode?.height ?: height, GLFW.GLFW_DONT_CARE)
+		if(!fullScreen) restore()
+
+	}
+
+	override fun createSystemCursor(systemCursor: SystemCursor): Cursor = GLFWCursor(GLFW.glfwCreateStandardCursor(systemCursor.glfw))
+
+	override fun createCursor(texture: InputStream, point: Vec2i): Cursor = GLFWCursor(texture, point)
+
 	override fun setCursor(cursor: Long) {
 		if (System.getProperty("os.name").contains("Windows")) GLFW.glfwSetCursor(windowHandle, cursor)
 	}
 
-	/**
-	 * Set the cursor to a custom cursor
-	 *
-	 * @param cursor The cursor to be set
-	 */
 	override fun setCursor(cursor: Cursor) {
 		setCursor(cursor.handle)
 	}
 
-	override fun setCursorMode(mode: Int) {
-		glfwSetInputMode(windowHandle, GLFW_CURSOR, mode)
+	override fun getCursorMode(): CursorMode {
+		return GLFW.glfwGetInputMode(windowHandle, GLFW.GLFW_CURSOR).let { i -> CursorMode.entries.first{ it.glfw == i } }
 	}
 
-	/**
-	 * Set the window icon
-	 *
-	 * @param icon The pixel data for the new icon
-	 */
-	override fun setIcon(icon: GLFWImage.Buffer) {
+	override fun setCursorMode(mode: CursorMode) {
+		GLFW.glfwSetInputMode(windowHandle, GLFW.GLFW_CURSOR, mode.glfw)
+	}
+
+	fun setIcon(icon: GLFWImage.Buffer) {
 		if (System.getProperty("os.name").contains("Windows")) {
 			GLFW.glfwSetWindowIcon(windowHandle, icon)
 		}
@@ -262,14 +242,14 @@ abstract class GLFWWindow(
 		STBImage.stbi_image_free(loadedBuffer)
 	}
 
-	override fun setResizeCallback(callback: WindowI.() -> Unit) {
+	override fun setResizeCallback(callback: Window.() -> Unit) {
 		// Setup resize callback
 		GLFW.glfwSetWindowSizeCallback(windowHandle) { _: Long, _: Int, _: Int ->
 			this.callback()
 		}
 	}
 
-	override fun setFrameBufferResizeCallback(callback: WindowI.() -> Unit) {
+	override fun setFrameBufferResizeCallback(callback: Window.() -> Unit) {
 		GLFW.glfwSetFramebufferSizeCallback(windowHandle) { handle: Long, x: Int, y: Int ->
 			if(handle == windowHandle && y != 0) {
 				aspectRatio = x.toFloat() / y
@@ -278,41 +258,36 @@ abstract class GLFWWindow(
 		}
 	}
 
-	override fun setIconifyCallback(callback: WindowI.() -> Unit) {
+	override fun setFocusCallback(callback: Window.(Boolean) -> Unit) {
+		GLFW.glfwSetWindowFocusCallback(windowHandle) { _: Long, b: Boolean ->
+			this.callback(b)
+		}
+	}
+
+	override fun setMinimiseCallback(callback: Window.() -> Unit) {
 		GLFW.glfwSetWindowIconifyCallback(windowHandle) { _: Long, _: Boolean ->
 			this.callback()
 		}
 	}
 
-	override fun setMaximiseCallback(callback: WindowI.() -> Unit) {
+	override fun setMaximiseCallback(callback: Window.() -> Unit) {
 		GLFW.glfwSetWindowMaximizeCallback(windowHandle) { _: Long, _: Boolean ->
 			this.callback()
 		}
 	}
 
-	override fun setFocusCallback(callback: WindowI.() -> Unit) {
-		GLFW.glfwSetWindowFocusCallback(windowHandle) { _: Long, _: Boolean ->
-			this.callback()
-		}
-	}
-
-	override fun setRefreshCallback(callback: WindowI.() -> Unit) {
-		GLFW.glfwSetWindowRefreshCallback(windowHandle) { _: Long ->
-			this.callback()
-		}
-	}
-
-	override fun setContentScaleCallback(callback: WindowI.() -> Unit) {
-		GLFW.glfwSetWindowContentScaleCallback(windowHandle) { _: Long, x: Float, y: Float ->
+	override fun setContentScaleCallback(callback: Window.() -> Unit) {
+		GLFW.glfwSetWindowContentScaleCallback(windowHandle) { _: Long, _: Float, _: Float ->
 			this.callback()
 		}
 	}
 
 	override fun update() {
+		if(opengl) GLFW.glfwSwapBuffers(windowHandle)
 		GLFW.glfwPollEvents()
 	}
 
-	override fun close(handle: Long) {
+	override fun close() {
 		delete()
 	}
 
@@ -321,19 +296,21 @@ abstract class GLFWWindow(
 		input.inputs.delete()
 	}
 
+	override fun getHWND(): Long = GLFWNativeWin32.glfwGetWin32Window(windowHandle)
+	override fun getHGLRC(): Long = GLFWNativeWGL.glfwGetWGLContext(windowHandle)
+
+	override fun getPrimaryMonitor(): GLFWMonitor = GLFWMonitor.primary
+	override fun getAllMonitors(): List<GLFWMonitor> = GLFWMonitor.getAllMonitors()
+
+	override fun createVulkanSurface(instance: VkInstance, buffer: LongBuffer): Int {
+		return GLFWVulkan.glfwCreateWindowSurface(instance, windowHandle, null, buffer)
+	}
+
 	companion object {
 		val defaultHints = mapOf(
 			GLFW.GLFW_VISIBLE to 0, // the window will stay hidden after creation
 			GLFW.GLFW_RESIZABLE to 1, // the window will be resizable
 			GLFW.GLFW_SAMPLES to 4
 		)
-
-		fun getSize(handle: Long): Vec2i {
-			val widths = IntArray(1)
-			val heights = IntArray(1)
-			GLFW.glfwGetWindowSize(handle, widths, heights)
-
-			return Vec2i(widths[0], heights[0])
-		}
 	}
 }

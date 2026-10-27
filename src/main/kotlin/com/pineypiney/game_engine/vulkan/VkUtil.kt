@@ -14,13 +14,12 @@ import com.pineypiney.game_engine.resources.textures.vulkan.VulkanSwapchainImage
 import com.pineypiney.game_engine.util.LwjglUtil.enumerate
 import com.pineypiney.game_engine.util.LwjglUtil.enumerateStructs
 import com.pineypiney.game_engine.util.extension_functions.stringsToPointer
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import kool.map
 import kool.mapIndexed
 import org.lwjgl.PointerBuffer
-import org.lwjgl.glfw.GLFWVulkan
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.Struct
@@ -156,11 +155,10 @@ object VkUtil {
 		}
 	}
 
-	fun createSurface(instance: VkInstance, window: WindowI): VulkanSurface {
+	fun createSurface(instance: VkInstance, window: Window): VulkanSurface {
 		MemoryStack.stackPush().use { stack ->
 			val buffer = stack.mallocLong(1)
-			processResult(GLFWVulkan.glfwCreateWindowSurface(instance, window.windowHandle, null, buffer), "Failed to create Surface")
-
+			processResult(window.createVulkanSurface(instance, buffer), "Failed to create Surface")
 			return VulkanSurface(instance, buffer[0])
 		}
 	}

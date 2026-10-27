@@ -6,7 +6,7 @@ import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
 import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.raycasting.Ray
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 
@@ -79,7 +79,7 @@ abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorCompon
 		entryContainer.deleteAllChildren()
 	}
 
-	override fun onScroll(window: WindowI, scrollDelta: Vec2): Int {
+	override fun onScroll(window: Window, scrollDelta: Vec2): Int {
 		if (hover) scroll += (scrollDelta.y * -0.05f)
 		for (i in items) {
 			val entry = i.getComponent<InteractorComponent>() ?: continue
@@ -88,7 +88,7 @@ abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorCompon
 		return if(hover) -1 else 0
 	}
 
-	fun onDragBar(window: WindowI, cursorDelta: Float, ray: Ray) {
+	fun onDragBar(window: Window, cursorDelta: Float, ray: Ray) {
 		// If the scroller item is taller, then the same scroll value should move the bar by a smaller amount
 		// (Remember that scroll is proportional, a value between 0 and (1-ratio))
 		scroll -= (cursorDelta / (parent.transformComponent.worldScale.y))

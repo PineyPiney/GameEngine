@@ -8,14 +8,14 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec4.Vec4
 
 class CheckBoxComponent(parent: GameObject, val action: (Boolean) -> Unit) : DefaultInteractorComponent(parent) {
 
 	var ticked = false
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		if (action == 1) toggle()
 		return super.onPrimary(window, action, mods, cursorPos)
 	}

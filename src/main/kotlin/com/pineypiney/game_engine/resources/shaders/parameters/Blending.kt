@@ -1,6 +1,6 @@
 package com.pineypiney.game_engine.resources.shaders.parameters
 
-import com.pineypiney.game_engine.util.ApiEnum
+import com.pineypiney.game_engine.util.GraphicsEnum
 import com.pineypiney.game_engine.util.serialisation.Codec
 import com.pineypiney.game_engine.util.serialisation.SerialOps
 import java.io.InputStream
@@ -32,13 +32,13 @@ data class Blending(
 
 	}
 
-	sealed class ColourAndAlpha<E : ApiEnum> {
+	sealed class ColourAndAlpha<E : GraphicsEnum> {
 
 		abstract fun colour(): E
 		abstract fun alpha(): E
 
 		companion object {
-			fun <A : ApiEnum> codec(enumCodec: Codec<A>) = object : Codec<ColourAndAlpha<A>> {
+			fun <A : GraphicsEnum> codec(enumCodec: Codec<A>) = object : Codec<ColourAndAlpha<A>> {
 				override fun <E> encode(ops: SerialOps<E>, value: ColourAndAlpha<A>): E {
 					return when (value) {
 						is Separate<A> -> {
@@ -95,13 +95,13 @@ data class Blending(
 		}
 	}
 
-	data class Separate<E : ApiEnum>(val rgb: E, val a: E) : ColourAndAlpha<E>() {
+	data class Separate<E : GraphicsEnum>(val rgb: E, val a: E) : ColourAndAlpha<E>() {
 
 		override fun colour(): E = rgb
 		override fun alpha(): E = a
 	}
 
-	data class Same<E : ApiEnum>(val value: E) : ColourAndAlpha<E>() {
+	data class Same<E : GraphicsEnum>(val value: E) : ColourAndAlpha<E>() {
 
 		override fun colour(): E = value
 		override fun alpha(): E = value

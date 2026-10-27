@@ -4,12 +4,12 @@ import com.pineypiney.game_engine.GameEngine
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.xr.actions.OpenXrActionSet
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.openxr.XR10
 
-abstract class OpenXrGameEngine<E: OpenXrGameLogicI>(val window: WindowI, val xrGraphicsApi: XrGraphicsApi) : GameEngine<E>() {
+abstract class OpenXrGameEngine<E: OpenXrGameLogicI>(val window: Window, val xrGraphicsApi: XrGraphicsApi) : GameEngine<E>() {
 
 	final override lateinit var resourcesLoader: ResourcesLoader private set
 

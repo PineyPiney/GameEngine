@@ -12,11 +12,11 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.textures.parameters.TextureUsage
 import com.pineypiney.game_engine.util.Colour
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 
 open class EditorRenderer(
-	window: WindowI,
+	window: Window,
 	val settings: EditorSettings,
 	val sort: GameObject.() -> Float,
 	val depth: Boolean,
@@ -88,7 +88,7 @@ open class EditorRenderer(
 		api.present()
 	}
 
-	override fun updateAspectRatio(window: WindowI, objects: ObjectCollection) {
+	override fun updateAspectRatio(window: Window, objects: ObjectCollection) {
 		val sceneBox = EditorScreen.getSceneBox(settings, window)
 		camera.updateAspectRatio(sceneBox.aspectRatio)
 

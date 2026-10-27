@@ -11,11 +11,11 @@ import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.fromHex
 import com.pineypiney.game_engine.util.input.ControlType
 import com.pineypiney.game_engine.util.input.InputState
-import com.pineypiney.game_engine.util.input.gamepads.GamePad
+import com.pineypiney.game_engine.util.input.gamepads.Gamepad
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.util.text.Text
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
@@ -32,9 +32,9 @@ class ButtonComponent(
 
 	var active: Boolean = true
 
-	override fun onInput(window: WindowI, state: InputState, action: Int, cursorPos: CursorPosition): Int {
+	override fun onInput(window: Window, state: InputState, action: Int, cursorPos: CursorPosition): Int {
 		if (super.onInput(window, state, action, cursorPos) == INTERRUPT) return INTERRUPT
-		if (state == InputState(GamePad.BUTTON_A, ControlType.GAMEPAD_BUTTON) && active) {
+		if (state == InputState(Gamepad.BUTTON_A, ControlType.GAMEPAD_BUTTON) && active) {
 			when (action) {
 				GLFW.GLFW_PRESS -> onClick(this, cursorPos.position)
 				GLFW.GLFW_RELEASE -> onUnClick(this, cursorPos.position)
@@ -44,7 +44,7 @@ class ButtonComponent(
 		return action
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 		if (active) {
 			when (action) {
@@ -56,11 +56,11 @@ class ButtonComponent(
 		return action
 	}
 
-	override fun onCursorEnter(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onCursorEnter(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		onEnter(this, cursorPos, cursorDelta)
 	}
 
-	override fun onCursorExit(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onCursorExit(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		onExit(this, cursorPos, cursorDelta)
 	}
 

@@ -7,18 +7,18 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.raycasting.Ray
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec4.Vec4
 
 class ScrollBarComponent(parent: GameObject) : DefaultInteractorComponent(parent) {
 
-	override fun onDrag(window: WindowI, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
+	override fun onDrag(window: Window, cursorPos: CursorPosition, cursorDelta: CursorPosition, ray: Ray) {
 		super.onDrag(window, cursorPos, cursorDelta, ray)
 		forceUpdate = true
 		parent.parent!!.getComponent<ScrollListComponent>()?.onDragBar(window, cursorDelta.position.y, ray)
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		val p = super.onPrimary(window, action, mods, cursorPos)
 
 		if (!pressed) forceUpdate = false

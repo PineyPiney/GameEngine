@@ -1,10 +1,10 @@
 package com.pineypiney.game_engine.resources.shaders.parameters
 
-import com.pineypiney.game_engine.util.ApiEnum
+import com.pineypiney.game_engine.util.GraphicsEnum
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.vulkan.VK10
 
-enum class BlendFactor(override val opengl: Int, override val vulkan: Int) : ApiEnum {
+enum class BlendFactor(override val opengl: Int, override val vulkan: Int) : GraphicsEnum {
 	ZERO(GL11C.GL_ZERO, VK10.VK_BLEND_FACTOR_ZERO),
 	ONE(GL11C.GL_ONE, VK10.VK_BLEND_FACTOR_ONE),
 	SRC_COLOR(GL11C.GL_SRC_COLOR, VK10.VK_BLEND_FACTOR_SRC_COLOR),

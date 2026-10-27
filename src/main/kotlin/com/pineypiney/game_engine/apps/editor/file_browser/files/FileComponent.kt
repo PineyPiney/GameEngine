@@ -14,7 +14,7 @@ import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import kool.toBuffer
@@ -34,7 +34,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 		parent.components.add(SpriteComponent(parent, getIcon(Vec2(.5f, .25f)), SpriteComponent.menuShader))
 	}
 
-	override fun onPrimary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onPrimary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onPrimary(window, action, mods, cursorPos)
 
 		when(action){
@@ -53,7 +53,7 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 		return action
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
+	override fun onSecondary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {
 		super.onSecondary(window, action, mods, cursorPos)
 		if(action == 1) {
 			browser.screen.setContextMenu(FileContext(browser, this), fileContextMenu, cursorPos.position)

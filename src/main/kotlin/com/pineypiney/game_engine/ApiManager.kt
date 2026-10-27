@@ -4,20 +4,20 @@ import com.pineypiney.game_engine.objects.Initialisable
 import com.pineypiney.game_engine.rendering.PresentingApi
 import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.resources.ResourceFactory
-import com.pineypiney.game_engine.util.ApiEnum
-import com.pineypiney.game_engine.window.WindowI
+import com.pineypiney.game_engine.util.GraphicsEnum
+import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 
 interface ApiManager : Initialisable {
 
-	val getEnum: (ApiEnum) -> Int
+	val getEnum: (GraphicsEnum) -> Int
 	fun invertY(): Boolean
 	fun minDepth(): Float
 
 	fun createResourceFactory(): ResourceFactory
 	fun createRenderingApi(name: String): RenderingApi
-	fun createPresentingApi(window: WindowI, name: String): PresentingApi
+	fun createPresentingApi(window: Window, name: String): PresentingApi
 	fun waitIdle()
 
 	fun getMaxTextureSide1D(): Int

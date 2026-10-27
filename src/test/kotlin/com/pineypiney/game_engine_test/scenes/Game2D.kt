@@ -27,7 +27,6 @@ import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.parameters.CullMode
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.textures.Texture2D
-import com.pineypiney.game_engine.util.Cursor
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.angle
 import com.pineypiney.game_engine.util.extension_functions.delete
@@ -40,8 +39,9 @@ import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.maths.shapes.Rect2D
 import com.pineypiney.game_engine.util.text.Text
+import com.pineypiney.game_engine.window.SystemCursor
+import com.pineypiney.game_engine.window.Window
 import com.pineypiney.game_engine.window.WindowGameLogic
-import com.pineypiney.game_engine.window.WindowI
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.f
 import glm_.vec2.Vec2
@@ -49,7 +49,7 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec3.swizzle.xy
 import glm_.vec4.Vec4
-import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.openal.AL10
 import kotlin.math.PI
 import kotlin.math.sign
@@ -60,8 +60,8 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameL
 	override val renderer: GameRenderer<Game2D> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(window, id) }
 	val camera get() = renderer.camera
 
-	val standardCursors = intArrayOf(GLFW_RESIZE_EW_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_ALL_CURSOR, GLFW_NOT_ALLOWED_CURSOR).map { Cursor(it) }
-	val customCursor = Cursor.create(gameEngine, "textures/cursor.png", Vec2i(40, 2)) ?: standardCursors.first()
+	val standardCursors = arrayOf(SystemCursor.RESIZE_EW, SystemCursor.RESIZE_NESW, SystemCursor.RESIZE_ALL, SystemCursor.NOT_ALLOWED).map(window::createSystemCursor)
+	val customCursor = window.createCursor("textures/cursor.png", Vec2i(40, 2)) ?: standardCursors.first()
 
 	private val audio get() = AudioLoader[(ResourceKey("clair_de_lune_test"))]
 
@@ -192,7 +192,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameL
 		model2 translate Vec3(3, -4, 0f)
 		snake translate Vec3(-2, -5, 0f)
 
-		input.getInput<GamepadInput>().setDefaultController(movement::gamepadID) {
+		input.getInputOrNull<GamepadInput>()?.setDefaultController(movement::gamepadID) {
 			movement.gamepadID = it?.id ?: -1
 		}
 	}
@@ -242,7 +242,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameL
 			else when(state.c){
 				'F' -> toggleFullscreen()
 				'C' -> input.getInput<MouseInput>().setCursorAt(Vec2(0.75))
-				'Z' -> window.size = Vec2i(window.videoMode.width(), window.videoMode.height())
+				'Z' -> window.size = Vec2i(window.videoMode.width, window.videoMode.height)
 				' ' -> renderer.framebuffer.colour.savePNG("debug")
 			}
 		}
@@ -250,7 +250,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameL
 		return action
 	}
 
-	override fun onSecondary(window: WindowI, action: Int, mods: Byte) {
+	override fun onSecondary(window: Window, action: Int, mods: Byte) {
 		super.onSecondary(window, action, mods)
 		if(action == 1) cursorSquare.rotate(Vec3(0f, 0f, PI.f / 16f))
 	}

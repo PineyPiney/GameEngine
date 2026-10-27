@@ -7,7 +7,6 @@ import com.pineypiney.game_engine.objects.components.TransformComponent
 import com.pineypiney.game_engine.objects.components.UpdatingAspectRatioComponent
 import com.pineypiney.game_engine.rendering.WindowRendererI
 import com.pineypiney.game_engine.util.input.ControlType
-import com.pineypiney.game_engine.util.input.GLFWInputs
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.input.knm.MouseInput
@@ -21,7 +20,7 @@ abstract class WindowGameLogic : GameLogic() {
 
 	abstract override val gameEngine: WindowedGameEngineI<*>
 	open val window get() = gameEngine.window
-	open val input get() = gameEngine.window.input as GLFWInputs
+	open val input get() = gameEngine.window.input
 	abstract override val renderer: WindowRendererI<*>
 
 	override fun open() {
@@ -32,7 +31,8 @@ abstract class WindowGameLogic : GameLogic() {
 	}
 
 	open fun onCursorMove(cursorPos: CursorPosition, cursorDelta: CursorPosition) {
-		val ray = renderer.camera.getRay(input.getInput<MouseInput>().lastPos.screenSpace)
+		val mouse = input.getInputOrNull<MouseInput>() ?: return
+		val ray = renderer.camera.getRay(mouse.lastPos.screenSpace)
 		checkHovers(gameObjects.getAllInteractables(), ray, cursorPos, cursorDelta)
 	}
 
@@ -155,16 +155,11 @@ abstract class WindowGameLogic : GameLogic() {
 		return 0
 	}
 
-	open fun onPrimary(window: WindowI, action: Int, mods: Byte) {}
-	open fun onSecondary(window: WindowI, action: Int, mods: Byte) {}
-
-	open fun setFullscreen(monitor: GLFWMonitor?) {
-		window.monitor = monitor
-		updateAspectRatio()
-	}
+	open fun onPrimary(window: Window, action: Int, mods: Byte) {}
+	open fun onSecondary(window: Window, action: Int, mods: Byte) {}
 
 	open fun toggleFullscreen() {
-		setFullscreen(if (window.fullScreen) null else GLFWMonitor.primary)
+		window.setFullScreen(!window.fullScreen)
 	}
 
 	open fun updateAspectRatio() {

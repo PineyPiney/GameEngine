@@ -1,10 +1,10 @@
 package com.pineypiney.game_engine.resources.shaders.parameters
 
-import com.pineypiney.game_engine.util.ApiEnum
+import com.pineypiney.game_engine.util.GraphicsEnum
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.vulkan.VK10
 
-enum class CompareOp(override val opengl: Int, override val vulkan: Int) : ApiEnum {
+enum class CompareOp(override val opengl: Int, override val vulkan: Int) : GraphicsEnum {
 	NEVER(GL11C.GL_NEVER, VK10.VK_COMPARE_OP_NEVER),
 	LESS(GL11C.GL_LESS, VK10.VK_COMPARE_OP_LESS),
 	EQUAL(GL11C.GL_EQUAL, VK10.VK_COMPARE_OP_EQUAL),
