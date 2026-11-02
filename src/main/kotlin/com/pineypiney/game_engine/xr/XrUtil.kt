@@ -203,13 +203,13 @@ object XrUtil {
 	}
 
 	fun getViewConfigurations(stack: MemoryStack, instance: XrInstance, systemId: Long): List<Int> {
-		val result = enumerate(stack, "View Configurations", instance, systemId, MemoryStack::mallocInt, XR10::xrEnumerateViewConfigurations) ?: return emptyList()
+		val result = enumerate(stack, "View Configurations", ::translateOpenXrResult, instance, systemId, MemoryStack::mallocInt, XR10::xrEnumerateViewConfigurations) ?: return emptyList()
 
 		return result.map{ it }
 	}
 
 	fun getViewConfigurationViews(stack: MemoryStack, instance: XrInstance, systemId: Long, viewConfiguration: Int): List<XrViewConfigurationView> {
-		val result = enumerateStructs(stack, "View Configuration Views", XrViewConfigurationView::`type$Default`, XrViewConfigurationView::calloc){ b, res ->
+		val result = enumerateStructs(stack, "View Configuration Views", ::translateOpenXrResult, XrViewConfigurationView::`type$Default`, XrViewConfigurationView::calloc){ b, res ->
 			XR10.xrEnumerateViewConfigurationViews(instance, systemId, viewConfiguration, b, res)
 		} ?: return emptyList()
 
@@ -217,26 +217,26 @@ object XrUtil {
 	}
 
 	fun getBlendModes(stack: MemoryStack, instance: XrInstance, systemId: Long, viewType: Int): List<Int> {
-		val result = enumerate(stack, "Blend Modes", instance, systemId, MemoryStack::mallocInt){ ins, sys, b, res ->
+		val result = enumerate(stack, "Blend Modes", ::translateOpenXrResult, instance, systemId, MemoryStack::mallocInt){ ins, sys, b, res ->
 			XR10.xrEnumerateEnvironmentBlendModes(ins, sys, viewType, b, res)
 		} ?: return emptyList()
 		return result.map{ it }
 	}
 
 	fun getSwapchainFormats(stack: MemoryStack, session: XrSession): List<Long> {
-		val result = enumerate(stack, "Swapchain Formats", session, MemoryStack::mallocLong, XR10::xrEnumerateSwapchainFormats) ?: return emptyList()
+		val result = enumerate(stack, "Swapchain Formats", ::translateOpenXrResult, session, MemoryStack::mallocLong, XR10::xrEnumerateSwapchainFormats) ?: return emptyList()
 		return result.map{ it }
 	}
 
 	fun getOpenGlSwapchainImages(stack: MemoryStack, swapchain: XrSwapchain): List<XrSwapchainImageOpenGLKHR> {
-		val result = enumerateStructs(stack, "Swapchain Images", XrSwapchainImageOpenGLKHR::`type$Default`, XrSwapchainImageOpenGLKHR::calloc){ b, res ->
+		val result = enumerateStructs(stack, "Swapchain Images", ::translateOpenXrResult, XrSwapchainImageOpenGLKHR::`type$Default`, XrSwapchainImageOpenGLKHR::calloc){ b, res ->
 			XR10.xrEnumerateSwapchainImages(swapchain, b, res?.let(XrSwapchainImageBaseHeader::create))
 		} ?: return emptyList()
 		return result.map{ it }
 	}
 
 	fun getVulkanSwapchainImages(stack: MemoryStack, swapchain: XrSwapchain): List<XrSwapchainImageVulkanKHR> {
-		val result = enumerateStructs(stack, "Swapchain Images", XrSwapchainImageVulkanKHR::`type$Default`, XrSwapchainImageVulkanKHR::calloc){ b, res ->
+		val result = enumerateStructs(stack, "Swapchain Images", ::translateOpenXrResult, XrSwapchainImageVulkanKHR::`type$Default`, XrSwapchainImageVulkanKHR::calloc){ b, res ->
 			XR10.xrEnumerateSwapchainImages(swapchain, b, res?.let(XrSwapchainImageBaseHeader::create))
 		} ?: return emptyList()
 		return result.map{ it }
@@ -400,7 +400,7 @@ object XrUtil {
 	}
 
 	fun readPath(stack: MemoryStack, instance: XrInstance, path: Long): String {
-		val bytes = enumerate(stack, "XrPath", instance, path, MemoryStack::malloc, XR10::xrPathToString) ?: return "Empty Path"
+		val bytes = enumerate(stack, "XrPath", ::translateOpenXrResult, instance, path, MemoryStack::malloc, XR10::xrPathToString) ?: return "Empty Path"
 		return MemoryUtil.memUTF8(bytes, bytes.remaining() - 1)
 	}
 

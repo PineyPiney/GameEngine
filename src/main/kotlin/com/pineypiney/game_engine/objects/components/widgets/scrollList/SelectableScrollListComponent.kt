@@ -1,7 +1,7 @@
 package com.pineypiney.game_engine.objects.components.widgets.scrollList
 
 import com.pineypiney.game_engine.objects.GameObject
-import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
+import com.pineypiney.game_engine.objects.components.rendering.ChildScissorRenderer
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.addAll
@@ -25,7 +25,7 @@ abstract class SelectableScrollListComponent(parent: GameObject) : ScrollListCom
 
 		fun createSelectableScrollList(name: String, options: Array<String>, entryHeight: Float = 1f, scrollerWidth: Float = 0.05f, action: (String) -> Unit): GameObject {
 			val item = GameObject(name, 1)
-			item.components.add(ChildContainingRenderer(item, Mesh.cornerSquareShape))
+			item.components.add(ChildScissorRenderer(item))
 			item.components.add(object : SelectableScrollListComponent(item){
 				override val action: (Int, SelectableScrollListEntryComponent?) -> Unit = { i, _ -> action(options[i]) }
 				override val entryHeight: Float = entryHeight

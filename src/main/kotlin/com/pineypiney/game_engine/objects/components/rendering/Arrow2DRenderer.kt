@@ -4,7 +4,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
-import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlArrayMesh
+import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.util.extension_functions.normal
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
@@ -19,17 +19,17 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 	var origin: Vec2 = origin
 		set(value) {
 			field = value
-			mesh = generateMesh()
+			regenerateMesh()
 		}
 	var point: Vec2 = point
 		set(value) {
 			field = value
-			mesh = generateMesh()
+			regenerateMesh()
 		}
 	var width: Float = width
 		set(value) {
 			field = value
-			mesh = generateMesh()
+			regenerateMesh()
 		}
 	var mesh = generateMesh()
 
@@ -51,6 +51,11 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 		mesh = generateMesh()
 	}
 
+	fun regenerateMesh(){
+		mesh.delete()
+		mesh = generateMesh()
+	}
+
 	fun generateMesh(): Mesh {
 		val length = (point - origin).length()
 		if(length == 0f) return Mesh.EmptyMesh
@@ -69,6 +74,10 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 				headBase + (perp * 2), point, headBase - (perp * 2)
 			)
 		}
-		return OpenGlArrayMesh(array.flatMap { it.array.toList() }.toFloatArray(), setOf(VertexAttribute.POSITION2D))
+		return ResourceFactory.INSTANCE.createArrayMesh("Arrow Mesh", array.flatMap { it.array.toList() }.toFloatArray(), Mesh.createAttributes(setOf(VertexAttribute.POSITION2D)))
+	}
+
+	override fun delete() {
+		mesh.delete()
 	}
 }

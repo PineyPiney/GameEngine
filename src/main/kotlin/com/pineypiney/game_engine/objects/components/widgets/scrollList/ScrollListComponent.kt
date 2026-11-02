@@ -4,6 +4,8 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.DefaultInteractorComponent
 import com.pineypiney.game_engine.objects.components.InteractorComponent
 import com.pineypiney.game_engine.objects.components.rendering.RenderedComponent
+import com.pineypiney.game_engine.util.extension_functions.isWithin
+import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.input.knm.MouseInput
 import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.window.Window
@@ -77,6 +79,14 @@ abstract class ScrollListComponent(parent: GameObject) : DefaultInteractorCompon
 
 	fun clearEntries(){
 		entryContainer.deleteAllChildren()
+	}
+
+	override fun checkHover(ray: Ray, cursor: CursorPosition): Float {
+		return if(cursor.position.isWithin(
+				Vec2(parent.transformComponent.worldPosition),
+				Vec2(parent.transformComponent.worldScale)
+			)) ray.rayOrigin.z - parent.transformComponent.worldPosition.z
+		else -1f
 	}
 
 	override fun onScroll(window: Window, scrollDelta: Vec2): Int {

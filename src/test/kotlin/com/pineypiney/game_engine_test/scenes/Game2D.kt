@@ -66,7 +66,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameL
 	private val audio get() = AudioLoader[(ResourceKey("clair_de_lune_test"))]
 
 
-	val movement = Movement2D.create("Controller", window, 10f) { v -> camera.translate(Vec3(v * Timer.frameDelta, 0f)) }
+	val movement = Movement2D.create("Controller", window, 10f)
 
 	private val b = ButtonComponent.createTextButton("Button", Vec2i(-150, -200), Vec2i(300, 100), Vec2(0f, 1f)) {
 		val device = AudioEngine.getAllOutputDevices().random()
@@ -126,7 +126,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameL
 		Text.ALIGN_CENTER_LEFT
 	)
 	private val testText = Text.makeMenuText(
-		"[ [",
+		"[ [ [ [ [",
 		Vec4(0f, 0f, 0f, 1f),
 		70,
 		Text.ALIGN_CENTER_LEFT
@@ -177,7 +177,8 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameL
 		gameText.scale = Vec3(8,9f, 1f)
 		siGameText.scale = Vec3(8f, 3f)
 
-		add(text, testText, gameText, siGameText)
+		add(text, testText)
+		add(gameText, siGameText)
 
 		add(cursorSquare)
 	}
@@ -213,6 +214,11 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameL
 	}
 
 	override fun render(tickDelta: Double) {
+		val bracketText = List((2 + Timer.frameTime % 3).toInt()){ '[' }.joinToString(" ")
+		testText.getComponent<TextRendererComponent>()?.setTextContent(bracketText)
+
+		if(!textField.forceUpdate) camera.translate(Vec3(movement.getMovement() * Timer.frameDelta, 0f))
+
 		renderer.render(this, tickDelta)
 		rotateGoblin()
 	}

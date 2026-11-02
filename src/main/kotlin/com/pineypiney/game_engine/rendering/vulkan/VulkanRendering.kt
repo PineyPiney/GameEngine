@@ -119,6 +119,15 @@ abstract class VulkanRendering : RenderingApi {
 		}
 	}
 
+	override fun clearDepth(value: Float, viewport: Viewport) {
+		MemoryStack.stackPush().use { stack ->
+			val clearValue = VkStructs.clear(stack, Vec4(0f), value)
+			val attachments = VkClearAttachment.calloc(1, stack).aspectMask(VK13.VK_IMAGE_ASPECT_DEPTH_BIT).clearValue(clearValue)
+			val rects = VkClearRect.calloc(1, stack).rect(VkStructs.rect(stack, viewport)).layerCount(1)
+			VK13.vkCmdClearAttachments(cmd.buffer, attachments, rects)
+		}
+	}
+
 	override fun clearStencil(value: Int, viewport: Viewport) {
 		MemoryStack.stackPush().use { stack ->
 			val clearValue = VkStructs.clear(stack, Vec4(0f), 0f, value)

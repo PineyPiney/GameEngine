@@ -90,7 +90,7 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 		resourcesLoader: ResourcesLoader,
 		chars: CharArray = ('!'..127.c).distinct().toCharArray(),
 		ctx: FontRenderContext = FontRenderContext(null, true, true),
-		res: Int = 200,
+		res: Float = 200f,
 		shader: RenderShader = Font.fontShader
 	) {
 		val stream: InputStream = resourcesLoader.getStream("${resourcesLoader.fontLocation}$fontName") ?: return
@@ -106,7 +106,7 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 			val offset = bounds.let { Vec2d(it.x, it.y) }
 			val size = bounds.let { Vec2i(it.width * res, it.height * res) }
 
-			// Round the texture dimensions up to the nearest multiple of 8
+			// Round the texture dimensions up to the next multiple of 8
 			// To avoid texture loading issues
 			val textureSize = Vec2i(ceil(size.x * .125f) * 8, ceil(size.y * .125f) * 8)
 
@@ -130,7 +130,7 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 		}
 
 		val name = fontName.substringBefore('.')
-		this.map[ResourceKey(name)] = PrerenderedTrueTypeFont(name, font, resourcesLoader.factory, map, ctx, shader)
+		this.map[ResourceKey(name)] = PrerenderedTrueTypeFont(name, font, resourcesLoader.factory, map, ctx, shader, res)
 	}
 
 	fun loadBeziersFromTTF(stream: InputStream) {

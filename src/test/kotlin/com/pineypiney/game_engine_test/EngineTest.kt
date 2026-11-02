@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine_test
 
 // i love you
-import com.pineypiney.game_engine.LibrarySetUp
 import com.pineypiney.game_engine.OpenGlManager
 import com.pineypiney.game_engine.Timer
 import com.pineypiney.game_engine.apps.animator.ObjectAnimator
@@ -58,7 +57,7 @@ class EngineTest{
 
 	@Test
 	fun test2D() {
-		runOpenGlEngine(::Game2D, SDLManager)
+		runVulkanEngine(::Game2D, SDLManager)
 	}
 
 	@Test
@@ -93,7 +92,7 @@ class EngineTest{
 
 	@Test
 	fun testCollision3DVisual(){
-		runOpenGlEngine(::Collision3DTest, GLFWManager, 100)
+		runVulkanEngine(::Collision3DTest, GLFWManager, 100)
 	}
 
 	@Test
@@ -178,7 +177,6 @@ class EngineTest{
 
 	@Test
 	fun testAnimator(){
-		LibrarySetUp.initGLFW()
 		ObjectAnimator.run(OpenGlManager, ::createSnake)
 	}
 

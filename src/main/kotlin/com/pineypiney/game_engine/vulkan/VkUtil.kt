@@ -97,15 +97,15 @@ object VkUtil {
 
 	@Throws(AssertionError::class)
 	fun getAvailableLayers(stack: MemoryStack): List<String> {
-		return enumerateStructs(stack, "Vulkan API Layers", VkLayerProperties::calloc, VK10::vkEnumerateInstanceLayerProperties)?.map { it.layerNameString() } ?: emptyList()
+		return enumerateStructs(stack, "Vulkan API Layers", ::translateVulkanResult, VkLayerProperties::calloc, VK10::vkEnumerateInstanceLayerProperties)?.map { it.layerNameString() } ?: emptyList()
 	}
 
 	fun getAvailableExtensions(stack: MemoryStack): List<String> {
-		return enumerateStructs(stack, "Vulkan Instance Extensions", null as ByteBuffer?, VkExtensionProperties::calloc, VK10::vkEnumerateInstanceExtensionProperties)?.map { it.extensionNameString() } ?: emptyList()
+		return enumerateStructs(stack, "Vulkan Instance Extensions", ::translateVulkanResult, null as ByteBuffer?, VkExtensionProperties::calloc, VK10::vkEnumerateInstanceExtensionProperties)?.map { it.extensionNameString() } ?: emptyList()
 	}
 
 	fun getAvailableDeviceExtensions(gpu: VkPhysicalDevice): List<String> {
-		return enumerateStructs("Vulkan Device Extensions", gpu, null as ByteBuffer?, VkExtensionProperties::calloc, VK10::vkEnumerateDeviceExtensionProperties)?.map { it.extensionNameString() } ?: emptyList()
+		return enumerateStructs("Vulkan Device Extensions", ::translateVulkanResult, gpu, null as ByteBuffer?, VkExtensionProperties::calloc, VK10::vkEnumerateDeviceExtensionProperties)?.map { it.extensionNameString() } ?: emptyList()
 	}
 
 	fun createInstance(appName: String, version: Int, layers: MutableList<String>, extensions: MutableList<String>): VkInstance {
@@ -150,7 +150,7 @@ object VkUtil {
 
 	fun getPhysicalDevices(instance: VkInstance): List<Long> {
 		MemoryStack.stackPush().use { stack ->
-			val physicalDevices = enumerate(stack, "GPUs", instance, MemoryStack::mallocPointer, VK10::vkEnumeratePhysicalDevices) ?: stack.mallocPointer(0)
+			val physicalDevices = enumerate(stack, "GPUs", ::translateVulkanResult, instance, MemoryStack::mallocPointer, VK10::vkEnumeratePhysicalDevices) ?: stack.mallocPointer(0)
 			return physicalDevices.map { it }
 		}
 	}
@@ -214,7 +214,7 @@ object VkUtil {
 			processResult(KHRSwapchain.vkCreateSwapchainKHR(device.device, swapchainCreateInfo, null, longBuffer), "Failed to create Swapchain")
 
 			oldSwapchain?.delete()
-			val swapchainImages = enumerate(stack, "Swapchain Images", device.device, longBuffer[0], MemoryStack::mallocLong, KHRSwapchain::vkGetSwapchainImagesKHR)
+			val swapchainImages = enumerate(stack, "Swapchain Images", ::translateVulkanResult, device.device, longBuffer[0], MemoryStack::mallocLong, KHRSwapchain::vkGetSwapchainImagesKHR)
 
 			val viewCreateInfo = VkImageViewCreateInfo.calloc(stack)
 				.`sType$Default`()

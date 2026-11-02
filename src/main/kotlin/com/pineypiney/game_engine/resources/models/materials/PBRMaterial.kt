@@ -14,14 +14,9 @@ class PBRMaterial(
 
 	val mask = createTextureMask()
 
-	override fun apply(shader: RenderShader, material: String, target: Int) {
+	override fun apply(shader: RenderShader, material: String) {
 
-		textures.onEachIndexed { i, (type, texture) ->
-			shader.setTexture(type, texture)
-//			shader.setInt("$material.$type", i)
-//			glActiveTexture(0x84C0 + i)
-//			if (texture is OpenGlTexture) glBindTexture(target, texture.texturePointer)
-		}
+		textures.forEach(shader::setTexture)
 
 		shader.setUInt("$material.textureMask", mask.toUInt())
 

@@ -13,10 +13,7 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KParameter
 import kotlin.reflect.KVisibility
-import kotlin.reflect.full.IllegalCallableAccessException
-import kotlin.reflect.full.hasAnnotation
-import kotlin.reflect.full.isSupertypeOf
-import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.javaType
 
 abstract class Component(final override val parent: GameObject) : ComponentI {
@@ -135,7 +132,7 @@ abstract class Component(final override val parent: GameObject) : ComponentI {
 	}
 
 	override fun toString(): String {
-		return "Component[${this::class.simpleName}]"
+		return "Component[${this::class.simpleName ?: this::class.superclasses.first().simpleName}]"
 	}
 
 	override fun <E> encode(ops: SerialOps<E>): E {

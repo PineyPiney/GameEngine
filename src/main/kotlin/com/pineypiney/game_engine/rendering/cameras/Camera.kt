@@ -1,6 +1,8 @@
 package com.pineypiney.game_engine.rendering.cameras
 
 import com.pineypiney.game_engine.util.extension_functions.coerceIn
+import glm_.detail.GLM_DEPTH_CLIP_SPACE
+import glm_.detail.GlmDepthClipSpace
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -21,7 +23,7 @@ abstract class Camera(
 	override var cameraMinPos = Vec3(-Float.MAX_VALUE)
 	override var cameraMaxPos = Vec3(Float.MAX_VALUE)
 
-	override var range = Vec2(0.1f, 1000f)
+	override var range = Vec2(1000f, 0.1f)
 
 	init {
 		this.setPos(pos)
@@ -41,6 +43,14 @@ abstract class Camera(
 
 	override fun getView(mat: Mat4): Mat4 {
 		return glm.lookAt(cameraPos, cameraPos.plus(cameraFront), cameraUp, mat)
+	}
+
+	override fun getMaxDepth(): Float {
+		return if(range.y > range.x) 1f
+		else when(GLM_DEPTH_CLIP_SPACE){
+			GlmDepthClipSpace.ZERO_TO_ONE -> 0f
+			GlmDepthClipSpace.NEGATIVE_ONE_TO_ONE -> -1f
+		}
 	}
 
 	override fun delete() {

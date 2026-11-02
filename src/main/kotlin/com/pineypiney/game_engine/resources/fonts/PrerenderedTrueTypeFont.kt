@@ -15,10 +15,12 @@ import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 import glm_.vec4.swizzle.xy
 import glm_.vec4.swizzle.zw
+import org.lwjgl.BufferUtils
 import org.lwjgl.vulkan.VK10
 import java.awt.Shape
 import java.awt.font.FontRenderContext
 import java.awt.geom.Rectangle2D
+import kotlin.math.ceil
 import java.awt.Font as JavaFont
 
 class PrerenderedTrueTypeFont(
@@ -27,11 +29,11 @@ class PrerenderedTrueTypeFont(
 	val factory: ResourceFactory,
 	val textures: Map<Char, Texture2D>,
 	val ctx: FontRenderContext = FontRenderContext(null, true, true),
-	override val shader: RenderShader = fontShader
+	override val shader: RenderShader = fontShader,
+	val res: Float = 200f
 ) : Font() {
 
 	override var lineSpacing: Float = 1f
-	val res = 200
 	val missing = textures[127.c] ?: Texture2D.missing
 
 	// This is the width of a space character
@@ -62,7 +64,7 @@ class PrerenderedTrueTypeFont(
 	}
 
 	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextData {
-		if (text.isEmpty()) return TextData(null)
+		if (text.isEmpty()) return TextData()
 
 		val list = mutableListOf<TextData.CharacterQuad>()
 		val glyph = font.createGlyphVector(ctx, text)
@@ -82,7 +84,7 @@ class PrerenderedTrueTypeFont(
 			list.add(createChar(bounds, Vec2(alignX[line] + xOffset, alignY - line.toFloat()), dimensions[text[i]] ?: continue))
 		}
 
-		return TextData(ResourceFactory.INSTANCE, text, list.toTypedArray(), texture, true)
+		return TextData(ResourceFactory.INSTANCE, text, list.toTypedArray(), texture, alignX, alignY).apply { deletionQueue.push(texture) }
 	}
 
 	fun getOutline(string: String): Shape {
@@ -96,11 +98,13 @@ class PrerenderedTrueTypeFont(
 		if (chars.isEmpty()) return Texture2D.none to emptyMap()
 
 		val textures = chars.associateWith { getTexture(it) }
-		val width = textures.values.sumOf { it.width }
+		val width = textures.values.sumOf { it.width } + ceil((chars.size - 1) * .125f).toInt() * 8
 		val height = textures.maxOf { it.value.height }
 		val invWidth = 1f / width
 		val invHeight = 1f / height
 		val texture = factory.createTexture2D("$name Font Text", width, height, TextureFormat.R8, TextureFormat.R8, null, TextureParameters(layout = VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
+		texture.setData(BufferUtils.createByteBuffer(width * height))
+
 		var x = 0
 		val dimensions = mutableMapOf<Char, Vec4>()
 
@@ -112,19 +116,15 @@ class PrerenderedTrueTypeFont(
 		for((c, t) in textures){
 			if(t.width == 0 || t.height == 0) continue
 			try {
-				copier.copyOntoDst(t, Vec2i(x, 0), Vec2i(x, 0) + t.size)
-
-//				texture.setSubData(t.getData(), x, 0, t.width, t.height, t.format)
+				copier.copyOntoDst(t, Vec2i(x, 0), Vec2i(x + t.width, t.height))
 			}
 			catch (e: Exception){
 				GameEngineI.logger.error("Couldn't get texture data for TrueTypeFont $name, character $c")
 				e.printStackTrace()
 			}
 
-			val glyph = font.createGlyphVector(ctx, c.toString())
-			val charBounds = glyph.outline.bounds2D
-			dimensions[c] = Vec4(x * invWidth, 0f, (x + charBounds.width.toFloat() * 200f) * invWidth, charBounds.height.toFloat() * 200f * invHeight)
-			x += t.width
+			dimensions[c] = Vec4(x * invWidth, 0f, (x + t.width) * invWidth, t.height * invHeight)
+			x += t.width + 1
 		}
 		copier.execute()
 		copier.delete()

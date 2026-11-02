@@ -14,6 +14,7 @@ import com.pineypiney.game_engine.resources.textures.parameters.TextureUsage
 import com.pineypiney.game_engine.util.Colour
 import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2
+import glm_.vec4.Vec4
 
 open class EditorRenderer(
 	window: Window,
@@ -55,7 +56,7 @@ open class EditorRenderer(
 		aspectRatio = sceneBox.aspectRatio
 		api.updateGui(guiProjection, aspectRatio)
 
-		api.bindFramebuffer(sceneFramebuffer, backgroundColour.rgbaVec)
+		api.bindFramebuffer(sceneFramebuffer, backgroundColour.rgbaVec, camera.getMaxDepth())
 
 		// Render Scene
 
@@ -73,7 +74,7 @@ open class EditorRenderer(
 		aspectRatio = window.aspectRatio
 		api.updateGui(guiProjection, aspectRatio)
 
-		api.bindFramebuffer(framebuffer)
+		api.bindFramebuffer(framebuffer, Vec4(), camera.getMaxDepth())
 
 		// Render GUI
 		screenShader.setUp(screenUniforms, this)

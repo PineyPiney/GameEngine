@@ -98,7 +98,7 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 	fun getMaxPushConstantsSize() = getLimits().maxPushConstantsSize()
 
 	fun getSurfaceFormats(stack: MemoryStack, surface: VulkanSurface): VkSurfaceFormatKHR.Buffer {
-		return LwjglUtil.enumerateStructs(stack, "Physical Device Surface Formats", physicalDevice, surface.handle, VkSurfaceFormatKHR::calloc, KHRSurface::vkGetPhysicalDeviceSurfaceFormatsKHR) ?: VkSurfaceFormatKHR.calloc(0, stack)
+		return LwjglUtil.enumerateStructs(stack, "Physical Device Surface Formats", VkUtil::translateVulkanResult, physicalDevice, surface.handle, VkSurfaceFormatKHR::calloc, KHRSurface::vkGetPhysicalDeviceSurfaceFormatsKHR) ?: VkSurfaceFormatKHR.calloc(0, stack)
 	}
 
 	fun getSurfaceColour(surface: VulkanSurface): Pair<Int, Int> {

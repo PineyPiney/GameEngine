@@ -172,7 +172,7 @@ class OpenXrTest(override val gameEngine: TestOpenXrEngine) : GameLogic(), OpenX
 		if(FBRenderModel.XR_FB_RENDER_MODEL_EXTENSION_NAME in OpenXrManager.enabledExtensions){
 			thread {
 				MemoryStack.stackPush().use { stack ->
-					val paths = LwjglUtil.enumerateStructs(stack, "FB Render Model Paths", gameEngine.openxr.session.session, XrRenderModelPathInfoFB::`type$Default`, XrRenderModelPathInfoFB::calloc, FBRenderModel::xrEnumerateRenderModelPathsFB) ?: return@use
+					val paths = LwjglUtil.enumerateStructs(stack, "FB Render Model Paths", XrUtil::translateOpenXrResult, gameEngine.openxr.session.session, XrRenderModelPathInfoFB::`type$Default`, XrRenderModelPathInfoFB::calloc, FBRenderModel::xrEnumerateRenderModelPathsFB) ?: return@use
 					val properties = XrRenderModelPropertiesFB.calloc(stack).`type$Default`()
 					val loadInfo = XrRenderModelLoadInfoFB.calloc(stack).`type$Default`()
 					val modelBuffer = XrRenderModelBufferFB.calloc(stack).`type$Default`()

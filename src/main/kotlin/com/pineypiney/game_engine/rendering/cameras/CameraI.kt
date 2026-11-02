@@ -32,6 +32,7 @@ interface CameraI : Initialisable {
 	fun getView(mat: Mat4 = Mat4()): Mat4
 	fun getProjection(mat: Mat4 = Mat4()): Mat4
 	fun getRay(point: Vec2): Ray
+	fun getMaxDepth(): Float
 
 	fun updateAspectRatio(aspectRatio: Float)
 

@@ -96,7 +96,8 @@ abstract class WindowGameLogic : GameLogic() {
 	}
 
 	open fun onScroll(scrollDelta: Vec2): Int {
-		for (component in gameObjects.getAllInteractables()) {
+		val interactables = gameObjects.getAllInteractables()
+		for (component in interactables) {
 			if (component.shouldInteract()) {
 				if (component.onScroll(
 						window,

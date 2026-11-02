@@ -23,7 +23,7 @@ class PhongMaterial(
 	val specular get() = textures[TextureType.SPECULAR] ?: Texture2D.missing
 	val normals get() = textures[TextureType.NORMAL] ?: Texture2D.missing
 
-	override fun apply(shader: RenderShader, material: String, target: Int) {
+	override fun apply(shader: RenderShader, material: String) {
 		for ((type, texture) in textures) {
 			shader.setInt(type.name.lowercase() + "Texture", type.ordinal)
 			shader.setTexture(type.ordinal, texture)

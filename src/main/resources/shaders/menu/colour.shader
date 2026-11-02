@@ -1,4 +1,7 @@
 {
 	"v": "vertex/menu",
-	"f": "fragment/colour"
+	"f": "fragment/colour",
+	"params": {
+		"depthTest": null
+	}
 }

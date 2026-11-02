@@ -19,6 +19,7 @@ import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
+import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
@@ -70,11 +71,10 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic(
 		.apply { rotation = Quat(Vec3(0.4, PI / 4, 1.2)) }
 
 	var blockHover = false
+	val blockMaterial = PBRMaterial("Block Material", emptyMap(), Vec4(1f), .5f, .5f)
 	private val block = GameObject.simpleRenderedGameObject("Lit Cube", ModelRendererComponent.meshPbr, mesh = Mesh.centerCubeShape) {
 		shader.setLightUniforms(parent)
-		shader.setVec4("material.baseColourFactor", Vec4(1.0))
-		shader.setFloat("material.roughnessFactor", .5f)
-		shader.setFloat("material.metallicFactor", .5f)
+		blockMaterial.apply(shader, "material")
 	}
 
 	private val doughnut = GameObject.simpleModelledGameObject("Broke Model", ModelLoader[ResourceKey("broke")], ModelRendererComponent.meshPbr)

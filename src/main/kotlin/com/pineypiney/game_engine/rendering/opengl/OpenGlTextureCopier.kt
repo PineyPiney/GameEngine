@@ -1,5 +1,6 @@
 package com.pineypiney.game_engine.rendering.opengl
 
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.TextureCopier
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.Texture3D
@@ -11,29 +12,30 @@ import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.openglMask
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL30C
 
 class OpenGlTextureCopier : TextureCopier() {
 
-	val FBO = GLFunc.genFrameBuffer()
-
 	var oldDraw: Int = 0
 	var oldRead: Int = 0
+
+	val readFBO = GLFunc.genFrameBuffer()
+	val drawFBO = GLFunc.genFrameBuffer()
 
 	override fun init() {
 		oldDraw = GLFunc.drawFramebuffer
 		oldRead = GLFunc.readFramebuffer
 		bind()
-		GL11C.glReadBuffer(GL30C.GL_COLOR_ATTACHMENT0)
-		GL11C.glDrawBuffer(GL30C.GL_COLOR_ATTACHMENT1)
 	}
 
 	override fun start() {
 		bind()
 	}
 
-	fun bind() = GL30C.glBindFramebuffer(GL30C.GL_FRAMEBUFFER, FBO)
+	fun bind() {
+		GL30C.glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, readFBO)
+		GL30C.glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, drawFBO)
+	}
 
 	override fun setSrc(src: Texture2D) {
 		if (src is OpenGlTexture2D) {
@@ -52,18 +54,25 @@ class OpenGlTextureCopier : TextureCopier() {
 	override fun setDst(dst: Texture2D) {
 		if (dst is OpenGlTexture2D) {
 			dstSize = Vec3i(dst.size, 1)
-			GL30C.glFramebufferTexture2D(GL30C.GL_DRAW_FRAMEBUFFER, GL30C.GL_COLOR_ATTACHMENT1, dst.target, dst.texturePointer, 0)
+			GL30C.glFramebufferTexture2D(GL30C.GL_DRAW_FRAMEBUFFER, GL30C.GL_COLOR_ATTACHMENT0, dst.target, dst.texturePointer, 0)
 		}
 	}
 
 	override fun setDst(dst: Texture3D, layer: Int) {
 		if (dst is OpenGlTexture3D) {
 			dstSize = dst.size
-			GL30C.glFramebufferTexture3D(GL30C.GL_DRAW_FRAMEBUFFER, GL30C.GL_COLOR_ATTACHMENT1, dst.target, dst.texturePointer, 0, layer)
+			GL30C.glFramebufferTexture3D(GL30C.GL_DRAW_FRAMEBUFFER, GL30C.GL_COLOR_ATTACHMENT0, dst.target, dst.texturePointer, 0, layer)
 		}
 	}
 
 	override fun copyTexture(srcOrigin: Vec2i, srcTR: Vec2i, dstOrigin: Vec2i, dstTR: Vec2i, mask: Collection<TextureAspect>, filter: TextureFilter) {
+		GLFunc.scissor = false
+		var status = GL30C.glCheckFramebufferStatus(GL30C.GL_READ_FRAMEBUFFER)
+		if (status != GL30C.GL_FRAMEBUFFER_COMPLETE) GameEngineI.error("OpenGL Texture Copier Read Framebuffer is incomplete, status was $status")
+
+		status = GL30C.glCheckFramebufferStatus(GL30C.GL_DRAW_FRAMEBUFFER)
+		if (status != GL30C.GL_FRAMEBUFFER_COMPLETE) GameEngineI.error("OpenGL Texture Copier Draw Framebuffer is incomplete, status was $status")
+
 		GL30C.glBlitFramebuffer(srcOrigin.x, srcOrigin.y, srcTR.x, srcTR.y, dstOrigin.x, dstOrigin.y, dstTR.x, dstTR.y, mask.openglMask(), filter.opengl)
 	}
 
@@ -74,11 +83,9 @@ class OpenGlTextureCopier : TextureCopier() {
 	override fun execute() {}
 
 	override fun delete() {
-		GL30C.glDeleteFramebuffers(FBO)
+		GL30C.glDeleteFramebuffers(readFBO)
+		GL30C.glDeleteFramebuffers(drawFBO)
 		GL30C.glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, oldDraw)
 		GL30C.glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, oldRead)
-		GL11C.glReadBuffer(GL30C.GL_COLOR_ATTACHMENT0)
-		GL11C.glDrawBuffer(GL30C.GL_COLOR_ATTACHMENT0)
-
 	}
 }

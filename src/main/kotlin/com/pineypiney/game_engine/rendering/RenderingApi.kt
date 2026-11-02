@@ -35,6 +35,7 @@ interface RenderingApi : Deletable {
 
 	fun setViewport(viewport: Viewport)
 	fun setDepthTest(compare: CompareOp?)
+	fun clearDepth(value: Float, viewport: Viewport)
 	fun clearStencil(value: Int, viewport: Viewport)
 	fun disableStencil()
 	fun setStencil(enabled: Boolean, reference: Int, mask: Int, failOp: StencilOp, passOp: StencilOp, depthFailOp: StencilOp, compare: CompareOp)

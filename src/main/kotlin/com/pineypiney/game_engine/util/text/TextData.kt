@@ -5,28 +5,44 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.textures.Texture2D
+import com.pineypiney.game_engine.util.DeletionQueue
 import glm_.vec2.Vec2
 
-class TextData(val mesh: Mesh?, val texture: Texture2D = Texture2D.missing, val deleteTexture: Boolean = false) : Deletable {
+class TextData : Deletable {
 
-	constructor(factory: ResourceFactory, text: String, chars: Array<CharacterQuad>, texture: Texture2D = Texture2D.missing, deleteTexture: Boolean = false) :
-			this(
-				factory.createIndexedMesh(
-					"Text '$text'",
-					chars.flatMap { it.getVertices() }.toFloatArray(),
-					createIndices(chars.size),
-					Mesh.createAttributes(
-						listOf(
-							VertexAttribute.POSITION2D,
-							VertexAttribute.TEX_COORD
-						)
+	val mesh: Mesh?
+	val texture: Texture2D
+	val deletionQueue = DeletionQueue()
+	val xOffsets: FloatArray
+	val yOffset: Float
+
+	constructor(){
+		mesh = null
+		texture = Texture2D.missing
+		xOffsets = FloatArray(0)
+		yOffset = 0f
+	}
+
+	constructor(factory: ResourceFactory, text: String, chars: Array<CharacterQuad>, texture: Texture2D = Texture2D.missing, xOffsets: FloatArray = FloatArray(0), yOffset: Float = 0f) {
+		mesh = factory.createIndexedMesh(
+				"Text '$text'",
+				chars.flatMap { it.getVertices() }.toFloatArray(),
+				createIndices(chars.size),
+				Mesh.createAttributes(
+					listOf(
+						VertexAttribute.POSITION2D,
+						VertexAttribute.TEX_COORD
 					)
-				), texture, deleteTexture
+				)
 			)
+		this.texture = texture
+		this.xOffsets = xOffsets
+		this.yOffset = yOffset
+		deletionQueue.pushAll(mesh)
+	}
 
 	override fun delete() {
-		mesh?.delete()
-		if (deleteTexture) texture.delete()
+		deletionQueue.flush()
 	}
 
 	companion object {

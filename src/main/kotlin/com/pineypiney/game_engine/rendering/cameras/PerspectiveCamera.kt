@@ -28,7 +28,7 @@ open class PerspectiveCamera(
 		}
 
 	// The near and far planes are swapped because Reversed-Z Projection reduces Z-fighting
-	override fun getProjection(mat: Mat4): Mat4 = glm.perspective(FOV.rad, aspectRatio, range.y, range.x, mat)
+	override fun getProjection(mat: Mat4): Mat4 = glm.perspective(FOV.rad, aspectRatio, range.x, range.y, mat)
 
 	override fun getRay(point: Vec2): Ray {
 		val worldPos = screenToWorld(point)

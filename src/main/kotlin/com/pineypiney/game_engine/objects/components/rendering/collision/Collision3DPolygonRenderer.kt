@@ -41,7 +41,7 @@ class Collision3DPolygonRenderer(parent: GameObject, val obj: GameObject, val wi
 		val defaultShader = ColourRendererComponent.shader3D.withParameters(ResourceKey("3d_polygon"), RenderShaderParameters(cullMode = CullMode.NONE))
 
 		fun createMesh(name: String, shape: Shape3D, width: Float): Mesh {
-			val builder = IndexedMeshBuilder(VertexAttribute.POSITION)
+			val builder = IndexedMeshBuilder(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEX_COORD)
 			when(shape){
 				is Triangle3D -> addPolygon(builder, shape.points, width)
 				is TriangulatedSolid -> for (triangle in shape.triangles) addPolygon(builder, triangle.points, width)

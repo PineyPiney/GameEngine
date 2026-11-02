@@ -30,7 +30,7 @@ class TestEngine<E : WindowGameLogic>(
 //		GameEngineI.defaultFont = "Simplified Hans Light"
 
 		// Create all the fonts
-		FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader, res = 200)
+		FontLoader.INSTANCE.loadFontFromTTF("SemiSlab.ttf", resourcesLoader, res = 200f)
 	}
 
 	override fun setLogic() {

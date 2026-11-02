@@ -17,6 +17,7 @@ import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParam
 import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.Collider2D
+import glm_.has
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 
@@ -32,7 +33,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 	var erp: String = "lerp"
 
 	val queue = DeletionQueue()
-	val wireframeShader = shader.withParameters(ResourceKey("$model Wireframe"), RenderShaderParameters(fillMode = PolygonMode.LINE), queue)
+	val wireframeShader = shader.withParameters(ResourceKey("$model Wireframe Pipeline"), RenderShaderParameters(fillMode = PolygonMode.LINE), queue)
 
 	@IntFieldRange(0, 7)
 	var debug = 0
@@ -49,7 +50,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		updateAnimation()
 
-		if(debug and Model.DEBUG_WIREFRAME > 0) {
+		if(debug has Model.DEBUG_WIREFRAME) {
 			wireframeShader.setUp(uniforms, renderer)
 			wireframeShader.setVec3("colour", Vec3(0f))
 			for (mesh in model.meshes) {
@@ -72,9 +73,9 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 			shader.draw("vertexBuffer", mesh, renderer)
 		}
 
-		if (debug and Model.DEBUG_BONES > 0) renderBones(renderer, parent, renderer.view, renderer.projection)
+		if (debug has Model.DEBUG_BONES) renderBones(renderer, parent, renderer.view, renderer.projection)
 		val renderer = parent.getChild(parent.name + " Collider Renderer")?.renderer
-		if(debug and Model.DEBUG_COLLIDER > 0){
+		if(debug has Model.DEBUG_COLLIDER){
 			if(renderer == null) {
 				if (model.box is Collider2D) parent.addChild(CollisionPolygonRenderer.create(parent).apply { init() })
 

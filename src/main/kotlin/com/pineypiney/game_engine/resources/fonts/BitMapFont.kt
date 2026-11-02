@@ -51,7 +51,7 @@ class BitMapFont(
 	}
 
 	override fun getShape(text: String, bold: Boolean, bounds: Vec2, alignment: Int): TextData {
-		if (text.isEmpty()) return TextData(null)
+		if (text.isEmpty()) return TextData()
 
 		val dimensions = getPixelSize(text)
 		var letterX = characterSpacing
@@ -73,7 +73,7 @@ class BitMapFont(
 			letterX += getCharWidth(char) + characterSpacing
 			quads.add(quad)
 		}
-		return TextData(ResourceFactory.INSTANCE, text, quads.toTypedArray(), if (bold) boldTexture ?: texture else texture)
+		return TextData(ResourceFactory.INSTANCE, text, quads.toTypedArray(), if (bold) boldTexture ?: texture else texture, alignX, alignY)
 	}
 
 	fun createTextVertices(char: Char, top: Float, bottom: Float, offset: Vec2): TextData.CharacterQuad {

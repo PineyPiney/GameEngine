@@ -34,7 +34,7 @@ object VulkanXr : XrGraphicsApi {
 
 	fun getApiExtensions(xrInstance: XrInstance, systemId: Long): List<String>{
 		MemoryStack.stackPush().use { stack ->
-			val buffer = LwjglUtil.enumerate(stack, "OpenXR Vulkan Extensions", xrInstance, systemId, MemoryStack::malloc, KHRVulkanEnable::xrGetVulkanInstanceExtensionsKHR) ?: return emptyList()
+			val buffer = LwjglUtil.enumerate(stack, "OpenXR Vulkan Extensions", XrUtil::translateOpenXrResult, xrInstance, systemId, MemoryStack::malloc, KHRVulkanEnable::xrGetVulkanInstanceExtensionsKHR) ?: return emptyList()
 			val string = MemoryUtil.memUTF8(buffer, buffer.remaining() - 1)
 			return string.split(" ")
 		}
@@ -42,7 +42,7 @@ object VulkanXr : XrGraphicsApi {
 
 	fun getDeviceExtensions(xrInstance: XrInstance, systemId: Long): List<String>{
 		MemoryStack.stackPush().use { stack ->
-			val buffer = LwjglUtil.enumerate(stack, "OpenXR Vulkan Device Extensions", xrInstance, systemId, MemoryStack::malloc, KHRVulkanEnable::xrGetVulkanDeviceExtensionsKHR) ?: return emptyList()
+			val buffer = LwjglUtil.enumerate(stack, "OpenXR Vulkan Device Extensions", XrUtil::translateOpenXrResult, xrInstance, systemId, MemoryStack::malloc, KHRVulkanEnable::xrGetVulkanDeviceExtensionsKHR) ?: return emptyList()
 			val string = MemoryUtil.memUTF8(buffer, buffer.remaining() - 1)
 			return string.split(" ")
 		}

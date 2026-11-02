@@ -96,6 +96,14 @@ object OpenGlRendering : RenderingApi {
 		}
 	}
 
+	override fun clearDepth(value: Float, viewport: Viewport) {
+		GLFunc.scissorBox = Vec4i(viewport.bl, viewport.size)
+		GLFunc.scissor = true
+		GLFunc.depthClear = value.toDouble()
+		GL11C.glClear(GL11C.GL_DEPTH_BUFFER_BIT)
+		GLFunc.scissor = false
+	}
+
 	override fun clearStencil(value: Int, viewport: Viewport) {
 		GLFunc.scissorBox = Vec4i(viewport.bl, viewport.size)
 		GLFunc.scissor = true
@@ -127,6 +135,7 @@ object OpenGlRendering : RenderingApi {
 	}
 
 	override fun setScissors(viewport: Viewport) {
+		GLFunc.scissor = true
 		GLFunc.scissorBox = Vec4i(viewport.bl, viewport.size)
 	}
 

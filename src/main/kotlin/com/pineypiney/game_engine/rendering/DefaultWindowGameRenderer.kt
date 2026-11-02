@@ -21,9 +21,10 @@ open class DefaultWindowGameRenderer<in G : WindowGameLogic, C : CameraI>(window
 
 		val api = getRenderingApi()
 		if (!api.beginPresentation()) return
-		api.bindFramebuffer(framebuffer, Vec4(1f, 0f, 0f, 1f))
+		api.bindFramebuffer(framebuffer, Vec4(1f, 0f, 0f, 1f), camera.getMaxDepth())
 
 		renderLayer(0, game, tickDelta)
+		api.clearDepth(camera.getMaxDepth(), getViewport())
 		renderLayer(1, game, tickDelta) { transformComponent.worldPosition.z }
 
 		api.endFramebuffer(framebuffer)

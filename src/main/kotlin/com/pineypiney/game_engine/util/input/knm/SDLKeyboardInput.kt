@@ -7,11 +7,16 @@ import com.pineypiney.game_engine.window.SDLWindow
 import com.pineypiney.game_engine.window.Window
 import glm_.has
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.sdl.SDLKeyboard
 import org.lwjgl.sdl.SDLKeycode
 import org.lwjgl.sdl.SDL_KeyboardEvent
 import org.lwjgl.sdl.SDL_TextInputEvent
 
 class SDLKeyboardInput(inputs: Inputs, window: Window) : KeyboardInput(inputs, window) {
+
+	init {
+		SDLKeyboard.SDL_StartTextInput(window.windowHandle)
+	}
 
 	fun onKey(event: SDL_KeyboardEvent){
 		val key = SDLWindow.keys[event.scancode()] ?: return
@@ -41,6 +46,6 @@ class SDLKeyboardInput(inputs: Inputs, window: Window) : KeyboardInput(inputs, w
 	}
 
 	override fun delete() {
-
+		SDLKeyboard.SDL_StopTextInput(window.windowHandle)
 	}
 }

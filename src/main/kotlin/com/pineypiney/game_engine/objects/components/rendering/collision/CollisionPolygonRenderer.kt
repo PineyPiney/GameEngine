@@ -82,7 +82,7 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, var wid
 		}
 
 		fun createMesh(name: String, points: List<Vec2>, width: Float): Mesh {
-			val builder = IndexedMeshBuilder(VertexAttribute.POSITION2D)
+			val builder = IndexedMeshBuilder(VertexAttribute.POSITION2D, VertexAttribute.TEX_COORD)
 			val numPoints = points.size
 			for (i in points.indices) {
 				val p1 = points[i]
@@ -101,16 +101,16 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, var wid
 				val m2 = v2.cross(o2)
 
 				builder.startQuad()
-					.vertex(p2 + o1 * width / m1)
-					.vertex(p2)
-					.vertex(p3)
-					.vertex(p3 + o2 * width / m2)
+					.vertex(p2 + o1 * width / m1).texture(-3f, -3f)
+					.vertex(p2).texture(-2f, -4f)
+					.vertex(p3).texture(-1f, -5f)
+					.vertex(p3 + o2 * width / m2).texture(-0f, -6f)
 			}
 			return builder.build("$name Wireframe")
 		}
 
 		fun createPointMesh(name: String, points: Iterable<Vec2>, pointWidth: Float): Mesh {
-			val builder = IndexedMeshBuilder(VertexAttribute.POSITION2D)
+			val builder = IndexedMeshBuilder(VertexAttribute.POSITION2D, VertexAttribute.TEX_COORD)
 			for (point in points) {
 				builder.startQuad()
 					.vertex(point.x - pointWidth, point.y - pointWidth)

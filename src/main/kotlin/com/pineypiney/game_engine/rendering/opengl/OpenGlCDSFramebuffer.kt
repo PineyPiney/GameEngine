@@ -55,7 +55,7 @@ open class OpenGlCDSFramebuffer(
 
 
 		val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
-		if (status != GL_FRAMEBUFFER_COMPLETE) GameEngineI.error("Framebuffer could not be completed, status was $status")
+		if (status != GL_FRAMEBUFFER_COMPLETE) GameEngineI.error("OpenGL Framebuffer could not be completed, status was $status")
 		glBindFramebuffer(GL_FRAMEBUFFER, 0)
 	}
 

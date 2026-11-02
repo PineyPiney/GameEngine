@@ -190,10 +190,6 @@ class ButtonComponent(
 			)
 			return button
 		}
-
-		fun addButton(obj: GameObject, action: ButtonAction) {
-
-		}
 	}
 }
 

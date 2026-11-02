@@ -36,14 +36,14 @@ class CaretRendererComponent(
 		// If x < 0 then the caret has moved too far left, and the text should be moved back right to put the caret back in the text field
 		if (x < 0f) {
 			textField.textBox.translate(Vec3(-x, 0f, 0f))
-			parent.position = Vec3(0f, 0f, 0f)
+			parent.position = Vec3(0f, 0f, .001f)
 		}
 		// Else if x > 1 then the caret has moved too far right, and the opposite applies
 		else if (x > 1f) {
 			textField.textBox.translate(Vec3(1f - x, 0f, 0f))
-			parent.position = Vec3(1f, 0f, 0f)
+			parent.position = Vec3(1f, 0f, .001f)
 		} else {
-			parent.position = Vec3(x, 0f, .01f)
+			parent.position = Vec3(x, 0f, .001f)
 		}
 	}
 

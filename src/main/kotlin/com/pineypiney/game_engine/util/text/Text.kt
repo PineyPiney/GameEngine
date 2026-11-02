@@ -16,14 +16,14 @@ open class Text(
 	var italic: Float = 0f,
 	var underlineThickness: Float = 0f,
 	var underlineOffset: Float = -0.2f,
-	var underlineAmount: Float = 1f,
+	var underlineAmount: Float = 0f,
 	var alignment: Int = ALIGN_CENTER_LEFT
 ) : Initialisable {
 
 	var lines = arrayOf<String>()
 	var lengths = floatArrayOf()
 
-	var data: TextData = TextData(null); private set
+	var data: TextData = TextData(); private set
 
 	override fun init() {
 
@@ -138,8 +138,9 @@ open class Text(
 	}
 
 	fun getUnderlineOf(line: Int): Float {
-		val underlineStart = lengths.copyOf(line).sum() / lengths.sum()
-		val underlineEnd = underlineStart + (lengths[line] / lengths.sum())
+		val totalLengthInv = 1f / lengths.sum()
+		val underlineStart = lengths.copyOf(line).sum() * totalLengthInv
+		val underlineEnd = underlineStart + (lengths[line] * totalLengthInv)
 		if (underlineAmount <= underlineStart) return 0f
 		if (underlineAmount >= underlineEnd) return 1f
 		return (underlineAmount - underlineStart) / (underlineEnd - underlineStart)
@@ -166,7 +167,7 @@ open class Text(
 					  var fontSize: Int = 12, var alignment: Int = ALIGN_CENTER_LEFT,
 					  var shader: RenderShader = Font.fontShader, var font: Font = Font.defaultFont,
 					  var italic: Float = 0f, var underlineThickness: Float = 0f,
-					  var underlineOffset: Float = -0.2f, var underlineAmount: Float = 1f){
+					  var underlineOffset: Float = -0.5f, var underlineAmount: Float = 1f){
 
 		fun withColour(c: Vec4) = this.apply { colour = c }
 		fun withFontSize(c: Int) = this.apply { fontSize = c }
@@ -205,7 +206,7 @@ open class Text(
 			font: Font = Font.defaultFont,
 			italic: Float = 0f,
 			underlineThickness: Float = 0f,
-			underlineOffset: Float = -0.2f,
+			underlineOffset: Float = -.1f,
 			underlineAmount: Float = 1f,
 		): GameObject {
 			val obj = GameObject("$text Text Object", 1)
@@ -243,7 +244,7 @@ open class Text(
 			font: Font = Font.defaultFont,
 			italic: Float = 0f,
 			underlineThickness: Float = 0f,
-			underlineOffset: Float = -0.2f,
+			underlineOffset: Float = -.1f,
 			underlineAmount: Float = 1f,
 		): GameObject {
 			val obj = GameObject("$text Text Object")

@@ -52,17 +52,27 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 
 		shader.setUp(uniforms, renderer)
 		shader.draw("vertexBuffer", mesh, renderer)
+
+		if(text.underlineAmount > 0f){
+			val model = uniforms["model"]!!.getValue(renderer) as Mat4
+			for(i in text.lines.indices){
+				val amount = if(text.underlineAmount == 1f) 1f else text.getUnderlineOf(i)
+				val lineModel = model.translate(text.data.xOffsets[i], text.data.yOffset - i, 0f)
+				renderUnderline(lineModel, renderer, i, amount)
+			}
+		}
 	}
 
 	fun renderUnderline(
 		model: Mat4,
 		renderer: RendererI,
-		line: String = text.text,
+		line: Int,
 		amount: Float = text.underlineAmount
 	) {
-		val shader = if (shader.hasView) ColourRendererComponent.shader3D else ColourRendererComponent.menuShader
-		val newModel = model.scale(text.font.getWidth(line) * amount, text.underlineThickness, 0f)
-			.translate(0f, text.underlineOffset, 0f)
+		val shader = if (shader.hasView) ColourRendererComponent.shader2D else ColourRendererComponent.menuShader
+		val newModel = model.translate(0f, text.underlineOffset, 0f)
+			.scale(text.lengths[line] * amount, text.underlineThickness, 0f)
+
 
 		shader.use(renderer.getRenderingApi())
 		if (shader.hasView) shader.setVP(renderer)
