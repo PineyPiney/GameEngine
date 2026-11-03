@@ -62,7 +62,7 @@ class EngineTest{
 
 	@Test
 	fun test3D(){
-		runVulkanEngine(::Game3D, SDLManager)
+		runOpenGlEngine(::Game3D, SDLManager)
 	}
 
 	@Test
@@ -112,8 +112,8 @@ class EngineTest{
 
 	@Test
 	fun testTesselationShader() {
-		//runOpenGlEngine(::TesselationShaderTest, version = Vec2i(4, 1))
-		runVulkanEngine(::TesselationShaderTest)
+		runOpenGlEngine(::TesselationShaderTest, version = Vec2i(4, 1))
+//		runVulkanEngine(::TesselationShaderTest)
 	}
 
 	@Test
@@ -141,7 +141,7 @@ class EngineTest{
 				.addFlag(WindowFlags.RESIZABLE).addFlag(WindowFlags.FOCUSED).addFlag(WindowFlags.TRANSPARENT)
 				.visible(true).decorated(true).vSync(true)
 
-			val window = windowApi.createWindow("OpenGL Window", 1920, 1080, properties)
+			val window = windowApi.createWindow("OpenGL Window", 1280, 720, properties)
 
 			window.setIcon(File("src/main/resources/textures/menu_items/slider/pointer.png").inputStream())
 			window.center()
@@ -163,7 +163,7 @@ class EngineTest{
 				.addFlag(WindowFlags.RESIZABLE).addFlag(WindowFlags.TRANSPARENT)
 				.visible(true).decorated(true).vSync(true)
 
-			val window = windowApi.createWindow("Vulkan Window", 1920, 1080, properties)
+			val window = windowApi.createWindow("Vulkan Window", 1280, 720, properties)
 
 			window.setIcon(File("src/main/resources/textures/menu_items/slider/pointer.png").inputStream())
 			window.center()

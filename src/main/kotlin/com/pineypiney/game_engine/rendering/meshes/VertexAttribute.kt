@@ -17,7 +17,7 @@ class VertexAttribute<T, P>(
 	val size: Int,
 	val type: Int,
 	val get: (ByteBuffer, Int) -> T,
-	val set: (ByteBuffer, Int, T) -> Unit,
+	val put: (ByteBuffer, Int, T) -> Unit,
 	val default: () -> T,
 	val fromParent: (P) -> T,
 	val toParent: (P, T) -> P
@@ -53,9 +53,10 @@ class VertexAttribute<T, P>(
         @Suppress("UNCHECKED_CAST")
         @Throws(ClassCastException::class)
 		constructor(id: VertexAttribute<T, P>, array: Array<Any>, index: Int) : this(id, array[index] as T)
+
 		operator fun component1() = id
 		operator fun component2() = value
-		fun set(buffer: ByteBuffer, offset: Int) = id.set(buffer, offset, value)
+		fun put(buffer: ByteBuffer, offset: Int) = id.put(buffer, offset, value)
 
 		fun convert(rawValue: P): P {
 			return id.toParent(rawValue, value)

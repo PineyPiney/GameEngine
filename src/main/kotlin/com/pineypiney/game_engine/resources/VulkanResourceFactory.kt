@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.resources
 
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanArrayMesh
 import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanIndexedMesh
@@ -25,6 +24,7 @@ import com.pineypiney.game_engine.vulkan.VulkanManager
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import kool.toBuffer
+import org.lwjgl.BufferUtils
 import org.lwjgl.vulkan.VK10
 import java.nio.ByteBuffer
 
@@ -86,22 +86,44 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 		return image
 	}
 
-	override fun createArrayMesh(name: String, vertices: FloatArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh {
-		val mesh = VulkanArrayMesh(vulkan, name, vertices.toBuffer(), attributes)
+	override fun createArrayMesh(name: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>): Mesh {
+		val (vertices, attributes) = singleStream(buffers)
+		val mesh = VulkanArrayMesh(vulkan, name, vertices, attributes)
 		return mesh
 	}
 
-	override fun createIndexedMesh(name: String, vertices: ByteBuffer, indices: IntArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh {
+	override fun createIndexedMesh(name: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>, indices: IntArray): Mesh {
+		val (vertices, attributes) = singleStream(buffers)
 		val mesh = VulkanIndexedMesh(vulkan, name, vertices, indices.toBuffer(), attributes)
 		return mesh
 	}
 
-	override fun createIndexedMesh(name: String, vertices: FloatArray, indices: IntArray, attributes: Map<VertexAttribute<*, *>, Long>): Mesh {
-		return createIndexedMesh(name, vertices.toBuffer(), indices, attributes)
+	override fun createModelMesh(id: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>, indices: IntArray, material: ModelMaterial): ModelMesh {
+		val (vertices, attributes) = singleStream(buffers)
+		val mesh = VulkanModelMesh(vulkan, id, vertices, indices.toBuffer(), attributes, material)
+		return mesh
 	}
 
-	override fun createModelMesh(id: String, vertices: List<MeshVertex>, indices: IntArray, material: ModelMaterial): ModelMesh {
-		val mesh = VulkanModelMesh(vulkan, id, vertices, indices.toBuffer(), material)
-		return mesh
+	fun singleStream(buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>): Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>> {
+		val vertices = BufferUtils.createByteBuffer(buffers.sumOf { it.first.remaining() })
+		val attributes = mutableMapOf<VertexAttribute<*, *>, Long>()
+		val totalStride = buffers.sumOf { it.second.keys.sumOf { it.bytes } }
+		val count = vertices.capacity() / totalStride
+		var index = 0L
+		for ((data, attribs) in buffers) {
+			val stride = attribs.keys.sumOf { it.bytes }
+			for ((att, off) in attribs) {
+				repeat(count) { i ->
+					transfer(att, data, vertices, i * stride + off.toInt(), i * totalStride + index.toInt())
+				}
+				attributes[att] = index
+				index += att.bytes
+			}
+		}
+		return vertices to attributes
+	}
+
+	fun <T> transfer(att: VertexAttribute<T, *>, src: ByteBuffer, dst: ByteBuffer, srcI: Int, dstI: Int) {
+		att.put(dst, dstI, att.get(src, srcI))
 	}
 }

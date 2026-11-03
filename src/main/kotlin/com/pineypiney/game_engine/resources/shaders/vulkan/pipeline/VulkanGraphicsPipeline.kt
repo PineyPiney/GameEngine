@@ -9,7 +9,9 @@ import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderModule
 import com.pineypiney.game_engine.util.RandomHelper
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.addAll
+import com.pineypiney.game_engine.util.extension_functions.free
 import com.pineypiney.game_engine.util.extension_functions.popFirst
+import com.pineypiney.game_engine.util.extension_functions.toBuffer
 import com.pineypiney.game_engine.vulkan.VkStructs
 import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VulkanDevice
@@ -58,6 +60,8 @@ class VulkanGraphicsPipeline(
 
 		val modules = mutableListOf<VulkanShaderModule>()
 		var parameters = RenderShaderParameters()
+		val vertexBindings = mutableListOf<VkVertexInputBindingDescription>()
+		val vertexAttributes = mutableListOf<VkVertexInputAttributeDescription>()
 		val inputAssembly = VkPipelineInputAssemblyStateCreateInfo.calloc().`sType$Default`()
 		val rasterization = VkPipelineRasterizationStateCreateInfo.calloc().`sType$Default`()
 		val colourBlendAttachment = VkPipelineColorBlendAttachmentState.calloc(1)
@@ -103,6 +107,22 @@ class VulkanGraphicsPipeline(
 			if (parameters.tesselation != -1) tesselation(parameters.tesselation)
 			if (parameters.multisampling == 1) disableMultisampling() else enableMultisampling(parameters.multisampling)
 
+			return this
+		}
+
+		fun addVertexBinding(binding: Int, stride: Int, inputRate: Int = VK10.VK_VERTEX_INPUT_RATE_VERTEX): Builder {
+			vertexBindings.add(
+				VkVertexInputBindingDescription.calloc()
+					.set(binding, stride, inputRate)
+			)
+			return this
+		}
+
+		fun addVertexAttribute(location: Int, binding: Int, format: Int, offset: Int): Builder {
+			vertexAttributes.add(
+				VkVertexInputAttributeDescription.calloc()
+					.set(location, binding, format, offset)
+			)
 			return this
 		}
 
@@ -244,7 +264,11 @@ class VulkanGraphicsPipeline(
 					.pAttachments(colourBlendAttachment)
 					.attachmentCount(1)
 
+				val vertexBindings = vertexBindings.toBuffer(stack, VkVertexInputBindingDescription::calloc)
+				val vertexAttribs = vertexAttributes.toBuffer(stack, VkVertexInputAttributeDescription::calloc)
 				val vertexInput = VkPipelineVertexInputStateCreateInfo.calloc(stack).`sType$Default`()
+					.pVertexBindingDescriptions(vertexBindings)
+					.pVertexAttributeDescriptions(vertexAttribs)
 
 				val dynamicStatesArray = mutableListOf(
 					VK10.VK_DYNAMIC_STATE_VIEWPORT,
@@ -302,6 +326,8 @@ class VulkanGraphicsPipeline(
 			inputAssembly.`sType$Default`()
 			rasterization.clear()
 			rasterization.`sType$Default`()
+			vertexBindings.free()
+			vertexAttributes.free()
 			colourBlendAttachment.clear()
 			multisample.clear()
 			multisample.`sType$Default`()
@@ -320,6 +346,8 @@ class VulkanGraphicsPipeline(
 			modules.clear()
 			inputAssembly.free()
 			rasterization.free()
+			vertexBindings.free()
+			vertexAttributes.free()
 			colourBlendAttachment.free()
 			multisample.free()
 			depthStencil.free()

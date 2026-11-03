@@ -5,6 +5,7 @@ import glm_.pow
 import glm_.shl
 import glm_.shr
 import unsigned.Ubyte
+import unsigned.Uint
 import unsigned.Ulong
 import unsigned.Ushort
 import kotlin.math.*
@@ -13,10 +14,10 @@ const val PIF = PI.toFloat()
 
 fun Number.bytes(): Int {
 	return when (this) {
-		is Byte, Ubyte -> 1
-		is Short, Ushort -> 2
-		is Int, UInt, Float -> 4
-		is Long, Ulong, Double -> 8
+		is Byte, is Ubyte -> 1
+		is Short, is Ushort -> 2
+		is Int, is Uint, is Float -> 4
+		is Long, is Ulong, is Double -> 8
 		else -> 0
 	}
 }

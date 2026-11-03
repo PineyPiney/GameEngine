@@ -9,10 +9,12 @@ import com.pineypiney.game_engine.window.Viewport
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4i
 import kool.free
+import org.lwjgl.BufferUtils
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
 import java.nio.ByteBuffer
+import java.nio.LongBuffer
 
 class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: DeletionQueue) : Deletable {
 
@@ -122,6 +124,10 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 
 	fun pushConstants(pipeline: VulkanPipeline, stage: Int, offset: Int, constants: ByteBuffer) {
 		VK10.vkCmdPushConstants(buffer, pipeline.layout.handle, stage, offset, constants)
+	}
+
+	fun bindVertices(buffers: LongBuffer) {
+		VK10.vkCmdBindVertexBuffers(buffer, 0, buffers, BufferUtils.createLongBuffer(1))
 	}
 
 	fun draw(vertexCount: Int, instanceCount: Int = 1, firstVertex: Int = 0, firstInstance: Int = 0) {

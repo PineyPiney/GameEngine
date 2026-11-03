@@ -9,22 +9,22 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL31C.*
 import java.nio.ByteBuffer
 
-open class OpenGlIndexedMesh protected constructor(override val attributes: Map<VertexAttribute<*, *>, Long>, override val count: Int) : OpenGlMesh() {
+open class OpenGlIndexedMesh protected constructor(override val buffers: List<OpenGlVertexBuffer>, val count: Int) : OpenGlMesh() {
 
 	private val EBO = if (GLFunc.isLoaded) glGenBuffers() else -1
 
-	constructor(vertices: FloatArray, attributes: Map<VertexAttribute<*, *>, Long>, indices: IntArray) : this(attributes, indices.size) {
+	constructor(buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>, indices: IntArray) : this(buffers.map { OpenGlVertexBuffer(it.second) }, indices.size) {
 		if (GLFunc.isLoaded) {
-			glBindVertexArray(VAO)
 
-			glBindBuffer(GL_ARRAY_BUFFER, VBO)
-			glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+			glBindVertexArray(VAO)
+			var index = 0
+			for ((i, data) in buffers.withIndex()) {
+				this.buffers[i].setData(data.first, index)
+				index += data.second.size
+			}
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
-
-			// How to read non-indices array
-			setAttributes()
 
 			glBindVertexArray(0)
 			glBindBuffer(GL_ARRAY_BUFFER, 0)
@@ -32,28 +32,7 @@ open class OpenGlIndexedMesh protected constructor(override val attributes: Map<
 		}
 	}
 
-	constructor(vertices: FloatArray, attributes: Iterable<VertexAttribute<*, *>>, indices: IntArray) : this(vertices, Mesh.createAttributes(attributes), indices)
-
-	constructor(vertices: ByteBuffer, attributes: Map<VertexAttribute<*, *>, Long>, indices: IntArray) : this(attributes, indices.size) {
-		if (GLFunc.isLoaded) {
-			glBindVertexArray(VAO)
-
-			glBindBuffer(GL_ARRAY_BUFFER, VBO)
-			glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
-
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
-
-			// How to read non-indices array
-			setAttributes()
-
-			glBindVertexArray(0)
-			glBindBuffer(GL_ARRAY_BUFFER, 0)
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-		}
-	}
-
-	constructor(vertices: ByteBuffer, attributes: Iterable<VertexAttribute<*, *>>, indices: IntArray) : this(vertices, Mesh.createAttributes(attributes), indices)
+	constructor(vertices: ByteBuffer, attributes: Iterable<VertexAttribute<*, *>>, indices: IntArray) : this(listOf(vertices to Mesh.createAttributes(attributes)), indices)
 
 	fun getIndices(): ByteBuffer {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
@@ -85,11 +64,10 @@ open class OpenGlIndexedMesh protected constructor(override val attributes: Map<
 
 	override fun delete() {
 		super.delete()
-		glDeleteBuffers(VBO)
 		glDeleteBuffers(EBO)
 	}
 
 	companion object {
-		fun empty() = OpenGlIndexedMesh(emptyMap(), 0)
+		fun empty() = OpenGlIndexedMesh(emptyList(), 0)
 	}
 }

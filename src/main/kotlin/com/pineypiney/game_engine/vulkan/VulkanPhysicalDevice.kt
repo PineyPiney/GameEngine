@@ -28,9 +28,9 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 		getLimits()
 
 		for(format in TextureFormat.entries) {
-			format.supported = getImageFormatProperties(format.vulkan, VK10.VK_IMAGE_TYPE_2D, VK10.VK_IMAGE_TILING_OPTIMAL, VK10.VK_IMAGE_USAGE_SAMPLED_BIT, 0) != null
+			format.supported = format.vulkan != -1 && getImageFormatProperties(format.vulkan, VK10.VK_IMAGE_TYPE_2D, VK10.VK_IMAGE_TILING_OPTIMAL, VK10.VK_IMAGE_USAGE_SAMPLED_BIT, 0) != null
 		}
-		GameEngineI.logger.info("GPU $name supports to following image formats: ${TextureFormat.entries.filter(TextureFormat::supported).joinToString()}")
+		GameEngineI.logger.info("GPU $name supports the following image formats: ${TextureFormat.entries.filter(TextureFormat::supported).joinToString()}")
 	}
 
 	fun <S: Struct<S>> addFeature(struct: S, add: (VkDeviceCreateInfo, S) -> VkDeviceCreateInfo): VulkanPhysicalDevice{

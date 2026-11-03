@@ -105,7 +105,14 @@ class HandTracker(val hand: XrHandTrackerEXT, val openxr: OpenXrManager) : Delet
 
 
 //			deletion.flush()
-		return factory.createModelMesh("Hand Mesh", vertices, meshIndices)
+		return factory.createModelMesh(
+			"Hand Mesh", MeshVertex.compile(
+				vertices, listOf(
+					listOf(VertexAttribute.POSITION),
+					listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD, VertexAttribute.BONE_IDS, VertexAttribute.BONE_WEIGHTS)
+				)
+			), meshIndices
+		)
 	}
 
 	fun updateJoints(){

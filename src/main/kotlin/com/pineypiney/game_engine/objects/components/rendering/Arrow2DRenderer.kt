@@ -6,9 +6,11 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.util.extension_functions.normal
+import com.pineypiney.game_engine.util.extension_functions.put
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
+import org.lwjgl.BufferUtils
 
 open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width: Float, var colour: Vec4 = Vec4(1f)) : ShaderRenderedComponent(parent,
 	ColourRendererComponent.shader3D
@@ -48,7 +50,7 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 	fun setOriginAndPoint(origin: Vec2, point: Vec2){
 		this.origin(origin)
 		this.point(point)
-		mesh = generateMesh()
+		regenerateMesh()
 	}
 
 	fun regenerateMesh(){
@@ -61,7 +63,7 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 		if(length == 0f) return Mesh.EmptyMesh
 		val vec = (point - origin) / length
 
-		val array: Array<Vec2> = if(length <= width * 2f){
+		val positions: Array<Vec2> = if (length <= width * 2f) {
 			val perp = vec.normal() * (length * .5f)
 			arrayOf(origin + perp, point, origin - perp)
 		}
@@ -74,7 +76,9 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 				headBase + (perp * 2), point, headBase - (perp * 2)
 			)
 		}
-		return ResourceFactory.INSTANCE.createArrayMesh("Arrow Mesh", array.flatMap { it.array.toList() }.toFloatArray(), Mesh.createAttributes(setOf(VertexAttribute.POSITION2D)))
+		val buffer = BufferUtils.createByteBuffer(positions.size * 8)
+		for (pos in positions) buffer.put(pos)
+		return ResourceFactory.INSTANCE.createArrayMesh("Arrow Mesh", listOf(buffer.flip() to mapOf(VertexAttribute.POSITION2D to 0L)))
 	}
 
 	override fun delete() {

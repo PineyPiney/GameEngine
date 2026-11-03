@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.rendering.meshes.IndexedMeshBuilder
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
@@ -20,7 +19,6 @@ interface ModelMesh : Mesh {
 	var translation: Vec3
 	var rotation: Quat
 
-	val vertices: List<MeshVertex>
 	val indices: IntArray
 
 	val transform: Mat4 get() = I.translate(translation) * rotation.toMat4()

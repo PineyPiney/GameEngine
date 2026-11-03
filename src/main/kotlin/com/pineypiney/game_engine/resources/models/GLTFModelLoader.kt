@@ -5,7 +5,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonPrimitive
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.rendering.meshes.MeshVertex
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
@@ -36,6 +36,7 @@ import glm_.vec3.*
 import glm_.vec4.*
 import kool.count
 import kool.toBuffer
+import org.lwjgl.BufferUtils
 import unsigned.ui
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -193,23 +194,17 @@ class GLTFModelLoader {
 				val meshID = nodeJson.getIntOrNull("mesh") ?: continue
 				val meshes = meshCollections[meshID]
 
-				val min = Vec3(Float.POSITIVE_INFINITY)
-				val max = Vec3(Float.NEGATIVE_INFINITY)
+				var minPos = Vec3(Float.POSITIVE_INFINITY)
+				var maxPos = Vec3(Float.NEGATIVE_INFINITY)
 				for (mesh in meshes) {
-					for (vertex in mesh.vertices) {
-						val p = vertex.position
-						if (p.x < min.x) min.x = p.x
-						if (p.y < min.y) min.y = p.y
-						if (p.z < min.z) min.z = p.z
-						if (p.x > max.x) max.x = p.x
-						if (p.y > max.y) max.y = p.y
-						if (p.z > max.z) max.z = p.z
-					}
+					val (meshMin, meshMax) = mesh.getBounds()
+					minPos = minOf(minPos, meshMin)
+					maxPos = maxOf(maxPos, meshMax)
 				}
 
 				val collider =
-					if (min.z == max.z) Collider2D(Rect2D(Vec2(min), Vec2(max - min)))
-					else Collider3D(Cuboid((min + max) * .5f, Quat.identity, max - min))
+					if (minPos.z == maxPos.z) Collider2D(Rect2D(Vec2(minPos), Vec2(maxPos - minPos)))
+					else Collider3D(Cuboid((minPos + maxPos) * .5f, Quat.identity, maxPos - minPos))
 				val objectName = nodeJson.getStringOrNull("name") ?: modelName
 
 				val root = modelName.substringUntilLast('/', "")
@@ -232,7 +227,7 @@ class GLTFModelLoader {
 		val attributeMap = mutableMapOf<VertexAttribute<*, *>, Array<Any>>()
 
         val pos = attributes.getInt("POSITION")
-        attributeMap[VertexAttribute.POSITION] = accessors[pos]
+
         val nor = attributes.getInt("NORMAL")
         attributeMap[VertexAttribute.NORMAL] = accessors[nor]
         val tex = attributes.getInt("TEXCOORD_0")
@@ -267,21 +262,31 @@ class GLTFModelLoader {
             }
         }
 
-        val vertices = List(maxIndex + 1) {
+		val posBuffer = BufferUtils.createByteBuffer((maxIndex + 1) * 12)
+		for (v in accessors[pos]) posBuffer.put(v as Vec3)
 
-            val values = attributeMap.map { (att, arr) ->
+		val otherBufferStride = attributeMap.keys.sumOf(VertexAttribute<*, *>::bytes)
+		val otherBuffer = BufferUtils.createByteBuffer((maxIndex + 1) * otherBufferStride)
+
+		repeat(maxIndex + 1) { i ->
+			var o = 0
+			for ((att, arr) in attributeMap) {
                 try {
-                    VertexAttribute.Pair(att, arr, it)
+					val pair = VertexAttribute.Pair(att, arr, i)
+					pair.put(otherBuffer, i * otherBufferStride + o)
+					o += pair.id.bytes
                 }
                 catch (_: ClassCastException) {
-                    GameEngineI.logger.warn("Failed to load primitive $name due to attribute $att being type ${arr[it].javaClass.name}, which cannot be used for this attribute")
+					GameEngineI.logger.warn("Failed to load primitive $name due to attribute $att being type ${arr[i].javaClass.name}, which cannot be used for this attribute")
                     return
                 }
-            }.toSet()
-			MeshVertex(values)
-
-        }
-		meshes.add(factory.createModelMesh(name, vertices, indArray.toIntArray(), materials.getOrElse(material) { PBRMaterial.default }))
+			}
+		}
+		val buffers = listOf<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>(
+			posBuffer.flip() to mapOf(VertexAttribute.POSITION to 0L),
+			otherBuffer to Mesh.createAttributes(attributeMap.keys)
+		)
+		meshes.add(factory.createModelMesh(name, buffers, indArray.toIntArray(), materials.getOrElse(material) { PBRMaterial.default }))
     }
 
 	fun loadBones(nodesJson: JsonArray, boneJson: JsonObject, bones: MutableSet<Bone>) {

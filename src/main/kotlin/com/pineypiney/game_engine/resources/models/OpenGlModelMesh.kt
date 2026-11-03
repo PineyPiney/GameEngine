@@ -1,16 +1,17 @@
 package com.pineypiney.game_engine.resources.models
 
-import com.pineypiney.game_engine.rendering.meshes.MeshVertex
+import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlIndexedMesh
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.materials.PhongMaterial
 import glm_.quat.Quat
 import glm_.vec3.Vec3
+import java.nio.ByteBuffer
 
 open class OpenGlModelMesh(
-	override var id: String, override val vertices: List<MeshVertex>, override val indices: IntArray,
+	override var id: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>, override val indices: IntArray,
 	override val material: ModelMaterial = PhongMaterial(id, emptyMap())
-) : OpenGlIndexedMesh(MeshVertex.compile(vertices), vertices.firstOrNull()?.attributes ?: emptyList(), indices), ModelMesh {
+) : OpenGlIndexedMesh(buffers, indices), ModelMesh {
 
 	override var translation: Vec3 = Vec3()
 	override var rotation: Quat = Quat()

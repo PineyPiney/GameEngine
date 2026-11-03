@@ -12,6 +12,7 @@ import com.pineypiney.game_engine.resources.shaders.parameters.InputTopology
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.PIF
+import com.pineypiney.game_engine.util.extension_functions.put
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.vec2.Vec2
@@ -44,15 +45,16 @@ class TTFTest(gameEngine: WindowedGameEngineI<*>) : MultiTest("True Type Font Be
 
 			val contours = glyph.contourPoints
 			for (contour in contours) {
-				val vertices = FloatArray(contour.size * 40 + 4)
+				val positions = BufferUtils.createByteBuffer(contour.size * 80 + 8)
+				val uvs = BufferUtils.createByteBuffer(contour.size * 80 + 8)
 
 				fun put(p: Int, vec: Vec2) {
-					vertices[p] = vec.x
-					vertices[p + 1] = vec.y
-					vertices[p + 2] = vec.x
-					vertices[p + 3] = vec.y
+					positions.put(p, vec)
+					uvs.put(p, vec)
 				}
 				repeat(contour.size shr 1) { curveIndex ->
+
+					// Render curve as 16 segments
 					val start = Vec2(contour[curveIndex * 2]) * m
 					val mid = Vec2(contour[curveIndex * 2 + 1]) * m
 					val end = Vec2(contour[(curveIndex * 2 + 2) % contour.size]) * m
@@ -62,22 +64,26 @@ class TTFTest(gameEngine: WindowedGameEngineI<*>) : MultiTest("True Type Font Be
 						val point = start * r * r +
 								mid * 2f * d * r +
 								end * d * d
-						put(curveIndex * 80 + seg * 4, point)
+						put(curveIndex * 160 + seg * 8, point)
 					}
 
+					// Include an arrow showing curve direction
 					val dir = (end - mid).normalize() * m * .015f
 					val pl = end + dir.rotate(PIF * .75f)
 					val pr = end - dir.rotate(PIF * .25f)
-					put(curveIndex * 80 + 64, end)
-					put(curveIndex * 80 + 68, pl)
-					put(curveIndex * 80 + 72, end)
-					put(curveIndex * 80 + 76, pr)
+					put(curveIndex * 160 + 128, end)
+					put(curveIndex * 160 + 136, pl)
+					put(curveIndex * 160 + 144, end)
+					put(curveIndex * 160 + 152, pr)
 				}
-				put(contour.size * 40, contour[0] * m)
+				put(contour.size * 80, contour[0] * m)
 
 				val mesh = gameEngine.resourcesLoader.factory.createArrayMesh(
-					"$char Mesh", vertices,
-					Mesh.createAttributes(listOf(VertexAttribute.POSITION2D, VertexAttribute.TEX_COORD))
+					"$char Mesh",
+					listOf(
+						positions to mapOf(VertexAttribute.POSITION2D to 0L),
+						uvs to mapOf(VertexAttribute.TEX_COORD to 0L),
+					)
 				)
 
 				val obj = GameObject.simpleRenderedGameObject("$char Outline Object", shader, Vec3(x, y, 0f), mesh = mesh, setUniformsFunc = {

@@ -11,19 +11,21 @@ import glm_.vec4.Vec4ub
 import org.lwjgl.BufferUtils
 import java.nio.ByteBuffer
 
-class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
+class IndexedMeshBuilder(val attributes: List<Set<VertexAttribute<*, *>>>) {
 
-	constructor(vararg attributes: VertexAttribute<*, *>) : this(attributes.toSet())
+	constructor(vararg attributes: VertexAttribute<*, *>) : this(listOf(attributes.toSet()))
 
 	val vertices = mutableListOf<MeshVertex>()
 	val indices = mutableListOf<Int>()
 
-	val currentVertex = attributes.map(VertexAttribute<*, *>::defaultPair).toMutableList()
+	val currentVertex = attributes.flatMap { it.map(VertexAttribute<*, *>::defaultPair) }.toMutableList()
 	var started = false
 
 	var modifier: Modifier? = null
 
-	val vertexSize = attributes.sumOf { it.bytes }
+	val vertexSize = attributes.sumOf { it.sumOf(VertexAttribute<*, *>::bytes) }
+
+	fun hasAttribute(attribute: VertexAttribute<*, *>) = attributes.any { it.contains(attribute) }
 
 	fun vertex(x: Float, y: Float, z: Float): IndexedMeshBuilder {
 		addVertex()
@@ -66,7 +68,7 @@ class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
 	}
 
 	fun rgba(int: Int): IndexedMeshBuilder {
-		if(attributes.contains(VertexAttribute.COLOUR)) return colour(((int shr 24) and 255) * _255, ((int shr 16) and 255) * _255, ((int shr 8) and 255) * _255, (int and 255) * _255)
+		if (hasAttribute(VertexAttribute.COLOUR)) return colour(((int shr 24) and 255) * _255, ((int shr 16) and 255) * _255, ((int shr 8) and 255) * _255, (int and 255) * _255)
 		else {
 			addAttribute(VertexAttribute.COLOUR_BYTES, Vec4ub(int shr 24, int shr 16, int shr 8, int))
 			return this
@@ -132,31 +134,43 @@ class IndexedMeshBuilder(val attributes: Set<VertexAttribute<*, *>>) {
 		} ?: indices.add(index)
 	}
 
-	fun buildVertices(): ByteBuffer {
+	fun buildVertices(): List<ByteBuffer> {
 		addVertex()
 		started = false
-		val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
-		for ((i, vertex) in vertices.withIndex()) {
-			vertex.putData(vertexBuffer, i * vertexSize)
+		return attributes.map { attribs ->
+			val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
+			for ((i, vertex) in vertices.withIndex()) {
+				vertex.putData(vertexBuffer, attribs, i * vertexSize)
+			}
+			vertexBuffer
 		}
-		return vertexBuffer
 	}
 
 	fun build(name: String): Mesh {
 		addVertex()
 		started = false
-		val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
-		for ((i, vertex) in vertices.withIndex()) {
-			vertex.putData(vertexBuffer, i * vertexSize)
+		val buffers = attributes.map { attribs ->
+			val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
+			for ((i, vertex) in vertices.withIndex()) {
+				vertex.putData(vertexBuffer, attribs, i * vertexSize)
+			}
+			vertexBuffer to Mesh.createAttributes(attribs)
 		}
 
-		return ResourceFactory.INSTANCE.createIndexedMesh(name, vertexBuffer, indices.toIntArray(), Mesh.createAttributes(attributes))
+		return ResourceFactory.INSTANCE.createIndexedMesh(name, buffers, indices.toIntArray())
 	}
 
 	fun buildModel(id: String, factory: ResourceFactory, material: ModelMaterial = PBRMaterial("$id Mesh Material", emptyMap())): ModelMesh {
 		addVertex()
 		started = false
-		return factory.createModelMesh(id, vertices, indices.toIntArray(), material)
+		val buffers = attributes.map { attribs ->
+			val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
+			for ((i, vertex) in vertices.withIndex()) {
+				vertex.putData(vertexBuffer, attribs, i * vertexSize)
+			}
+			vertexBuffer to Mesh.createAttributes(attribs)
+		}
+		return factory.createModelMesh(id, buffers, indices.toIntArray(), material)
 	}
 
 	companion object {

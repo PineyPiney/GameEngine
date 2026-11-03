@@ -494,6 +494,10 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 	}
 
 	companion object {
+		fun compileVertexInputs(device: VulkanDevice, data: Map<ShaderStage, VulkanShaderData>) {
+
+		}
+
 		fun compileDescriptorLayouts(device: VulkanDevice, data: Map<ShaderStage, VulkanShaderData>): List<VulkanDescriptorLayout> {
 			val builders = mutableListOf<VulkanDescriptorLayout.Builder>()
 			for ((stage, stageData) in data) {

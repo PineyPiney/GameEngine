@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.DeletionQueue
 import glm_.vec2.Vec2
+import kool.toBuffer
 
 class TextData : Deletable {
 
@@ -24,16 +25,17 @@ class TextData : Deletable {
 	}
 
 	constructor(factory: ResourceFactory, text: String, chars: Array<CharacterQuad>, texture: Texture2D = Texture2D.missing, xOffsets: FloatArray = FloatArray(0), yOffset: Float = 0f) {
+		val bufferData = chars.flatMap { it.getVertices() }.toFloatArray().toBuffer()
+		val attribs = Mesh.createAttributes(
+			listOf(
+				VertexAttribute.POSITION2D,
+				VertexAttribute.TEX_COORD
+			)
+		)
 		mesh = factory.createIndexedMesh(
-				"Text '$text'",
-				chars.flatMap { it.getVertices() }.toFloatArray(),
-				createIndices(chars.size),
-				Mesh.createAttributes(
-					listOf(
-						VertexAttribute.POSITION2D,
-						VertexAttribute.TEX_COORD
-					)
-				)
+			"Text '$text'",
+			listOf(bufferData to attribs),
+			createIndices(chars.size)
 			)
 		this.texture = texture
 		this.xOffsets = xOffsets

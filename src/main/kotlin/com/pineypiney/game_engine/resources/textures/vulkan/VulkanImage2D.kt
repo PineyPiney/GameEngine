@@ -8,6 +8,7 @@ import com.pineypiney.game_engine.vulkan.VkUtil
 import com.pineypiney.game_engine.vulkan.VmaBuffer
 import com.pineypiney.game_engine.vulkan.VulkanDevice
 import com.pineypiney.game_engine.vulkan.VulkanImmediateSubmitter
+import glm_.asHexString
 import org.lwjgl.util.vma.Vma
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK13
@@ -59,5 +60,9 @@ open class VulkanImage2D(
 	override fun delete() {
 		VK13.vkDestroyImageView(device.device, imageView, null)
 		Vma.vmaDestroyImage(device.allocator, image, allocation)
+	}
+
+	override fun toString(): String {
+		return "VulkanImage2D[$id, 0x${image.asHexString}]"
 	}
 }

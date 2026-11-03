@@ -23,10 +23,11 @@ class MeshVertex(val map: Set<VertexAttribute.Pair<*, *>>) {
 	@Suppress("UNCHECKED_CAST")
 	fun <T, P> getAttributeOrNull(attribute: VertexAttribute<T, P>): VertexAttribute.Pair<T, P>? = map.firstOrNull { it.id == attribute } as? VertexAttribute.Pair<T, P>
 
-	fun putData(buffer: ByteBuffer, offset: Int){
+	fun putData(buffer: ByteBuffer, attribs: Collection<VertexAttribute<*, *>>, offset: Int) {
 		var off = offset
-		for(pair in map){
-			pair.set(buffer, off)
+		for (attrib in attribs) {
+			val pair = map.firstOrNull { it.id == attrib } ?: return
+			pair.put(buffer, off)
 			off += pair.id.bytes
 		}
 	}
@@ -68,15 +69,20 @@ class MeshVertex(val map: Set<VertexAttribute.Pair<*, *>>) {
 		fun builder(pos: Vec3) = Builder(pos)
 		fun builder(x: Float, y: Float, z: Float) = Builder(Vec3(x, y, z))
 
-		fun compile(vertices: Collection<MeshVertex>): ByteBuffer{
+		fun compile(vertices: Collection<MeshVertex>, attributes: Collection<VertexAttribute<*, *>>): ByteBuffer {
 			if(vertices.isEmpty()) return emptyByteBuffer()
 
-			val stride = vertices.first().attributes.sumOf { it.bytes }
+			val stride = attributes.sumOf { it.bytes }
 			val buffer = BufferUtils.createByteBuffer(vertices.size * stride)
 			for((i, element) in vertices.withIndex()){
-				element.putData(buffer, i * stride)
+				element.putData(buffer, attributes, i * stride)
 			}
 			return buffer
+		}
+
+		fun compile(vertices: Collection<MeshVertex>, buffers: List<Collection<VertexAttribute<*, *>>>): List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>> {
+			if (vertices.isEmpty()) return emptyList()
+			return buffers.map { compile(vertices, it) to Mesh.createAttributes(it) }
 		}
 	}
 

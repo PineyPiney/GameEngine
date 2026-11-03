@@ -1,54 +1,32 @@
 package com.pineypiney.game_engine.rendering.meshes.opengl
 
 import com.pineypiney.game_engine.rendering.RenderingApi
-import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
-import com.pineypiney.game_engine.util.GLFunc
 import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL15C
-import org.lwjgl.opengl.GL30C
+import org.lwjgl.opengl.GL15C.GL_ARRAY_BUFFER
+import org.lwjgl.opengl.GL15C.glBindBuffer
+import org.lwjgl.opengl.GL30C.glBindVertexArray
 import org.lwjgl.opengl.GL31C
-import java.nio.FloatBuffer
+import java.nio.ByteBuffer
 
 open class OpenGlArrayMesh : OpenGlMesh {
 
-	final override val attributes: Map<VertexAttribute<*, *>, Long>
-	final override val count: Int
+	final override val buffers: List<OpenGlVertexBuffer>
+	val count: Int
 
-	constructor(vertices: FloatBuffer, attributes: Map<VertexAttribute<*, *>, Long>) : super() {
-		this.attributes = attributes
-		this.count = vertices.capacity() / attributes.keys.sumOf { it.size }
-		bufferData(vertices, GL15C::glBufferData)
-	}
+	constructor(buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>) : super() {
+		this.buffers = buffers.map { OpenGlVertexBuffer(it.second) }
+		this.count = buffers.first().first.remaining() / this.buffers.first().stride
 
-	constructor(vertices: FloatBuffer, attributes: Iterable<VertexAttribute<*, *>>) : this(vertices, Mesh.createAttributes(attributes))
-
-	constructor(vertices: FloatArray, attributes: Map<VertexAttribute<*, *>, Long>) : super() {
-		this.attributes = attributes
-		this.count = vertices.size / attributes.keys.sumOf { it.size }
-		bufferData(vertices, GL15C::glBufferData)
-	}
-
-	constructor(vertices: FloatArray, attributes: Iterable<VertexAttribute<*, *>>) : this(vertices, Mesh.createAttributes(attributes))
-
-	constructor(VAO: Int, VBO: Int, attributes: Map<VertexAttribute<*, *>, Long>, count: Int) : super(VAO, VBO) {
-		this.attributes = attributes
-		this.count = count
-	}
-
-	fun <D> bufferData(data: D, func: (Int, D, Int) -> Unit) {
-		if (GLFunc.isLoaded) {
-			GL30C.glBindVertexArray(VAO)
-
-			GL15C.glBindBuffer(GL15C.GL_ARRAY_BUFFER, VBO)
-			func(GL15C.GL_ARRAY_BUFFER, data, GL15C.GL_STATIC_DRAW)
-
-			// How to read non-indices array
-			setAttributes()
-
-			GL15C.glBindBuffer(GL15C.GL_ARRAY_BUFFER, 0)
-			GL30C.glBindVertexArray(0)
+		glBindVertexArray(VAO)
+		var index = 0
+		for ((i, data) in buffers.withIndex()) {
+			this.buffers[i].setData(data.first, index)
+			index += data.second.size
 		}
+
+		glBindVertexArray(0)
+		glBindBuffer(GL_ARRAY_BUFFER, 0)
 	}
 
 	override fun draw(api: RenderingApi, mode: Int) {
@@ -57,10 +35,5 @@ open class OpenGlArrayMesh : OpenGlMesh {
 
 	override fun drawInstanced(api: RenderingApi, amount: Int, mode: Int) {
 		GL31C.glDrawArraysInstanced(mode, 0, count, amount)
-	}
-
-	override fun delete() {
-		super.delete()
-		GL15C.glDeleteBuffers(VBO)
 	}
 }

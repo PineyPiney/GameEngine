@@ -11,17 +11,14 @@ import java.nio.ByteBuffer
 
 open class VulkanArrayMesh(vulkan: VulkanManager, name: String, verticesData: ByteBuffer, attributes: Map<VertexAttribute<*, *>, Long>) : VulkanMesh(vulkan, attributes) {
 
-	override val stride by lazy { this.attributes.keys.sumOf { it.bytes } }
+	val stride by lazy { this.attributes.keys.sumOf { it.bytes } }
 	override val count = verticesData.capacity() / stride
-
-	// These buffers are only accessible on the GPU, so the data will have to be written to them there
-	final override val vertexBuffer: VmaBuffer
-	final override val vertexBufferAddress: Long
+	final override val buffers: List<VulkanVertexBuffer>
 
 	init {
 
 		MemoryStack.stackPush().use { stack ->
-			vertexBuffer = VmaBuffer.create(
+			val vertexBuffer = VmaBuffer.create(
 				vulkan.device, stack, verticesData.capacity().toLong(),
 				VK12.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT or
 						VK12.VK_BUFFER_USAGE_TRANSFER_SRC_BIT or
@@ -29,7 +26,9 @@ open class VulkanArrayMesh(vulkan: VulkanManager, name: String, verticesData: By
 						VK12.VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
 				Vma.VMA_MEMORY_USAGE_GPU_ONLY, "$name Vertices"
 			)
-			vertexBufferAddress = vulkan.device.getBufferAddress(stack, vertexBuffer)
+			val vertexBufferAddress = vulkan.device.getBufferAddress(stack, vertexBuffer)
+
+			buffers = listOf(VulkanVertexBuffer(vulkan, attributes.keys.sumOf { it.bytes }, attributes, verticesData.capacity().toLong(), vertexBuffer, vertexBufferAddress))
 
 
 			// This staging buffer will be filled on the CPU and used to fill the GPU only buffers

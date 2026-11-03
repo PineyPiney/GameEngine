@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.resources.models
 
-import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.MeshVertex
+import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanIndexedMesh
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.materials.PhongMaterial
@@ -13,11 +12,12 @@ import java.nio.ByteBuffer
 class VulkanModelMesh(
 	vulkan: VulkanManager,
 	override var id: String,
-	override val vertices: List<MeshVertex>,
+	val vertices: ByteBuffer,
 	indices: ByteBuffer,
+	attribs: Map<VertexAttribute<*, *>, Long>,
 	override val material: ModelMaterial = PhongMaterial(id, emptyMap())
 ) :
-	VulkanIndexedMesh(vulkan, id, MeshVertex.compile(vertices), indices, Mesh.createAttributes(vertices.firstOrNull()?.attributes?.toList() ?: emptyList())), ModelMesh {
+	VulkanIndexedMesh(vulkan, id, vertices, indices, attribs), ModelMesh {
 
 	override var translation: Vec3 = Vec3()
 	override var rotation: Quat = Quat()

@@ -2,11 +2,13 @@ package com.pineypiney.game_engine.resources.models
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.models.materials.ModelMaterial
 import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
 import com.pineypiney.game_engine.util.ByteData
 import com.pineypiney.game_engine.util.extension_functions.with
 import glm_.putInt
+import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.opengl.GL11C
 import java.io.File
@@ -85,11 +87,15 @@ class GLTFModelSaver(val model: Model){
 			val primitive = JsonObject()
 
 			val attributes = JsonObject()
-			val numVert = mesh.vertices.size
+			val pos = mesh.getAttribute(VertexAttribute.POSITION)
+			val numVert = pos.size
 
 			attributes.addProperty("POSITION", accessors.size())
 			addAccessor("VEC3", GL11C.GL_FLOAT, numVert, bufferViews.size())
-			addBufferView(mesh.vertices.flatMap { ByteData.vec32Bytes(it.position, false).toList() })
+
+			if (pos.isNotEmpty()) addBufferView(pos.flatMap { ByteData.vec32Bytes(it, false).toList() })
+			else addBufferView(mesh.getAttribute(VertexAttribute.POSITION2D).flatMap { ByteData.vec32Bytes(Vec3(it, 0), false).toList() })
+
 
 			//attributes.addProperty("NORMAL", accessors.length())
 			//addAccessor("VEC3", FLOAT, numVert, bufferViews.length())

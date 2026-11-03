@@ -37,6 +37,10 @@ class Collision3DPolygonRenderer(parent: GameObject, val obj: GameObject, val wi
 
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
 
+	override fun delete() {
+		mesh.delete()
+	}
+
 	companion object {
 		val defaultShader = ColourRendererComponent.shader3D.withParameters(ResourceKey("3d_polygon"), RenderShaderParameters(cullMode = CullMode.NONE))
 

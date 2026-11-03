@@ -2,6 +2,7 @@ package com.pineypiney.game_engine.resources.models
 
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
+import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.DeletableResourceLoader
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
@@ -85,7 +86,13 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 
 				"o" -> {
 					if (vertices.isNotEmpty()) {
-						val mesh = loader.factory.createModelMesh(name, vertices, indices.toIntArray(), material = material)
+						val buffers = MeshVertex.compile(
+							vertices, listOf(
+								listOf(VertexAttribute.POSITION),
+								listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD)
+							)
+						)
+						val mesh = loader.factory.createModelMesh(name, buffers, indices.toIntArray(), material)
 						meshes.add(mesh)
 					}
 					name = parts[1]
@@ -138,7 +145,13 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 				}
 			}
 		}
-		meshes.add(loader.factory.createModelMesh(name, vertices, indices.toIntArray(), material = material))
+		val buffers = MeshVertex.compile(
+			vertices, listOf(
+				listOf(VertexAttribute.POSITION),
+				listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD)
+			)
+		)
+		meshes.add(loader.factory.createModelMesh(name, buffers, indices.toIntArray(), material))
 		DeletionQueue.GLOBAL.pushAll(meshes)
 
 		return Model(fileName, meshes.toTypedArray())
@@ -225,10 +238,15 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 
 				vertices.add(MeshVertex.builder(pos).normal(normal).tex(texMap).weights(weights).build())
 			}
-
+			val buffers = MeshVertex.compile(
+				vertices, listOf(
+					listOf(VertexAttribute.POSITION),
+					listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD, VertexAttribute.BONE_IDS, VertexAttribute.BONE_WEIGHTS)
+				)
+			)
 			val mesh = factory.createModelMesh(
 				geo.name,
-				vertices,
+				buffers,
 				geo.indices,
 				PhongMaterial(
 					"${geo.name} material",

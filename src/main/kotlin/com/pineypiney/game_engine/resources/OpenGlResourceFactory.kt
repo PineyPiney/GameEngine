@@ -1,7 +1,6 @@
 package com.pineypiney.game_engine.resources
 
 import com.pineypiney.game_engine.GameEngineI
-import com.pineypiney.game_engine.rendering.meshes.MeshVertex
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlArrayMesh
 import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlIndexedMesh
@@ -72,19 +71,15 @@ class OpenGlResourceFactory : ResourceFactory() {
 		return OpenGlTexture3D(name, pointer, params.target)
 	}
 
-	override fun createArrayMesh(name: String, vertices: FloatArray, attributes: Map<VertexAttribute<*, *>, Long>): OpenGlArrayMesh {
-		return OpenGlArrayMesh(vertices, attributes)
+	override fun createArrayMesh(name: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>): OpenGlArrayMesh {
+		return OpenGlArrayMesh(buffers)
 	}
 
-	override fun createIndexedMesh(name: String, vertices: ByteBuffer, indices: IntArray, attributes: Map<VertexAttribute<*, *>, Long>): OpenGlIndexedMesh {
-		return OpenGlIndexedMesh(vertices, attributes, indices)
+	override fun createIndexedMesh(name: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>, indices: IntArray): OpenGlIndexedMesh {
+		return OpenGlIndexedMesh(buffers, indices)
 	}
 
-	override fun createIndexedMesh(name: String, vertices: FloatArray, indices: IntArray, attributes: Map<VertexAttribute<*, *>, Long>): OpenGlIndexedMesh {
-		return OpenGlIndexedMesh(vertices, attributes, indices)
-	}
-
-	override fun createModelMesh(id: String, vertices: List<MeshVertex>, indices: IntArray, material: ModelMaterial): OpenGlModelMesh {
-		return OpenGlModelMesh(id, vertices, indices, material)
+	override fun createModelMesh(id: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>, indices: IntArray, material: ModelMaterial): OpenGlModelMesh {
+		return OpenGlModelMesh(id, buffers, indices, material)
 	}
 }

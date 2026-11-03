@@ -150,7 +150,7 @@ interface VulkanImage : Texture {
 	}
 
 	fun uploadData(cmd: PoolAndBuffer, x: Int, y: Int, z: Int, w: Int, h: Int, d: Int, format: TextureFormat, data: ByteBuffer) {
-		val dataSize = w * h * d * 4
+		val dataSize = w * h * d * format.pixelSize
 		val uploadBuffer = VmaBuffer.create(device, dataSize.toLong(), VK10.VK_BUFFER_USAGE_TRANSFER_SRC_BIT, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU, "$id Upload")
 		cmd.deletion.push(uploadBuffer)
 

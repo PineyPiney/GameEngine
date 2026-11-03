@@ -17,6 +17,7 @@ import com.pineypiney.game_engine.rendering.lighting.DirectionalLight
 import com.pineypiney.game_engine.rendering.lighting.PointLight
 import com.pineypiney.game_engine.rendering.lighting.SpotLight
 import com.pineypiney.game_engine.rendering.meshes.MeshVertex
+import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.models.GLTFModelSaver
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
@@ -331,11 +332,19 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 		d.add()
 		d.printDiffs()
 
+		val vertices = points.map { MeshVertex.builder(it.normal * radius).normal(it.normal).tex(it.tex).build() }
+		val buffers = MeshVertex.compile(
+			vertices, listOf(
+				listOf(VertexAttribute.POSITION),
+				listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD)
+			)
+		)
+
 		return OpenGlModelMesh(
 			"icosahedron",
-			points.map { MeshVertex.builder(it.normal * radius).normal(it.normal).tex(it.tex).build() },
+			buffers,
 			indices.toIntArray(),
-			material = PBRMaterial("icosphere", mapOf("baseColour" to TextureLoader[ResourceKey("ico_texture")]))
+			PBRMaterial("icosphere", mapOf("baseColour" to TextureLoader[ResourceKey("ico_texture")]))
 		)
 	}
 
@@ -445,8 +454,14 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 				if(abs(it.first.normal.y) == 1f) Vec3(1f, 0f, 0f) else (it.first.normal.cross(Vec3(0f, 1f, 0f))).normalize()
 			).fillBones().build()
 		}
+		val buffers = MeshVertex.compile(
+			floats, listOf(
+				listOf(VertexAttribute.POSITION),
+				listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD, VertexAttribute.TANGENT, VertexAttribute.BONE_IDS, VertexAttribute.BONE_WEIGHTS)
+			)
+		)
 		return OpenGlModelMesh(
-			"icosahedron", floats, indices.toIntArray(), material = PBRMaterial(
+			"icosahedron", buffers, indices.toIntArray(), PBRMaterial(
 				"icosphere", mapOf(
 			//"baseColour" to TextureLoader[ResourceKey("ico_texture")],
 			//"normals" to TextureLoader[ResourceKey("cratered_normals")]
@@ -507,8 +522,15 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 			for((j, element) in a.withIndex()) vertices[i + j + 1] = element
 		}
 		vertices[vertices.size - 1] = top
+
+		val buffers = MeshVertex.compile(
+			vertices, listOf(
+				listOf(VertexAttribute.POSITION),
+				listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD, VertexAttribute.TANGENT, VertexAttribute.BONE_IDS, VertexAttribute.BONE_WEIGHTS)
+			)
+		)
 		return OpenGlModelMesh(
-			"UV Sphere", vertices, indices, material = PBRMaterial(
+			"UV Sphere", buffers, indices, PBRMaterial(
 				"uv sphere", mapOf(
 			//"baseColour" to TextureLoader[ResourceKey("wood")],
 			//"normals" to TextureLoader[ResourceKey("planet_normals")]
@@ -586,7 +608,13 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 		}
 		intArrayOf(37, 36, 44, 39, 38, 45, 41, 40, 46, 43, 42, 47).copyInto(indices, 60)
 
-		return OpenGlModelMesh("Inverted Cuboid", topVerts, indices, material = PBRMaterial("invCub Mat", mapOf()))
+		val buffers = MeshVertex.compile(
+			topVerts, listOf(
+				listOf(VertexAttribute.POSITION),
+				listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD, VertexAttribute.TANGENT, VertexAttribute.BONE_IDS, VertexAttribute.BONE_WEIGHTS)
+			)
+		)
+		return OpenGlModelMesh("Inverted Cuboid", buffers, indices, PBRMaterial("invCub Mat", mapOf()))
 	}
 
 	companion object {
