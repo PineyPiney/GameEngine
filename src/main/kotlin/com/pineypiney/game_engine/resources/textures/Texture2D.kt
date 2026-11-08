@@ -52,7 +52,7 @@ interface Texture2D : Texture {
 		val size = tr - origin
 
 
-		val texture = ResourceFactory.INSTANCE.createTexture2D("Cropping of $id", size.x, size.y, format, format, null, TextureParameters())
+		val texture = ResourceFactory.INSTANCE.createTexture2D("Cropping of $id", size.x, size.y, format, null, TextureParameters())
 
 		val copier = createCopier()
 		copier.init()
@@ -67,8 +67,8 @@ interface Texture2D : Texture {
 
 	companion object {
 
-		fun create(id: String, width: Int, height: Int, internalFormat: TextureFormat, params: TextureParameters = TextureParameters()): Texture2D {
-			return ResourceFactory.INSTANCE.createTexture2D(id, width, height, internalFormat, TextureFormat.RGBA8, null, params)
+		fun create(id: String, width: Int, height: Int, format: TextureFormat, params: TextureParameters = TextureParameters()): Texture2D {
+			return ResourceFactory.INSTANCE.createTexture2D(id, width, height, format, null, params)
 		}
 
 		fun createErrorData(): ByteBuffer {
@@ -91,7 +91,7 @@ interface Texture2D : Texture {
 
 		fun initDefaultTextures(factory: ResourceFactory) {
 			none = factory.nullTexture2D()
-			missing = factory.createTexture2D("missing", 32, 32, TextureFormat.RGBA8, TextureFormat.RGBA8, createErrorData(), TextureParameters())
+			missing = factory.createTexture2D("missing", 32, 32, TextureFormat.RGBA8, createErrorData(), TextureParameters())
 
 			DeletionQueue.GLOBAL.push(missing)
 		}

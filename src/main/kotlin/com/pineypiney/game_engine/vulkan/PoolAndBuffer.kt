@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.vulkan
 
 import com.pineypiney.game_engine.objects.Deletable
+import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanMesh
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorSet
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipeline
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
@@ -14,7 +15,6 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
 import java.nio.ByteBuffer
-import java.nio.LongBuffer
 
 class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: DeletionQueue) : Deletable {
 
@@ -126,8 +126,10 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 		VK10.vkCmdPushConstants(buffer, pipeline.layout.handle, stage, offset, constants)
 	}
 
-	fun bindVertices(buffers: LongBuffer) {
-		VK10.vkCmdBindVertexBuffers(buffer, 0, buffers, BufferUtils.createLongBuffer(1))
+	fun bindVertices(mesh: VulkanMesh) {
+		val buffers = BufferUtils.createLongBuffer(mesh.buffers.size)
+		for (buffer in mesh.buffers) buffers.put(buffer.vertexBuffer.buffer)
+		VK10.vkCmdBindVertexBuffers(buffer, 0, buffers.flip(), BufferUtils.createLongBuffer(buffers.capacity()))
 	}
 
 	fun draw(vertexCount: Int, instanceCount: Int = 1, firstVertex: Int = 0, firstInstance: Int = 0) {
@@ -221,18 +223,18 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 	}
 
 	fun end() {
-		VK10.vkEndCommandBuffer(buffer)
+		VkUtil.processResult(VK10.vkEndCommandBuffer(buffer), "Failed to end VkCommandBuffer")
 	}
 
 	fun execute(func: (cmd: PoolAndBuffer) -> Unit) {
-		resetBuffer(0)
+		resetPool(0)
 		begin(VK10.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)
 		func(this)
 		end()
 	}
 
 	fun <E> execute(func: (cmd: PoolAndBuffer) -> E): E {
-		resetBuffer(0)
+		resetPool(0)
 		begin(VK10.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)
 		val ret = func(this)
 		end()
@@ -241,6 +243,11 @@ class PoolAndBuffer(val pool: Long, val buffer: VkCommandBuffer, val deletion: D
 
 	fun resetBuffer(flags: Int = 0) {
 		VK10.vkResetCommandBuffer(buffer, flags)
+		deletion.flush()
+	}
+
+	fun resetPool(flags: Int = 0) {
+		VK10.vkResetCommandPool(buffer.device, pool, flags)
 		deletion.flush()
 	}
 

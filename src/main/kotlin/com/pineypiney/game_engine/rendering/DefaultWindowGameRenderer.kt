@@ -9,11 +9,6 @@ open class DefaultWindowGameRenderer<in G : WindowGameLogic, C : CameraI>(window
 
 	constructor(window: Window, camera: (Window) -> C, api: (GameRenderer<G>) -> PresentingApi) : this(window, camera(window), api)
 
-	override fun init() {
-		super.init()
-		screenUniforms.setIntUniform("effects") { 0 }
-	}
-
 	override fun render(game: G, tickDelta: Double) {
 
 		camera.getView(view)

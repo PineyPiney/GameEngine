@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.objects.components.rendering.collision.Collisi
 import com.pineypiney.game_engine.objects.components.rendering.collision.CollisionPolygonRenderer
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.models.Bone
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.animations.ModelAnimation
@@ -14,6 +15,8 @@ import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.parameters.PolygonMode
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
+import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.util.DeletionQueue
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.Collider2D
@@ -56,7 +59,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 			for (mesh in model.meshes) {
 				val newModel = parent.worldModel * mesh.transform
 				wireframeShader.setMat4("model", newModel)
-				shader.draw("vertexBuffer", mesh, renderer)
+				shader.draw(mesh, renderer)
 			}
 		}
 
@@ -70,7 +73,7 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 			mesh.setMaterialUniforms(shader)
 			val newModel = parent.worldModel * mesh.transform
 			shader.setMat4("model", newModel)
-			shader.draw("vertexBuffer", mesh, renderer)
+			shader.draw(mesh, renderer)
 		}
 
 		if (debug has Model.DEBUG_BONES) renderBones(renderer, parent, renderer.view, renderer.projection)
@@ -164,7 +167,28 @@ open class ModelRendererComponent(parent: GameObject, var model: Model = Model.m
 		val tangentBonesShader = ShaderLoader.loadRenderShader(ResourceKey("3d/tangent_model"))
 
 
-		val debugTrisShader = ShaderLoader[ResourceKey("debug_model_tris"), ResourceKey("vertex/tangent_model"), ResourceKey("fragment/colour_primitives")]
-		val debugWeightsShader = ShaderLoader[ResourceKey("debug_model_weights"), ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights")]
+		val debugTrisShader = ShaderLoader[ResourceKey("debug_model_tris"), ResourceKey("vertex/tangent_model"), ResourceKey("fragment/colour_primitives"), RenderShaderParameters(
+			vertexLayout = VertexBufferLayout(
+				mapOf(
+					0 to (0 to listOf(VertexAttribute.POSITION)),
+					1 to (1 to listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD)),
+					3 to (4 to listOf(VertexAttribute.BONE_IDS_UINT, VertexAttribute.BONE_WEIGHTS))
+				)
+			)
+		)]
+		val debugWeightsShader = ShaderLoader[ResourceKey("debug_model_weights"), ResourceKey("vertex/model_weights"), ResourceKey("fragment/model_weights"), RenderShaderParameters(
+			vertexLayout = VertexBufferLayout(
+				listOf(
+					VertexBufferLayout.Binding(0, listOf(VertexBufferLayout.Attribute(0, TextureFormat.RGB32F, 0)), 12),
+					VertexBufferLayout.Binding(1, listOf(VertexBufferLayout.Attribute(2, TextureFormat.RG32F, 12)), 20),
+					VertexBufferLayout.Binding(
+						2, listOf(
+							VertexBufferLayout.Attribute(3, TextureFormat.RGBA32I, 0),
+							VertexBufferLayout.Attribute(4, TextureFormat.RGBA32F, 16)
+						), 32
+					)
+				)
+			)
+		)]
 	}
 }

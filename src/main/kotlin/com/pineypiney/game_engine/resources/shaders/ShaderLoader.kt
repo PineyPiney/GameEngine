@@ -5,11 +5,13 @@ import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.ResourcesLoader
+import com.pineypiney.game_engine.resources.VulkanResourceFactory
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlComputeShader
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlRenderShader
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlShaderModule
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlShaderParser
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.vulkan.VertexVulkanShaderData
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderBuilder
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderData
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderModule
@@ -31,6 +33,7 @@ import org.lwjgl.util.shaderc.ShadercIncludeResolve
 import org.lwjgl.util.shaderc.ShadercIncludeResult
 import org.lwjgl.util.shaderc.ShadercIncludeResultRelease
 import org.lwjgl.vulkan.VK10
+import org.lwjgl.vulkan.VK13
 import org.lwjgl.vulkan.VkShaderModuleCreateInfo
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -93,7 +96,11 @@ class ShaderLoader private constructor() : Deletable {
 
 			val shaderBuilder = VulkanShaderBuilder(stage)
 			shaderBuilder.parse(code)
-			val shaderData = VulkanShaderData(key.key, shaderBuilder.uniforms, shaderBuilder.storages, shaderBuilder.pushConstants)
+			val shaderData = when (stage) {
+				ShaderStage.VERTEX -> VertexVulkanShaderData(key.key, shaderBuilder.inVariables, shaderBuilder.uniforms, shaderBuilder.storages, shaderBuilder.pushConstants)
+				else -> VulkanShaderData(key.key, shaderBuilder.uniforms, shaderBuilder.storages, shaderBuilder.pushConstants)
+			}
+
 
 			val shaderModule = VulkanShaderModule(shaderData, stage, vulkan.device, pointer[0])
 			shaderModuleMap.put(key, shaderModule)?.delete()
@@ -281,7 +288,13 @@ class ShaderLoader private constructor() : Deletable {
 
 		fun compileGlslAsSpirv(loader: ResourcesLoader, fileName: String, code: String, stage: ShaderStage): ByteBuffer? {
 
-			// VULKAN is automatically defined I guess?
+			val vulkan = (loader.factory as VulkanResourceFactory).vulkan
+			val spirvVersion =
+				if (vulkan.device.versionAtLeast(VK13.VK_API_VERSION_1_3)) Shaderc.shaderc_spirv_version_1_6
+				else if (vulkan.device.versionAtLeast(VK13.VK_API_VERSION_1_2)) Shaderc.shaderc_spirv_version_1_5
+				else if (vulkan.device.versionAtLeast(VK13.VK_API_VERSION_1_1)) Shaderc.shaderc_spirv_version_1_3
+				else Shaderc.shaderc_spirv_version_1_0
+
 			var vulkanCode = addMacro(code, "VULKAN")
 			vulkanCode = vulkanCode.replace("gl_VertexID", "gl_VertexIndex")
 			vulkanCode = vulkanCode.replace("gl_InstanceID", "gl_InstanceIndex")
@@ -293,8 +306,8 @@ class ShaderLoader private constructor() : Deletable {
 
 			val resolver: ShadercIncludeResolve = IncludeResolver(loader, fileName.substringBeforeLast('/') + '/')
 			val releaser: ShadercIncludeResultRelease = Releaser()
-			Shaderc.shaderc_compile_options_set_target_env(options, Shaderc.shaderc_target_env_vulkan, Shaderc.shaderc_env_version_vulkan_1_2)
-			Shaderc.shaderc_compile_options_set_target_spirv(options, Shaderc.shaderc_spirv_version_1_4)
+			Shaderc.shaderc_compile_options_set_target_env(options, Shaderc.shaderc_target_env_vulkan, vulkan.instance.capabilities.apiVersion)
+			Shaderc.shaderc_compile_options_set_target_spirv(options, spirvVersion)
 			Shaderc.shaderc_compile_options_set_optimization_level(options, Shaderc.shaderc_optimization_level_performance)
 			Shaderc.shaderc_compile_options_set_include_callbacks(options, resolver, releaser, 0L)
 

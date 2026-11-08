@@ -15,7 +15,9 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.Struct
 import org.lwjgl.system.StructBuffer
+import unsigned.Uint
 import unsigned.Ushort
+import unsigned.toUint
 import java.nio.BufferOverflowException
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
@@ -26,6 +28,18 @@ fun ByteBuffer.getUshort(i: Int): Ushort {
     val l = this[i + 1].ub.us shl 8
     val s = this[i].ub.i
     return l or s
+}
+
+fun ByteBuffer.getUInt(i: Int): UInt {
+	return getInt(i).toUInt()
+}
+
+fun ByteBuffer.getUint(i: Int): Uint {
+	return getInt(i).toUint()
+}
+
+fun ByteBuffer.putUint(index: Int, i: Uint): ByteBuffer {
+	return putInt(index, i.toInt())
 }
 
 fun ByteBuffer.getVec2(offset: Int = 0): Vec2 = Vec2(getFloat(offset), getFloat(offset + 4))

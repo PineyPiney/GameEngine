@@ -21,6 +21,8 @@ import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -62,8 +64,8 @@ class Game3D(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic(
 		indicesMult = it.value
 	}
 
-	private val crosshair =
-		GameObject.simpleRenderedGameObject("Crosshair", ShaderLoader[ResourceKey("crosshair"), ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair")], Vec3(0f), Vec3(Vec2(.2f), 1f)) {}
+	val crosshairShader = ShaderLoader[ResourceKey("crosshair"), ResourceKey("vertex/crosshair"), ResourceKey("fragment/crosshair"), RenderShaderParameters(vertexLayout = VertexBufferLayout.POS2D)]
+	private val crosshair = GameObject.simpleRenderedGameObject("Crosshair", crosshairShader, Vec3(0f), Vec3(Vec2(.2f), 1f)) {}
 
 	private val cursorRay = GameObject.simpleModelledGameObject("Cursor Ray", ModelLoader[ResourceKey("gltf/Arrow")], ModelRendererComponent.meshPbr)
 

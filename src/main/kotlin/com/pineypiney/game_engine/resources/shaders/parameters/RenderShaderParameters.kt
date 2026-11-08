@@ -8,6 +8,7 @@ data class RenderShaderParameters(
 	var cullMode: CullMode = CullMode.BACK,
 	var depthTestOp: CompareOp? = CompareOp.GEQUAL,
 	var blending: Blending? = Blending.DEFAULT,
+	var vertexLayout: VertexBufferLayout = VertexBufferLayout(emptyList()),
 	var tesselation: Int = -1,
 	var multisampling: Int = 1
 ) {
@@ -27,6 +28,7 @@ data class RenderShaderParameters(
 			Codec.enum(CullMode::valueOf).optional(CullMode.BACK).field(RenderShaderParameters::cullMode, "cullMode"),
 			Codec.enum(CompareOp::valueOf).opnull(CompareOp.GEQUAL).field(RenderShaderParameters::depthTestOp, "depthTest"),
 			Blending.CODEC.opnull(Blending.DEFAULT).field(RenderShaderParameters::blending, "blending"),
+			VertexBufferLayout.CODEC.field("vertices", RenderShaderParameters::vertexLayout),
 			Codec.INT.optional(-1).field(RenderShaderParameters::tesselation, "tessPatches"),
 			Codec.INT.optional(1).field(RenderShaderParameters::multisampling, "multisampling"),
 			::RenderShaderParameters

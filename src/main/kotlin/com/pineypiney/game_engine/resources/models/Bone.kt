@@ -4,6 +4,8 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.I
 import glm_.mat4x4.Mat4
@@ -99,7 +101,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 			calculateColour()
 		)
 
-		shader.draw("vertexBuffer", Mesh.centerSquareShape, renderer)
+		shader.draw(Mesh.centerSquareShape, renderer)
 
 		for (it in children) {
 			it.render(renderer, shader, model)
@@ -127,7 +129,7 @@ class Bone(val parent: Bone?, val id: Int, val name: String, val sid: String, va
 
 	companion object {
 		val boneMatrix = I.translate(Vec3(0, 0.33, 0)).scale(Vec3(0.2, 0.6, 1))
-		val boneShader = ShaderLoader[ResourceKey("bone"), ResourceKey("vertex/pass_pos_2D"), ResourceKey("fragment/bones")]
+		val boneShader = ShaderLoader[ResourceKey("bone"), ResourceKey("vertex/pass_pos_2D"), ResourceKey("fragment/bones"), RenderShaderParameters(vertexLayout = VertexBufferLayout.POS2D)]
 
 //		fun generateBoneMesh(): IndicesMesh {
 //

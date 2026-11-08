@@ -10,7 +10,7 @@ import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK12
 import java.nio.ByteBuffer
 
-open class VulkanIndexedMesh(vulkan: VulkanManager, name: String, verticesData: ByteBuffer, indicesData: ByteBuffer, attributes: Map<VertexAttribute<*, *>, Long>) : VulkanMesh(vulkan, attributes) {
+open class VulkanIndexedMesh(vulkan: VulkanManager, name: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>, indicesData: ByteBuffer) : VulkanMesh(vulkan) {
 
 	override val count = indicesData.capacity() / 4
 
@@ -22,17 +22,10 @@ open class VulkanIndexedMesh(vulkan: VulkanManager, name: String, verticesData: 
 	init {
 
 		MemoryStack.stackPush().use { stack ->
-			val vertexBuffer = VmaBuffer.create(
-				vulkan.device, stack, verticesData.capacity().toLong(),
-				VK12.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT or
-						VK12.VK_BUFFER_USAGE_TRANSFER_SRC_BIT or
-						VK12.VK_BUFFER_USAGE_TRANSFER_DST_BIT or
-						VK12.VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-				Vma.VMA_MEMORY_USAGE_GPU_ONLY, "$name Mesh Vertices"
-			)
-			val vertexBufferAddress = vulkan.device.getBufferAddress(stack, vertexBuffer)
-
-			buffers = listOf(VulkanVertexBuffer(vulkan, attributes.keys.sumOf { it.bytes }, attributes, verticesData.capacity().toLong(), vertexBuffer, vertexBufferAddress))
+			this.buffers = buffers.map { (data, attribs) ->
+				val vma = createBuffer(stack, vulkan.device, "$name Array Mesh", data.capacity().toLong())
+				(VulkanVertexBuffer(vulkan, attribs.keys.sumOf { it.bytes }, attribs, data.capacity().toLong(), vma))
+			}
 
 			indexBuffer = VmaBuffer.create(
 				vulkan.device, stack, indicesData.capacity().toLong(),
@@ -44,28 +37,37 @@ open class VulkanIndexedMesh(vulkan: VulkanManager, name: String, verticesData: 
 			val staging = VmaBuffer.create(
 				vulkan.device,
 				stack,
-				(verticesData.capacity() + indicesData.capacity()).toLong(),
+				(buffers.sumOf { it.first.capacity() } + indicesData.capacity()).toLong(),
 				VK12.VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 				Vma.VMA_MEMORY_USAGE_CPU_ONLY,
 				"Indexed Mesh Upload Staging"
 			)
 
 			// Fill the staging buffer with the data on the CPU
-			val b = staging.getBuffer(verticesData.capacity() + indicesData.capacity())
-			b.put(verticesData).put(indicesData)
+			val b = staging.getBuffer()
+			for ((data, _) in buffers) b.put(data)
+			b.put(indicesData)
 
 			// Copy the data from staging into the vertex and index buffers on the GPU
 			vulkan.submitter.submitImmediate { cmd ->
-				cmd.copyBuffer(staging.buffer, vertexBuffer.buffer, 0L, 0L, verticesData.capacity().toLong())
-				cmd.copyBuffer(staging.buffer, indexBuffer.buffer, verticesData.capacity().toLong(), 0L, indicesData.capacity().toLong())
+				var offset = 0L
+				for (buffer in this.buffers) {
+					cmd.copyBuffer(staging.buffer, buffer.vertexBuffer.buffer, offset, 0L, buffer.size)
+					offset += buffer.size
+				}
+				cmd.copyBuffer(staging.buffer, indexBuffer.buffer, offset, 0L, indicesData.capacity().toLong())
 			}
 
 			staging.delete()
 		}
 	}
 
-	override fun draw(api: RenderingApi, mode: Int) {
+	override fun bind(api: RenderingApi) {
+		api.bindVertices(this)
 		api.bindIndices(indexBuffer.buffer, 0L, VK10.VK_INDEX_TYPE_UINT32)
+	}
+
+	override fun draw(api: RenderingApi, mode: Int) {
 		api.drawIndexed(count, 0, 0)
 	}
 

@@ -42,7 +42,7 @@ class VulkanFrameObjects(device: VulkanDevice, name: String) : Deletable {
 	}
 
 	fun begin(flags: Int = VK10.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT): PoolAndBuffer {
-		commands.resetBuffer()
+		commands.resetPool()
 		commands.begin(flags)
 		return commands
 	}

@@ -27,7 +27,7 @@ class CheckBoxComponent(parent: GameObject, val action: (Boolean) -> Unit) : Def
 
 	companion object {
 
-		val checkboxShader = ShaderLoader[ResourceKey("menu_checkbox"), ResourceKey("vertex/menu"), ResourceKey("fragment/checkbox")]
+		val checkboxShader = ShaderLoader.loadRenderShader(ResourceKey("menu/checkbox"))
 
 		fun createCheckBox(name: String, ticked: Boolean = false, action: (Boolean) -> Unit = {}): Pair<GameObject, CheckBoxComponent>{
 			val obj = GameObject(name, 1)

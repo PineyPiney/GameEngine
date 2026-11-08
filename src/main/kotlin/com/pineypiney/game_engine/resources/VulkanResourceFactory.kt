@@ -38,8 +38,8 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 	override fun createRenderShader(id: ResourceKey, vertex: ShaderModule, fragment: ShaderModule, stages: List<ShaderModule>, parameters: RenderShaderParameters): RenderShader {
 		val builder = VulkanGraphicsPipeline.Builder()
 			.shaders(vertex as VulkanShaderModule, fragment as VulkanShaderModule, stages as List<VulkanShaderModule>)
-			.generateLayout(vulkan.device)
 			.parameters(parameters)
+			.generateLayout(vulkan.device)
 			.colourFormat(vulkan.colourFormat.vulkan)
 			.depthFormat(vulkan.depthFormat.vulkan)
 
@@ -63,44 +63,40 @@ class VulkanResourceFactory(val vulkan: VulkanManager) : ResourceFactory() {
 	override fun nullTexture2D(): Texture2D = VulkanImage2D(vulkan.device, "null", 0, 0, TextureFormat.R8, 0, 0, 0)
 	override fun nullTexture3D(): Texture3D = VulkanImage3D(vulkan.device, "null", 0, 0, TextureFormat.R8, 0, 0, 0, 0)
 
-	override fun createTexture2D(name: String, width: Int, height: Int, format: TextureFormat, dataFormat: TextureFormat, data: ByteBuffer?, params: TextureParameters): Texture2D {
+	override fun createTexture2D(name: String, width: Int, height: Int, format: TextureFormat, data: ByteBuffer?, params: TextureParameters): Texture2D {
 		val usage = VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT or
 				VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT or
 				params.usage.vulkan
 
 		val image = VkUtil.createImage(vulkan.device, name, format, usage, VK10.VK_IMAGE_ASPECT_COLOR_BIT, Vec2i(width, height), params)
-		vulkan.submitter.submitImmediate { cmd ->
-			if (data != null) image.uploadData(cmd, format, data)
-			else image.transition(cmd, VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		if (data != null) vulkan.submitter.submitImmediate { cmd ->
+			image.uploadData(cmd, format, data)
 		}
 		return image
 	}
 
-	override fun createTexture3D(name: String, width: Int, height: Int, depth: Int, format: TextureFormat, dataFormat: TextureFormat, data: ByteBuffer?, params: TextureParameters): Texture3D {
+	override fun createTexture3D(name: String, width: Int, height: Int, depth: Int, format: TextureFormat, data: ByteBuffer?, params: TextureParameters): Texture3D {
 		val usage = VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT or
 				VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT or
 				params.usage.vulkan
 
 		val image = VkUtil.createImage3D(vulkan.device, name, format, usage, VK10.VK_IMAGE_ASPECT_COLOR_BIT, Vec3i(width, height, depth), params)
-		if (data != null) vulkan.submitter.submitImmediate { cmd -> image.uploadData(cmd, dataFormat, data) }
+		if (data != null) vulkan.submitter.submitImmediate { cmd -> image.uploadData(cmd, format, data) }
 		return image
 	}
 
 	override fun createArrayMesh(name: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>): Mesh {
-		val (vertices, attributes) = singleStream(buffers)
-		val mesh = VulkanArrayMesh(vulkan, name, vertices, attributes)
+		val mesh = VulkanArrayMesh(vulkan, name, buffers)
 		return mesh
 	}
 
 	override fun createIndexedMesh(name: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>, indices: IntArray): Mesh {
-		val (vertices, attributes) = singleStream(buffers)
-		val mesh = VulkanIndexedMesh(vulkan, name, vertices, indices.toBuffer(), attributes)
+		val mesh = VulkanIndexedMesh(vulkan, name, buffers, indices.toBuffer())
 		return mesh
 	}
 
 	override fun createModelMesh(id: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>, indices: IntArray, material: ModelMaterial): ModelMesh {
-		val (vertices, attributes) = singleStream(buffers)
-		val mesh = VulkanModelMesh(vulkan, id, vertices, indices.toBuffer(), attributes, material)
+		val mesh = VulkanModelMesh(vulkan, id, buffers, indices.toBuffer(), material)
 		return mesh
 	}
 

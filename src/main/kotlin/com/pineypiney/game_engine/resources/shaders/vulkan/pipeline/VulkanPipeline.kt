@@ -3,16 +3,12 @@ package com.pineypiney.game_engine.resources.shaders.vulkan.pipeline
 import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.rendering.RenderingApi
-import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanMesh
-import com.pineypiney.game_engine.resources.shaders.DataType
-import com.pineypiney.game_engine.resources.shaders.Shader
-import com.pineypiney.game_engine.resources.shaders.ShaderStage
-import com.pineypiney.game_engine.resources.shaders.ShaderStorageBuffer
+import com.pineypiney.game_engine.resources.shaders.*
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniform
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.resources.shaders.vulkan.*
 import com.pineypiney.game_engine.resources.textures.Texture
+import com.pineypiney.game_engine.resources.textures.TextureFormat
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.put
@@ -135,10 +131,6 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 
 	override fun setTexture(binding: Int, texture: Texture) {
 		setImage(binding, texture as VulkanImage)
-	}
-
-	override fun setMesh(name: String, mesh: Mesh) {
-		setLong(name, (mesh as VulkanMesh).vertexBufferAddress)
 	}
 
 	override fun setBool(name: String, value: Boolean) {
@@ -494,9 +486,6 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 	}
 
 	companion object {
-		fun compileVertexInputs(device: VulkanDevice, data: Map<ShaderStage, VulkanShaderData>) {
-
-		}
 
 		fun compileDescriptorLayouts(device: VulkanDevice, data: Map<ShaderStage, VulkanShaderData>): List<VulkanDescriptorLayout> {
 			val builders = mutableListOf<VulkanDescriptorLayout.Builder>()
@@ -577,6 +566,54 @@ abstract class VulkanPipeline(val pipeline: Long, val layout: VulkanPipelineLayo
 			val array = DoubleArray(size)
 			buffer.asDoubleBuffer().get(size * i, array)
 			return array
+		}
+
+		fun getVulkanFormat(type: DataType): TextureFormat? {
+			return when (type) {
+				is DataType.Vec -> {
+					when (type.type) {
+						GLSLType.FLOAT -> {
+							when (type.length) {
+								2 -> TextureFormat.RG32F
+								3 -> TextureFormat.RGB32F
+								4 -> TextureFormat.RGBA32F
+								else -> null
+							}
+						}
+
+						GLSLType.INT -> {
+							when (type.length) {
+								2 -> TextureFormat.RG32I
+								3 -> TextureFormat.RGB32I
+								4 -> TextureFormat.RGBA32I
+								else -> null
+							}
+						}
+
+						GLSLType.UINT -> {
+							when (type.length) {
+								2 -> TextureFormat.RG32UI
+								3 -> TextureFormat.RGB32UI
+								4 -> TextureFormat.RGBA32UI
+								else -> null
+							}
+						}
+
+						else -> null
+					}
+				}
+
+				is DataType.Primitive -> {
+					when (type.type) {
+						GLSLType.FLOAT -> TextureFormat.R32F
+						GLSLType.INT -> TextureFormat.R32I
+						GLSLType.UINT -> TextureFormat.R32UI
+						else -> null
+					}
+				}
+
+				else -> null
+			}
 		}
 	}
 

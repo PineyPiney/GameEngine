@@ -63,7 +63,7 @@ interface Texture3D : Texture {
 	 */
 	fun crop(origin: Vec3i, tr: Vec3i): Texture3D {
 		val size = tr - origin
-		val texture = ResourceFactory.INSTANCE.createTexture3D("Cropping of $id", size.x, size.y, size.z, format, format, null, TextureParameters())
+		val texture = ResourceFactory.INSTANCE.createTexture3D("Cropping of $id", size.x, size.y, size.z, format, null, TextureParameters())
 
 		val copier = createCopier()
 		copier.init()
@@ -84,7 +84,7 @@ interface Texture3D : Texture {
 	companion object {
 
 		fun create(id: String, width: Int, height: Int, depth: Int, format: TextureFormat, internalFormat: TextureFormat = format, params: TextureParameters = TextureParameters()): Texture3D {
-			return ResourceFactory.INSTANCE.createTexture3D(id, width, height, depth, format, internalFormat, null, params)
+			return ResourceFactory.INSTANCE.createTexture3D(id, width, height, depth, format, null, params)
 		}
 
 		lateinit var none: Texture3D
@@ -92,7 +92,7 @@ interface Texture3D : Texture {
 
 		fun initDefaultTextures(factory: ResourceFactory) {
 			none = factory.nullTexture3D()
-			missing = factory.createTexture3D("missing", 32, 32, 1, TextureFormat.RGBA8, TextureFormat.RGBA8, Texture2D.createErrorData(), TextureParameters())
+			missing = factory.createTexture3D("missing", 32, 32, 1, TextureFormat.RGBA8, Texture2D.createErrorData(), TextureParameters())
 
 			DeletionQueue.GLOBAL.push(missing)
 		}

@@ -3,7 +3,6 @@ package com.pineypiney.game_engine.resources.shaders
 import com.pineypiney.game_engine.objects.Deletable
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.RenderingApi
-import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.resources.textures.Texture
 import com.pineypiney.game_engine.util.ResourceKey
@@ -69,8 +68,6 @@ interface Shader : Deletable {
 	fun setTexture(name: String, texture: Texture)
 
 	fun setTexture(binding: Int, texture: Texture)
-
-	fun setMesh(name: String, mesh: Mesh)
 
 	fun setBool(name: String, value: Boolean)
 	fun setBools(name: String, values: BooleanArray)

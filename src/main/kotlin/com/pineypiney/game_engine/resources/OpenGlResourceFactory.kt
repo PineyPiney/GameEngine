@@ -61,13 +61,13 @@ class OpenGlResourceFactory : ResourceFactory() {
 	override fun nullTexture2D(): OpenGlTexture2D = OpenGlTexture2D("Null", 0)
 	override fun nullTexture3D(): OpenGlTexture3D = OpenGlTexture3D("Null", 0)
 
-	override fun createTexture2D(name: String, width: Int, height: Int, format: TextureFormat, dataFormat: TextureFormat, data: ByteBuffer?, params: TextureParameters): OpenGlTexture2D {
-		val pointer = OpenGlTexture2D.createPointer(data, dataFormat, width, height, format.opengl, params)
+	override fun createTexture2D(name: String, width: Int, height: Int, format: TextureFormat, data: ByteBuffer?, params: TextureParameters): OpenGlTexture2D {
+		val pointer = OpenGlTexture2D.createPointer(data, format, width, height, format.opengl, params)
 		return OpenGlTexture2D(name, pointer, params.target)
 	}
 
-	override fun createTexture3D(name: String, width: Int, height: Int, depth: Int, format: TextureFormat, dataFormat: TextureFormat, data: ByteBuffer?, params: TextureParameters): OpenGlTexture3D {
-		val pointer = OpenGlTexture3D.createPointer(data, dataFormat, width, height, depth, format.opengl, params)
+	override fun createTexture3D(name: String, width: Int, height: Int, depth: Int, format: TextureFormat, data: ByteBuffer?, params: TextureParameters): OpenGlTexture3D {
+		val pointer = OpenGlTexture3D.createPointer(data, format, width, height, depth, format.opengl, params)
 		return OpenGlTexture3D(name, pointer, params.target)
 	}
 

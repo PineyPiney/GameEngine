@@ -31,8 +31,7 @@ class Collision3DPolygonRenderer(parent: GameObject, val obj: GameObject, val wi
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		shader.draw("vertexBuffer", mesh, renderer)
-//		mesh.bindAndDraw(renderer.getRenderingApi(), GL11C.GL_LINE_LOOP)
+		shader.draw(mesh, renderer)
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)

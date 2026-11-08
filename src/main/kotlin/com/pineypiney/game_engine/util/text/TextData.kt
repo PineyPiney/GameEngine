@@ -7,7 +7,8 @@ import com.pineypiney.game_engine.resources.ResourceFactory
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.DeletionQueue
 import glm_.vec2.Vec2
-import kool.toBuffer
+import org.lwjgl.BufferUtils
+import java.nio.ByteBuffer
 
 class TextData : Deletable {
 
@@ -25,18 +26,20 @@ class TextData : Deletable {
 	}
 
 	constructor(factory: ResourceFactory, text: String, chars: Array<CharacterQuad>, texture: Texture2D = Texture2D.missing, xOffsets: FloatArray = FloatArray(0), yOffset: Float = 0f) {
-		val bufferData = chars.flatMap { it.getVertices() }.toFloatArray().toBuffer()
-		val attribs = Mesh.createAttributes(
-			listOf(
-				VertexAttribute.POSITION2D,
-				VertexAttribute.TEX_COORD
-			)
+		val positions = BufferUtils.createByteBuffer(chars.size * 32)
+		val uvs = BufferUtils.createByteBuffer(chars.size * 32)
+		for (char in chars) {
+			char.getPositions(positions)
+			char.getUVs(uvs)
+		}
+		val buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>> = listOf(
+			positions.flip() to mapOf(VertexAttribute.POSITION2D to 0L),
+			uvs.flip() to mapOf(VertexAttribute.TEX_COORD to 0L)
 		)
 		mesh = factory.createIndexedMesh(
-			"Text '$text'",
-			listOf(bufferData to attribs),
+			"Text '$text'", buffers,
 			createIndices(chars.size)
-			)
+		)
 		this.texture = texture
 		this.xOffsets = xOffsets
 		this.yOffset = yOffset
@@ -58,13 +61,17 @@ class TextData : Deletable {
 
 	class CharacterQuad(val bl: Vec2, val tr: Vec2, val tbl: Vec2, val ttr: Vec2) {
 
-		fun getVertices(): List<Float> {
-			return listOf(
-				bl.x, bl.y, tbl.x, tbl.y,
-				tr.x, bl.y, ttr.x, tbl.y,
-				tr.x, tr.y, ttr.x, ttr.y,
-				bl.x, tr.y, tbl.x, ttr.y,
-			)
-		}
+		fun getPositions(buffer: ByteBuffer): ByteBuffer = buffer
+			.putFloat(bl.x).putFloat(bl.y)
+			.putFloat(tr.x).putFloat(bl.y)
+			.putFloat(tr.x).putFloat(tr.y)
+			.putFloat(bl.x).putFloat(tr.y)
+
+		fun getUVs(buffer: ByteBuffer): ByteBuffer = buffer
+			.putFloat(tbl.x).putFloat(tbl.y)
+			.putFloat(ttr.x).putFloat(tbl.y)
+			.putFloat(ttr.x).putFloat(ttr.y)
+			.putFloat(tbl.x).putFloat(ttr.y)
+
 	}
 }

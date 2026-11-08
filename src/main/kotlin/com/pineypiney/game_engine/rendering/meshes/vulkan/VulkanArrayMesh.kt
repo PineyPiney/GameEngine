@@ -9,48 +9,49 @@ import org.lwjgl.util.vma.Vma
 import org.lwjgl.vulkan.VK12
 import java.nio.ByteBuffer
 
-open class VulkanArrayMesh(vulkan: VulkanManager, name: String, verticesData: ByteBuffer, attributes: Map<VertexAttribute<*, *>, Long>) : VulkanMesh(vulkan, attributes) {
+open class VulkanArrayMesh(vulkan: VulkanManager, name: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>) : VulkanMesh(vulkan) {
 
-	val stride by lazy { this.attributes.keys.sumOf { it.bytes } }
-	override val count = verticesData.capacity() / stride
+	final override val count: Int
 	final override val buffers: List<VulkanVertexBuffer>
 
 	init {
 
 		MemoryStack.stackPush().use { stack ->
-			val vertexBuffer = VmaBuffer.create(
-				vulkan.device, stack, verticesData.capacity().toLong(),
-				VK12.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT or
-						VK12.VK_BUFFER_USAGE_TRANSFER_SRC_BIT or
-						VK12.VK_BUFFER_USAGE_TRANSFER_DST_BIT or
-						VK12.VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-				Vma.VMA_MEMORY_USAGE_GPU_ONLY, "$name Vertices"
-			)
-			val vertexBufferAddress = vulkan.device.getBufferAddress(stack, vertexBuffer)
-
-			buffers = listOf(VulkanVertexBuffer(vulkan, attributes.keys.sumOf { it.bytes }, attributes, verticesData.capacity().toLong(), vertexBuffer, vertexBufferAddress))
-
+			this.buffers = buffers.map { (data, attribs) ->
+				val vma = createBuffer(stack, vulkan.device, "$name Array Mesh", data.capacity().toLong())
+				(VulkanVertexBuffer(vulkan, attribs.keys.sumOf { it.bytes }, attribs, data.capacity().toLong(), vma))
+			}
+			this.count = this.buffers.first().run { size / stride }.toInt()
 
 			// This staging buffer will be filled on the CPU and used to fill the GPU only buffers
 			val staging = VmaBuffer.create(
 				vulkan.device,
 				stack,
-				verticesData.capacity().toLong(),
+				buffers.sumOf { it.first.capacity() }.toLong(),
 				VK12.VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 				Vma.VMA_MEMORY_USAGE_CPU_ONLY,
 				"Array Mesh Upload Staging"
 			)
 
 			// Fill the staging buffer with the data on the CPU
-			staging.getBuffer().put(verticesData)
+			val stagingData = staging.getBuffer()
+			for ((data, _) in buffers) stagingData.put(data)
 
 			// Copy the data from staging into the vertex and index buffers on the GPU
 			vulkan.submitter.submitImmediate { cmd ->
-				cmd.copyBuffer(staging.buffer, vertexBuffer.buffer, 0L, 0L, verticesData.capacity().toLong())
+				var offset = 0L
+				for (buffer in this.buffers) {
+					cmd.copyBuffer(staging.buffer, buffer.vertexBuffer.buffer, offset, 0L, buffer.size)
+					offset += buffer.size
+				}
 			}
 
 			staging.delete()
 		}
+	}
+
+	override fun bind(api: RenderingApi) {
+		api.bindVertices(this)
 	}
 
 	override fun draw(api: RenderingApi, mode: Int) {

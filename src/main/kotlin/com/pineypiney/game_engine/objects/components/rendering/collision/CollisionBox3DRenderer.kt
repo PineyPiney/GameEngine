@@ -36,7 +36,7 @@ class CollisionBox3DRenderer(
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		shader.draw("vertexBuffer", mesh, renderer)
+		shader.draw(mesh, renderer)
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)

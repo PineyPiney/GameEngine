@@ -2,6 +2,8 @@ package com.pineypiney.game_engine.rendering.opengl
 
 import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.RenderingApi
+import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlMesh
 import com.pineypiney.game_engine.resources.shaders.StencilOp
 import com.pineypiney.game_engine.resources.shaders.parameters.CompareOp
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipeline
@@ -55,8 +57,8 @@ object OpenGlRendering : RenderingApi {
 		OpenGlFramebuffer.unbind()
 	}
 
-	override fun bindVertices(handle: Int) {
-		GL33C.glBindVertexArray(handle)
+	override fun bindVertices(mesh: Mesh) {
+		GL33C.glBindVertexArray((mesh as OpenGlMesh).VAO)
 	}
 
 	override fun bindIndices(handle: Int) {

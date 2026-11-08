@@ -39,7 +39,7 @@ open class SpriteComponent(
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
 
-		shader.draw("vertexBuffer", sprite.fetchMesh(), renderer)
+		shader.draw(sprite.fetchMesh(), renderer)
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(sprite.fetchMesh())

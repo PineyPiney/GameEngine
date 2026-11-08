@@ -30,7 +30,7 @@ class ChildScissorRenderer(
 
 		val viewport = renderer.getViewport()
 		if(transform is PixelTransformComponent && transform.screenRelative) {
-			val scissorOrigin = renderer.getViewport().size * (transform.origin + Vec2(1f)) * .5f + transform.pixelPos
+			val scissorOrigin = Vec2i((transform.origin * .5f + Vec2(.5f)) * renderer.getViewport().size) + transform.pixelPos
 			val view = Viewport(scissorOrigin, scissorOrigin + transform.pixelScale)
 			api.setScissors(view)
 		}

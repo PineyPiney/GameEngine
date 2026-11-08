@@ -8,11 +8,9 @@ import com.pineypiney.game_engine.rendering.DefaultWindowGameRenderer
 import com.pineypiney.game_engine.rendering.GameRenderer
 import com.pineypiney.game_engine.rendering.cameras.PerspectiveCamera
 import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.resources.shaders.parameters.CullMode
-import com.pineypiney.game_engine.resources.shaders.parameters.InputTopology
-import com.pineypiney.game_engine.resources.shaders.parameters.PolygonMode
-import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.*
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.InputState
@@ -42,7 +40,12 @@ class TesselationShaderTest(override val gameEngine: WindowedGameEngineI<*>) : W
 	val shader = ShaderLoader[ResourceKey("tesselation_test"), ResourceKey("vertex/pass_through"), ResourceKey("fragment/texture"), listOf(
 		ResourceKey("tessellation/dynamic_lod"),
 		ResourceKey("tessellation/random_colour")
-	), RenderShaderParameters(InputTopology.PATCHES, cullMode = CullMode.NONE, tesselation = 4)]
+	), RenderShaderParameters(
+		InputTopology.PATCHES, cullMode = CullMode.NONE, tesselation = 4, vertexLayout = VertexBufferLayout.consecutive(
+			listOf(VertexAttribute.POSITION),
+			listOf(VertexAttribute.TEX_COORD)
+		)
+	)]
 	val wireframeShader = shader.withParameters(ResourceKey("tesselation_test_wireframe"), shader.parameters.copy(fillMode = PolygonMode.LINE))
 	val uniformValues = mutableMapOf<String, Any>()
 

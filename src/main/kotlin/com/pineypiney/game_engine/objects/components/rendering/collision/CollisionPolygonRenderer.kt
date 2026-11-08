@@ -10,7 +10,6 @@ import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.parameters.CullMode
-import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.PIF
 import com.pineypiney.game_engine.util.extension_functions.fromAngle
@@ -54,10 +53,9 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, var wid
 		}
 		mesh?.let {
 			shader.setUp(uniforms, renderer)
-			shader.draw("vertexBuffer", it, renderer)
-//			it.bindAndDraw(renderer.getRenderingApi(), GL11C.GL_LINE_LOOP)
+			shader.draw(it, renderer)
 		}
-		pointMesh?.let { shader.draw("vertexBuffer", it, renderer) }
+		pointMesh?.let { shader.draw(it, renderer) }
 	}
 
 	override fun delete() {
@@ -69,7 +67,7 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, var wid
 	override fun getMeshes(): Collection<Mesh> = mesh?.let { listOf(it) } ?: emptyList()
 
 	companion object {
-		val defaultShader = ColourRendererComponent.shader2D.withParameters(ResourceKey("2d_polygon"), RenderShaderParameters(cullMode = CullMode.NONE))
+		val defaultShader = ColourRendererComponent.shader2D.withParameters(ResourceKey("2d_polygon"), ColourRendererComponent.shader2D.parameters.copy(cullMode = CullMode.NONE))
 
 		fun getPoints(shape: Shape2D?): Collection<Vec2>? {
 			return when(shape){
@@ -82,7 +80,7 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, var wid
 		}
 
 		fun createMesh(name: String, points: List<Vec2>, width: Float): Mesh {
-			val builder = IndexedMeshBuilder(VertexAttribute.POSITION2D, VertexAttribute.TEX_COORD)
+			val builder = IndexedMeshBuilder(listOf(setOf(VertexAttribute.POSITION2D), setOf(VertexAttribute.TEX_COORD)))
 			val numPoints = points.size
 			for (i in points.indices) {
 				val p1 = points[i]
@@ -110,7 +108,7 @@ class CollisionPolygonRenderer(parent: GameObject, var obj: GameObject?, var wid
 		}
 
 		fun createPointMesh(name: String, points: Iterable<Vec2>, pointWidth: Float): Mesh {
-			val builder = IndexedMeshBuilder(VertexAttribute.POSITION2D, VertexAttribute.TEX_COORD)
+			val builder = IndexedMeshBuilder(listOf(setOf(VertexAttribute.POSITION2D), setOf(VertexAttribute.TEX_COORD)))
 			for (point in points) {
 				builder.startQuad()
 					.vertex(point.x - pointWidth, point.y - pointWidth)

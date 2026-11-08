@@ -23,8 +23,6 @@ class IndexedMeshBuilder(val attributes: List<Set<VertexAttribute<*, *>>>) {
 
 	var modifier: Modifier? = null
 
-	val vertexSize = attributes.sumOf { it.sumOf(VertexAttribute<*, *>::bytes) }
-
 	fun hasAttribute(attribute: VertexAttribute<*, *>) = attributes.any { it.contains(attribute) }
 
 	fun vertex(x: Float, y: Float, z: Float): IndexedMeshBuilder {
@@ -134,27 +132,26 @@ class IndexedMeshBuilder(val attributes: List<Set<VertexAttribute<*, *>>>) {
 		} ?: indices.add(index)
 	}
 
+	fun compileBuffer(attribs: Collection<VertexAttribute<*, *>>): ByteBuffer {
+		val vertexSize = attribs.sumOf(VertexAttribute<*, *>::bytes)
+		val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
+		for ((i, vertex) in vertices.withIndex()) {
+			vertex.putData(vertexBuffer, attribs, i * vertexSize)
+		}
+		return vertexBuffer
+	}
+
 	fun buildVertices(): List<ByteBuffer> {
 		addVertex()
 		started = false
-		return attributes.map { attribs ->
-			val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
-			for ((i, vertex) in vertices.withIndex()) {
-				vertex.putData(vertexBuffer, attribs, i * vertexSize)
-			}
-			vertexBuffer
-		}
+		return attributes.map(::compileBuffer)
 	}
 
 	fun build(name: String): Mesh {
 		addVertex()
 		started = false
 		val buffers = attributes.map { attribs ->
-			val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
-			for ((i, vertex) in vertices.withIndex()) {
-				vertex.putData(vertexBuffer, attribs, i * vertexSize)
-			}
-			vertexBuffer to Mesh.createAttributes(attribs)
+			compileBuffer(attribs) to Mesh.createAttributes(attribs)
 		}
 
 		return ResourceFactory.INSTANCE.createIndexedMesh(name, buffers, indices.toIntArray())
@@ -164,11 +161,7 @@ class IndexedMeshBuilder(val attributes: List<Set<VertexAttribute<*, *>>>) {
 		addVertex()
 		started = false
 		val buffers = attributes.map { attribs ->
-			val vertexBuffer = BufferUtils.createByteBuffer(vertexSize * vertices.size)
-			for ((i, vertex) in vertices.withIndex()) {
-				vertex.putData(vertexBuffer, attribs, i * vertexSize)
-			}
-			vertexBuffer to Mesh.createAttributes(attribs)
+			compileBuffer(attribs) to Mesh.createAttributes(attribs)
 		}
 		return factory.createModelMesh(id, buffers, indices.toIntArray(), material)
 	}

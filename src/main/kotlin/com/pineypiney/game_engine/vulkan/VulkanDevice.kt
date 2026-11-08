@@ -50,7 +50,7 @@ class VulkanDevice(val device: VkDevice, val physicalDevice: VulkanPhysicalDevic
 		}
 	}
 
-	fun createCommandPool(stack: MemoryStack, name: String, familyIndex: Int = queueFamilyIndex, flags: Int = VK10.VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT): Long {
+	fun createCommandPool(stack: MemoryStack, name: String, familyIndex: Int = queueFamilyIndex, flags: Int = 0): Long {
 		val createInfo = VkStructs.createCommandPoolInfo(stack, familyIndex, flags)
 		val handle = VkUtil.getLong("Command Pool", this, stack, createInfo, VK10::vkCreateCommandPool)
 		nameObject(handle, VK10.VK_OBJECT_TYPE_COMMAND_POOL, name)

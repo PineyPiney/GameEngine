@@ -24,9 +24,10 @@ import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.models.OpenGlModelMesh
 import com.pineypiney.game_engine.resources.models.materials.PBRMaterial
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.DebugTimer
-import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.PIF
 import com.pineypiney.game_engine.util.extension_functions.addAll
@@ -36,6 +37,7 @@ import com.pineypiney.game_engine.util.input.Inputs
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
 import com.pineypiney.game_engine.util.maths.shapes.AxisAlignedCuboid
 import com.pineypiney.game_engine.util.text.Text
+import com.pineypiney.game_engine.window.CursorMode
 import com.pineypiney.game_engine.window.WindowGameLogic
 import com.pineypiney.game_engine.window.WindowedGameEngineI
 import glm_.mat2x2.Mat2
@@ -45,8 +47,7 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec3.swizzle.xz
 import glm_.vec4.Vec4
-import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.opengl.GL11C
+import org.lwjgl.glfw.GLFW
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.cos
@@ -70,10 +71,14 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 	//val model = ModelLoader[ResourceKey("SavedModel")]
 	val model get() = Model("icosahedron",  arrayOf(createSphereMeshWithTangents(1f, 3)))
 	val firstModel = Model("model", arrayOf(createInvertedCuboid(AxisAlignedCuboid(Vec3(0f), Vec3(1f)))))
-	val modelShader = ShaderLoader[ResourceKey("debug_model"), ResourceKey("vertex/tangent_3D"), ResourceKey("fragment/pbr_lit_tangent_model")]
+	val modelShader =
+		ShaderLoader[ResourceKey("debug_model"), ResourceKey("vertex/tangent_3D"), ResourceKey("fragment/pbr_lit_tangent_model"), RenderShaderParameters(vertexLayout = VertexBufferLayout.POS_TEXNOR_TAN)]
 	private val litModel = GameObject.simpleModelledGameObject("Lit Model", firstModel, ModelRendererComponent.debugTrisShader)
 
-	val debugShader = ShaderLoader[ResourceKey("debug_lighting"), ResourceKey("vertex/tangent_3D"), ResourceKey("fragment/colour_in"), ResourceKey("geometry/visualise_tangents")]
+	val debugShader =
+		ShaderLoader[ResourceKey("debug_lighting"), ResourceKey("vertex/tangent_3D"), ResourceKey("fragment/colour_in"), listOf(ResourceKey("geometry/visualise_tangents")), RenderShaderParameters(
+			vertexLayout = VertexBufferLayout.POS_TEXNOR_TAN
+		)]
 	val debugModel = GameObject.simpleModelledGameObject("Debug Model", firstModel, debugShader)
 
 	var rotatePoint = true
@@ -109,11 +114,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 
 	override fun init() {
 		super.init()
-		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
-		GLFunc.multiSample = true
-		GLFunc.cullFace = true
-		GLFunc.cullFaceMode = GL11C.GL_BACK
-
+		window.setCursorMode(CursorMode.DISABLED)
 		litModel.getComponent<ShaderRenderedComponent>()?.uniforms?.setBoolUniform("doFresnel"){ fresnelBox.getComponent<CheckBoxComponent>()?.ticked == true }
 	}
 
@@ -146,7 +147,7 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 		if(super.onInput(state, action) == InteractorComponent.INTERRUPT) return InteractorComponent.INTERRUPT
 
 		if(action == 1){
-			if(state.i == GLFW_KEY_ESCAPE){
+			if (state.i == GLFW.GLFW_KEY_ESCAPE) {
 				window.shouldClose = true
 			}
 			else if(state.triggers(InputState('S', 2))){
@@ -178,14 +179,9 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 		if (movementController.look) (torch.getComponent<LightComponent>()?.light as? SpotLight)?.direction = camera.cameraFront
 	}
 
-	override fun updateAspectRatio() {
-		super.updateAspectRatio()
-		GLFunc.viewportO = Vec2i(window.width, window.height)
-	}
-
 	private fun toggleMouse(){
 		movementController.look = !movementController.look
-		glfwSetInputMode(window.windowHandle, GLFW_CURSOR, if (movementController.look) GLFW_CURSOR_DISABLED else GLFW_CURSOR_CAPTURED)
+		window.setCursorMode(if (movementController.look) CursorMode.DISABLED else CursorMode.CAPTURED)
 	}
 
 	fun createSphereMesh(radius: Float, subdivisions: Int): OpenGlModelMesh {
@@ -452,12 +448,13 @@ class LightingTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGame
 			MeshVertex.builder(it.first.normal * radius).normal(it.first.normal).tex(it.first.tex).tangent(
 				//if(it.second.isEmpty()) Vec3(0f, 0f, 1f) else (it.second.fold(Vec3()) { v, t -> v + t } / it.second.size).normalize().cross(it.first.normal).cross(it.first.normal)
 				if(abs(it.first.normal.y) == 1f) Vec3(1f, 0f, 0f) else (it.first.normal.cross(Vec3(0f, 1f, 0f))).normalize()
-			).fillBones().build()
+			).build()
 		}
 		val buffers = MeshVertex.compile(
 			floats, listOf(
 				listOf(VertexAttribute.POSITION),
-				listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD, VertexAttribute.TANGENT, VertexAttribute.BONE_IDS, VertexAttribute.BONE_WEIGHTS)
+				listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD),
+				listOf(VertexAttribute.TANGENT)
 			)
 		)
 		return OpenGlModelMesh(

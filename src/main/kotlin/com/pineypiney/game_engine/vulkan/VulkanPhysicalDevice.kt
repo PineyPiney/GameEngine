@@ -7,6 +7,7 @@ import com.pineypiney.game_engine.util.extension_functions.getVec2i
 import com.pineypiney.game_engine.util.extension_functions.getVec3i
 import com.pineypiney.game_engine.util.extension_functions.stringsToPointer
 import com.pineypiney.game_engine.vulkan.VkUtil.processResult
+import glm_.has
 import org.lwjgl.PointerBuffer
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.Struct
@@ -28,7 +29,10 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 		getLimits()
 
 		for(format in TextureFormat.entries) {
-			format.supported = format.vulkan != -1 && getImageFormatProperties(format.vulkan, VK10.VK_IMAGE_TYPE_2D, VK10.VK_IMAGE_TILING_OPTIMAL, VK10.VK_IMAGE_USAGE_SAMPLED_BIT, 0) != null
+			if (format.vulkan != -1) {
+				val properties = getGpuMemoryFormatProperties(format)
+				format.supported = properties.formatProperties().optimalTilingFeatures() has VK10.VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT
+			}
 		}
 		GameEngineI.logger.info("GPU $name supports the following image formats: ${TextureFormat.entries.filter(TextureFormat::supported).joinToString()}")
 	}
@@ -144,6 +148,15 @@ class VulkanPhysicalDevice(val physicalDevice: VkPhysicalDevice) {
 				.pQueueCreateInfos(queueCreateInfo)
 				.ppEnabledExtensionNames(extensionsPtr)
 				.pEnabledFeatures(features.features())
+
+			if (physicalDevice.capabilities.apiVersion >= VK13.VK_API_VERSION_1_3) {
+				deviceCreateInfo.pNext(
+					VkPhysicalDeviceVulkan13Features.calloc(stack).`sType$Default`()
+						.shaderDemoteToHelperInvocation(true)
+						.dynamicRendering(true)
+						.synchronization2(true)
+				)
+			}
 
 			for(feature in extraFeatures){
 				feature.add(deviceCreateInfo)

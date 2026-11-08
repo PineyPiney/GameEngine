@@ -241,7 +241,8 @@ class ModelLoader private constructor() : DeletableResourceLoader<Model>() {
 			val buffers = MeshVertex.compile(
 				vertices, listOf(
 					listOf(VertexAttribute.POSITION),
-					listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD, VertexAttribute.BONE_IDS, VertexAttribute.BONE_WEIGHTS)
+					listOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD),
+					listOf(VertexAttribute.BONE_IDS, VertexAttribute.BONE_WEIGHTS)
 				)
 			)
 			val mesh = factory.createModelMesh(

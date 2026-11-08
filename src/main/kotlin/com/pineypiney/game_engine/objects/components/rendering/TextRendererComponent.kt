@@ -51,7 +51,7 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		val mesh = text.data.mesh ?: return
 
 		shader.setUp(uniforms, renderer)
-		shader.draw("vertexBuffer", mesh, renderer)
+		shader.draw(mesh, renderer)
 
 		if(text.underlineAmount > 0f){
 			val model = uniforms["model"]!!.getValue(renderer) as Mat4
@@ -78,7 +78,7 @@ open class TextRendererComponent(parent: GameObject, protected val text: Text, v
 		if (shader.hasView) shader.setVP(renderer)
 		shader.setMat4("model", newModel)
 		shader.setVec4("colour", text.colour)
-		shader.draw("vertexBuffer", Mesh.cornerSquareShape, renderer)
+		shader.draw(Mesh.cornerSquareShape, renderer)
 	}
 
 	fun getScreenScale(renderer: RendererI) = size * 2f / renderer.viewportSize.y

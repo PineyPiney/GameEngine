@@ -74,13 +74,10 @@ open class EditorRenderer(
 		aspectRatio = window.aspectRatio
 		api.updateGui(guiProjection, aspectRatio)
 
-		api.bindFramebuffer(framebuffer, Vec4(), camera.getMaxDepth())
+		api.bindFramebuffer(framebuffer, Vec4(.7f, .7f, .7f, 1f), camera.getMaxDepth())
 
 		// Render GUI
-		screenShader.setUp(screenUniforms, this)
-		screenShader.setTexture("screenTexture", sceneFramebuffer.colour)
-		screenShader.draw("vertexBuffer", sceneMesh, getRenderingApi())
-
+		api.drawFramebuffer(sceneFramebuffer, sceneMesh, window, this)
 		renderLayer(1, game, tickDelta) { transformComponent.worldPosition.z }
 
 		api.endFramebuffer(framebuffer)

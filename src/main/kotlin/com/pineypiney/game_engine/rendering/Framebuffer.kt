@@ -12,4 +12,9 @@ interface Framebuffer : Initialisable {
 
 	fun setSize(width: Int, height: Int)
 	fun setSize(size: Vec2i)
+
+	enum class Use {
+		BLIT,
+		DRAW
+	}
 }

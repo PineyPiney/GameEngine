@@ -10,6 +10,8 @@ import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComp
 import com.pineypiney.game_engine.objects.components.widgets.ButtonComponent
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -95,6 +97,7 @@ class ComponentAdder(parent: GameObject, browser: ComponentBrowser): DefaultInte
 	}
 
 	companion object {
-		val shader = ShaderLoader[ResourceKey("close_button"), ResourceKey("vertex/menu"), ResourceKey("fragment/background_texture")]
+		val shader =
+			ShaderLoader[ResourceKey("close_button"), ResourceKey("vertex/menu"), ResourceKey("fragment/background_texture"), RenderShaderParameters(vertexLayout = VertexBufferLayout.POS_TEX)]
 	}
 }

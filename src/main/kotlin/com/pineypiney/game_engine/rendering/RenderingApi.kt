@@ -1,6 +1,7 @@
 package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.objects.Deletable
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.StencilOp
 import com.pineypiney.game_engine.resources.shaders.parameters.CompareOp
 import com.pineypiney.game_engine.resources.shaders.vulkan.pipeline.VulkanPipeline
@@ -24,7 +25,7 @@ interface RenderingApi : Deletable {
 	fun bindFramebuffer(framebuffer: Framebuffer, colour: Vec4 = Vec4(0f), depth: Float = 0f, stencil: Int = 0, viewport: Viewport = Viewport(Vec2i(0), framebuffer.size))
 	fun endFramebuffer(framebuffer: Framebuffer)
 
-	fun bindVertices(handle: Int)
+	fun bindVertices(mesh: Mesh)
 	fun bindIndices(handle: Int)
 	fun bindIndices(handle: Long, offset: Long, type: Int)
 

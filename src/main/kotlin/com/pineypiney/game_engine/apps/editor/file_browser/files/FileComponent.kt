@@ -113,10 +113,11 @@ open class FileComponent(parent: GameObject, val file: File, val browser: FileBr
 			val bytes = ByteArrayOutputStream()
 			ImageIO.write(imBuf, "png", bytes)
 			val pngBuffer = bytes.toByteArray().toBuffer()
+			STBImage.stbi_set_flip_vertically_on_load(true)
 			val rawBuffer = STBImage.stbi_load_from_memory(pngBuffer, IntArray(1), IntArray(1), IntArray(1), 4)
 			if (rawBuffer != null) {
 				val texName = "$ext Icon"
-				val texture = browser.screen.gameEngine.resourcesLoader.factory.createTexture2D(texName, size, size, TextureFormat.RGBA8, TextureFormat.RGBA8, rawBuffer, TextureParameters())
+				val texture = browser.screen.gameEngine.resourcesLoader.factory.createTexture2D(texName, size, size, TextureFormat.RGBA8, rawBuffer, TextureParameters())
 				STBImage.stbi_image_free(rawBuffer)
 				texture
 			} else Texture2D.missing

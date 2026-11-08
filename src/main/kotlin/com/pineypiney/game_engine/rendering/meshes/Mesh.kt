@@ -22,9 +22,16 @@ interface Mesh : Deletable {
 
 	val buffers: List<VertexBuffer>
 
+	fun bind(api: RenderingApi)
+
 	fun draw(api: RenderingApi, mode: Int = GL_TRIANGLES)
 
 	fun drawInstanced(api: RenderingApi, amount: Int, mode: Int = GL_TRIANGLES)
+
+	fun bindAndDraw(api: RenderingApi, mode: Int = GL_TRIANGLES) {
+		bind(api)
+		draw(api, mode)
+	}
 
 	fun hasAttribute(attribute: VertexAttribute<*, *>) = buffers.any { it.hasAttribute(attribute) }
 
@@ -47,6 +54,7 @@ interface Mesh : Deletable {
 	object EmptyMesh : Mesh {
 		override val buffers: List<VertexBuffer> = emptyList()
 
+		override fun bind(api: RenderingApi) {}
 		override fun draw(api: RenderingApi, mode: Int) {}
 		override fun drawInstanced(api: RenderingApi, amount: Int, mode: Int) {}
 		override fun delete() {}

@@ -20,7 +20,7 @@ abstract class VideoRendererComponent(parent: GameObject) :
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		shader.draw("vertexBuffer", mesh, renderer)
+		shader.draw(mesh, renderer)
 	}
 
 	fun play() = video.play()

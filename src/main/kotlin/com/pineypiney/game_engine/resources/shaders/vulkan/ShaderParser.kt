@@ -14,6 +14,7 @@ abstract class ShaderParser {
 	var i = 0
 
 	val defines = mutableMapOf<String, String>()
+	val ifdefs = mutableListOf<String>()
 	val data = mutableListOf<DataType.CustomType>()
 
 	val inVariables = mutableMapOf<Int, Variable>()
@@ -126,18 +127,31 @@ abstract class ShaderParser {
 		i = 0
 		while (i < segmenter.currentSegment.size) {
 			val segment = segmenter.currentSegment[i]
-			val manual = segment.comment.contains("MANUAL")
 
 			val parts = segment.code.splitAndTrimWhitespace()
 
-			// #defines
+			// #macros
 			if (parts[0][0] == '#') {
-				if (parts[0] == "#define" && parts.size == 3) {
-					defines[parts[1]] = parts[2]
+				when (parts[0]) {
+					"#define" -> if (parts.size == 3) {
+						defines[parts[1]] = parts[2]
+					}
+
+					"#ifdef" -> if (parts.size == 2) {
+						ifdefs.add(parts[1])
+					}
+
+					"#endif" -> ifdefs.removeLast()
 				}
 			}
+
+			if (ifdefs.any { !defines.containsKey(it) }) {
+				i++
+				continue
+			}
+			val manual = segment.comment.contains("MANUAL")
 			// const ints
-			else if (segment.code.startsWith("const int ")) {
+			if (segment.code.startsWith("const int ")) {
 				val ei = segment.code.indexOf('=')
 				if (ei != -1) {
 					defines[segment.code.substring(10, ei).trim()] = segment.code.substring(ei + 1).trim()

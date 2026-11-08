@@ -5,6 +5,9 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.rendering.meshes.VertexAttribute
 import com.pineypiney.game_engine.resources.ResourceFactory
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
+import com.pineypiney.game_engine.resources.textures.TextureFormat
+import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.normal
 import com.pineypiney.game_engine.util.extension_functions.put
 import glm_.vec2.Vec2
@@ -12,9 +15,7 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.BufferUtils
 
-open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width: Float, var colour: Vec4 = Vec4(1f)) : ShaderRenderedComponent(parent,
-	ColourRendererComponent.shader3D
-) {
+open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width: Float, var colour: Vec4 = Vec4(1f)) : ShaderRenderedComponent(parent, shader) {
 
 	constructor(parent: GameObject, colour: Vec3, origin: Vec2, point: Vec2, width: Float) : this(parent, origin, point, width, Vec4(colour, 1f))
 
@@ -44,7 +45,7 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		shader.draw("vertexBuffer", mesh, renderer)
+		shader.draw(mesh, renderer)
 	}
 
 	fun setOriginAndPoint(origin: Vec2, point: Vec2){
@@ -83,5 +84,22 @@ open class Arrow2DRenderer(parent: GameObject, origin: Vec2, point: Vec2, width:
 
 	override fun delete() {
 		mesh.delete()
+	}
+
+	companion object {
+		val shader = ColourRendererComponent.shader2D.withParameters(
+			ResourceKey("2D Arrow Shader"), ColourRendererComponent.shader2D.parameters.copy(
+				vertexLayout = VertexBufferLayout(
+					listOf(
+						VertexBufferLayout.Binding(
+							0, listOf(
+								VertexBufferLayout.Attribute(0, TextureFormat.RG32F, 0),
+								VertexBufferLayout.Attribute(1, TextureFormat.RG32F, 0)
+							), 8
+						)
+					)
+				)
+			)
+		)
 	}
 }

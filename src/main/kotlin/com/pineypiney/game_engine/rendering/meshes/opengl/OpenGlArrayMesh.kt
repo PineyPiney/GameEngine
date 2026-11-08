@@ -29,6 +29,10 @@ open class OpenGlArrayMesh : OpenGlMesh {
 		glBindBuffer(GL_ARRAY_BUFFER, 0)
 	}
 
+	override fun bind(api: RenderingApi) {
+		glBindVertexArray(VAO)
+	}
+
 	override fun draw(api: RenderingApi, mode: Int) {
 		GL11C.glDrawArrays(mode, 0, count)
 	}

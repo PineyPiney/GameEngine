@@ -17,6 +17,8 @@ import com.pineypiney.game_engine.util.extension_functions.stringsToPointer
 import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
+import kool.contains
+import kool.emptyIntBuffer
 import kool.map
 import kool.mapIndexed
 import org.lwjgl.PointerBuffer
@@ -123,11 +125,17 @@ object VkUtil {
 			val enabledLayerNames: PointerBuffer = stack.stringsToPointer(layers)
 			val enabledExtensionNames: PointerBuffer = stack.stringsToPointer(extensions)
 
+//			val enabledValidationFeatures = stack.ints(EXTValidationFeatures.VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT, EXTValidationFeatures.VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT)
+
 			val createInfo = VkInstanceCreateInfo.calloc(stack)
 				.`sType$Default`()
 				.pApplicationInfo(appInfo)
 				.ppEnabledLayerNames(enabledLayerNames)
 				.ppEnabledExtensionNames(enabledExtensionNames)
+				.pNext(
+					VkValidationFeaturesEXT.calloc(stack).`sType$Default`()
+//					.pEnabledValidationFeatures(enabledValidationFeatures)
+				)
 
 			val pointer = stack.mallocPointer(1)
 			processResult(VK10.vkCreateInstance(createInfo, null, pointer), "Failed to create Vulkan Instance")
@@ -178,6 +186,18 @@ object VkUtil {
 			val surfaceCaps = VkSurfaceCapabilitiesKHR.calloc(stack)
 			processResult(KHRSurface.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.device.physicalDevice, surface.handle, surfaceCaps), "Failed to get physical device surface capabilities")
 
+			val presentModes = enumerate(
+				stack,
+				"Surface Present Modes",
+				::translateVulkanResult,
+				device.physicalDevice.physicalDevice,
+				surface.handle,
+				MemoryStack::mallocInt,
+				KHRSurface::vkGetPhysicalDeviceSurfacePresentModesKHR
+			) ?: emptyIntBuffer()
+			val desiredPresentModes = listOf(KHRSurface.VK_PRESENT_MODE_IMMEDIATE_KHR)
+			val chosenPresentMode = desiredPresentModes.first(presentModes::contains)
+
 			var numberImages = surfaceCaps.minImageCount()
 			if (surfaceCaps.maxImageCount() in 1..<numberImages) numberImages = surfaceCaps.maxImageCount()
 
@@ -204,7 +224,7 @@ object VkUtil {
 				.preTransform(preTransform)
 				.imageArrayLayers(1)
 				.imageSharingMode(VK10.VK_SHARING_MODE_EXCLUSIVE)
-				.presentMode(KHRSurface.VK_PRESENT_MODE_IMMEDIATE_KHR)
+				.presentMode(chosenPresentMode)
 				.oldSwapchain(oldSwapchain?.handle ?: VK10.VK_NULL_HANDLE)
 				.clipped(true)
 				.compositeAlpha(KHRSurface.VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
@@ -242,7 +262,7 @@ object VkUtil {
 		val flags = 0
 		val samples = 1 //if(type == VK10.VK_IMAGE_TYPE_2D && (usage and VK10.VK_IMAGE_USAGE_SAMPLED_BIT) > 0) VK10.VK_SAMPLE_COUNT_4_BIT else VK10.VK_SAMPLE_COUNT_1_BIT
 
-		if(device.physicalDevice.getImageFormatProperties(format.vulkan, type, tiling, usage, flags) == null) return null
+		if (!format.supported || device.physicalDevice.getImageFormatProperties(format.vulkan, type, tiling, usage, flags) == null) return null
 
 		MemoryStack.stackPush().use { stack ->
 
@@ -326,8 +346,15 @@ object VkUtil {
 		return createPipelineLayout(device, stack, descriptorLayouts, pipelineLayoutCreateInfo, pushConstants)
 	}
 
-	fun submitQueue(stack: MemoryStack, queue: VkQueue, cmd: PoolAndBuffer, fence: VulkanFence? = null, waitSemaphore: VulkanSemaphoreHandler? = null, signalSemaphore: VulkanSemaphoreHandler? = null){
-		if(queue.capabilities.apiVersion >= VK13.VK_API_VERSION_1_3) {
+	fun submitQueue(
+		stack: MemoryStack,
+		queue: VkQueue,
+		cmd: PoolAndBuffer,
+		fence: VulkanFence? = null,
+		waitSemaphore: VulkanSemaphoreHandler? = null,
+		signalSemaphore: VulkanSemaphoreHandler? = null
+	): Boolean {
+		val res = if (queue.capabilities.apiVersion >= VK13.VK_API_VERSION_1_3) {
 			val cmdInfo = VkStructs.createBufferSubmits(stack, cmd.buffer, 0)
 			// Wait for the swapchain semaphore
 			val waitInfo = waitSemaphore?.let {
@@ -344,5 +371,8 @@ object VkUtil {
 			val submitInfos = VkStructs.createSubmitInfos(stack, cmd.buffer, waitSemaphore?.handle, VK10.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, signalSemaphore?.handle)
 			VK10.vkQueueSubmit(queue, submitInfos, fence?.handle ?: 0L)
 		}
+		if (res == VK10.VK_SUCCESS) return true
+		GameEngineI.warn("Failed to Submit Queue due to Vulkan Error ${translateVulkanResult(res)}")
+		return false
 	}
 }

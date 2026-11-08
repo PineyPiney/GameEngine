@@ -9,6 +9,10 @@ class OpenGlShaderParser : ShaderParser() {
 	val uniforms = mutableMapOf<String, String>()
 	val ssbos = mutableMapOf<String, Int>()
 
+	init {
+		defines["OPENGL"] = ""
+	}
+
 	override fun parseLayout(segment: GLSLCodeSegment, params: Map<String, String>, parts: List<String>, manual: Boolean) {
 		if (parts.contains("buffer")) {
 			if (params.containsKey("binding")) {

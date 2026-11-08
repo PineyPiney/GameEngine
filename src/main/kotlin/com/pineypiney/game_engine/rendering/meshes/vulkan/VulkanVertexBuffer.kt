@@ -16,8 +16,7 @@ class VulkanVertexBuffer(
 	override val attributes: Map<VertexAttribute<*, *>, Long>,
 	val size: Long,
 	// These buffers are only accessible on the GPU, so the data will have to be written to them there
-	val vertexBuffer: VmaBuffer,
-	val vertexBufferAddress: Long
+	val vertexBuffer: VmaBuffer
 ) : VertexBuffer() {
 
 	override fun getData(): ByteBuffer {

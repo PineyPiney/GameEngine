@@ -10,7 +10,7 @@ class VulkanImmediateSubmitter(device: VulkanDevice, val queue: VkQueue = device
 	constructor(vulkan: VulkanManager) : this(vulkan.device, vulkan.queue)
 
 	val immediateCommands: PoolAndBuffer
-	val immediateFence: VulkanFence
+	private var immediateFence: VulkanFence
 
 	init {
 		MemoryStack.stackPush().use { stack ->
@@ -25,17 +25,25 @@ class VulkanImmediateSubmitter(device: VulkanDevice, val queue: VkQueue = device
 		MemoryStack.stackPush().use { stack ->
 			VkUtil.submitQueue(stack, queue, immediateCommands, immediateFence)
 		}
-		immediateFence.wait(1e9)
+		if (!immediateFence.wait(1e9)) recreateFence()
 	}
 
 	fun <E> submitImmediate(func: (cmd: PoolAndBuffer) -> E): E {
 		immediateFence.reset()
 		val ret = immediateCommands.execute(func)
+		immediateFence.device.waitIdle()
 		MemoryStack.stackPush().use { stack ->
 			VkUtil.submitQueue(stack, queue, immediateCommands, immediateFence)
 		}
-		immediateFence.wait(1e9)
+		if (!immediateFence.wait(1e9)) recreateFence()
 		return ret
+	}
+
+	fun recreateFence() {
+//		immediateFence.delete()
+//		MemoryStack.stackPush().use { stack ->
+//			immediateFence = immediateFence.device.createFence(stack, VK10.VK_FENCE_CREATE_SIGNALED_BIT, "Immediate")
+//		}
 	}
 
 	override fun delete() {

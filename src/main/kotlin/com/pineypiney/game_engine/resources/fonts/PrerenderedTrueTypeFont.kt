@@ -102,7 +102,7 @@ class PrerenderedTrueTypeFont(
 		val height = textures.maxOf { it.value.height }
 		val invWidth = 1f / width
 		val invHeight = 1f / height
-		val texture = factory.createTexture2D("$name Font Text", width, height, TextureFormat.R8, TextureFormat.R8, null, TextureParameters(layout = VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
+		val texture = factory.createTexture2D("$name Font Text", width, height, TextureFormat.R8, null, TextureParameters(layout = VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
 		texture.setData(BufferUtils.createByteBuffer(width * height))
 
 		var x = 0

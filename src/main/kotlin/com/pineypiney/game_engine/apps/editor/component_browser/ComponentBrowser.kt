@@ -11,6 +11,7 @@ import com.pineypiney.game_engine.objects.GameObject
 import com.pineypiney.game_engine.objects.components.*
 import com.pineypiney.game_engine.objects.components.fields.ComponentField
 import com.pineypiney.game_engine.objects.components.rendering.ChildContainingRenderer
+import com.pineypiney.game_engine.objects.components.rendering.ChildScissorRenderer
 import com.pineypiney.game_engine.objects.components.rendering.ColourRendererComponent
 import com.pineypiney.game_engine.objects.components.widgets.ActionTextFieldComponent
 import com.pineypiney.game_engine.objects.components.widgets.CheckBoxComponent
@@ -18,7 +19,9 @@ import com.pineypiney.game_engine.objects.components.widgets.TextFieldComponent
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.util.extension_functions.addAll
 import com.pineypiney.game_engine.util.extension_functions.fromHex
+import com.pineypiney.game_engine.util.extension_functions.isWithin
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
+import com.pineypiney.game_engine.util.raycasting.Ray
 import com.pineypiney.game_engine.util.serialisation.Codec
 import com.pineypiney.game_engine.util.text.Text
 import com.pineypiney.game_engine.window.Viewport
@@ -51,7 +54,7 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 				true
 			)
 		)
-		parent.components.add(ChildContainingRenderer(parent, Mesh.cornerSquareShape, Vec3(.7f)))
+		parent.components.add(ChildScissorRenderer(parent))
 	}
 
 	override fun init() {
@@ -243,6 +246,15 @@ class ComponentBrowser(parent: GameObject, val screen: EditorScreen): DefaultInt
 		else scroll.coerceIn(0f, height - 1f)
 
 		componentContainer.position = Vec3(0f, scroll, 0f)
+	}
+
+	override fun checkHover(ray: Ray, cursor: CursorPosition): Float {
+		return if (cursor.position.isWithin(
+				Vec2(parent.transformComponent.worldPosition),
+				Vec2(parent.transformComponent.worldScale)
+			)
+		) ray.rayOrigin.z - parent.transformComponent.worldPosition.z
+		else -1f
 	}
 
 	override fun onSecondary(window: Window, action: Int, mods: Byte, cursorPos: CursorPosition): Int {

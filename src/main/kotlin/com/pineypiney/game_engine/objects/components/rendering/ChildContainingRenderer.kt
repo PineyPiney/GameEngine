@@ -46,7 +46,7 @@ class ChildContainingRenderer(
 
 		// Write to the stencil
 		shader.setUp(uniforms, renderer)
-		shader.draw("vertexBuffer", mesh, renderer)
+		shader.draw(mesh, renderer)
 
 		// Stencil only passes if the stencil value is 1, and don't write to the stencil
 		api.setStencilComparison(1, 255, CompareOp.EQUAL)

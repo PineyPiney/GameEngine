@@ -1,8 +1,6 @@
 package com.pineypiney.game_engine.rendering.opengl
 
 import com.pineypiney.game_engine.rendering.Framebuffer
-import com.pineypiney.game_engine.rendering.GameRenderer.Companion.screenShader
-import com.pineypiney.game_engine.rendering.GameRenderer.Companion.screenUniforms
 import com.pineypiney.game_engine.rendering.PresentingApi
 import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.RenderingApi
@@ -22,8 +20,15 @@ class OpenGlPresentRendering(val window: Window) : RenderingApi by OpenGlRenderi
 		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT)
 
 		GLFunc.viewportO = window.framebufferSize
-		screenShader.setUp(screenUniforms, renderer)
+		PresentingApi.screenShader.setUp(PresentingApi.screenUniforms, renderer)
 		(framebuffer as OpenGlFramebuffer).draw(this, Mesh.screenQuadShape)
+	}
+
+	override fun drawFramebuffer(framebuffer: Framebuffer, mesh: Mesh, window: Window, renderer: RendererI) {
+		GLFunc.viewportO = window.framebufferSize
+		PresentingApi.screenShader.setUp(PresentingApi.screenUniforms, renderer)
+		(framebuffer as OpenGlFramebuffer).colour.bind()
+		PresentingApi.screenShader.draw(mesh, renderer)
 	}
 
 	override fun present() {

@@ -12,12 +12,11 @@ import java.nio.ByteBuffer
 class VulkanModelMesh(
 	vulkan: VulkanManager,
 	override var id: String,
-	val vertices: ByteBuffer,
+	buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>,
 	indices: ByteBuffer,
-	attribs: Map<VertexAttribute<*, *>, Long>,
 	override val material: ModelMaterial = PhongMaterial(id, emptyMap())
 ) :
-	VulkanIndexedMesh(vulkan, id, vertices, indices, attribs), ModelMesh {
+	VulkanIndexedMesh(vulkan, id, buffers, indices), ModelMesh {
 
 	override var translation: Vec3 = Vec3()
 	override var rotation: Quat = Quat()

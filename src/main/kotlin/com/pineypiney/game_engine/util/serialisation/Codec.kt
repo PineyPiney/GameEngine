@@ -415,6 +415,66 @@ interface Codec<A> {
 			}
 		}
 
+		fun <A, C1, C2, C3, C4, C5, C6, C7, C8> map(
+			f1: Field<A, C1>,
+			f2: Field<A, C2>,
+			f3: Field<A, C3>,
+			f4: Field<A, C4>,
+			f5: Field<A, C5>,
+			f6: Field<A, C6>,
+			f7: Field<A, C7>,
+			f8: Field<A, C8>,
+			factory: (C1, C2, C3, C4, C5, C6, C7, C8) -> A
+		): Codec<A> = object : Codec<A> {
+			override fun <E> encode(ops: SerialOps<E>, value: A): E {
+				val map = ops.createMap(f1.key, f1.encode(ops, value))
+				ops.appendMap(map, f2.key, f2.encode(ops, value))
+				ops.appendMap(map, f3.key, f3.encode(ops, value))
+				ops.appendMap(map, f4.key, f4.encode(ops, value))
+				ops.appendMap(map, f5.key, f5.encode(ops, value))
+				ops.appendMap(map, f6.key, f6.encode(ops, value))
+				ops.appendMap(map, f7.key, f7.encode(ops, value))
+				ops.appendMap(map, f8.key, f8.encode(ops, value))
+				return map
+			}
+
+			override fun <E> decode(ops: SerialOps<E>, value: E): A {
+				if (value == null) throw CodecException()
+				val p1 = f1.decode(ops, value)
+				val p2 = f2.decode(ops, value)
+				val p3 = f3.decode(ops, value)
+				val p4 = f4.decode(ops, value)
+				val p5 = f5.decode(ops, value)
+				val p6 = f6.decode(ops, value)
+				val p7 = f7.decode(ops, value)
+				val p8 = f8.decode(ops, value)
+				return factory(p1, p2, p3, p4, p5, p6, p7, p8)
+			}
+
+			override fun encode(stream: OutputStream, value: A) {
+				f1.encode(stream, value)
+				f2.encode(stream, value)
+				f3.encode(stream, value)
+				f4.encode(stream, value)
+				f5.encode(stream, value)
+				f6.encode(stream, value)
+				f7.encode(stream, value)
+				f8.encode(stream, value)
+			}
+
+			override fun decode(stream: InputStream): A {
+				val p1 = f1.decode(stream)
+				val p2 = f2.decode(stream)
+				val p3 = f3.decode(stream)
+				val p4 = f4.decode(stream)
+				val p5 = f5.decode(stream)
+				val p6 = f6.decode(stream)
+				val p7 = f7.decode(stream)
+				val p8 = f8.decode(stream)
+				return factory(p1, p2, p3, p4, p5, p6, p7, p8)
+			}
+		}
+
 		fun <C1, C2> pair(
 			c1: Codec<C1>, n1: String,
 			c2: Codec<C2>, n2: String,

@@ -49,8 +49,8 @@ open class OpenGlIndexedMesh protected constructor(override val buffers: List<Op
 		return array
 	}
 
-	override fun bind() {
-		super.bind()
+	override fun bind(api: RenderingApi) {
+		glBindVertexArray(VAO)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
 	}
 

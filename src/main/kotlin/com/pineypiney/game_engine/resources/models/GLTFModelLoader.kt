@@ -109,9 +109,6 @@ class GLTFModelLoader {
 				val emissiveFactor = materialJson.getFloatOrNull("emissiveFactor") ?: 1f
 				textures.getOrNull(getTextureIndex(materialJson, "emissiveTexture"))?.let { materialTextures["emissiveTexture"] = it }
 
-
-
-
 				materials.add(PBRMaterial(name, materialTextures, baseColour, metallicFactor, roughnessFactor, emissiveFactor))
 			}
 
@@ -224,24 +221,48 @@ class GLTFModelLoader {
 	) {
 
 		val attributes = primitive.getAsJsonObject("attributes")
-		val attributeMap = mutableMapOf<VertexAttribute<*, *>, Array<Any>>()
+		val attributeMaps = mutableListOf<Map<VertexAttribute<*, *>, Array<Any>>>()
 
         val pos = attributes.getInt("POSITION")
+		attributeMaps.add(
+			mapOf(
+				VertexAttribute.POSITION to accessors[pos]
+			)
+		)
 
         val nor = attributes.getInt("NORMAL")
-        attributeMap[VertexAttribute.NORMAL] = accessors[nor]
         val tex = attributes.getInt("TEXCOORD_0")
-        attributeMap[VertexAttribute.TEX_COORD] = accessors[tex]
+		attributeMaps.add(
+			mapOf(
+				VertexAttribute.NORMAL to accessors[nor],
+				VertexAttribute.TEX_COORD to accessors[tex]
+			)
+		)
 
         val tan = attributes.getIntOrNull("TANGENT")
         if(tan != null) {
-            if(accessors[tan].first() is Vec3) attributeMap[VertexAttribute.TANGENT] = accessors[tan]
-            else if(accessors[tan].first() is Vec4) attributeMap[VertexAttribute.TANGENT_HANDED] = accessors[tan]
+			if (accessors[tan].first() is Vec3) {
+				attributeMaps.add(
+					mapOf(
+						VertexAttribute.TANGENT to accessors[tan],
+					)
+				)
+			} else if (accessors[tan].first() is Vec4) {
+				attributeMaps.add(
+					mapOf(
+						VertexAttribute.TANGENT_HANDED to accessors[tan],
+					)
+				)
+			}
         }
 
         if(attributes.has("JOINTS_0") and attributes.has("WEIGHTS_0")){
-            attributeMap[VertexAttribute.BONE_IDS] = accessors[attributes.getInt("JOINTS_0")]
-            attributeMap[VertexAttribute.BONE_WEIGHTS] = accessors[attributes.getInt("WEIGHTS_0")]
+			attributeMaps.add(
+				mapOf(
+					VertexAttribute.BONE_IDS to accessors[attributes.getInt("JOINTS_0")],
+					VertexAttribute.BONE_WEIGHTS to accessors[attributes.getInt("WEIGHTS_0")]
+				)
+			)
         }
 
 
@@ -255,37 +276,38 @@ class GLTFModelLoader {
 
         // Check the arrays are all as large as the max index, otherwise log an error
         val maxIndex = indArray.max()
-        for((att, arr) in attributeMap) {
-            if (arr.size < maxIndex) {
-                GameEngineI.error("$att in primitive $name of mesh $name in GLTF model $modelName is too small. It has ${arr.size} entries, but the index attribute requires at least $maxIndex entries")
-                continue
-            }
-        }
+		for (map in attributeMaps) {
+			for ((att, arr) in map) {
+				if (arr.size < maxIndex) {
+					GameEngineI.error("$att in primitive $name of mesh $name in GLTF model $modelName is too small. It has ${arr.size} entries, but the index attribute requires at least $maxIndex entries")
+					continue
+				}
+			}
+		}
 
 		val posBuffer = BufferUtils.createByteBuffer((maxIndex + 1) * 12)
 		for (v in accessors[pos]) posBuffer.put(v as Vec3)
 
-		val otherBufferStride = attributeMap.keys.sumOf(VertexAttribute<*, *>::bytes)
-		val otherBuffer = BufferUtils.createByteBuffer((maxIndex + 1) * otherBufferStride)
+		val buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>> = attributeMaps.map { attributeMap ->
+			val stride = attributeMap.keys.sumOf(VertexAttribute<*, *>::bytes)
+			val bindingBuffer = BufferUtils.createByteBuffer((maxIndex + 1) * stride)
 
-		repeat(maxIndex + 1) { i ->
-			var o = 0
-			for ((att, arr) in attributeMap) {
-                try {
-					val pair = VertexAttribute.Pair(att, arr, i)
-					pair.put(otherBuffer, i * otherBufferStride + o)
-					o += pair.id.bytes
-                }
-                catch (_: ClassCastException) {
-					GameEngineI.logger.warn("Failed to load primitive $name due to attribute $att being type ${arr[i].javaClass.name}, which cannot be used for this attribute")
-                    return
-                }
+			repeat(maxIndex + 1) { i ->
+				var o = 0
+				for ((att, arr) in attributeMap) {
+					try {
+						val pair = VertexAttribute.Pair(att, arr, i)
+						pair.put(bindingBuffer, i * stride + o)
+						o += pair.id.bytes
+					} catch (_: ClassCastException) {
+						GameEngineI.logger.warn("Failed to load primitive $name due to attribute $att being type ${arr[i].javaClass.name}, which cannot be used for this attribute")
+						return
+					}
+				}
 			}
+
+			bindingBuffer to Mesh.createAttributes(attributeMap.keys)
 		}
-		val buffers = listOf<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>(
-			posBuffer.flip() to mapOf(VertexAttribute.POSITION to 0L),
-			otherBuffer to Mesh.createAttributes(attributeMap.keys)
-		)
 		meshes.add(factory.createModelMesh(name, buffers, indArray.toIntArray(), materials.getOrElse(material) { PBRMaterial.default }))
     }
 

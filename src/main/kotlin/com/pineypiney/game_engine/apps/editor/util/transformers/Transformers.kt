@@ -9,6 +9,7 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
 import com.pineypiney.game_engine.resources.textures.Sprite
 import com.pineypiney.game_engine.resources.textures.TextureLoader
 import com.pineypiney.game_engine.util.ResourceKey
@@ -53,7 +54,10 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 			rings.components.add(object :
 				ShaderRenderedComponent(
 					rings,
-					ShaderLoader[ResourceKey("rotate_transformer"), ResourceKey("vertex/pass_pos_menu"), ResourceKey("fragment/editor/rotate2D"), RenderShaderParameters(depthTestOp = null)]
+					ShaderLoader[ResourceKey("rotate_transformer"), ResourceKey("vertex/pass_pos_menu"), ResourceKey("fragment/editor/rotate2D"), RenderShaderParameters(
+						depthTestOp = null,
+						vertexLayout = VertexBufferLayout.POS_TEX
+					)]
 				) {
 
 				override fun setUniforms() {
@@ -65,7 +69,7 @@ class Transformers(val creator: (base: GameObject, EditorScreen) -> Unit) {
 
 				override fun render(renderer: RendererI, tickDelta: Double) {
 					shader.setUp(uniforms, renderer)
-					shader.draw("vertexBuffer", Mesh.centerSquareShape, renderer)
+					shader.draw(Mesh.centerSquareShape, renderer)
 				}
 
 				override fun getMeshes(): Collection<Mesh> = listOf(Mesh.centerSquareShape)

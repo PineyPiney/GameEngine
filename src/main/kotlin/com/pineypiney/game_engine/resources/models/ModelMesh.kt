@@ -31,7 +31,7 @@ interface ModelMesh : Mesh {
 		lateinit var missing: ModelMesh; private set
 
 		fun initDefault(factory: ResourceFactory) {
-			val builder = IndexedMeshBuilder(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEX_COORD).startQuad()
+			val builder = IndexedMeshBuilder(listOf(setOf(VertexAttribute.POSITION), setOf(VertexAttribute.NORMAL, VertexAttribute.TEX_COORD))).startQuad()
 				.vertex(0f, 0f, 0f).texture(0f, 0f)
 				.vertex(1f, 0f, 0f).texture(1f, 0f)
 				.vertex(1f, 1f, 0f).texture(1f, 1f)

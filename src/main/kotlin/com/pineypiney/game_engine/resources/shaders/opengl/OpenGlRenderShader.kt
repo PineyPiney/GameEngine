@@ -2,7 +2,6 @@ package com.pineypiney.game_engine.resources.shaders.opengl
 
 import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlMesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderModule
 import com.pineypiney.game_engine.resources.shaders.parameters.Blending
@@ -62,10 +61,18 @@ class OpenGlRenderShader(
 		GLFunc.multiSample = parameters.multisampling != 1
 	}
 
-	override fun draw(meshName: String, mesh: Mesh, api: RenderingApi) {
+	override fun draw(mesh: Mesh, api: RenderingApi) {
 		setParameters()
 		bindSSBOS()
-		(mesh as OpenGlMesh).bindAndDraw(api, parameters.topology.opengl)
+		mesh.bind(api)
+		mesh.draw(api, parameters.topology.opengl)
+	}
+
+	override fun drawInstanced(mesh: Mesh, count: Int, api: RenderingApi) {
+		setParameters()
+		bindSSBOS()
+		mesh.bind(api)
+		mesh.drawInstanced(api, count, parameters.topology.opengl)
 	}
 
 	override fun toString(): String {

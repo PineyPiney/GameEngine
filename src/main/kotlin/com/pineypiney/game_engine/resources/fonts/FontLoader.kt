@@ -68,7 +68,7 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 		}
 
 		val key = fontName.substringBefore('.')
-		val texture = factory.createTexture2D(key, texWidth, texHeight, format, format, buffer, TextureParameters())
+		val texture = factory.createTexture2D(key, texWidth, texHeight, format, buffer, TextureParameters())
 
 		map[ResourceKey(key)] = BitMapFont(key, texture, null, charOffsets.withIndex().associate { (i, w) ->
 			Char(i) to Vec4i(0, charHeight * .05, w, charHeight * .6f) }, null, charWidth, charHeight, 0f, 1f, firstChar)
@@ -126,7 +126,7 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 
 			//GameEngineI.debug("Loading character $char, code ${char.code.asHexString}")
 			val textureName = "$fontName $char"
-			resourcesLoader.factory.createTexture2D(textureName, textureSize.x, textureSize.y, TextureFormat.R8, TextureFormat.R8, buffer, TextureParameters())
+			resourcesLoader.factory.createTexture2D(textureName, textureSize.x, textureSize.y, TextureFormat.R8, buffer, TextureParameters())
 		}
 
 		val name = fontName.substringBefore('.')
@@ -186,7 +186,7 @@ class FontLoader private constructor() : DeletableResourceLoader<Font>() {
 			}
 		}
 		val textureName = "${name.substringBeforeLast('.')} bold"
-		val texture = factory.createTexture2D(textureName, boldTextureWidth, boldTextureHeight, TextureFormat.RGBA8, TextureFormat.RGBA8, boldBuffer.toIntArray().toByteBuffer(), TextureParameters())
+		val texture = factory.createTexture2D(textureName, boldTextureWidth, boldTextureHeight, TextureFormat.RGBA8, boldBuffer.toIntArray().toByteBuffer(), TextureParameters())
 
 		boldBuffer.clear()
 

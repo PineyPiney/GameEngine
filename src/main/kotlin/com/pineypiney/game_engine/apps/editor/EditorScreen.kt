@@ -129,6 +129,7 @@ class EditorScreen(
 		objectEditor.addChild(objectBrowser.parent, componentBrowser.parent, Transformers.createSelector(this), playButton, pauseButton, stopButton)
 		objectEditor.active = false
 		shaderEditor.parent.active = false
+
 		add(fileBrowser.parent, objectEditor, shaderEditor.parent)
 		add(fpsText)
 	}

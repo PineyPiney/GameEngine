@@ -15,6 +15,8 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.VK10
+import org.lwjgl.vulkan.VK12
+import org.lwjgl.vulkan.VK13
 
 class VulkanObjectRenderer(override val viewPos: Vec3, val device: VulkanDevice, viewportSize: Vec2i = Vec2i(64), override val projection: Mat4 = I) : ObjectRenderer {
 
@@ -26,7 +28,7 @@ class VulkanObjectRenderer(override val viewPos: Vec3, val device: VulkanDevice,
 	val descriptorAllocator = GrowableVulkanDescriptorAllocator(device)
 	val submitter = VulkanImmediateSubmitter(device)
 	lateinit var image: VulkanImage2D
-	lateinit var depthImage: VulkanImage2D
+	lateinit var depthStencilImage: VulkanImage2D
 	val api = VulkanRendering.create(submitter.immediateCommands, descriptorAllocator)
 	private var clearColour = Vec4(0f)
 
@@ -46,7 +48,7 @@ class VulkanObjectRenderer(override val viewPos: Vec3, val device: VulkanDevice,
 
 	override fun setSize(size: Vec2i) {
 		image.delete()
-		depthImage.delete()
+		depthStencilImage.delete()
 		generateImages(size)
 	}
 
@@ -60,7 +62,7 @@ class VulkanObjectRenderer(override val viewPos: Vec3, val device: VulkanDevice,
 			size
 		)
 		if (skipDepth) return
-		depthImage = VkUtil.createImage(
+		depthStencilImage = VkUtil.createImage(
 			device,
 			"Object Renderer Depth Image",
 			TextureFormat.DEPTH24_STENCIL8,
@@ -75,12 +77,28 @@ class VulkanObjectRenderer(override val viewPos: Vec3, val device: VulkanDevice,
 		descriptorAllocator.clearPools()
 
 		submitter.submitImmediate { cmd ->
-			image.transition(cmd, VK10.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, false)
-			depthImage.transition(cmd, VK10.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, false)
+			image.transition(
+				cmd,
+				VK10.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+				VK13.VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT,
+				VK13.VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+				VK13.VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+				VK13.VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+				false
+			)
+			depthStencilImage.transition(
+				cmd,
+				VK12.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+				VK13.VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
+				VK13.VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+				VK13.VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+				VK13.VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
+				false
+			)
 
 			MemoryStack.stackPush().use { stack ->
 				val colourAttachments = VkStructs.createColourAttachmentInfos(stack, image, clearColour)
-				val depthAttachment = VkStructs.createDepthStencilAttachmentInfo(stack, depthImage, 0f, 0)
+				val depthAttachment = VkStructs.createDepthStencilAttachmentInfo(stack, depthStencilImage, 0f, 0)
 				val info = VkStructs.createRenderingInfo(stack, image.size, colourAttachments, depthAttachment)
 				cmd.beginRendering(info)
 
@@ -97,7 +115,14 @@ class VulkanObjectRenderer(override val viewPos: Vec3, val device: VulkanDevice,
 				cmd.endRendering()
 			}
 
-			image.transition(cmd, VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, false)
+			image.transition(
+				cmd,
+				VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK13.VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+				VK13.VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT,
+				VK13.VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+				VK13.VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT
+			)
 		}
 	}
 
@@ -111,7 +136,7 @@ class VulkanObjectRenderer(override val viewPos: Vec3, val device: VulkanDevice,
 
 	override fun delete() {
 		image.delete()
-		depthImage.delete()
+		depthStencilImage.delete()
 		descriptorAllocator.delete()
 		submitter.delete()
 	}

@@ -56,8 +56,11 @@ open class VulkanManager(appName: String, version: Int, layers: Collection<Strin
 	open fun getPhysicalDevice(): VulkanPhysicalDevice{
 		val device = VulkanPhysicalDevice(instance, VkUtil.getPhysicalDevices(instance).first())
 			.addFeature(VkPhysicalDeviceBufferDeviceAddressFeatures.calloc().`sType$Default`().bufferDeviceAddress(true), VkDeviceCreateInfo::pNext)
-			.addFeature(VkPhysicalDeviceSynchronization2Features.calloc().`sType$Default`().synchronization2(true), VkDeviceCreateInfo::pNext)
-			.addFeature(VkPhysicalDeviceDynamicRenderingFeatures.calloc().`sType$Default`().dynamicRendering(true), VkDeviceCreateInfo::pNext)
+
+		if (instance.capabilities.apiVersion < VK13.VK_API_VERSION_1_3) {
+			device.addFeature(VkPhysicalDeviceDynamicRenderingFeatures.calloc().`sType$Default`().dynamicRendering(true), VkDeviceCreateInfo::pNext)
+				.addFeature(VkPhysicalDeviceSynchronization2Features.calloc().`sType$Default`().synchronization2(true), VkDeviceCreateInfo::pNext)
+		}
 		return device
 	}
 
@@ -77,7 +80,6 @@ open class VulkanManager(appName: String, version: Int, layers: Collection<Strin
 			EXTDebugUtils.VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT -> {
 				GameEngineI.logger.warn("Vulkan Warning Occurred: " + data.pMessageString())
 			}
-
 		}
 		return 0
 	}
@@ -126,7 +128,7 @@ open class VulkanManager(appName: String, version: Int, layers: Collection<Strin
 
 		fun validated(appName: String, version: Int, windowApi: WindowApi): VulkanManager {
 			val layers = listOf("VK_LAYER_KHRONOS_validation")
-			val exts = mutableListOf(EXTDebugUtils.VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
+			val exts = mutableListOf(EXTDebugUtils.VK_EXT_DEBUG_UTILS_EXTENSION_NAME, EXTValidationFeatures.VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME)
 			exts.addAll(windowApi.getVulkanExtensions())
 
 			return VulkanManager(appName, version, layers, exts)

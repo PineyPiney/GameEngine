@@ -10,16 +10,9 @@ class VulkanShaderBuilder(val stage: ShaderStage) : ShaderParser() {
 	val storages = mutableListOf<VulkanBufferObject>()
 	var pushConstants: Pair<String, DataType.PushConstants>? = null
 
-//	fun parseVariable(line: String, start: Int, iterator: ShaderLineIterator): Pair<String, Variables>{
-//		val endOfTypeName = (start..<line.length).first { !isName(line[it]) }
-//		val typeName = line.substring(start, endOfTypeName)
-//		val existingDataType = parseDataType(typeName)
-//		if(existingDataType != null){
-//			val name = line.substring(endOfTypeName + 1).removeSuffix(";").trim()
-//			return name to listOf(existingDataType)
-//		}
-//		return parseGLSLStruct(iterator)
-//	}
+	init {
+		defines["VULKAN"] = ""
+	}
 
 	override fun parseLayout(segment: GLSLCodeSegment, params: Map<String, String>, parts: List<String>, manual: Boolean) {
 		when (parts[0]) {

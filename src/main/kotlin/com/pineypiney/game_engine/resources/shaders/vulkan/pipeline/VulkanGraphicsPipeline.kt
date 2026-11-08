@@ -1,10 +1,13 @@
 package com.pineypiney.game_engine.resources.shaders.vulkan.pipeline
 
+import com.pineypiney.game_engine.GameEngineI
 import com.pineypiney.game_engine.rendering.RenderingApi
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderStage
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
+import com.pineypiney.game_engine.resources.shaders.vulkan.VertexVulkanShaderData
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanShaderModule
 import com.pineypiney.game_engine.util.RandomHelper
 import com.pineypiney.game_engine.util.ResourceKey
@@ -38,10 +41,16 @@ class VulkanGraphicsPipeline(
 		"spotLight.ambient"
 	).toByte()
 
-	override fun draw(meshName: String, mesh: Mesh, api: RenderingApi) {
-		setMesh(meshName, mesh)
+	override fun draw(mesh: Mesh, api: RenderingApi) {
 		endUniforms(api)
+		mesh.bind(api)
 		mesh.draw(api)
+	}
+
+	override fun drawInstanced(mesh: Mesh, count: Int, api: RenderingApi) {
+		endUniforms(api)
+		mesh.bind(api)
+		mesh.drawInstanced(api, count)
 	}
 
 	override fun getBindPoint(): Int = VK10.VK_PIPELINE_BIND_POINT_GRAPHICS
@@ -88,6 +97,8 @@ class VulkanGraphicsPipeline(
 				val pushConstants = compilePushConstants(modules)
 				this.layout = VkUtil.createPipelineLayout(device, stack, descriptorLayouts, pushConstants)
 			}
+
+			compileVertexInputs(modules.first { it.getStage() == ShaderStage.VERTEX }.data as VertexVulkanShaderData, parameters.vertexLayout)
 			return this
 		}
 
@@ -340,6 +351,27 @@ class VulkanGraphicsPipeline(
 			layout = null
 
 			return this
+		}
+
+		fun compileVertexInputs(data: VertexVulkanShaderData, layout: VertexBufferLayout) {
+			if (layout.layout.isEmpty()) {
+				val stride = data.inputs.values.sumOf { it.second.size }
+				addVertexBinding(0, stride, VK10.VK_VERTEX_INPUT_RATE_VERTEX)
+				var offset = 0
+				for ((location, value) in data.inputs) {
+					val format = getVulkanFormat(value.second)
+					if (format != null) addVertexAttribute(location, 0, format.vulkan, offset)
+					else GameEngineI.warn("Unsure which VkFormat to use for input variable ${value.first} in vertex shader ${data.name}, please define it explicitly in the shader file")
+					offset += value.second.size
+				}
+				return
+			}
+			for ((location, attributes, stride) in layout.layout) {
+				addVertexBinding(location, stride, VK10.VK_VERTEX_INPUT_RATE_VERTEX)
+				for ((location1, format, offset) in attributes) {
+					addVertexAttribute(location1, location, format.vulkan, offset)
+				}
+			}
 		}
 
 		override fun delete() {

@@ -6,6 +6,8 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.RenderShader
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
 import com.pineypiney.game_engine.util.ResourceKey
 import glm_.vec4.Vec4
 
@@ -26,7 +28,7 @@ open class ColourSliderRendererComponent(parent: GameObject, shader: RenderShade
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		shader.draw("vertexBuffer", mesh, renderer)
+		shader.draw(mesh, renderer)
 	}
 
 	override fun getMeshes(): Collection<Mesh> = listOf(mesh)
@@ -37,8 +39,11 @@ open class ColourSliderRendererComponent(parent: GameObject, shader: RenderShade
 	}
 
 	companion object {
-		val redShader = ShaderLoader[ResourceKey("red_slider"), ResourceKey("vertex/menu"), ResourceKey("fragment/sliders/red_slider")]
-		val greenShader = ShaderLoader[ResourceKey("green_slider"), ResourceKey("vertex/menu"), ResourceKey("fragment/sliders/green_slider")]
-		val blueShader = ShaderLoader[ResourceKey("blue_slider"), ResourceKey("vertex/menu"), ResourceKey("fragment/sliders/blue_slider")]
+		val redShader =
+			ShaderLoader[ResourceKey("red_slider"), ResourceKey("vertex/menu"), ResourceKey("fragment/sliders/red_slider"), RenderShaderParameters(vertexLayout = VertexBufferLayout.POS_TEX)]
+		val greenShader =
+			ShaderLoader[ResourceKey("green_slider"), ResourceKey("vertex/menu"), ResourceKey("fragment/sliders/green_slider"), RenderShaderParameters(vertexLayout = VertexBufferLayout.POS_TEX)]
+		val blueShader =
+			ShaderLoader[ResourceKey("blue_slider"), ResourceKey("vertex/menu"), ResourceKey("fragment/sliders/blue_slider"), RenderShaderParameters(vertexLayout = VertexBufferLayout.POS_TEX)]
 	}
 }

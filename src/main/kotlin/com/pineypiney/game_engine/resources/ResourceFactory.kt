@@ -38,8 +38,8 @@ abstract class ResourceFactory {
 
 	abstract fun nullTexture2D(): Texture2D
 	abstract fun nullTexture3D(): Texture3D
-	abstract fun createTexture2D(name: String, width: Int, height: Int, format: TextureFormat, dataFormat: TextureFormat, data: ByteBuffer?, params: TextureParameters): Texture2D
-	abstract fun createTexture3D(name: String, width: Int, height: Int, depth: Int, format: TextureFormat, dataFormat: TextureFormat, data: ByteBuffer?, params: TextureParameters): Texture3D
+	abstract fun createTexture2D(name: String, width: Int, height: Int, format: TextureFormat, data: ByteBuffer?, params: TextureParameters): Texture2D
+	abstract fun createTexture3D(name: String, width: Int, height: Int, depth: Int, format: TextureFormat, data: ByteBuffer?, params: TextureParameters): Texture3D
 
 	abstract fun createArrayMesh(name: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>): Mesh
 	abstract fun createIndexedMesh(name: String, buffers: List<Pair<ByteBuffer, Map<VertexAttribute<*, *>, Long>>>, indices: IntArray): Mesh
@@ -84,7 +84,7 @@ abstract class ResourceFactory {
 				}
 			}
 			else textureData = fileData
-			val texture = createTexture2D(fileName.substringBeforeLast('.'), vec.x, vec.y, format, format, textureData, parameters)
+			val texture = createTexture2D(fileName.substringBeforeLast('.'), vec.x, vec.y, format, textureData, parameters)
 			STBImage.stbi_image_free(fileData)
 			return texture
 		}

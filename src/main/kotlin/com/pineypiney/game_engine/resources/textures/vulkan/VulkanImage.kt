@@ -44,7 +44,13 @@ interface VulkanImage : Texture {
 						VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT
 				val converted = VkUtil.createImage(device, "$id converted", format, usage, VK10.VK_IMAGE_ASPECT_COLOR_BIT, Vec2i(width, height))
 				val d = VulkanImmediateSubmitter.submitAndFetch(device, VmaBuffer::getBuffer) { cmd ->
-					converted.transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+					converted.transition(
+						cmd,
+						VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+						VK13.VK_ACCESS_2_TRANSFER_WRITE_BIT,
+						VK13.VK_ACCESS_2_TRANSFER_READ_BIT,
+						VK13.VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT
+					)
 					copyTo(cmd, converted)
 					converted.fetchData(cmd, VK10.VK_IMAGE_ASPECT_COLOR_BIT)
 				}
@@ -68,7 +74,16 @@ interface VulkanImage : Texture {
 			.memoryTypeIndex(device.physicalDevice.getMemoryType(requirements.memoryTypeBits(), propertyFlags))
 	}
 
-	fun transition(cmd: PoolAndBuffer, newLayout: Int, keepData: Boolean = true, aspectMask: Int = getImageAspect(newLayout)) {
+	fun transition(
+		cmd: PoolAndBuffer,
+		newLayout: Int,
+		preAccessMask: Long,
+		postAccessMask: Long,
+		preTransitionStages: Long = VK13.VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+		postTransitionStages: Long = VK13.VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+		keepData: Boolean = true,
+		aspectMask: Int = getImageAspect(newLayout)
+	) {
 
 		MemoryStack.stackPush().use { stack ->
 			if(device.versionAtLeast(VK13.VK_API_VERSION_1_3)) {
@@ -91,8 +106,8 @@ interface VulkanImage : Texture {
 			else {
 
 				val imageBarrier = VkImageMemoryBarrier.calloc(1, stack).`sType$Default`()
-					.srcAccessMask(VK10.VK_ACCESS_MEMORY_WRITE_BIT)
-					.dstAccessMask(VK10.VK_ACCESS_MEMORY_WRITE_BIT or VK10.VK_ACCESS_MEMORY_READ_BIT)
+					.srcAccessMask(preAccessMask.toInt())
+					.dstAccessMask(postAccessMask.toInt())
 					.oldLayout(if (keepData) layout else VK10.VK_IMAGE_LAYOUT_UNDEFINED)
 					.newLayout(newLayout)
 					.image(image)
@@ -100,8 +115,8 @@ interface VulkanImage : Texture {
 
 				VK13.vkCmdPipelineBarrier(
 					cmd.buffer,
-					VK10.VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-					VK10.VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+					preTransitionStages.toInt(),
+					postTransitionStages.toInt(),
 					0, null, null,
 					imageBarrier
 				)
@@ -152,11 +167,12 @@ interface VulkanImage : Texture {
 	fun uploadData(cmd: PoolAndBuffer, x: Int, y: Int, z: Int, w: Int, h: Int, d: Int, format: TextureFormat, data: ByteBuffer) {
 		val dataSize = w * h * d * format.pixelSize
 		val uploadBuffer = VmaBuffer.create(device, dataSize.toLong(), VK10.VK_BUFFER_USAGE_TRANSFER_SRC_BIT, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU, "$id Upload")
+
 		cmd.deletion.push(uploadBuffer)
 
 		uploadBuffer.getBuffer(dataSize).put(0, data, 0, data.limit())
 
-		transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+		transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0L, VK13.VK_ACCESS_2_TRANSFER_WRITE_BIT, 0L, VK13.VK_PIPELINE_STAGE_2_TRANSFER_BIT, true, VK10.VK_IMAGE_ASPECT_COLOR_BIT)
 		val aspect = format.getAspects().vulkanMask()
 
 		MemoryStack.stackPush().use { stack ->
@@ -175,7 +191,16 @@ interface VulkanImage : Texture {
 			}
 		}
 
-		transition(cmd, VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		transition(
+			cmd,
+			VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+			VK13.VK_ACCESS_2_TRANSFER_WRITE_BIT,
+			VK13.VK_ACCESS_2_SHADER_READ_BIT,
+			VK13.VK_PIPELINE_STAGE_2_TRANSFER_BIT,
+			VK13.VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+			true,
+			VK13.VK_IMAGE_ASPECT_COLOR_BIT
+		)
 	}
 
 	fun uploadData(cmd: PoolAndBuffer, format: TextureFormat, data: ByteBuffer) {
@@ -186,7 +211,14 @@ interface VulkanImage : Texture {
 		val dataSize = w * h * d * format.pixelSize
 		val layout = layout
 
-		transition(cmd, if (format.name[0] == 'D') VK10.VK_IMAGE_LAYOUT_GENERAL else VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, true, getImageAspect(layout))
+		transition(
+			cmd,
+			if (format.name[0] == 'D') VK10.VK_IMAGE_LAYOUT_GENERAL else VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			VK13.VK_ACCESS_2_TRANSFER_READ_BIT,
+			VK13.VK_ACCESS_2_TRANSFER_READ_BIT,
+			VK13.VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+			VK13.VK_PIPELINE_STAGE_2_TRANSFER_BIT
+		)
 
 		MemoryStack.stackPush().use { stack ->
 			val fetchBuffer = VmaBuffer.create(device, stack, dataSize.toLong(), VK10.VK_BUFFER_USAGE_TRANSFER_DST_BIT, Vma.VMA_MEMORY_USAGE_CPU_TO_GPU, "$id Data")
@@ -201,7 +233,7 @@ interface VulkanImage : Texture {
 				.imageExtent(VkExtent3D.calloc(stack).set(w, h, d))
 			cmd.copyImageToBuffer(fetchBuffer, this, regions)
 
-			transition(cmd, layout)
+			transition(cmd, layout, VK13.VK_ACCESS_2_TRANSFER_READ_BIT, getDefaultAccessMask(layout), VK13.VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK13.VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT)
 
 			return fetchBuffer
 		}
@@ -247,6 +279,15 @@ interface VulkanImage : Texture {
 			TextureFormat.DEPTH24_STENCIL8, TextureFormat.DEPTH32F_STENCIL8U -> VK10.VK_IMAGE_ASPECT_DEPTH_BIT or VK10.VK_IMAGE_ASPECT_STENCIL_BIT
 			TextureFormat.DEPTH16, TextureFormat.DEPTH24, TextureFormat.DEPTH32, TextureFormat.DEPTH32F -> VK10.VK_IMAGE_ASPECT_DEPTH_BIT
 			else -> VK10.VK_IMAGE_ASPECT_COLOR_BIT
+		}
+
+		fun getDefaultAccessMask(layout: Int): Long {
+			return when (layout) {
+				VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL -> VK13.VK_ACCESS_2_MEMORY_READ_BIT
+				VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL -> VK13.VK_ACCESS_2_TRANSFER_READ_BIT
+				VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL -> VK13.VK_ACCESS_2_TRANSFER_WRITE_BIT
+				else -> VK13.VK_ACCESS_2_MEMORY_READ_BIT or VK13.VK_ACCESS_2_MEMORY_WRITE_BIT
+			}
 		}
 	}
 }

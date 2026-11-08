@@ -10,6 +10,7 @@ import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.ShaderStorageBuffer
 import com.pineypiney.game_engine.resources.shaders.parameters.InputTopology
 import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.PIF
 import com.pineypiney.game_engine.util.extension_functions.put
@@ -29,11 +30,12 @@ class TTFTest(gameEngine: WindowedGameEngineI<*>) : MultiTest("True Type Font Be
 	}!!
 
 	val outlineObjects = mutableListOf<GameObject>()
-	val shader = ShaderLoader[ResourceKey("ttf_fill"), ResourceKey("vertex/2D"), ResourceKey("fragment/colour"), RenderShaderParameters(InputTopology.LINE_STRIP)]
+	val shader =
+		ShaderLoader[ResourceKey("ttf_fill"), ResourceKey("vertex/2D"), ResourceKey("fragment/colour"), RenderShaderParameters(InputTopology.LINE_STRIP, vertexLayout = VertexBufferLayout.POS_TEX)]
 
 	val fillObjects = mutableListOf<GameObject>()
 	val curveBuffers = mutableMapOf<Char, ShaderStorageBuffer>()
-	val bezierShader = ShaderLoader[ResourceKey("bezier_test"), ResourceKey("vertex/2D"), ResourceKey("fragment/bezier_font"), RenderShaderParameters()]
+	val bezierShader = ShaderLoader[ResourceKey("bezier_test"), ResourceKey("vertex/2D"), ResourceKey("fragment/bezier_font"), RenderShaderParameters(vertexLayout = VertexBufferLayout.POS_TEX)]
 
 	init {
 		val m = 4f

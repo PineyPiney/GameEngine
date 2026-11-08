@@ -361,7 +361,7 @@ open class GameObject(open var name: String = "GameObject", layer: Int = 0) : In
 				override fun render(renderer: RendererI, tickDelta: Double) {
 					shader.setUp(uniforms, renderer)
 					setManualUniforms()
-					shader.draw("vertexBuffer", mesh, renderer)
+					shader.draw(mesh, renderer)
 				}
 
 				override fun getMeshes(): Collection<Mesh> = listOf(mesh)

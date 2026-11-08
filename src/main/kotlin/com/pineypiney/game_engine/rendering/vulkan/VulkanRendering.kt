@@ -2,6 +2,8 @@ package com.pineypiney.game_engine.rendering.vulkan
 
 import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.RenderingApi
+import com.pineypiney.game_engine.rendering.meshes.Mesh
+import com.pineypiney.game_engine.rendering.meshes.vulkan.VulkanMesh
 import com.pineypiney.game_engine.resources.shaders.StencilOp
 import com.pineypiney.game_engine.resources.shaders.parameters.CompareOp
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorAllocator
@@ -79,8 +81,8 @@ abstract class VulkanRendering : RenderingApi {
 		(framebuffer as VulkanFramebuffer).end(cmd)
 	}
 
-	override fun bindVertices(handle: Int) {
-
+	override fun bindVertices(mesh: Mesh) {
+		cmd.bindVertices(mesh as VulkanMesh)
 	}
 
 	override fun bindIndices(handle: Int) {

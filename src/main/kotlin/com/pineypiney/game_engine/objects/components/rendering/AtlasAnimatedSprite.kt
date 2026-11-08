@@ -88,7 +88,7 @@ open class AtlasAnimatedSprite(
 
 		shader.setUp(uniforms, renderer)
 		meshes.getOrNull(currentFrame)?.let {
-			shader.draw("vertexBuffer", it, renderer)
+			shader.draw(it, renderer)
 		}
 	}
 

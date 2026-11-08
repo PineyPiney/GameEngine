@@ -11,10 +11,12 @@ import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlRenderShader
+import com.pineypiney.game_engine.resources.shaders.parameters.CullMode
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniform
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.util.Colour
-import com.pineypiney.game_engine.util.GLFunc
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
@@ -28,7 +30,6 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 
 @Suppress("UNUSED")
 class ShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
@@ -36,7 +37,11 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLo
 	override val id: String = "Render Shader Test"
 	override val renderer: GameRenderer<ShaderTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(window, id) }
 
-	val shader = ShaderLoader[ResourceKey("menu_squircle"), ResourceKey("vertex/menu"), ResourceKey("fragment/squircle")]
+	val shader = ShaderLoader[ResourceKey("menu_squircle"), ResourceKey("vertex/menu"), ResourceKey("fragment/squircle"), RenderShaderParameters(
+		cullMode = CullMode.NONE,
+		depthTestOp = null,
+		vertexLayout = VertexBufferLayout.POS_TEX
+	)]
 	val uniformValues = mutableMapOf<String, Any>()
 
 	val obj = GameObject("Shader Object").apply {
@@ -46,21 +51,26 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLo
 
 			override fun setUniforms() {
 				super.setUniforms()
-				for ((name, type) in (shader as OpenGlRenderShader).uniforms) {
-					if(defaultUniforms.contains(name)) continue
-					val uniform = uniforms[name] ?: continue
-					setUniform(uniform, uniforms)
-				}
 				uniformValues["bottomColour"] = Colour(0xE6CEC0u).rgbVec
 				uniformValues["topColour"] = Colour(0xF7E3DDu).rgbVec
 				uniformValues["delta"] = .7f
+
+				val openglUniforms = (shader as? OpenGlRenderShader)?.uniforms
+				if (openglUniforms != null) for ((name, _) in openglUniforms) {
+					if (defaultUniforms.contains(name)) continue
+					val uniform = uniforms[name] ?: continue
+					setUniform(uniform, uniforms)
+				}
+				else for ((name, _) in uniformValues) {
+					setUniform(name, uniforms)
+				}
 				//uniforms.setVec3Uniform("colour"){ Colour(0xEED8CFu).rgbValue }
 				//uniforms.setFloatUniform("delta"){ 1f }
 			}
 
 			override fun render(renderer: RendererI, tickDelta: Double) {
 				shader.setUp(uniforms, renderer)
-				shader.draw("vertexBuffer", mesh, renderer)
+				shader.draw(mesh, renderer)
 			}
 		})
 	}
@@ -70,14 +80,14 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLo
 	var oppositePoint = Vec2(0f)
 
 	override fun addObjects() {
-		add(obj.apply { position = Vec3(-.5f) })
+		add(obj.apply { position = Vec3(-.5f, -.5f, 0f) })
 		addUniforms()
 	}
 
 	fun addUniforms(){
 
 		var y = 0
-		for ((name, type) in (shader as OpenGlRenderShader).uniforms) {
+		if (shader is OpenGlRenderShader) for ((name, type) in shader.uniforms) {
 			if(defaultUniforms.contains(name)) continue
 			when(type){
 				"float" -> {
@@ -99,7 +109,7 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLo
 		if(super.onInput(state, action) == InteractorComponent.INTERRUPT) return InteractorComponent.INTERRUPT
 
 		if(action == 1){
-			if(state.i == GLFW_KEY_ESCAPE){
+			if (state.i == GLFW.GLFW_KEY_ESCAPE) {
 				window.shouldClose = true
 			}
 			else when(state.c){
@@ -174,15 +184,17 @@ class ShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLo
 		}
 	}
 
-	override fun updateAspectRatio() {
-		super.updateAspectRatio()
-		GLFunc.viewportO = Vec2i(window.width, window.height)
-	}
-
 	@Suppress("UNCHECKED_CAST")
 	inline fun <reified U: Uniform<E>, E : Any> setUniform(uniform: U, uniforms: Uniforms){
 		uniforms.set(uniform.name) { r ->
 			uniformValues[uniform.name] as? E
+		}
+	}
+
+	@Suppress("UNCHECKED_CAST")
+	fun setUniform(name: String, uniforms: Uniforms) {
+		uniforms.set(name) { r ->
+			uniformValues[name]
 		}
 	}
 

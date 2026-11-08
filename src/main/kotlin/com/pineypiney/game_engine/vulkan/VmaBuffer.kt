@@ -3,6 +3,7 @@ package com.pineypiney.game_engine.vulkan
 import com.pineypiney.game_engine.objects.Deletable
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
+import org.lwjgl.system.NativeType
 import org.lwjgl.system.libc.LibCString
 import org.lwjgl.util.vma.Vma
 import org.lwjgl.util.vma.VmaAllocationCreateInfo
@@ -11,7 +12,7 @@ import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VkBufferCreateInfo
 import java.nio.ByteBuffer
 
-class VmaBuffer(val device: VulkanDevice, val buffer: Long, val allocation: Long, val info: VmaAllocationInfo) : Deletable {
+class VmaBuffer(val device: VulkanDevice, @NativeType("VkBuffer") val buffer: Long, val allocation: Long, val info: VmaAllocationInfo) : Deletable {
 
 	val size: Long get() = info.size()
 

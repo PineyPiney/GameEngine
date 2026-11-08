@@ -1,8 +1,7 @@
 package com.pineypiney.game_engine.resources.shaders.opengl
 
 import com.pineypiney.game_engine.rendering.RenderingApi
-import com.pineypiney.game_engine.rendering.meshes.Mesh
-import com.pineypiney.game_engine.rendering.meshes.opengl.OpenGlMesh
+import com.pineypiney.game_engine.resources.shaders.DataType
 import com.pineypiney.game_engine.resources.shaders.Shader
 import com.pineypiney.game_engine.resources.shaders.ShaderStorageBuffer
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniform
@@ -40,6 +39,12 @@ import java.nio.LongBuffer
 abstract class OpenGlShader(private var program: Int, val uniforms: Map<String, String>, val ssboBindings: Map<String, Int>) : Shader {
 
 	val ssbos = mutableMapOf<String, OpenGlShaderStorageBuffer>()
+	val textureBindings: Map<String, Int>
+
+	init {
+		var i = 0
+		textureBindings = uniforms.filter { (_, type) -> DataType.Sampler.regex.matches(type) || DataType.Image.regex.matches(type) }.mapValues { i++ }
+	}
 
 	override fun use(api: RenderingApi) {
 		GL20C.glUseProgram(program)
@@ -55,17 +60,14 @@ abstract class OpenGlShader(private var program: Int, val uniforms: Map<String, 
 
 	override fun setTexture(name: String, texture: Texture) {
 		if (texture is OpenGlTexture) {
-			setInt(name, texture.binding)
-			texture.bind()
+			val binding = textureBindings[name] ?: return
+			setInt(name, binding)
+			texture.bind(binding)
 		}
 	}
 
 	override fun setTexture(binding: Int, texture: Texture) {
 		(texture as OpenGlTexture).bind(binding)
-	}
-
-	override fun setMesh(name: String, mesh: Mesh) {
-		(mesh as OpenGlMesh).bind()
 	}
 
 	override fun setBool(name: String, value: Boolean) = set1(name, value.i, GL46C::glUniform1i)

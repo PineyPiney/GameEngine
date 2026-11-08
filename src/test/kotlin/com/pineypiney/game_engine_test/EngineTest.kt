@@ -62,7 +62,7 @@ class EngineTest{
 
 	@Test
 	fun test3D(){
-		runOpenGlEngine(::Game3D, SDLManager)
+		runVulkanEngine(::Game3D, SDLManager)
 	}
 
 	@Test
@@ -87,7 +87,7 @@ class EngineTest{
 
 	@Test
 	fun testCollisionVisual(){
-		runOpenGlEngine(::CollisionTest, GLFWManager, 100)
+		runVulkanEngine(::CollisionTest, GLFWManager, 100)
 	}
 
 	@Test
@@ -102,7 +102,7 @@ class EngineTest{
 
 	@Test
 	fun testShader(){
-		runOpenGlEngine(::ShaderTest)
+		runVulkanEngine(::ShaderTest)
 	}
 
 	@Test
@@ -112,8 +112,8 @@ class EngineTest{
 
 	@Test
 	fun testTesselationShader() {
-		runOpenGlEngine(::TesselationShaderTest, version = Vec2i(4, 1))
-//		runVulkanEngine(::TesselationShaderTest)
+//		runOpenGlEngine(::TesselationShaderTest, version = Vec2i(4, 1))
+		runVulkanEngine(::TesselationShaderTest)
 	}
 
 	@Test
@@ -124,7 +124,7 @@ class EngineTest{
 
 	@Test
 	fun testTTFRender() {
-		runOpenGlEngine(::TTFTest)
+		runVulkanEngine(::TTFTest)
 	}
 
 	companion object {
@@ -188,7 +188,7 @@ class EngineTest{
 			.addFlag(WindowFlags.RESIZABLE).addFlag(WindowFlags.TRANSPARENT)
 			.visible(true).decorated(true).vSync(true)
 
-		val window = windowApi.createWindow("Editor", 1920, 1080, properties).apply { init() }
+		val window = windowApi.createWindow("Editor", 1280, 720, properties).apply { init() }
 		EditorEngine(window, VulkanManager.validated("Test Engine Editor", VK13.VK_API_VERSION_1_3, windowApi), listOf(DirectorySource("src/test/resources"), DirectorySource())).run()
 	}
 
@@ -200,7 +200,7 @@ class EngineTest{
 			.addFlag(WindowFlags.RESIZABLE).addFlag(WindowFlags.TRANSPARENT)
 			.visible(true).decorated(true).vSync(true)
 
-		val window = windowApi.createWindow("Editor", 1920, 1080, properties).apply { init() }
+		val window = windowApi.createWindow("Editor", 1600, 900, properties).apply { init() }
 		EditorEngine(window, OpenGlManager, listOf(DirectorySource("src/test/resources"), DirectorySource())).run()
 	}
 

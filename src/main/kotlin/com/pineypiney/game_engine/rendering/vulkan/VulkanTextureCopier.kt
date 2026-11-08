@@ -13,6 +13,7 @@ import glm_.vec2.Vec2l
 import glm_.vec3.Vec3i
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.VK10
+import org.lwjgl.vulkan.VK13
 import org.lwjgl.vulkan.VkImageBlit
 
 class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
@@ -31,7 +32,7 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 	}
 
 	// This allows the copier to reset the textures at the end
-	val oldLayouts = mutableMapOf<VulkanImage, Int>()
+	val oldLayouts = mutableMapOf<VulkanImage, Pair<Int, Long>>()
 
 	override fun init() {
 
@@ -39,18 +40,18 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 
 	override fun start() {
 		fence.reset()
-		cmd.resetBuffer()
+		cmd.resetPool()
 		cmd.begin(VK10.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)
 	}
 
-	fun setLayout(img: VulkanImage, layout: Int) {
-		if (!oldLayouts.containsKey(img)) oldLayouts[img] = img.layout
-		img.transition(cmd, layout)
+	fun setLayout(img: VulkanImage, layout: Int, accessMask: Long) {
+		if (!oldLayouts.containsKey(img)) oldLayouts[img] = img.layout to accessMask
+		img.transition(cmd, layout, VK13.VK_ACCESS_2_MEMORY_WRITE_BIT, accessMask, VK13.VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, VK13.VK_PIPELINE_STAGE_2_TRANSFER_BIT)
 	}
 
 	override fun setSrc(src: Texture2D) {
 		if (src is VulkanImage) {
-			setLayout(src, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+			setLayout(src, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK13.VK_ACCESS_2_TRANSFER_READ_BIT)
 			srcSize = Vec3i(src.size, 1)
 			images.x = src.image
 			layouts.x = src.layout
@@ -59,7 +60,7 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 
 	override fun setSrc(src: Texture3D, layer: Int) {
 		if (src is VulkanImage) {
-			setLayout(src, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+			setLayout(src, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK13.VK_ACCESS_2_TRANSFER_READ_BIT)
 			srcSize = src.size
 			images.x = src.image
 			layouts.x = src.layout
@@ -68,7 +69,7 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 
 	override fun setDst(dst: Texture2D) {
 		if (dst is VulkanImage) {
-			setLayout(dst, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+			setLayout(dst, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK13.VK_ACCESS_2_TRANSFER_WRITE_BIT)
 			dstSize = Vec3i(dst.size, 1)
 			images.y = dst.image
 			layouts.y = dst.layout
@@ -77,7 +78,7 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 
 	override fun setDst(dst: Texture3D, layer: Int) {
 		if (dst is VulkanImage) {
-			setLayout(dst, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+			setLayout(dst, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK13.VK_ACCESS_2_TRANSFER_WRITE_BIT)
 			dstSize = dst.size
 			images.y = dst.image
 			layouts.y = dst.layout
@@ -114,7 +115,9 @@ class VulkanTextureCopier(device: VulkanDevice) : TextureCopier() {
 	}
 
 	override fun execute() {
-		for ((img, layout) in oldLayouts) img.transition(cmd, layout)
+		for ((img, layout) in oldLayouts) {
+			img.transition(cmd, layout.first, layout.second, VulkanImage.getDefaultAccessMask(layout.first), VK13.VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK13.VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT)
+		}
 		cmd.end()
 
 		MemoryStack.stackPush().use { stack ->

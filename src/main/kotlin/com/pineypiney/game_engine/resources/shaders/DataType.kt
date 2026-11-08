@@ -12,6 +12,7 @@ import kotlin.math.min
 
 abstract class DataType {
 
+	/** Size of the DataType in bytes */
 	abstract val size: Int
 	abstract val manual: Boolean
 
@@ -170,7 +171,7 @@ abstract class DataType {
 			this.type = type
 			var qualifiers: Byte = 0
 			var format = ""
-			for ((key, value) in params) {
+			for ((key, _) in params) {
 				when (key) {
 					"coherent" -> qualifiers = qualifiers or 1
 					"volatile" -> qualifiers = qualifiers or 2

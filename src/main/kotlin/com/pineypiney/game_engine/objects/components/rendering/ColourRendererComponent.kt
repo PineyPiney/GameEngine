@@ -23,7 +23,7 @@ open class ColourRendererComponent(parent: GameObject, var colour: Vec4 = Vec4(1
 
 	override fun render(renderer: RendererI, tickDelta: Double) {
 		shader.setUp(uniforms, renderer)
-		shader.draw("vertexBuffer", mesh, renderer)
+		shader.draw(mesh, renderer)
 	}
 
 	companion object {

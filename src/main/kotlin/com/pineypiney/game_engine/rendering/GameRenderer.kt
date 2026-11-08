@@ -2,8 +2,6 @@ package com.pineypiney.game_engine.rendering
 
 import com.pineypiney.game_engine.GameLogicI
 import com.pineypiney.game_engine.objects.ObjectCollection
-import com.pineypiney.game_engine.resources.shaders.ShaderLoader
-import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.maths.I
 import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2i
@@ -45,10 +43,5 @@ abstract class GameRenderer<in E : GameLogicI>(override val window: Window, apiF
 	override fun delete() {
 		deleteFrameBuffers()
 		api.delete()
-	}
-
-	companion object {
-		val screenShader = ShaderLoader.loadRenderShader(ResourceKey("menu/screen"))
-		val screenUniforms = screenShader.compileUniforms()
 	}
 }

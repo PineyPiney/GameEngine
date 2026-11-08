@@ -176,7 +176,7 @@ class VoxModelLoader {
 
 		fun generateMesh(factory: ResourceFactory, colours: Array<Int>): ModelMesh {
 
-			val builder = IndexedMeshBuilder(VertexAttribute.POSITION, VertexAttribute.COLOUR)
+			val builder = IndexedMeshBuilder(listOf(setOf(VertexAttribute.POSITION), setOf(VertexAttribute.COLOUR)))
 
 			val colourMaps = toColourMaps()
 			for((colourIndex, map) in colourMaps){

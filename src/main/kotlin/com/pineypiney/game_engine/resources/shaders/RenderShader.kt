@@ -39,10 +39,12 @@ interface RenderShader : Shader {
 	val hasPointL get() = (lightMask and 2) > 0
 	val hasSpotL get() = (lightMask and 4) > 0
 
-	fun draw(meshName: String, mesh: Mesh, renderer: RendererI) =
-		draw(meshName, mesh, renderer.getRenderingApi())
+	fun draw(mesh: Mesh, renderer: RendererI) =
+		draw(mesh, renderer.getRenderingApi())
 
-	fun draw(meshName: String, mesh: Mesh, api: RenderingApi)
+	fun draw(mesh: Mesh, api: RenderingApi)
+
+	fun drawInstanced(mesh: Mesh, count: Int, api: RenderingApi)
 
 	override fun getModule(stage: ShaderStage): ShaderModule? {
 		return when (stage) {
@@ -114,32 +116,9 @@ interface RenderShader : Shader {
 			val vS = """
 				#version $version core
 				
-				#ifdef OPENGL
 				layout (location = 0) in vec2 aPos;
-				#endif
-				
-				#ifdef VULKAN
-				#extension GL_EXT_buffer_reference : require
-				struct Vertex {
-					vec2 position;
-				};
-
-				layout(buffer_reference, std430) readonly buffer VertexBuffer{
-					Vertex vertices[];
-				};
-
-				//push constants block
-				layout(push_constant) uniform constants
-				{
-					VertexBuffer vertexBuffer;
-				};
-				
-				#endif
 		 
 				void main(){
-					#ifdef VULKAN
-					vec2 aPos = vertexBuffer.vertices[gl_VertexID].position;
-					#endif
 					gl_Position = vec4(aPos, 0.0, 1.0);
 				}
 			""".trimIndent()

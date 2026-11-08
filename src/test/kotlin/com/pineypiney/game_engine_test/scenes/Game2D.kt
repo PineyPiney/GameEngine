@@ -25,7 +25,6 @@ import com.pineypiney.game_engine.resources.audio.AudioLoader
 import com.pineypiney.game_engine.resources.models.Model
 import com.pineypiney.game_engine.resources.models.ModelLoader
 import com.pineypiney.game_engine.resources.shaders.parameters.CullMode
-import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
 import com.pineypiney.game_engine.resources.textures.Texture2D
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.extension_functions.angle
@@ -115,7 +114,7 @@ class Game2D(override val gameEngine: WindowedGameEngineI<Game2D>) : WindowGameL
 	}
 
 	private val texture = GameObject.simpleTextureGameObject("broke texture", Texture2D.missing)
-	val modelShader = ModelRendererComponent.modelUnlit.withParameters(ResourceKey("nocull_model"), RenderShaderParameters(cullMode = CullMode.NONE))
+	val modelShader = ModelRendererComponent.modelUnlit.withParameters(ResourceKey("nocull_model"), ModelRendererComponent.modelUnlit.parameters.copy(cullMode = CullMode.NONE))
 	private val model1 = GameObject.simpleModelledGameObject("Goblin Object", ModelLoader.getModel(ResourceKey("goblin")), modelShader, debug = Model.DEBUG_COLLIDER)
 	private val model2 = GameObject.simpleModelledGameObject("Goblin Object", ModelLoader.getModel(ResourceKey("goblin")), modelShader, debug = 0)
 

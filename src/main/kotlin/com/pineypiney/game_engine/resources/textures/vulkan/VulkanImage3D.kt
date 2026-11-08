@@ -53,7 +53,14 @@ open class VulkanImage3D(
 						VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT
 				val converted = VkUtil.createImage(device, "$id converted", format, usage, VK10.VK_IMAGE_ASPECT_COLOR_BIT, Vec2i(width, height))
 				val d = VulkanImmediateSubmitter.submitAndFetch(device, VmaBuffer::getBuffer) { cmd ->
-					converted.transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+					converted.transition(
+						cmd,
+						VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+						VK13.VK_ACCESS_2_MEMORY_WRITE_BIT,
+						VK13.VK_ACCESS_2_TRANSFER_WRITE_BIT,
+						VK13.VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT,
+						VK13.VK_PIPELINE_STAGE_2_TRANSFER_BIT
+					)
 					copyTo(cmd, converted)
 					converted.fetchData(cmd, x, y, z, width, height, depth, VK10.VK_IMAGE_ASPECT_COLOR_BIT)
 				}

@@ -2,7 +2,10 @@ package com.pineypiney.game_engine.rendering.vulkan
 
 import com.pineypiney.game_engine.rendering.Framebuffer
 import com.pineypiney.game_engine.rendering.PresentingApi
+import com.pineypiney.game_engine.rendering.PresentingApi.Companion.screenShader
+import com.pineypiney.game_engine.rendering.PresentingApi.Companion.screenUniforms
 import com.pineypiney.game_engine.rendering.RendererI
+import com.pineypiney.game_engine.rendering.meshes.Mesh
 import com.pineypiney.game_engine.resources.shaders.vulkan.VulkanDescriptorAllocator
 import com.pineypiney.game_engine.resources.textures.vulkan.VulkanImage2D
 import com.pineypiney.game_engine.util.extension_functions.deleteArray
@@ -11,10 +14,7 @@ import com.pineypiney.game_engine.window.Window
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3i
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.vulkan.KHRSurface
-import org.lwjgl.vulkan.KHRSwapchain
-import org.lwjgl.vulkan.VK10
-import org.lwjgl.vulkan.VkQueue
+import org.lwjgl.vulkan.*
 
 class VulkanWindowRendering(val window: Window, val name: String, device: VulkanDevice) : VulkanRendering(), PresentingApi {
 
@@ -57,26 +57,46 @@ class VulkanWindowRendering(val window: Window, val name: String, device: Vulkan
 		// Copy the Draw Image to the Swapchain Image
 		val drawImage = framebuffer.colour as VulkanImage2D
 		val swapchainImage = swapchain.currentImage()
-		drawImage.transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
-		swapchainImage.transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, false)
+		// DrawImage is already transitioned by Framebuffer.end()
+//		drawImage.transition(cmd, VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK13.VK_ACCESS_2_MEMORY_READ_BIT)
+		swapchainImage.transition(
+			cmd,
+			VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			0L,
+			VK13.VK_ACCESS_2_TRANSFER_WRITE_BIT,
+			VK13.VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT,
+			VK13.VK_PIPELINE_STAGE_2_TRANSFER_BIT,
+			false
+		)
 		drawImage.copyTo(cmd, swapchainImage, Vec3i(0, drawImage.height, 0), Vec3i(drawImage.width, 0, 1))
 
 		// Prepare the Swapchain Image for presentation
-		swapchainImage.transition(cmd, KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+		swapchainImage.transition(
+			cmd,
+			KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+			VK13.VK_ACCESS_2_TRANSFER_WRITE_BIT,
+			0L,
+			VK13.VK_PIPELINE_STAGE_2_TRANSFER_BIT,
+			VK13.VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
+		)
+	}
+
+	override fun drawFramebuffer(framebuffer: Framebuffer, mesh: Mesh, window: Window, renderer: RendererI) {
+		screenShader.setUp(screenUniforms, renderer)
+		screenShader.setTexture("screenTexture", framebuffer.colour)
+		screenShader.draw(mesh, this)
 	}
 
 	override fun present() {
 		cmd.end()
 		val queue = device.getQueue(0)
-		submit(queue)
-		present(queue)
+		if (submit(queue)) present(queue)
 		VK10.vkQueueWaitIdle(queue)
 		frameIndex = (frameIndex + 1) % frames.size
 	}
 
-
-	fun submit(queue: VkQueue) {
-		MemoryStack.stackPush().use { stack ->
+	fun submit(queue: VkQueue): Boolean {
+		return MemoryStack.stackPush().use { stack ->
 			VkUtil.submitQueue(stack, queue, cmd, frameObjects.renderFence, frameObjects.swapchainSemaphore, frameObjects.renderSemaphore)
 		}
 	}

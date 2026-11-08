@@ -14,11 +14,14 @@ import com.pineypiney.game_engine.rendering.RendererI
 import com.pineypiney.game_engine.rendering.cameras.OrthographicCamera
 import com.pineypiney.game_engine.resources.shaders.ShaderLoader
 import com.pineypiney.game_engine.resources.shaders.opengl.OpenGlShader
+import com.pineypiney.game_engine.resources.shaders.parameters.CullMode
+import com.pineypiney.game_engine.resources.shaders.parameters.RenderShaderParameters
+import com.pineypiney.game_engine.resources.shaders.parameters.VertexBufferLayout
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniform
 import com.pineypiney.game_engine.resources.shaders.uniforms.Uniforms
 import com.pineypiney.game_engine.resources.textures.TextureFormat
-import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture2D
-import com.pineypiney.game_engine.util.GLFunc
+import com.pineypiney.game_engine.resources.textures.opengl.OpenGlTexture
+import com.pineypiney.game_engine.resources.textures.parameters.TextureParameters
 import com.pineypiney.game_engine.util.ResourceKey
 import com.pineypiney.game_engine.util.input.InputState
 import com.pineypiney.game_engine.util.input.knm.CursorPosition
@@ -33,10 +36,7 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
-import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL42C
-import org.lwjgl.opengl.GL43C
 
 @Suppress("UNUSED")
 class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>) : WindowGameLogic() {
@@ -44,13 +44,20 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>) : Windo
 	override val id: String = "Compute Shader Test"
 	override val renderer: GameRenderer<ComputeShaderTest> = DefaultWindowGameRenderer(window, ::OrthographicCamera) { gameEngine.manager.createPresentingApi(window, id) }
 
-	val shader = ShaderLoader[ResourceKey("compute_test"), ResourceKey("vertex/menu"), ResourceKey("fragment/texture")]
+	val shader = ShaderLoader[ResourceKey("compute_test"), ResourceKey("vertex/menu"), ResourceKey("fragment/texture"), RenderShaderParameters(
+		cullMode = CullMode.NONE,
+		depthTestOp = null,
+		blending = null,
+		vertexLayout = VertexBufferLayout.POS_TEX
+	)]
 	val uniformValues = mutableMapOf<String, Any>()
 	val compute = ShaderLoader[ResourceKey("compute/gradient")]
 
-	val texture = OpenGlTexture2D("ComputeTexture", OpenGlTexture2D.createPointer(null, TextureFormat.R8, 1024, 1024, GL30C.GL_RGBA, debug = true))
+	val texture = gameEngine.resourcesLoader.factory.createTexture2D("ComputeTexture", 1024, 1024, TextureFormat.RGBA8UI, null, TextureParameters())
 	init {
-		GL43C.glBindImageTexture(0, texture.texturePointer, 0, false, 0, GL43C.GL_READ_WRITE, GL43C.GL_RGBA8UI)
+		if (texture is OpenGlTexture) {
+			GL42C.glBindImageTexture(0, texture.texturePointer, 0, false, 0, GL42C.GL_READ_WRITE, GL42C.GL_RGBA8UI)
+		}
 	}
 
 	val obj = GameObject("Shader Object").apply {
@@ -106,7 +113,7 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>) : Windo
 		if(super.onInput(state, action) == InteractorComponent.INTERRUPT) return InteractorComponent.INTERRUPT
 
 		if(action == 1){
-			if(state.i == GLFW_KEY_ESCAPE){
+			if (state.i == GLFW.GLFW_KEY_ESCAPE) {
 				window.shouldClose = true
 			}
 			else when(state.c){
@@ -179,11 +186,6 @@ class ComputeShaderTest(override val gameEngine: WindowedGameEngineI<*>) : Windo
 				}
 			}
 		}
-	}
-
-	override fun updateAspectRatio() {
-		super.updateAspectRatio()
-		GLFunc.viewportO = Vec2i(window.width, window.height)
 	}
 
 	@Suppress("UNCHECKED_CAST")
